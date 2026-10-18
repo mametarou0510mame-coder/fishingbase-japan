@@ -1,5 +1,5 @@
 {
- "fetchedAt": "2026-10-18T07:48:54.176Z",
+ "fetchedAt": "2026-10-18T08:56:47.118Z",
  "source": "気象庁",
  "areas": {
   "260020": {
@@ -47,7 +47,91 @@
      "time": "2026-10-19T18:00:00+09:00",
      "pop": "50"
     }
-   ]
+   ],
+   "hourly": [
+    {
+     "time": "2026-10-18T18:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-18T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 19
+    },
+    {
+     "time": "2026-10-19T00:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 19
+    },
+    {
+     "time": "2026-10-19T03:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 19
+    },
+    {
+     "time": "2026-10-19T06:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 19
+    },
+    {
+     "time": "2026-10-19T09:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T12:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南西",
+     "windMin": 3,
+     "windMax": 5,
+     "temp": 25
+    },
+    {
+     "time": "2026-10-19T15:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 3,
+     "windMax": 5,
+     "temp": 24
+    },
+    {
+     "time": "2026-10-19T18:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南西",
+     "windMin": 3,
+     "windMax": 5,
+     "temp": 21
+    },
+    {
+     "time": "2026-10-19T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 3,
+     "windMax": 5,
+     "temp": 20
+    }
+   ],
+   "hourlyReport": "2026-10-18T17:00:00+09:00",
+   "hourlyPoint": "舞鶴"
   },
   "270000": {
    "name": "大阪府",
@@ -94,7 +178,91 @@
      "time": "2026-10-19T18:00:00+09:00",
      "pop": "60"
     }
-   ]
+   ],
+   "hourly": [
+    {
+     "time": "2026-10-18T18:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 24
+    },
+    {
+     "time": "2026-10-18T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T00:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 21
+    },
+    {
+     "time": "2026-10-19T03:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 21
+    },
+    {
+     "time": "2026-10-19T06:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 21
+    },
+    {
+     "time": "2026-10-19T09:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 24
+    },
+    {
+     "time": "2026-10-19T12:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 26
+    },
+    {
+     "time": "2026-10-19T15:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 25
+    },
+    {
+     "time": "2026-10-19T18:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 23
+    },
+    {
+     "time": "2026-10-19T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南西",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 23
+    }
+   ],
+   "hourlyReport": "2026-10-18T17:00:00+09:00",
+   "hourlyPoint": "大阪"
   },
   "280010": {
    "name": "南部",
@@ -141,7 +309,91 @@
      "time": "2026-10-19T18:00:00+09:00",
      "pop": "50"
     }
-   ]
+   ],
+   "hourly": [
+    {
+     "time": "2026-10-18T18:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 24
+    },
+    {
+     "time": "2026-10-18T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T00:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T03:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T06:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T09:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 23
+    },
+    {
+     "time": "2026-10-19T12:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 25
+    },
+    {
+     "time": "2026-10-19T15:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 25
+    },
+    {
+     "time": "2026-10-19T18:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 23
+    },
+    {
+     "time": "2026-10-19T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 10,
+     "windMax": 14,
+     "temp": 23
+    }
+   ],
+   "hourlyReport": "2026-10-18T17:00:00+09:00",
+   "hourlyPoint": "神戸"
   },
   "300010": {
    "name": "北部",
@@ -188,7 +440,91 @@
      "time": "2026-10-19T18:00:00+09:00",
      "pop": "60"
     }
-   ]
+   ],
+   "hourly": [
+    {
+     "time": "2026-10-18T18:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 24
+    },
+    {
+     "time": "2026-10-18T21:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 23
+    },
+    {
+     "time": "2026-10-19T00:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 23
+    },
+    {
+     "time": "2026-10-19T03:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 22
+    },
+    {
+     "time": "2026-10-19T06:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 20
+    },
+    {
+     "time": "2026-10-19T09:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 24
+    },
+    {
+     "time": "2026-10-19T12:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 26
+    },
+    {
+     "time": "2026-10-19T15:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 25
+    },
+    {
+     "time": "2026-10-19T18:00:00+09:00",
+     "weather": "くもり",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 25
+    },
+    {
+     "time": "2026-10-19T21:00:00+09:00",
+     "weather": "雨",
+     "windDir": "南",
+     "windMin": 6,
+     "windMax": 9,
+     "temp": 25
+    }
+   ],
+   "hourlyReport": "2026-10-18T17:00:00+09:00",
+   "hourlyPoint": "和歌山"
   }
  }
 }
