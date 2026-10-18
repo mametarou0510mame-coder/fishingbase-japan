@@ -9,12 +9,13 @@ export const metadata: Metadata = {
 
 export default function KansaiIndex() {
   const spots = publishedSpots();
-  const prefs = Array.from(new Set(spots.map((s) => s.pref)));
+  const ORDER = ["osaka", "hyogo", "kyoto", "wakayama"] as const;
+  const prefs = ORDER.filter((p) => spots.some((s) => s.pref === p));
   return (
     <>
       <h1>関西の釣り場</h1>
       <p className="lead">
-        公式情報で料金・ルールを確認できた釣り場から順に掲載しています。各ページの「最終確認日」もあわせてご覧ください。
+        料金・営業時間・ルールは公式情報で確認した日付とあわせて掲載しています。「概要のみ」の釣り場は、リンク先の施設サイトで詳細をご確認ください。
       </p>
       {prefs.map((p) => (
         <section key={p}>
@@ -25,7 +26,10 @@ export default function KansaiIndex() {
               .map((s) => (
                 <Link key={s.slug} href={`/kansai/${s.pref}/${s.slug}/`} className="card card-link">
                   <h3>{s.name}</h3>
-                  <p>{s.area}・{s.type}</p>
+                  <p>
+                    {s.area}・{s.type}
+                    {s.level === "basic" && "（概要のみ）"}
+                  </p>
                 </Link>
               ))}
           </div>

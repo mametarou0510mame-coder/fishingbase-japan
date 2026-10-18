@@ -7,7 +7,9 @@ export type Spot = {
   address: string;
   type: "海釣り施設" | "公園の釣り場";
   published: boolean;
-  verifiedOn: string; // 公式情報を確認した日
+  // full: 公式情報で料金・時間・ルールまで確認済み / basic: 概要とリンクのみ（詳細はリンク先で確認）
+  level: "full" | "basic";
+  verifiedOn: string; // 公式情報（basicはリンク先）を確認した日
   officialUrl: string;
   sourceUrls: string[];
   hours: string;
@@ -38,6 +40,7 @@ export const SPOTS: Spot[] = [
     address: "兵庫県尼崎市平左衛門町66",
     type: "海釣り施設",
     published: true,
+    level: "full",
     verifiedOn: "2026-10-18",
     officialUrl: "https://amagasaki-uoturikouen.com/",
     sourceUrls: ["https://amagasaki-uoturikouen.com/guide.html"],
@@ -72,6 +75,7 @@ export const SPOTS: Spot[] = [
     address: "兵庫県神戸市垂水区平磯1丁目1番66号",
     type: "海釣り施設",
     published: true,
+    level: "full",
     verifiedOn: "2026-10-18",
     officialUrl: "https://kobeumiduri.jp/",
     sourceUrls: [
@@ -113,6 +117,7 @@ export const SPOTS: Spot[] = [
     address: "和歌山県和歌山市毛見（和歌山マリーナシティ内）",
     type: "海釣り施設",
     published: true,
+    level: "full",
     verifiedOn: "2026-10-18",
     officialUrl: "https://www.marinacity.com/tsuri/",
     sourceUrls: ["https://www.marinacity.com/tsuri/"],
@@ -149,6 +154,7 @@ export const SPOTS: Spot[] = [
     address: "兵庫県神戸市須磨区一ノ谷町5丁目地先",
     type: "海釣り施設",
     published: true,
+    level: "full",
     verifiedOn: "2026-10-18",
     officialUrl: "https://sumasakana-park.com/",
     sourceUrls: [
@@ -189,6 +195,7 @@ export const SPOTS: Spot[] = [
     address: "京都府舞鶴市字千歳897-1",
     type: "公園の釣り場",
     published: true,
+    level: "full",
     verifiedOn: "2026-10-18",
     officialUrl: "https://www.city.maizuru.kyoto.jp/kurashi/0000009016.html",
     sourceUrls: ["https://www.city.maizuru.kyoto.jp/kurashi/0000009016.html"],
@@ -213,6 +220,7 @@ export const SPOTS: Spot[] = [
     address: "大阪府堺市堺区匠町6番1（海とのふれあい広場内）",
     type: "公園の釣り場",
     published: true,
+    level: "full",
     verifiedOn: "2026-10-18",
     officialUrl: "https://www.city.sakai.lg.jp/shisei/toshi/rinkai/umifureai/umizuriterasu.html",
     sourceUrls: [
@@ -237,6 +245,91 @@ export const SPOTS: Spot[] = [
     tideStation: { code: "SI", name: "堺" },
     intro:
       "堺市の「海とのふれあい広場」にある釣り用のテラスです。投げ釣りやまき餌は禁止されていますが、サビキ釣りで手軽に楽しめます。",
+  },
+  {
+    slug: "totto-park-kojima",
+    pref: "osaka",
+    name: "とっとパーク小島",
+    area: "泉南郡岬町",
+    address: "大阪府泉南郡岬町多奈川小島455-1",
+    type: "海釣り施設",
+    published: true,
+    level: "full",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://minnaga.com/totopark/",
+    sourceUrls: [
+      "https://www.town.misaki.osaka.jp/soshiki/toshi_seibi/sangyo/kannkou/leisure/fishing/203.html",
+      "https://minnaga.com/totopark/time.html",
+      "https://minnaga.com/totopark/ryokin.html",
+      "https://minnaga.com/totopark/kisoku.html",
+    ],
+    hours: "3〜11月 6:00〜20:00／12〜2月 7:00〜18:00",
+    closed: "毎週金曜（祝日は開園）、12月31日〜1月2日",
+    fees: [
+      { label: "釣り（大人）", value: "1,500円（15時以降の入場は1,000円）" },
+      { label: "釣り（小・中学生）", value: "750円（15時以降の入場は500円）" },
+      { label: "小学生未満", value: "無料（大人の釣り枠内で釣る場合）" },
+      { label: "見学", value: "見学のみの入園はなし（入園には釣り料金が必要）" },
+    ],
+    parking: "74台・無料（岬町の公式ページより）",
+    rentals: "釣具の貸し出しはなし",
+    rules: [
+      "ライフジャケット（フローティングベスト）を着用していない人は入園不可",
+      "竿は1人2本まで。竿釣り・手釣り以外の方法は禁止",
+      "紀州釣り・ヌカ切り（ダンゴ釣り）、ヌカ・砂・赤土の撒き餌は禁止",
+      "小学生以下は保護者の同伴が必要（日没後は中学生以下も同伴が必要）",
+      "飲酒しての釣り、ペット・危険物の持ち込み、園内（駐車場を含む）での火気は禁止",
+      "釣り場の必要以上の占有、他人に危険な釣り方は禁止",
+    ],
+    notes: ["混雑時は整理券が配布されます（公式サイトの「整理券配布の御案内」を確認してください）。"],
+    tideStation: { code: "TN", name: "淡輪" },
+    intro:
+      "関西国際空港の建設で使われた桟橋を再利用した、岬町の海釣り公園です。沖へ延びる桟橋から、季節ごとにさまざまな魚を狙えます。",
+  },
+  {
+    slug: "nanko-uotsuri-en",
+    pref: "osaka",
+    name: "南港魚つり園",
+    area: "大阪市住之江区",
+    address: "大阪府大阪市住之江区南港南6-9-3",
+    type: "海釣り施設",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://nankou-uotsuri-en.jp/",
+    sourceUrls: ["https://osaka-info.jp/spot/nanko-uotsuri-en-fishing-garden/"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [],
+    notes: [],
+    tideStation: { code: "OS", name: "大阪" },
+    intro:
+      "大阪市内から行きやすい、大阪湾に面した海釣り施設です。2026年4月にリニューアルオープンしています。",
+  },
+  {
+    slug: "naruohama-umizuri-hiroba",
+    pref: "hyogo",
+    name: "鳴尾浜臨海公園 海づり広場",
+    area: "西宮市",
+    address: "兵庫県西宮市鳴尾浜（鳴尾浜臨海公園 南地区内）",
+    type: "公園の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "http://www.naruohama-park.com/umizuri/",
+    sourceUrls: ["https://www.nishi.or.jp/access/sports/koen/naruohamakita.html"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [],
+    notes: [],
+    tideStation: { code: "J5", name: "西宮" },
+    intro: "西宮市の鳴尾浜臨海公園（南地区）にある海づり広場です。公園の指定管理者が運営しています。",
   },
 ];
 

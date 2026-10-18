@@ -49,22 +49,41 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       <table>
         <tbody>
           <tr><th>所在地</th><td>{spot.address}</td></tr>
-          <tr><th>営業時間</th><td>{spot.hours}</td></tr>
-          <tr><th>休業日</th><td>{spot.closed}</td></tr>
+          {spot.hours && <tr><th>営業時間</th><td>{spot.hours}</td></tr>}
+          {spot.closed && <tr><th>休業日</th><td>{spot.closed}</td></tr>}
           {spot.fees.map((f) => (
             <tr key={f.label}><th>{f.label}</th><td>{f.value}</td></tr>
           ))}
-          <tr><th>駐車場</th><td>{spot.parking}</td></tr>
-          <tr><th>レンタル・売店</th><td>{spot.rentals}</td></tr>
+          {spot.parking && <tr><th>駐車場</th><td>{spot.parking}</td></tr>}
+          {spot.rentals && <tr><th>レンタル・売店</th><td>{spot.rentals}</td></tr>}
         </tbody>
       </table>
 
-      <h2>ルール・禁止事項</h2>
-      <ul>
-        {spot.rules.map((r) => (
-          <li key={r}>{r}</li>
-        ))}
-      </ul>
+      {spot.level === "basic" && (
+        <div className="notice">
+          <strong>料金・営業時間・ルールはリンク先でご確認ください</strong>
+          <br />
+          この釣り場は、当サイトで最新のルールまで確認できていないため、概要のみ掲載しています。
+          お出かけ前に<a href={spot.officialUrl} rel="noopener">施設のサイト</a>
+          {spot.sourceUrls.map((u) => (
+            <span key={u}>
+              、<a href={u} rel="noopener">案内ページ（{new URL(u).hostname}）</a>
+            </span>
+          ))}
+          で、料金・営業時間・禁止事項をご確認ください。
+        </div>
+      )}
+
+      {spot.rules.length > 0 && (
+        <>
+          <h2>ルール・禁止事項</h2>
+          <ul>
+            {spot.rules.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        </>
+      )}
       {spot.notes.map((n) => (
         <p key={n} className="small">{n}</p>
       ))}
@@ -81,7 +100,9 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       )}
 
       <div className="notice">
-        <strong>最終確認日：{formatDate(spot.verifiedOn)}</strong>
+        <strong>
+          {spot.level === "full" ? "最終確認日" : "リンク確認日"}：{formatDate(spot.verifiedOn)}
+        </strong>
         <br />
         料金・営業時間・ルールは変わることがあります。お出かけ前に必ず
         <a href={spot.officialUrl} rel="noopener">公式サイト</a>
