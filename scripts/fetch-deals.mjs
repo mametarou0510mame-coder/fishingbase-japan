@@ -11,7 +11,7 @@ const ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/2
 
 const CATEGORIES = [
   { key: "sabiki", label: "サビキ釣りセット", keyword: "サビキ セット 竿 リール" },
-  { key: "lifejacket", label: "ライフジャケット（桜マーク）", keyword: "ライフジャケット 桜マーク 釣り" },
+  { key: "lifejacket", label: "ライフジャケット（桜マーク）", keyword: "ライフジャケット 桜マーク 釣り", mustInclude: "桜", fallbackLabel: "ライフジャケット" },
   { key: "cooler", label: "クーラーボックス", keyword: "クーラーボックス 釣り" },
   { key: "tachiuo", label: "タチウオ仕掛け", keyword: "タチウオ 仕掛け" },
   { key: "rig", label: "サビキ仕掛け", keyword: "サビキ 仕掛け" },
@@ -72,7 +72,17 @@ for (const c of CATEGORIES) {
       items = await search(c.keyword, false);
       kind = "popular";
     }
-    out.categories.push({ key: c.key, label: c.label, kind, items });
+    let label = c.label;
+    let unverified = false;
+    if (c.mustInclude) {
+      const ok = items.filter((i) => i.name.includes(c.mustInclude));
+      if (ok.length) items = ok;
+      else {
+        label = c.fallbackLabel;
+        unverified = true;
+      }
+    }
+    out.categories.push({ key: c.key, label, kind, unverified, items });
     console.log(`::notice::[deals] ${c.key}: ${items.length} (${kind})`);
   } catch (e) {
     console.log(`::warning::[deals] ${c.key}: ${String(e.message).replaceAll(APP_ID, "***").replaceAll(ACCESS_KEY, "***")}`);

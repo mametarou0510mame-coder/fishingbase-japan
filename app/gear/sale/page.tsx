@@ -35,6 +35,11 @@ export default function SalePage() {
             c.items.length ? (
               <section key={c.key}>
                 <h2>{c.label}</h2>
+                {c.unverified && (
+                  <p className="rank-warn">
+                    桜マークの有無は商品名から確認できませんでした。沖堤防（渡船）では桜マーク付きが必要なため、購入前に販売ページで必ずご確認ください。
+                  </p>
+                )}
                 {c.kind === "popular" && (
                   <p className="small">今日はポイントアップ中の商品がないため、レビューの多い人気商品を表示しています。</p>
                 )}
