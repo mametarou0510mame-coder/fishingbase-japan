@@ -13,7 +13,7 @@ export default function About() {
           <tr><th>運営</th><td>{SITE.name} 運営事務局（個人運営）</td></tr>
           <tr><th>URL</th><td>{SITE.url}</td></tr>
           <tr><th>連絡先</th><td>{SITE.contactEmail}</td></tr>
-          <tr><th>SNS</th><td><a href={SITE.instagram} rel="noopener">Instagram @fishingbase.japan</a></td></tr>
+          <tr><th>SNS</th><td><a href={SITE.instagram} rel="noopener">Instagram {SITE.instagramHandle}</a></td></tr>
           <tr><th>対象地域</th><td>関西（大阪府・兵庫県・和歌山県・京都府ほか）</td></tr>
         </tbody>
       </table>

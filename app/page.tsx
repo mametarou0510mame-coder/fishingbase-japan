@@ -1,16 +1,19 @@
 import Link from "next/link";
 import ThisMonthLink from "@/app/components/ThisMonthLink";
+import { AREAS } from "@/lib/areas";
+import { summarize } from "@/lib/catches";
 import { SITE } from "@/lib/site";
+import { publishedSpots } from "@/lib/spots";
 
 export default function Home() {
+  const spotCount = publishedSpots().length;
   return (
     <>
       <section className="hero">
-        <span className="badge">公開準備中</span>
         <h1>{SITE.tagline}</h1>
         <p>
-          関西の海釣り施設・釣り場について、釣果の傾向、潮汐、料金やルールを1ページにまとめ、
-          「今日どこへ行くか」を決められるサイトを準備しています。
+          関西の海釣り施設・釣り場{spotCount}か所について、最近の釣果、タイドグラフ、天気・風・波、料金やルールを1ページにまとめています。
+          「今日どこへ行くか」を決めるのにお使いください。
         </p>
       </section>
 
@@ -21,19 +24,37 @@ export default function Home() {
         <li><Link href="/species/">魚種から探す →</Link></li>
       </ul>
 
-      <h2>機能</h2>
+      <h2>エリア</h2>
+      <div className="cards">
+        {AREAS.map((a) => {
+          const top = summarize(a.spots).list.slice(0, 3);
+          return (
+            <Link key={a.slug} href={`/kansai/area/${a.slug}/`} className="card card-link">
+              <h3>{a.name}</h3>
+              <p>{a.region}</p>
+              {top.length > 0 && <p>最近：{top.map((t) => t.species.replace(/（.*）/, "")).join("、")}</p>}
+            </Link>
+          );
+        })}
+      </div>
+
+      <h2>このサイトでわかること</h2>
       <div className="cards">
         <div className="card">
-          <h3>釣り場ガイド</h3>
-          <p>料金・営業時間・駐車場・禁止事項を、公式情報の確認日つきで掲載します。</p>
+          <h3>最近釣れている魚</h3>
+          <p>海釣り施設・渡船が公開している釣果を毎日集計し、エリア・釣り場ごとに表示します。</p>
         </div>
         <div className="card">
-          <h3>今日の潮汐</h3>
-          <p>気象庁の潮位表をもとに、釣り場ごとの満潮・干潮と1日の潮位の変化を表示します（天気は準備中）。</p>
+          <h3>タイドグラフと潮の動き</h3>
+          <p>気象庁の潮位表をもとに、満潮・干潮と「潮がよく動く時間」を表示します。</p>
         </div>
         <div className="card">
-          <h3>釣れ指数</h3>
-          <p>公開されている釣果情報を集計し、場所・日付・時間帯ごとの傾向を参考値で示します。</p>
+          <h3>天気・風・波</h3>
+          <p>気象庁の府県予報を1日3回取り込んで表示します。</p>
+        </div>
+        <div className="card">
+          <h3>料金・ルール</h3>
+          <p>料金・営業時間・禁止事項を、確認日と出典つきで掲載しています。</p>
         </div>
       </div>
 
@@ -43,7 +64,7 @@ export default function Home() {
       </div>
 
       <p className="small">
-        最新情報は <a href={SITE.instagram} rel="noopener">Instagram（@fishingbase.japan）</a> でお知らせします。
+        最新情報は <a href={SITE.instagram} rel="noopener">Instagram（{SITE.instagramHandle}）</a> でお知らせします。
       </p>
     </>
   );

@@ -13,7 +13,7 @@ export default function Contact() {
       <table>
         <tbody>
           <tr><th>メール</th><td>{SITE.contactEmail}</td></tr>
-          <tr><th>Instagram DM</th><td><a href={SITE.instagram} rel="noopener">@fishingbase.japan</a></td></tr>
+          <tr><th>Instagram DM</th><td><a href={SITE.instagram} rel="noopener">{SITE.instagramHandle}</a></td></tr>
         </tbody>
       </table>
       <p className="small">返信まで数日いただく場合があります。釣り場の安全に関わるご連絡は優先して確認します。</p>

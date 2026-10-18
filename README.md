@@ -1,4 +1,4 @@
-# FishingBase Japan
+# ツレドキ関西（旧 FishingBase Japan）
 
 関西の釣果・潮・釣り場情報をまとめる Web サイト（Next.js 静的出力 → Cloudflare Pages）。
 

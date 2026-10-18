@@ -26,7 +26,7 @@ const out = { fetchedAt: new Date().toISOString(), source: "気象庁", areas: {
 for (const t of TARGETS) {
   try {
     const res = await fetch(`https://www.jma.go.jp/bosai/forecast/data/forecast/${t.office}.json`, {
-      headers: { "User-Agent": "FishingBaseJapan/0.1" },
+      headers: { "User-Agent": "TsuredokiKansai/0.1" },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();

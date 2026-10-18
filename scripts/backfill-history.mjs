@@ -7,7 +7,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { parseKishiwadaList, parseRss, parseHiraisoDaily, parseHiraisoDailyTitle, rssDateToJst } from "./catch-parsers.mjs";
 import { parseFile } from "./tide-parser.mjs";
 
-const UA = "FishingBaseJapan/0.1 (+https://fishingbase-japan.mametarou0510mame.workers.dev/about/)";
+const UA = "TsuredokiKansai/0.1 (+https://fishingbase-japan.mametarou0510mame.workers.dev/about/)";
 const DIR = new URL("../data/history/", import.meta.url);
 const target = process.argv[2];
 const maxMinutes = Number(process.argv[3] ?? 320);

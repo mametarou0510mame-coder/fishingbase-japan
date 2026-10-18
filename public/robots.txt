@@ -1,4 +1,4 @@
-# 公開準備中。各ページは meta robots noindex で検索登録を止めています。
-# Meta の審査クローラーがプライバシーポリシー等を読めるよう、ここではブロックしません。
 User-agent: *
 Allow: /
+
+Sitemap: https://fishingbase-japan.mametarou0510mame.workers.dev/sitemap.xml

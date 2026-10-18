@@ -127,3 +127,13 @@ article table { display: block; overflow-x: auto; }
 .index-table td:first-child { white-space: nowrap; }
 .idx { display: inline-flex; align-items: center; gap: 4px; margin: 2px 8px 2px 0; white-space: nowrap; }
 .idx b { background: var(--sea); color: var(--bg); border-radius: 6px; padding: 0 6px; font-size: 0.85rem; }
+
+/* 広告（アフィリエイト）枠 */
+.aff { border: 1px solid var(--border, #ccc); border-radius: 8px; padding: 12px 14px; margin: 16px 0; }
+.aff-label { font-size: 0.8rem; margin: 0 0 8px; }
+.pr { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; }
+.aff-item + .aff-item { border-top: 1px dashed var(--border, #ccc); padding-top: 8px; margin-top: 8px; }
+.aff-name { font-weight: 700; margin: 0; }
+.badge-s { font-size: 0.7rem; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: var(--accent-soft, rgba(0,120,200,.12)); }
+.aff-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 0; }
+.aff-links a { padding: 4px 10px; border-radius: 6px; border: 1px solid currentColor; text-decoration: none; }

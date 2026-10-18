@@ -26,7 +26,7 @@ export default function DataDeletion() {
         </li>
         <li>
           本人確認のため、当該アカウントからのDM（
-          <a href={SITE.instagram} rel="noopener">@fishingbase.japan</a> 宛て）をお願いする場合があります。
+          <a href={SITE.instagram} rel="noopener">{SITE.instagramHandle}</a> 宛て）をお願いする場合があります。
         </li>
       </ol>
 

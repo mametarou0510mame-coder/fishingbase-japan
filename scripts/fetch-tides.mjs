@@ -19,7 +19,7 @@ for (const code of STATIONS) {
   for (const y of years) {
     const url = `https://www.data.jma.go.jp/kaiyou/data/db/tide/suisan/txt/${y}/${code}.txt`;
     try {
-      const res = await fetch(url, { headers: { "User-Agent": "FishingBaseJapan/0.1 (+contact via site)" } });
+      const res = await fetch(url, { headers: { "User-Agent": "TsuredokiKansai/0.1 (+contact via site)" } });
       if (!res.ok) {
         console.warn(`[tides] ${code} ${y}: HTTP ${res.status}（未公開の年は正常）`);
         continue;
