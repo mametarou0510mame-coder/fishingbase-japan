@@ -83,8 +83,12 @@ export function hasCatchSource(spotSlug: string) {
   return loadCatches().sources.some((s) => s.spot === spotSlug);
 }
 
+export function sourcesOf(spotSlug: string) {
+  return loadCatches().sources.filter((s) => s.spot === spotSlug);
+}
+
 export function sourceOf(spotSlug: string) {
-  return loadCatches().sources.find((s) => s.spot === spotSlug) ?? null;
+  return sourcesOf(spotSlug)[0] ?? null;
 }
 
 export function monthlyOf(spotSlug: string) {

@@ -39,6 +39,12 @@ const SPECIES_DICT = [
   ["コノシロ", "コノシロ"],
   ["イシダイ", "イシダイ"],
   ["ハオコゼ", "ハオコゼ"],
+  ["イサキ", "ウリボウ", "イサキ"],
+  ["サッパ", "サッパ"],
+  ["コロダイ", "コロダイ"],
+  ["ハモ", "ハモ"],
+  ["エソ", "エソ"],
+  ["フグ", "クサフグ", "フグ"],
 ];
 const ALIASES = SPECIES_DICT.flatMap(([canon, ...aliases]) => aliases.map((a) => [a, canon])).sort(
   (a, b) => b[0].length - a[0].length,
@@ -65,7 +71,7 @@ export function normalizeSpecies(raw) {
 // ---- 共通ユーティリティ ----
 const toHalf = (s) =>
   s
-    .replace(/[０-９．]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+    .replace(/[０-９．Ａ-Ｚａ-ｚ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
     .replace(/：/g, ":")
     .replace(/[〜～]/g, "~")
     .replace(/㎝/g, "cm");
@@ -90,11 +96,14 @@ function decodeEntities(s) {
 }
 
 // "36cm" "10〜16cm" "43.5㎝" → 最大値（cm）
+// "12cm~15cm" "15~23cm" "47cm1470g" にも対応（cm の直前にある数値・範囲の最大値。g などは無視）
 export function parseMaxSizeCm(text) {
   const t = toHalf(text);
-  const m = t.match(/(\d+(?:\.\d+)?)(?:\s*~\s*(\d+(?:\.\d+)?))?\s*cm/i);
-  if (!m) return null;
-  return Number(m[2] ?? m[1]);
+  const nums = [];
+  for (const m of t.matchAll(/((?:\d+(?:\.\d+)?\s*(?:cm)?\s*~\s*)?\d+(?:\.\d+)?)\s*cm/gi)) {
+    for (const n of m[1].matchAll(/\d+(?:\.\d+)?/g)) nums.push(Number(n[0]));
+  }
+  return nums.length ? Math.max(...nums) : null;
 }
 
 function parseCount(text) {
@@ -209,6 +218,100 @@ export function parseKishiwadaList(html) {
     const key = n === 1 ? base : `${base}-${n}`;
     species.forEach((sp, i) =>
       out.push({ key: `${key}#${i}`, date: `${d[1]}-${d[2]}-${d[3]}`, species: sp, sizeCm: null, count: null, method: null, time }),
+    );
+  }
+  return out;
+}
+
+
+// ---- 汎用：釣果の表（尼崎市立魚つり公園・須磨海づり公園）----
+// 見出し行に「魚種」があれば列名で、なければ [魚種, サイズ, 匹数] の順とみなす。
+export function parseCatchTables(html) {
+  const out = [];
+  for (const t of html.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi)) {
+    if (/wp-calendar|business-hours/.test(t[0].slice(0, 200))) continue;
+    const rows = [...t[1].matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map((r) =>
+      [...r[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)].map((c) => decodeEntities(stripTags(c[1]))),
+    );
+    if (!rows.length) continue;
+    let cols = { species: 0, size: 1, count: 2, method: -1 };
+    let start = 0;
+    const head = rows[0];
+    if (head.some((c) => c.includes("魚種"))) {
+      const idx = (re) => head.findIndex((c) => re.test(c));
+      cols = { species: idx(/魚種/), size: idx(/サイズ|寸法/), count: idx(/匹|尾|数/), method: idx(/釣り方|仕掛/) };
+      start = 1;
+    } else if (head.length < 2 || head.length > 4) continue;
+    for (const r of rows.slice(start)) {
+      const name = r[cols.species] ?? "";
+      const species = findSpecies(name);
+      if (!species.length) continue;
+      const size = cols.size >= 0 ? r[cols.size] ?? "" : "";
+      const countText = cols.count >= 0 ? r[cols.count] ?? "" : "";
+      const method = cols.method >= 0 ? (r[cols.method] ?? "").trim() || null : null;
+      out.push({ species: species[0], sizeCm: parseMaxSizeCm(size), count: parseCount(countText), method });
+    }
+  }
+  return out;
+}
+
+// 尼崎市立魚つり公園：一覧ページから日別ページ（/fishing/YYYYMMDD.html）のURLを集める
+export function parseAmagasakiList(html) {
+  const set = new Set();
+  for (const m of html.matchAll(/href="([^"]*\/fishing\/(\d{8})\.html)"/g)) set.add(m[2]);
+  return [...set].map((d) => ({ date: `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`, url: `https://amagasaki-uoturikouen.com/fishing/${d}.html` }));
+}
+
+// ---- 釣具のポイント（関西エリアの「お持込釣果」一覧）----
+// 釣人の名前・スタッフ名・写真は保存しない。釣場の書き方から当サイトの釣り場に結び付けられるものだけ使う。
+export const POINT_PLACE_RULES = [
+  [/武庫川一文字|武庫一|武庫川渡船/, "mukogawa-ichimonji"],
+  [/岸和田一文字|岸和田渡船|岸一/, "kishiwada-ichimonji"],
+  [/尼崎.*(魚つり|魚釣り|釣り公園)|魚つり公園/, "amagasaki-uotsuri-koen"],
+  [/南港魚つり園|南港魚釣り園/, "nanko-uotsuri-en"],
+  [/平磯/, "hiraiso-umizuri-koen"],
+  [/須磨海づり|須磨海釣り|須磨の海づり/, "suma-umizuri-koen"],
+  [/マリーナシティ/, "marina-city-tsuri-koen"],
+  [/とっとパーク/, "totto-park-kojima"],
+  [/貝塚人工島|貝塚.*人工島/, "kaizuka-jinkoto"],
+  [/夢舞大橋/, "yumemai-ohashi-shita"],
+  [/舞洲/, "maishima-seaside-promenade"],
+  [/汐見(埠頭|ふ頭)/, "shiomi-futo"],
+  [/忠岡/, "tadaoka-suigintou"],
+  [/鳴尾浜/, "naruohama-umizuri-hiroba"],
+  [/海とのふれあい広場|堺.*釣りテラス/, "sakai-umizuri-terrace"],
+  [/舞鶴親海公園/, "maizuru-shinkai-koen"],
+];
+export function matchPointPlace(place) {
+  return POINT_PLACE_RULES.find(([re]) => re.test(place))?.[1] ?? null;
+}
+
+export function parsePointList(html) {
+  const out = [];
+  for (const m of html.matchAll(/<a href="\/fishing_infos\/(\d+)">([\s\S]*?)<\/a>/g)) {
+    const id = m[1];
+    const text = decodeEntities(stripTags(m[2]));
+    const field = (name) => text.match(new RegExp(`【${name}】\\s*([^【]*)`))?.[1]?.replace(/\.\.\.$/, "").trim() ?? "";
+    const dateRaw = field("日付").match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (!dateRaw) continue;
+    const date = `${dateRaw[1]}-${dateRaw[2].padStart(2, "0")}-${dateRaw[3].padStart(2, "0")}`;
+    const place = field("釣場");
+    const spot = matchPointPlace(place);
+    const species = findSpecies(field("釣魚"));
+    if (!spot || !species.length) continue;
+    const method = field("釣り方").replace(/\s*\.\.\.?\s*$/, "").replace(/&nbsp;|\u00a0/g, "").trim() || null;
+    species.forEach((sp, i) =>
+      out.push({
+        spot,
+        id: `point-${id}${i ? `-${i}` : ""}`,
+        date,
+        species: sp,
+        sizeCm: i === 0 ? parseMaxSizeCm(field("サイズ")) : null,
+        count: null,
+        method,
+        time: null,
+        url: `https://www.point-i.jp/fishing_infos/${id}`,
+      }),
     );
   }
   return out;

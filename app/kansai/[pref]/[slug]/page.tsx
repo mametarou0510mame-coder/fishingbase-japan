@@ -14,7 +14,7 @@ import { forecastFor } from "@/lib/weather";
 import { STATION_COORDS } from "@/lib/sun";
 import { SITE } from "@/lib/site";
 import { areaOfSpot } from "@/lib/areas";
-import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, summarize } from "@/lib/catches";
+import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, sourcesOf, summarize } from "@/lib/catches";
 import { PREF_LABEL, publishedSpots } from "@/lib/spots";
 
 type Params = { pref: string; slug: string };
@@ -140,8 +140,14 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         <>
           <h2>最近釣れている魚</h2>
           <p className="small">
-            直近{DEFAULT_DAYS}日間に施設が公開した釣果の集計です（出典：
-            <a href={source.url} rel="noopener">{source.name}</a>）。
+            直近{DEFAULT_DAYS}日間に施設・渡船・釣具店が公開した釣果の集計です（出典：
+            {sourcesOf(spot.slug).map((src, i) => (
+              <span key={src.url}>
+                {i > 0 && "、"}
+                <a href={src.url} rel="noopener">{src.name}</a>
+              </span>
+            ))}
+            ）。
           </p>
           <CatchSummary list={summary.list} />
           <CatchPatterns spotSlug={spot.slug} />

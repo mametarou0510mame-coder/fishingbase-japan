@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CatchSummary from "@/app/components/CatchSummary";
 import { AREAS, findArea } from "@/lib/areas";
-import { DEFAULT_DAYS, hasCatchSource, monthlyOf, sourceOf, summarize } from "@/lib/catches";
+import { DEFAULT_DAYS, hasCatchSource, monthlyOf, sourceOf, sourcesOf, summarize } from "@/lib/catches";
 import { speciesInMonth } from "@/lib/species";
 import { indexFor } from "@/lib/fishingIndex";
 import { SPOTS } from "@/lib/spots";
@@ -121,7 +121,13 @@ export default async function AreaPage({ params }: { params: Promise<Params> }) 
                   </p>
                 )}
                 <p className="small">
-                  出典：<a href={src.url} rel="noopener">{src.name}</a>
+                  出典：
+                  {sourcesOf(s.slug).map((x, i) => (
+                    <span key={x.url}>
+                      {i > 0 && "、"}
+                      <a href={x.url} rel="noopener">{x.name}</a>
+                    </span>
+                  ))}
                 </p>
               </>
             ) : (

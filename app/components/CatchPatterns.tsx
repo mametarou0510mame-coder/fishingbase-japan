@@ -32,7 +32,7 @@ export default function CatchPatterns({ spotSlug }: { spotSlug: string }) {
               ))}
             </tbody>
           </table>
-          <p className="small">施設が発表した釣果のうち、釣り方の記載があるもの（{methods.reports}件）を集計しています。</p>
+          <p className="small">施設・釣具店が発表した釣果のうち、釣り方の記載があるもの（{methods.reports}件）を集計しています。</p>
         </>
       )}
       {history.length > 0 && (

@@ -12,6 +12,9 @@ import {
   parseHiraisoMonthlyTable,
   normalizeSpecies,
   parseKishiwadaList,
+  parseCatchTables,
+  parseAmagasakiList,
+  parsePointList,
 } from "./catch-parsers.mjs";
 
 const OUT = new URL("../public/data/catches.json", import.meta.url);
@@ -60,7 +63,7 @@ async function hiraiso() {
       if (!date) continue;
       parseHiraisoDaily(html).forEach((r, i) => reports.push({ id: `${item.link}#${i}`, date, ...r, url: item.link }));
     } catch (e) {
-      console.warn(`[catches] hiraiso 日別ページ失敗: ${e.message}`);
+      console.log(`::warning::[catches] hiraiso 日別ページ失敗: ${e.message}`);
     }
   }
   return { reports, monthly };
@@ -78,10 +81,58 @@ async function kishiwada() {
   return { reports, monthly: null };
 }
 
+// 須磨海づり公園：RSSで日別ページを見つけ、各ページの釣果表（魚種・サイズ・匹数）を読む
+async function suma() {
+  const xml = await get("https://sumasakana-park.com/fishing/feed/");
+  const reports = [];
+  for (const item of parseRss(xml).slice(0, 7)) {
+    try {
+      const pub = rssDateToJst(item.pubDate);
+      const md = item.title.match(/(\d{1,2})\/(\d{1,2})/);
+      if (!pub) continue;
+      const date = md ? `${pub.slice(0, 4)}-${md[1].padStart(2, "0")}-${md[2].padStart(2, "0")}` : pub;
+      const html = await get(item.link);
+      parseCatchTables(html).forEach((r, i) => reports.push({ id: `${item.link}#${i}`, date, ...r, time: null, url: item.link }));
+    } catch (e) {
+      console.log(`::warning::[catches] suma 日別ページ失敗: ${e.message}`);
+    }
+  }
+  return { reports, monthly: null };
+}
+
+// 尼崎市立魚つり公園：一覧から日別ページ（/fishing/YYYYMMDD.html）を開き、釣果表（魚種・サイズ・匹数・釣り方）を読む
+async function amagasaki() {
+  const list = parseAmagasakiList(await get("https://amagasaki-uoturikouen.com/fishing/index.html"));
+  const reports = [];
+  for (const d of list.slice(0, 7)) {
+    try {
+      const html = await get(d.url);
+      parseCatchTables(html).forEach((r, i) => reports.push({ id: `${d.url}#${i}`, date: d.date, ...r, time: null, url: d.url }));
+    } catch (e) {
+      console.log(`::warning::[catches] amagasaki 日別ページ失敗: ${e.message}`);
+    }
+  }
+  return { reports, monthly: null };
+}
+
+// 釣具のポイント（関西エリアのお持込釣果）。釣場の書き方から当サイトの釣り場に結び付くものだけ。
+async function pointKansai() {
+  const reports = [];
+  for (const page of [1, 2, 3]) {
+    const html = await get(`https://www.point-i.jp/fishing_infos?area_id=94&shop_id=0&page=${page}`);
+    reports.push(...parsePointList(html));
+  }
+  return { reports, monthly: null };
+}
+
 const SOURCES = [
   { spot: "marina-city-tsuri-koen", name: "和歌山マリーナシティ釣り公園 釣果情報", url: "https://www.marinacity.com/tsuri/news/", run: marinaCity },
   { spot: "hiraiso-umizuri-koen", name: "平磯海づり公園 釣果情報", url: "https://kobeumiduri.jp/fishresult/", run: hiraiso },
   { spot: "kishiwada-ichimonji", name: "岸和田渡船 釣果情報", url: "https://kishiwadatosen.com/result/", run: kishiwada },
+  { spot: "suma-umizuri-koen", name: "須磨海づり公園 釣果情報", url: "https://sumasakana-park.com/fishing/", run: suma },
+  { spot: "amagasaki-uotsuri-koen", name: "尼崎市立魚つり公園 釣果情報", url: "https://amagasaki-uoturikouen.com/fishing/index.html", run: amagasaki },
+  // 複数の釣り場にまたがる出典（各釣果に spot が入っている）
+  { spot: null, key: "point-kansai", idPrefix: "point-", name: "釣具のポイント お持込釣果", url: "https://www.point-i.jp/fishing_infos?area_id=94", run: pointKansai },
 ];
 
 // ---- 実行 ----
@@ -102,16 +153,27 @@ const monthly = { ...(prev.monthly ?? {}) };
 const sources = [];
 
 for (const src of SOURCES) {
-  const prevSrc = prev.sources?.find((s) => s.spot === src.spot);
+  const label = src.spot ?? src.key;
+  const prevSrc = prev.sources?.find((s) => (s.key ?? s.spot) === label);
+  let ok = false;
   try {
     const { reports, monthly: m } = await src.run();
-    for (const r of reports) if (r.date >= cutoff && r.date <= todayJst) byId.set(`${src.spot}|${r.id}`, { spot: src.spot, ...r });
-    if (m) monthly[src.spot] = m;
-    sources.push({ spot: src.spot, name: src.name, url: src.url, lastSuccess: todayJst });
-    console.log(`[catches] ${src.spot}: ${reports.length}件`);
+    for (const r of reports) {
+      const spot = r.spot ?? src.spot;
+      if (r.date >= cutoff && r.date <= todayJst) byId.set(`${spot}|${r.id}`, { ...r, spot });
+    }
+    if (m && src.spot) monthly[src.spot] = m;
+    ok = true;
+    console.log(`::notice::[catches] ${label}: ${reports.length}件`);
   } catch (e) {
-    console.warn(`[catches] ${src.spot}: 失敗 ${e.message}`);
-    sources.push({ spot: src.spot, name: src.name, url: src.url, lastSuccess: prevSrc?.lastSuccess ?? null });
+    console.log(`::warning::[catches] ${label}: 失敗 ${e.message}`);
+  }
+  const lastSuccess = ok ? todayJst : prevSrc?.lastSuccess ?? null;
+  if (src.spot) sources.push({ spot: src.spot, name: src.name, url: src.url, lastSuccess });
+  else {
+    // 複数の釣り場にまたがる出典は、釣果が1件でもある釣り場ごとに出典として登録する
+    const spots = new Set([...byId.values()].filter((r) => r.id.startsWith(src.idPrefix)).map((r) => r.spot));
+    for (const spot of spots) sources.push({ spot, key: src.key, name: src.name, url: src.url, lastSuccess });
   }
 }
 
