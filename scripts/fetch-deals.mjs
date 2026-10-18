@@ -23,40 +23,57 @@ if (!APP_ID || !ACCESS_KEY) {
 }
 
 const out = { updatedOn: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10), categories: [] };
-for (const c of CATEGORIES) {
+// 楽天アフィリエイトのリンク（動作確認済みの形式）。APIが返すリンクではなく、オーナーのIDで作る
+const affiliateLink = (itemUrl) =>
+  `https://hb.afl.rakuten.co.jp/hgc/${AFFILIATE_ID}/?pc=${encodeURIComponent(itemUrl)}&m=${encodeURIComponent(itemUrl)}`;
+// 商品名から【クーポン】などの宣伝文を除く
+const cleanName = (n) => String(n ?? "").replace(/【[^】]*】|［[^］]*］|\[[^\]]*\]/g, " ").replace(/\s+/g, " ").trim().slice(0, 70);
+
+async function search(keyword, pointUp) {
   const params = new URLSearchParams({
     applicationId: APP_ID,
     accessKey: ACCESS_KEY,
     affiliateId: AFFILIATE_ID,
     format: "json",
     formatVersion: "2",
-    keyword: c.keyword,
+    keyword,
     hits: "6",
     sort: "-reviewCount",
     availability: "1",
-    pointRateFlag: "1", // ポイント2倍以上の商品だけ
     imageFlag: "1",
   });
+  if (pointUp) params.set("pointRateFlag", "1"); // ポイント2倍以上の商品だけ
+  const res = await fetch(`${ENDPOINT}?${params}`, { headers: { Origin: ORIGIN } });
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+  const json = await res.json();
+  return (json.Items ?? []).map((it) => {
+    const i = it.Item ?? it;
+    const img = i.mediumImageUrls?.[0];
+    return {
+      name: cleanName(i.itemName),
+      price: i.itemPrice ?? null,
+      url: affiliateLink(String(i.itemUrl).trim()),
+      image: String(img?.imageUrl ?? img ?? "").replace(/\?_ex=\d+x\d+/, "?_ex=200x200"),
+      shop: i.shopName ?? "",
+      pointRate: i.pointRate ?? 1,
+      pointEnd: i.pointRateEndTime ?? "",
+      review: i.reviewAverage ?? null,
+      reviewCount: i.reviewCount ?? 0,
+    };
+  });
+}
+
+for (const c of CATEGORIES) {
   try {
-    const res = await fetch(`${ENDPOINT}?${params}`, { headers: { Origin: ORIGIN } });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
-    const json = await res.json();
-    const items = (json.Items ?? []).map((it) => {
-      const i = it.Item ?? it;
-      return {
-        name: String(i.itemName ?? "").slice(0, 80),
-        price: i.itemPrice ?? null,
-        url: i.affiliateUrl || i.itemUrl,
-        image: (i.mediumImageUrls?.[0]?.imageUrl ?? i.mediumImageUrls?.[0] ?? "").replace(/\?_ex=\d+x\d+/, "?_ex=200x200"),
-        shop: i.shopName ?? "",
-        pointRate: i.pointRate ?? 1,
-        pointEnd: i.pointRateEndTime ?? "",
-        review: i.reviewAverage ?? null,
-        reviewCount: i.reviewCount ?? 0,
-      };
-    });
-    out.categories.push({ key: c.key, label: c.label, items });
-    console.log(`::notice::[deals] ${c.key}: ${items.length}`);
+    let items = await search(c.keyword, true);
+    let kind = "point";
+    if (items.length === 0) {
+      await new Promise((r) => setTimeout(r, 1200));
+      items = await search(c.keyword, false);
+      kind = "popular";
+    }
+    out.categories.push({ key: c.key, label: c.label, kind, items });
+    console.log(`::notice::[deals] ${c.key}: ${items.length} (${kind})`);
   } catch (e) {
     console.log(`::warning::[deals] ${c.key}: ${String(e.message).replaceAll(APP_ID, "***").replaceAll(ACCESS_KEY, "***")}`);
   }

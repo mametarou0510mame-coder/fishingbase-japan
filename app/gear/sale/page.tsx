@@ -35,6 +35,9 @@ export default function SalePage() {
             c.items.length ? (
               <section key={c.key}>
                 <h2>{c.label}</h2>
+                {c.kind === "popular" && (
+                  <p className="small">今日はポイントアップ中の商品がないため、レビューの多い人気商品を表示しています。</p>
+                )}
                 <ul className="deal-grid">
                   {c.items.map((i) => (
                     <li key={i.url} className="deal">

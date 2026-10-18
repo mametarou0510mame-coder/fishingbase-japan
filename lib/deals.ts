@@ -12,7 +12,7 @@ export type Deal = {
   review: number | null;
   reviewCount: number;
 };
-export type DealData = { updatedOn: string; categories: { key: string; label: string; items: Deal[] }[] };
+export type DealData = { updatedOn: string; categories: { key: string; label: string; kind?: "point" | "popular"; items: Deal[] }[] };
 
 export function loadDeals(): DealData | null {
   try {
