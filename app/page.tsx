@@ -13,15 +13,19 @@ export default function Home() {
         </p>
       </section>
 
-      <h2>準備中の機能</h2>
+      <p>
+        <Link href="/kansai/">関西の釣り場一覧を見る →</Link>
+      </p>
+
+      <h2>機能</h2>
       <div className="cards">
         <div className="card">
           <h3>釣り場ガイド</h3>
           <p>料金・営業時間・駐車場・禁止事項を、公式情報の確認日つきで掲載します。</p>
         </div>
         <div className="card">
-          <h3>今日の潮と天気</h3>
-          <p>気象庁の潮位表・発表値をもとに、釣り場ごとの潮汐を表示します。</p>
+          <h3>今日の潮汐</h3>
+          <p>気象庁の潮位表をもとに、釣り場ごとの満潮・干潮と1日の潮位の変化を表示します（天気は準備中）。</p>
         </div>
         <div className="card">
           <h3>釣れ指数</h3>

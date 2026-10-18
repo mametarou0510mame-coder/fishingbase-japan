@@ -82,3 +82,19 @@ th { width: 32%; color: var(--muted); font-weight: 600; }
 .site-footer { border-top: 1px solid var(--line); background: var(--sand); padding: 24px 0; }
 .footer-links { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.88rem; }
 .footer-links a { color: var(--ink); }
+
+.card-link { display: block; text-decoration: none; color: inherit; }
+.card-link:hover { border-color: var(--sea-2); }
+
+.tide { margin: 8px 0 4px; }
+.tide-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+.tide-tabs button {
+  flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: 999px; padding: 4px 12px; font-size: 0.85rem; cursor: pointer; font-family: inherit;
+}
+.tide-tabs button.on { background: var(--sea); border-color: var(--sea); color: var(--bg); }
+.tide-table th { width: 22%; }
+.tide-chart { width: 100%; max-width: 520px; height: auto; display: block; margin: 8px 0; }
+.tide-chart .line { stroke: var(--sea-2); stroke-width: 2.5; stroke-linejoin: round; }
+.tide-chart .grid { stroke: var(--line); stroke-width: 1; }
+.tide-chart .axis { fill: var(--muted); font-size: 10px; }
