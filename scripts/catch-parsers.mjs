@@ -5,6 +5,8 @@
 // ---- 魚種名の正規化 ----
 // [表示名, 別名...]。長い別名から順に照合する。
 const SPECIES_DICT = [
+  ["アジ・サバ・イワシ", "アジ/サバ/イワシ", "アジ・サバ・イワシ"],
+  ["青物（種類不明）", "青物"],
   ["アジ", "マアジ", "小アジ", "豆アジ", "アジ"],
   ["サバ", "マサバ", "ゴマサバ", "小サバ", "サバ"],
   ["イワシ", "カタクチイワシ", "マイワシ", "ウルメイワシ", "イワシ"],
@@ -183,4 +185,30 @@ export function parseHiraisoMonthlyTable(html) {
       method: r[4] ?? "",
       bait: r[5] ?? "",
     }));
+}
+
+// ---- 岸和田渡船：釣果一覧ページ ----
+// 1件 = .result-bigbox。日付(.title)とタグ(.arch_term)だけを読む。
+// 見出し・本文・画像の説明文には利用者の名前が入るため読まない。
+const TIME_TAGS = ["早朝", "午前", "午後", "夕方", "夜", "夜釣り"];
+export function parseKishiwadaList(html) {
+  const out = [];
+  const seen = new Map();
+  for (const block of html.split('class="result-bigbox').slice(1)) {
+    const d = toHalf(block).match(/<div class="title">\s*(\d{4})\.(\d{2})\.(\d{2})\s*<\/div>/);
+    const term = block.match(/<div class="arch_term">([\s\S]*?)<\/div>/);
+    if (!d || !term) continue;
+    const tags = [...term[1].matchAll(/<a[^>]*>([\s\S]*?)<\/a>/g)].map((m) => stripTags(m[1]));
+    const time = tags.filter((t) => TIME_TAGS.includes(t)).join("・") || null;
+    const species = [...new Set(tags.filter((t) => !TIME_TAGS.includes(t)).flatMap((t) => findSpecies(t)))];
+    const img = block.match(/<img[^>]*src="([^"]+)"/)?.[1] ?? block.match(/href="([^"]+\.(?:jpe?g|png))"/i)?.[1] ?? "";
+    const base = `${d[1]}${d[2]}${d[3]}-${img.split("/").pop() || tags.join("_")}`;
+    const n = (seen.get(base) ?? 0) + 1;
+    seen.set(base, n);
+    const key = n === 1 ? base : `${base}-${n}`;
+    species.forEach((sp, i) =>
+      out.push({ key: `${key}#${i}`, date: `${d[1]}-${d[2]}-${d[3]}`, species: sp, sizeCm: null, count: null, method: null, time }),
+    );
+  }
+  return out;
 }

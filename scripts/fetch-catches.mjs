@@ -11,6 +11,7 @@ import {
   parseHiraisoDailyTitle,
   parseHiraisoMonthlyTable,
   normalizeSpecies,
+  parseKishiwadaList,
 } from "./catch-parsers.mjs";
 
 const OUT = new URL("../public/data/catches.json", import.meta.url);
@@ -65,9 +66,22 @@ async function hiraiso() {
   return { reports, monthly };
 }
 
+async function kishiwada() {
+  const reports = [];
+  for (const page of ["https://kishiwadatosen.com/result/", "https://kishiwadatosen.com/result/page/2/", "https://kishiwadatosen.com/result/page/3/"]) {
+    const html = await get(page);
+    for (const r of parseKishiwadaList(html)) {
+      const { key, ...rest } = r;
+      reports.push({ id: key, ...rest, url: "https://kishiwadatosen.com/result/" });
+    }
+  }
+  return { reports, monthly: null };
+}
+
 const SOURCES = [
   { spot: "marina-city-tsuri-koen", name: "和歌山マリーナシティ釣り公園 釣果情報", url: "https://www.marinacity.com/tsuri/news/", run: marinaCity },
   { spot: "hiraiso-umizuri-koen", name: "平磯海づり公園 釣果情報", url: "https://kobeumiduri.jp/fishresult/", run: hiraiso },
+  { spot: "kishiwada-ichimonji", name: "岸和田渡船 釣果情報", url: "https://kishiwadatosen.com/result/", run: kishiwada },
 ];
 
 // ---- 実行 ----
