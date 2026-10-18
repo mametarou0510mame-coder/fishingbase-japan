@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Dela_Gothic_One } from "next/font/google";
+import Logo from "@/app/components/Logo";
 import { SITE } from "@/lib/site";
 import "./globals.css";
+
+// ロゴと大見出し用の看板風ゴシック（本文は端末標準のゴシック）
+const display = Dela_Gothic_One({ weight: "400", preload: false, display: "swap", variable: "--font-display" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -16,18 +21,17 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0b3d5c",
+  themeColor: "#10345A",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja">
+    <html lang="ja" className={display.variable}>
       <body>
         <header className="site-header">
           <div className="wrap header-inner">
-            <Link href="/" className="logo">
-              <span className="logo-mark" aria-hidden="true">◢</span>
-              {SITE.name}
+            <Link href="/" className="logo" aria-label={`${SITE.name} トップへ`}>
+              <Logo />
             </Link>
             <nav aria-label="メイン">
               <Link href="/kansai/area/">エリア</Link>
@@ -37,6 +41,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/contact/">お問い合わせ</Link>
             </nav>
           </div>
+          <svg className="header-wave" viewBox="0 0 1200 24" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 0 H1200 V8 C1100 20 1000 20 900 10 S700 0 600 10 S400 22 300 12 S100 2 0 12 Z" />
+          </svg>
         </header>
         <main className="wrap">{children}</main>
         <footer className="site-footer">

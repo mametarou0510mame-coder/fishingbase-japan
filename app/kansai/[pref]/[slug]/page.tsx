@@ -8,6 +8,7 @@ import FishingIndex from "@/app/components/FishingIndex";
 import SpotGear from "@/app/components/SpotGear";
 import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
+import { STATION_COORDS } from "@/lib/sun";
 import { areaOfSpot } from "@/lib/areas";
 import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, summarize } from "@/lib/catches";
 import { PREF_LABEL, publishedSpots } from "@/lib/spots";
@@ -58,10 +59,15 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       <h1>{spot.name}</h1>
       <p className="lead">{spot.intro}</p>
 
-      <h2>タイドグラフ・潮位</h2>
-      <TideWidget code={spot.tideStation.code} stationName={spot.tideStation.name} />
+      <h2>タイドグラフ・天気・風・波</h2>
+      <TideWidget
+        code={spot.tideStation.code}
+        stationName={spot.tideStation.name}
+        coords={STATION_COORDS[spot.tideStation.code]}
+        weather={forecast.data}
+      />
 
-      <h2>天気・風・波</h2>
+      <h3>3日間の天気（{forecast.label}）</h3>
       <WeatherPanel label={forecast.label} data={forecast.data} />
 
       {fishIndex.data && (

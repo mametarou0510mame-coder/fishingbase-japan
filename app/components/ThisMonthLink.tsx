@@ -9,6 +9,6 @@ export default function ThisMonthLink() {
   useEffect(() => {
     setMonth(new Date(Date.now() + 9 * 3600 * 1000).getUTCMonth() + 1);
   }, []);
-  if (month === null) return <Link href="/kansai/month/">月別：関西で釣れる魚 →</Link>;
-  return <Link href={`/kansai/month/${month}/`}>{month}月に関西で釣れる魚 →</Link>;
+  if (month === null) return <Link href="/kansai/month/">月別：関西で釣れる魚</Link>;
+  return <Link href={`/kansai/month/${month}/`}>{month}月に関西で釣れる魚</Link>;
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { hm, sunTimes } from "@/lib/sun";
+import type { WeatherArea } from "@/lib/weather";
 
 type TideEvent = { time: string; cm: number };
 type TideDay = { date: string; hourly: (number | null)[]; high: TideEvent[]; low: TideEvent[] };
@@ -29,7 +31,9 @@ async function loadYear(code: string, year: number): Promise<TideDay[]> {
   }
 }
 
-function TideChart({ day, isToday }: { day: TideDay; isToday: boolean }) {
+type Sun = { rise: number; set: number } | null;
+
+function TideChart({ day, isToday, sun }: { day: TideDay; isToday: boolean; sun: Sun }) {
   const values = day.hourly.filter((v): v is number => v !== null);
   if (values.length < 2) return null;
   const min = Math.min(...values) - 10;
@@ -56,7 +60,15 @@ function TideChart({ day, isToday }: { day: TideDay; isToday: boolean }) {
     (v, i, a) => a.indexOf(v) === i && v >= min && v <= max,
   );
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="tide-chart" role="img" aria-label="1日の潮位の変化と潮がよく動く時間帯">
+    <svg viewBox={`0 0 ${W} ${H}`} className="tide-chart" role="img" aria-label="1日の潮位の変化と潮がよく動く時間帯、日の出・日の入り">
+      {sun && (
+        <>
+          <rect x={x(0)} y={12} width={x(sun.rise) - x(0)} height={H - 40} className="night" />
+          <rect x={x(sun.set)} y={12} width={x(23) - x(sun.set)} height={H - 40} className="night" />
+          <text x={x(sun.rise)} y={22} textAnchor="middle" className="sunmark">日の出</text>
+          <text x={x(sun.set)} y={22} textAnchor="middle" className="sunmark">日の入</text>
+        </>
+      )}
       {ranges.map((r) => (
         <rect key={r.from} x={x(r.from)} y={12} width={x(r.to) - x(r.from)} height={H - 40} className="moving" />
       ))}
@@ -87,7 +99,114 @@ function TideChart({ day, isToday }: { day: TideDay; isToday: boolean }) {
       )}
       <rect x={L} y={H - 9} width={10} height={7} className="moving" />
       <text x={L + 14} y={H - 3} className="axis">潮がよく動く時間</text>
+      {sun && (
+        <>
+          <rect x={L + 120} y={H - 9} width={10} height={7} className="night" />
+          <text x={L + 134} y={H - 3} className="axis">夜間（日の入〜日の出）</text>
+        </>
+      )}
     </svg>
+  );
+}
+
+const DIRS = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東", "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西"];
+const toJst = (iso: string) => new Date(new Date(iso).getTime() + 9 * 3600 * 1000);
+function icon(w: string) {
+  if (w.includes("雪")) return "❄";
+  if (w.includes("雨")) return "☂";
+  if (w.includes("くもり")) return "☁";
+  if (w.includes("晴")) return "☀";
+  return "・";
+}
+
+// 選んだ日の3時間ごとの天気・風・気温・降水確率と、その日の波（気象庁の発表をそのまま表示）
+function HourlyWeather({ date, weather }: { date: string; weather: WeatherArea | null }) {
+  if (!weather) return null;
+  const slots = (weather.hourly ?? []).filter((h) => toJst(h.time).toISOString().slice(0, 10) === date);
+  const daily = weather.days.find((d) => d.date === date);
+  const popAt = (hour: number) => {
+    const p = weather.pops.find((p) => {
+      const t = toJst(p.time);
+      return t.toISOString().slice(0, 10) === date && t.getUTCHours() <= hour && hour < t.getUTCHours() + 6;
+    });
+    return p && p.pop !== null && p.pop !== "" ? `${p.pop}%` : "―";
+  };
+  if (slots.length === 0 && !daily) {
+    return <p className="small">この日の天気予報はまだ発表されていません（気象庁の府県予報は3日先まで）。</p>;
+  }
+  return (
+    <div className="hourly">
+      {slots.length > 0 ? (
+        <div className="hourly-scroll">
+          <table className="hourly-table">
+            <tbody>
+              <tr>
+                <th>時刻</th>
+                {slots.map((h) => (
+                  <td key={h.time}>{toJst(h.time).getUTCHours()}時</td>
+                ))}
+              </tr>
+              <tr>
+                <th>天気</th>
+                {slots.map((h) => (
+                  <td key={h.time} title={h.weather}>
+                    <span className="wx" aria-hidden="true">{icon(h.weather)}</span>
+                    <span className="wx-text">{h.weather}</span>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <th>風</th>
+                {slots.map((h) => {
+                  const i = DIRS.indexOf(h.windDir);
+                  const strong = (h.windMax ?? 0) >= 10;
+                  return (
+                    <td key={h.time} className={strong ? "warn" : ""}>
+                      {i >= 0 && (
+                        <span className="arrow" style={{ transform: `rotate(${i * 22.5 + 180}deg)` }} aria-hidden="true">↑</span>
+                      )}
+                      <span className="wind-dir">{h.windDir || "―"}</span>
+                      <span className="wind-speed">
+                        {h.windMin !== null && h.windMax !== null ? `${h.windMin}〜${h.windMax}m` : ""}
+                      </span>
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr>
+                <th>気温</th>
+                {slots.map((h) => (
+                  <td key={h.time}>{h.temp !== null ? `${h.temp}℃` : "―"}</td>
+                ))}
+              </tr>
+              <tr>
+                <th>降水</th>
+                {slots.map((h) => (
+                  <td key={h.time}>{popAt(toJst(h.time).getUTCHours())}</td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        daily && (
+          <p className="small">
+            この日の時間ごとの予報はまだありません。1日の予報：{daily.weather}／{daily.wind}
+          </p>
+        )
+      )}
+      {daily && (
+        <p className="wave">
+          <strong>波</strong> {daily.wave || "―"}
+          {slots.length > 0 && <span className="small">（風：{daily.wind}）</span>}
+        </p>
+      )}
+      <p className="small">
+        天気・風・気温：気象庁「地域時系列予報」{weather.hourlyPoint ? `（気温は${weather.hourlyPoint}）` : ""}、
+        波・降水確率：気象庁「府県天気予報」（{weather.name}）。風速は時刻ごとの予想の幅です。
+        風が10m以上の時間帯は赤で示しています。風が強い日や波が高い日は釣行を中止してください。
+      </p>
+    </div>
   );
 }
 
@@ -130,7 +249,17 @@ function rangeClass(day: TideDay, all: TideDay[]) {
   return "中くらい";
 }
 
-export default function TideWidget({ code, stationName }: { code: string; stationName: string }) {
+export default function TideWidget({
+  code,
+  stationName,
+  coords,
+  weather,
+}: {
+  code: string;
+  stationName: string;
+  coords?: { lat: number; lon: number };
+  weather?: WeatherArea | null;
+}) {
   const [days, setDays] = useState<TideDay[] | null>(null);
   const [offset, setOffset] = useState(0);
   const dates = useMemo(() => Array.from({ length: 7 }, (_, i) => jstDate(i)), []);
@@ -141,6 +270,7 @@ export default function TideWidget({ code, stationName }: { code: string; statio
   }, [code, dates]);
 
   const day = days?.find((d) => d.date === dates[offset]);
+  const sun = coords ? sunTimes(dates[offset], coords.lat, coords.lon) : null;
 
   return (
     <section className="tide">
@@ -178,6 +308,14 @@ export default function TideWidget({ code, stationName }: { code: string; statio
                   {tideRangeCm(day)}cm（{rangeClass(day, days ?? [])}）
                 </td>
               </tr>
+              {sun && (
+                <tr>
+                  <th>日の出・日の入</th>
+                  <td>
+                    日の出 {hm(sun.rise)}　日の入 {hm(sun.set)}
+                  </td>
+                </tr>
+              )}
               <tr>
                 <th>潮がよく動く時間</th>
                 <td>
@@ -188,7 +326,8 @@ export default function TideWidget({ code, stationName }: { code: string; statio
               </tr>
             </tbody>
           </table>
-          <TideChart day={day} isToday={offset === 0} />
+          <TideChart day={day} isToday={offset === 0} sun={sun} />
+          <HourlyWeather date={dates[offset]} weather={weather ?? null} />
           <p className="small tide-tip">
             満潮・干潮の前後は潮の流れが止まりやすく、その間の「潮が動いている時間」は魚の活性が上がり、
             一般に最も釣れやすい時間帯といわれます。干満差が大きい日ほど潮がよく動きます。

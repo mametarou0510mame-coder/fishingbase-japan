@@ -10,18 +10,17 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <h1>{SITE.tagline}</h1>
+        <h1>今日はどこで、何時に釣る？</h1>
         <p>
-          関西の海釣り施設・釣り場{spotCount}か所について、最近の釣果、タイドグラフ、天気・風・波、料金やルールを1ページにまとめています。
-          「今日どこへ行くか」を決めるのにお使いください。
+          関西の海釣り施設・釣り場{spotCount}か所の、最近の釣果、潮がよく動く時間、時間ごとの天気・風、料金とルールを1ページずつにまとめています。
         </p>
       </section>
 
       <ul className="quick-links">
-        <li><Link href="/kansai/area/">エリア別：最近釣れている魚 →</Link></li>
-        <li><Link href="/kansai/">関西の釣り場一覧 →</Link></li>
+        <li><Link href="/kansai/area/">エリア別：最近釣れている魚</Link></li>
+        <li><Link href="/kansai/">関西の釣り場一覧</Link></li>
         <li><ThisMonthLink /></li>
-        <li><Link href="/species/">魚種から探す →</Link></li>
+        <li><Link href="/species/">魚種から探す</Link></li>
       </ul>
 
       <h2>エリア</h2>
@@ -46,11 +45,11 @@ export default function Home() {
         </div>
         <div className="card">
           <h3>タイドグラフと潮の動き</h3>
-          <p>気象庁の潮位表をもとに、満潮・干潮と「潮がよく動く時間」を表示します。</p>
+          <p>気象庁の潮位表をもとに、満潮・干潮、潮がよく動く時間、日の出・日の入を表示します。</p>
         </div>
         <div className="card">
           <h3>天気・風・波</h3>
-          <p>気象庁の府県予報を1日3回取り込んで表示します。</p>
+          <p>気象庁の予報を1日3回取り込み、3時間ごとの天気・風・気温と波を表示します。</p>
         </div>
         <div className="card">
           <h3>料金・ルール</h3>
