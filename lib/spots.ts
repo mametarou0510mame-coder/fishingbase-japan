@@ -102,6 +102,41 @@ export const SPOTS: Spot[] = [
     intro:
       "明石海峡大橋と淡路島を望む、神戸市立の海釣り施設です。潮通しのよい明石海峡に近く、季節ごとにさまざまな魚が狙えます。",
   },
+  {
+    slug: "marina-city-tsuri-koen",
+    pref: "wakayama",
+    name: "和歌山マリーナシティ釣り公園",
+    area: "和歌山市",
+    address: "和歌山県和歌山市毛見（和歌山マリーナシティ内）",
+    type: "海釣り施設",
+    published: true,
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://www.marinacity.com/tsuri/",
+    sourceUrls: ["https://www.marinacity.com/tsuri/"],
+    hours: "7:00〜17:00",
+    closed: "毎週火曜（2026年10月は6・13・20・27日）",
+    fees: [
+      { label: "釣り（大人・中学生以上）", value: "1,000円" },
+      { label: "釣り（小学生）", value: "600円" },
+      { label: "小学生未満", value: "無料（大人の釣り枠内で釣る場合）" },
+      { label: "見学", value: "見学のみの入園はなし（入園には釣り料金が必要）" },
+      { label: "レンタル竿", value: "1,000円" },
+    ],
+    parking: "公式サイトでご確認ください",
+    rentals: "レンタル竿あり。子ども用ライフジャケットの貸出あり",
+    rules: [
+      "中学生以下はライフジャケット（フローティングベスト）の着用が必要",
+      "保護者の同伴がない小学生以下は入園不可",
+      "園内での火気の使用は禁止",
+      "所定の場所以外での釣りは禁止",
+      "釣り場を必要以上に占有しない",
+      "他人に危害を及ぼすおそれのある釣り方は控える",
+    ],
+    notes: [],
+    tideStation: { code: "Z9", name: "海南" },
+    intro:
+      "和歌山マリーナシティ内にある、柵のある護岸で釣りができる施設です。レンタル竿があり、市場や温泉などの施設も近いため、家族での1日のおでかけにも向いています。",
+  },
 ];
 
 export const publishedSpots = () => SPOTS.filter((s) => s.published);
