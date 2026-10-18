@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description:
     "関西の海釣り施設・釣り場の釣果、潮汐、ルールをまとめ、今日どこへ行くかを決められる釣り情報サイト。",
   robots: SITE.noindex ? { index: false, follow: false } : undefined,
+  // Google Search Console の所有権確認（2026-10-18）
+  verification: { google: "xl39BeDzXRGuaDiKHYFv_lAgbz0TiauLuLAuxvbsagw" },
 };
 
 export const viewport: Viewport = {
