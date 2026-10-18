@@ -201,9 +201,12 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         )
       )}
 
-      <h2>みんなの釣果</h2>
-      <UserPosts spot={spot.slug} enabled={!!SITE.turnstileSiteKey} />
-      {!SITE.turnstileSiteKey && <p className="small">釣果の投稿機能は準備中です。</p>}
+      {SITE.turnstileSiteKey && (
+        <>
+          <h2>みんなの釣果</h2>
+          <UserPosts spot={spot.slug} enabled />
+        </>
+      )}
 
       <h2>持ち物チェックリスト</h2>
       <p className="small">

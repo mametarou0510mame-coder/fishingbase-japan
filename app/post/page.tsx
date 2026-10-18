@@ -3,7 +3,9 @@ import Link from "next/link";
 import PostForm from "@/app/components/PostForm";
 import { SITE } from "@/lib/site";
 
+// 投稿機能は後日公開（2026-10-18 オーナー判断）。公開までは検索エンジンに載せない
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: "釣果を投稿する",
   description: "関西の海釣り施設・釣り場で釣れた魚を投稿できます。投稿は釣り場ページの「みんなの釣果」と釣果の集計に反映されます。",
 };

@@ -40,7 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/kansai/month/">月別</Link>
               <Link href="/gear/">道具</Link>
               <Link href="/gear/sale/">セール</Link>
-              <Link href="/post/">釣果投稿</Link>
             </nav>
           </div>
           <svg className="header-wave" viewBox="0 0 1200 24" preserveAspectRatio="none" aria-hidden="true">
