@@ -18,6 +18,25 @@
    "name": "岸和田渡船 釣果情報",
    "url": "https://kishiwadatosen.com/result/",
    "lastSuccess": "2026-10-18"
+  },
+  {
+   "spot": "suma-umizuri-koen",
+   "name": "須磨海づり公園 釣果情報",
+   "url": "https://sumasakana-park.com/fishing/",
+   "lastSuccess": "2026-10-18"
+  },
+  {
+   "spot": "amagasaki-uotsuri-koen",
+   "name": "尼崎市立魚つり公園 釣果情報",
+   "url": "https://amagasaki-uoturikouen.com/fishing/index.html",
+   "lastSuccess": "2026-10-18"
+  },
+  {
+   "spot": "suma-umizuri-koen",
+   "key": "point-kansai",
+   "name": "釣具のポイント お持込釣果",
+   "url": "https://www.point-i.jp/fishing_infos?area_id=94",
+   "lastSuccess": "2026-10-18"
   }
  ],
  "monthly": {
@@ -62,7 +81,6 @@
  },
  "reports": [
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/#0",
    "date": "2026-10-18",
    "species": "ベラ",
@@ -70,10 +88,10 @@
    "count": 1,
    "method": "胴突仕掛",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/#1",
    "date": "2026-10-18",
    "species": "グレ（メジナ）",
@@ -81,10 +99,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/#2",
    "date": "2026-10-18",
    "species": "ハマチ・ブリ",
@@ -92,10 +110,10 @@
    "count": 1,
    "method": "ノマセ",
    "time": "6:00~14:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/#3",
    "date": "2026-10-18",
    "species": "チヌ（クロダイ）",
@@ -103,10 +121,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "16:00~21:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0407.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -114,10 +132,10 @@
    "count": null,
    "method": null,
    "time": "午前・早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0407.jpg#1",
    "date": "2026-10-18",
    "species": "青物（種類不明）",
@@ -125,10 +143,10 @@
    "count": null,
    "method": null,
    "time": "午前・早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-20261018_115130.jpg#0",
    "date": "2026-10-18",
    "species": "青物（種類不明）",
@@ -136,10 +154,10 @@
    "count": null,
    "method": null,
    "time": "午前",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-1792284521955.jpg#0",
    "date": "2026-10-18",
    "species": "スズキ",
@@ -147,10 +165,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0406.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -158,10 +176,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0405-2.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -169,10 +187,10 @@
    "count": null,
    "method": null,
    "time": "午前・早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0405-2.jpg#1",
    "date": "2026-10-18",
    "species": "青物（種類不明）",
@@ -180,10 +198,10 @@
    "count": null,
    "method": null,
    "time": "午前・早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0403-2.jpg#0",
    "date": "2026-10-18",
    "species": "青物（種類不明）",
@@ -191,10 +209,10 @@
    "count": null,
    "method": null,
    "time": "午前",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0397-5.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -202,10 +220,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0400-5.jpg#0",
    "date": "2026-10-18",
    "species": "アジ・サバ・イワシ",
@@ -213,10 +231,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0402-3.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -224,10 +242,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0401-4.jpg#0",
    "date": "2026-10-18",
    "species": "青物（種類不明）",
@@ -235,10 +253,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-1792272025705.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -246,10 +264,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-DSC_0398-3.jpg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -257,10 +275,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-IMG_1145.jpeg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -268,10 +286,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-IMG_1146.jpeg#0",
    "date": "2026-10-18",
    "species": "タチウオ",
@@ -279,10 +297,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-IMG_1147.jpeg#0",
    "date": "2026-10-18",
    "species": "アジ・サバ・イワシ",
@@ -290,10 +308,10 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261018-IMG_1147.jpeg#1",
    "date": "2026-10-18",
    "species": "スズキ",
@@ -301,10 +319,252 @@
    "count": null,
    "method": null,
    "time": "早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
+   "id": "https://sumasakana-park.com/fishing/10-18/#0",
+   "date": "2026-10-18",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 45,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#1",
+   "date": "2026-10-18",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 40,
+   "count": 7,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#2",
+   "date": "2026-10-18",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 40,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#3",
+   "date": "2026-10-18",
+   "species": "スズキ",
+   "sizeCm": 75,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#4",
+   "date": "2026-10-18",
+   "species": "スズキ",
+   "sizeCm": 25,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#5",
+   "date": "2026-10-18",
+   "species": "コロダイ",
+   "sizeCm": 25,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#6",
+   "date": "2026-10-18",
+   "species": "カワハギ",
+   "sizeCm": 23,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#7",
+   "date": "2026-10-18",
+   "species": "グレ（メジナ）",
+   "sizeCm": 27,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#8",
+   "date": "2026-10-18",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": 20,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#9",
+   "date": "2026-10-18",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 250,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#10",
+   "date": "2026-10-18",
+   "species": "アジ",
+   "sizeCm": 30,
+   "count": 12,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#11",
+   "date": "2026-10-18",
+   "species": "サバ",
+   "sizeCm": 40,
+   "count": 40,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#12",
+   "date": "2026-10-18",
+   "species": "マダイ",
+   "sizeCm": 24,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-18/#13",
+   "date": "2026-10-18",
+   "species": "イサキ",
+   "sizeCm": 15,
+   "count": 200,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-18/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#0",
+   "date": "2026-10-18",
+   "species": "サバ",
+   "sizeCm": 18,
+   "count": 1720,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#1",
+   "date": "2026-10-18",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 1100,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#2",
+   "date": "2026-10-18",
+   "species": "アジ",
+   "sizeCm": 20,
+   "count": 250,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#3",
+   "date": "2026-10-18",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 2700,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#4",
+   "date": "2026-10-18",
+   "species": "コノシロ",
+   "sizeCm": 30,
+   "count": 1,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#5",
+   "date": "2026-10-18",
+   "species": "サヨリ",
+   "sizeCm": 23,
+   "count": 150,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#6",
+   "date": "2026-10-18",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 36,
+   "count": 3,
+   "method": "ウキ・フカセ・ズボ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261018.html#7",
+   "date": "2026-10-18",
+   "species": "アコウ（キジハタ）",
+   "sizeCm": 30,
+   "count": 1,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261018.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#0",
    "date": "2026-10-17",
    "species": "ハマチ・ブリ",
@@ -312,10 +572,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#1",
    "date": "2026-10-17",
    "species": "グレ（メジナ）",
@@ -323,10 +583,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "9:00~13:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#2",
    "date": "2026-10-17",
    "species": "カワハギ",
@@ -334,10 +594,10 @@
    "count": 1,
    "method": "胴突仕掛",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#3",
    "date": "2026-10-17",
    "species": "アコウ（キジハタ）",
@@ -345,10 +605,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#4",
    "date": "2026-10-17",
    "species": "ハマチ・ブリ",
@@ -356,10 +616,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#5",
    "date": "2026-10-17",
    "species": "ハマチ・ブリ",
@@ -367,10 +627,10 @@
    "count": 1,
    "method": "ノマセ",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0401-3.jpg#0",
    "date": "2026-10-17",
    "species": "青物（種類不明）",
@@ -378,10 +638,10 @@
    "count": null,
    "method": null,
    "time": "午前",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-20261017_115443.jpg#0",
    "date": "2026-10-17",
    "species": "チヌ（クロダイ）",
@@ -389,10 +649,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0405-1.jpg#0",
    "date": "2026-10-17",
    "species": "タチウオ",
@@ -400,10 +660,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0404-2.jpg#0",
    "date": "2026-10-17",
    "species": "アジ・サバ・イワシ",
@@ -411,10 +671,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0400-4.jpg#0",
    "date": "2026-10-17",
    "species": "タチウオ",
@@ -422,10 +682,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0399-3.jpg#0",
    "date": "2026-10-17",
    "species": "タチウオ",
@@ -433,10 +693,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0398-2.jpg#0",
    "date": "2026-10-17",
    "species": "アジ・サバ・イワシ",
@@ -444,10 +704,10 @@
    "count": null,
    "method": null,
    "time": "午前・早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-1792197948005.jpg#0",
    "date": "2026-10-17",
    "species": "スズキ",
@@ -455,10 +715,10 @@
    "count": null,
    "method": null,
    "time": "午前・早朝",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0397-4.jpg#0",
    "date": "2026-10-17",
    "species": "タチウオ",
@@ -466,10 +726,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261017-DSC_0395-4.jpg#0",
    "date": "2026-10-17",
    "species": "タチウオ",
@@ -477,10 +737,263 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
+   "id": "https://sumasakana-park.com/fishing/10-17/#0",
+   "date": "2026-10-17",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#1",
+   "date": "2026-10-17",
+   "species": "サゴシ（サワラ）",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#2",
+   "date": "2026-10-17",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": 20,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#3",
+   "date": "2026-10-17",
+   "species": "カワハギ",
+   "sizeCm": 23,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#4",
+   "date": "2026-10-17",
+   "species": "アジ",
+   "sizeCm": 30,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#5",
+   "date": "2026-10-17",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 200,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#6",
+   "date": "2026-10-17",
+   "species": "サバ",
+   "sizeCm": 38,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#7",
+   "date": "2026-10-17",
+   "species": "サバ",
+   "sizeCm": 15,
+   "count": 60,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#8",
+   "date": "2026-10-17",
+   "species": "グレ（メジナ）",
+   "sizeCm": 28,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#9",
+   "date": "2026-10-17",
+   "species": "ベラ",
+   "sizeCm": 18,
+   "count": 15,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#10",
+   "date": "2026-10-17",
+   "species": "マダイ",
+   "sizeCm": 26,
+   "count": 40,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#11",
+   "date": "2026-10-17",
+   "species": "イサキ",
+   "sizeCm": 16,
+   "count": 200,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#12",
+   "date": "2026-10-17",
+   "species": "ベラ",
+   "sizeCm": 15,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-17/#13",
+   "date": "2026-10-17",
+   "species": "ベラ",
+   "sizeCm": 15,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-17/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#0",
+   "date": "2026-10-17",
+   "species": "サバ",
+   "sizeCm": 18,
+   "count": 300,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#1",
+   "date": "2026-10-17",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 260,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#2",
+   "date": "2026-10-17",
+   "species": "アジ",
+   "sizeCm": 20,
+   "count": 120,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#3",
+   "date": "2026-10-17",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 1350,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#4",
+   "date": "2026-10-17",
+   "species": "コノシロ",
+   "sizeCm": 27,
+   "count": 30,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#5",
+   "date": "2026-10-17",
+   "species": "サヨリ",
+   "sizeCm": 23,
+   "count": 200,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#6",
+   "date": "2026-10-17",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 48,
+   "count": 6,
+   "method": "ウキ・フカセ・ズボ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#7",
+   "date": "2026-10-17",
+   "species": "スズキ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": "ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261017.html#8",
+   "date": "2026-10-17",
+   "species": "スズキ",
+   "sizeCm": 82,
+   "count": 1,
+   "method": "ノマセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261017.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/#0",
    "date": "2026-10-16",
    "species": "シオ（カンパチ）",
@@ -488,10 +1001,10 @@
    "count": 1,
    "method": "ノマセ",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/#1",
    "date": "2026-10-16",
    "species": "ハマチ・ブリ",
@@ -499,10 +1012,10 @@
    "count": 4,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/#2",
    "date": "2026-10-16",
    "species": "チヌ（クロダイ）",
@@ -510,10 +1023,10 @@
    "count": 1,
    "method": "落し込み",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/#3",
    "date": "2026-10-16",
    "species": "マダイ",
@@ -521,10 +1034,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "9:00~13:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261016-DSC_0396-2.jpg#0",
    "date": "2026-10-16",
    "species": "青物（種類不明）",
@@ -532,10 +1045,10 @@
    "count": null,
    "method": null,
    "time": "午前",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
-   "spot": "kishiwada-ichimonji",
    "id": "20261016-DSC_0397-3.jpg#0",
    "date": "2026-10-16",
    "species": "青物（種類不明）",
@@ -543,7 +1056,8 @@
    "count": null,
    "method": null,
    "time": "午前",
-   "url": "https://kishiwadatosen.com/result/"
+   "url": "https://kishiwadatosen.com/result/",
+   "spot": "kishiwada-ichimonji"
   },
   {
    "spot": "kishiwada-ichimonji",
@@ -568,7 +1082,435 @@
    "url": "https://kishiwadatosen.com/result/"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
+   "id": "https://sumasakana-park.com/fishing/10-16/#0",
+   "date": "2026-10-16",
+   "species": "スズキ",
+   "sizeCm": 50,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#1",
+   "date": "2026-10-16",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#2",
+   "date": "2026-10-16",
+   "species": "シオ（カンパチ）",
+   "sizeCm": 33,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#3",
+   "date": "2026-10-16",
+   "species": "カワハギ",
+   "sizeCm": 22,
+   "count": 22,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#4",
+   "date": "2026-10-16",
+   "species": "マダイ",
+   "sizeCm": 20,
+   "count": 23,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#5",
+   "date": "2026-10-16",
+   "species": "イサキ",
+   "sizeCm": 16,
+   "count": 100,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#6",
+   "date": "2026-10-16",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#7",
+   "date": "2026-10-16",
+   "species": "マダイ",
+   "sizeCm": 42,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#8",
+   "date": "2026-10-16",
+   "species": "ベラ",
+   "sizeCm": 20,
+   "count": 4,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#9",
+   "date": "2026-10-16",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 48,
+   "count": 4,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-16/#10",
+   "date": "2026-10-16",
+   "species": "サバ",
+   "sizeCm": 38,
+   "count": 25,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-16/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#0",
+   "date": "2026-10-16",
+   "species": "サバ",
+   "sizeCm": 15,
+   "count": 120,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#1",
+   "date": "2026-10-16",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 80,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#2",
+   "date": "2026-10-16",
+   "species": "アジ",
+   "sizeCm": 23,
+   "count": 100,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#3",
+   "date": "2026-10-16",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 270,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#4",
+   "date": "2026-10-16",
+   "species": "コノシロ",
+   "sizeCm": 25,
+   "count": 1,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#5",
+   "date": "2026-10-16",
+   "species": "サヨリ",
+   "sizeCm": 25,
+   "count": 205,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#6",
+   "date": "2026-10-16",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 12,
+   "method": "紀州・ズボ・ノマセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#7",
+   "date": "2026-10-16",
+   "species": "スズキ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": "ノマセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261016.html#8",
+   "date": "2026-10-16",
+   "species": "ハモ",
+   "sizeCm": 62,
+   "count": 1,
+   "method": "ノマセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261016.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#0",
+   "date": "2026-10-15",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 53,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#1",
+   "date": "2026-10-15",
+   "species": "カワハギ",
+   "sizeCm": 24,
+   "count": 33,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#2",
+   "date": "2026-10-15",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 43,
+   "count": 4,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#3",
+   "date": "2026-10-15",
+   "species": "ベラ",
+   "sizeCm": 18,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#4",
+   "date": "2026-10-15",
+   "species": "グレ（メジナ）",
+   "sizeCm": 27,
+   "count": 8,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#5",
+   "date": "2026-10-15",
+   "species": "サバ",
+   "sizeCm": 20,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#6",
+   "date": "2026-10-15",
+   "species": "サバ",
+   "sizeCm": 35,
+   "count": 28,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#7",
+   "date": "2026-10-15",
+   "species": "マダイ",
+   "sizeCm": 20,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#8",
+   "date": "2026-10-15",
+   "species": "イサキ",
+   "sizeCm": 16,
+   "count": 100,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#9",
+   "date": "2026-10-15",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 60,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#10",
+   "date": "2026-10-15",
+   "species": "アジ",
+   "sizeCm": 33,
+   "count": 21,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-15/#11",
+   "date": "2026-10-15",
+   "species": "メバル",
+   "sizeCm": 20,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-15/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#0",
+   "date": "2026-10-15",
+   "species": "サバ",
+   "sizeCm": 15,
+   "count": 35,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#1",
+   "date": "2026-10-15",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 50,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#2",
+   "date": "2026-10-15",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 85,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#3",
+   "date": "2026-10-15",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 450,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#4",
+   "date": "2026-10-15",
+   "species": "コノシロ",
+   "sizeCm": 27,
+   "count": 6,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#5",
+   "date": "2026-10-15",
+   "species": "サヨリ",
+   "sizeCm": 30,
+   "count": 250,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261015.html#6",
+   "date": "2026-10-15",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 48,
+   "count": 11,
+   "method": "ウキ・紀州・ノマセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261015.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/#0",
    "date": "2026-10-14",
    "species": "ハマチ・ブリ",
@@ -576,10 +1518,10 @@
    "count": 1,
    "method": "ノマセ",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/#1",
    "date": "2026-10-14",
    "species": "ハマチ・ブリ",
@@ -587,10 +1529,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/#2",
    "date": "2026-10-14",
    "species": "カワハギ",
@@ -598,10 +1540,10 @@
    "count": 1,
    "method": "胴突仕掛",
    "time": "8:00~12:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/#3",
    "date": "2026-10-14",
    "species": "ハマチ・ブリ",
@@ -609,10 +1551,208 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~12:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8814%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
+   "id": "https://sumasakana-park.com/fishing/10-14/#0",
+   "date": "2026-10-14",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 46,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#1",
+   "date": "2026-10-14",
+   "species": "シオ（カンパチ）",
+   "sizeCm": 41,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#2",
+   "date": "2026-10-14",
+   "species": "カワハギ",
+   "sizeCm": 25,
+   "count": 15,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#3",
+   "date": "2026-10-14",
+   "species": "タコ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#4",
+   "date": "2026-10-14",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 43,
+   "count": 7,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#5",
+   "date": "2026-10-14",
+   "species": "アジ",
+   "sizeCm": 13,
+   "count": 70,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#6",
+   "date": "2026-10-14",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": 20,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#7",
+   "date": "2026-10-14",
+   "species": "ベラ",
+   "sizeCm": 12,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#8",
+   "date": "2026-10-14",
+   "species": "イシダイ",
+   "sizeCm": 18,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#9",
+   "date": "2026-10-14",
+   "species": "グレ（メジナ）",
+   "sizeCm": 22,
+   "count": 15,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-14/#10",
+   "date": "2026-10-14",
+   "species": "サバ",
+   "sizeCm": 35,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-14/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#0",
+   "date": "2026-10-14",
+   "species": "サバ",
+   "sizeCm": 15,
+   "count": 70,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#1",
+   "date": "2026-10-14",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 10,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#2",
+   "date": "2026-10-14",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 220,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#3",
+   "date": "2026-10-14",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 420,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#4",
+   "date": "2026-10-14",
+   "species": "アコウ（キジハタ）",
+   "sizeCm": 25,
+   "count": 1,
+   "method": "ノマセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#5",
+   "date": "2026-10-14",
+   "species": "サヨリ",
+   "sizeCm": 24,
+   "count": 4,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261014.html#6",
+   "date": "2026-10-14",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 0,
+   "count": 0,
+   "method": null,
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261014.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/#0",
    "date": "2026-10-13",
    "species": "ハマチ・ブリ",
@@ -620,10 +1760,10 @@
    "count": 1,
    "method": "ノマセ",
    "time": "6:00~10:30",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/#1",
    "date": "2026-10-13",
    "species": "ウマヅラハギ",
@@ -631,10 +1771,10 @@
    "count": 2,
    "method": "ハゲ掛け",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/#2",
    "date": "2026-10-13",
    "species": "ハマチ・ブリ",
@@ -642,10 +1782,10 @@
    "count": 1,
    "method": "ノマセ",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/#3",
    "date": "2026-10-13",
    "species": "マダイ",
@@ -653,10 +1793,10 @@
    "count": 4,
    "method": "ウキ釣り",
    "time": "6:00~11:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8813%e6%97%a5%e7%81%ab/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3578/#0",
    "date": "2026-10-12",
    "species": "ヘダイ",
@@ -664,10 +1804,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3578/"
+   "url": "https://www.marinacity.com/tsuri/post-3578/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/#0",
    "date": "2026-10-12",
    "species": "ハマチ・ブリ",
@@ -675,10 +1815,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/#1",
    "date": "2026-10-12",
    "species": "ベラ",
@@ -686,10 +1826,10 @@
    "count": 4,
    "method": "胴突仕掛",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/#2",
    "date": "2026-10-12",
    "species": "カワハギ",
@@ -697,10 +1837,10 @@
    "count": 1,
    "method": "落し込み",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/#3",
    "date": "2026-10-12",
    "species": "スズキ",
@@ -708,10 +1848,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~17:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/#4",
    "date": "2026-10-12",
    "species": "アコウ（キジハタ）",
@@ -719,10 +1859,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/#5",
    "date": "2026-10-12",
    "species": "ガシラ（カサゴ）",
@@ -730,10 +1870,230 @@
    "count": 1,
    "method": "サビキ",
    "time": "11:30~17:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8812%e6%97%a5%e6%9c%88/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
+   "id": "https://sumasakana-park.com/fishing/10-12/#0",
+   "date": "2026-10-12",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#1",
+   "date": "2026-10-12",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 65,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#2",
+   "date": "2026-10-12",
+   "species": "シオ（カンパチ）",
+   "sizeCm": 45,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#3",
+   "date": "2026-10-12",
+   "species": "カワハギ",
+   "sizeCm": 22,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#4",
+   "date": "2026-10-12",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": 18,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#5",
+   "date": "2026-10-12",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 48,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#6",
+   "date": "2026-10-12",
+   "species": "アジ",
+   "sizeCm": 30,
+   "count": 100,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#7",
+   "date": "2026-10-12",
+   "species": "サバ",
+   "sizeCm": 38,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#8",
+   "date": "2026-10-12",
+   "species": "マダイ",
+   "sizeCm": 22,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#9",
+   "date": "2026-10-12",
+   "species": "グレ（メジナ）",
+   "sizeCm": 23,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-12/#10",
+   "date": "2026-10-12",
+   "species": "イサキ",
+   "sizeCm": 12,
+   "count": 150,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-12/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#0",
+   "date": "2026-10-12",
+   "species": "サバ",
+   "sizeCm": 16,
+   "count": 950,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#1",
+   "date": "2026-10-12",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 1750,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#2",
+   "date": "2026-10-12",
+   "species": "アジ",
+   "sizeCm": 13,
+   "count": 300,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#3",
+   "date": "2026-10-12",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 1150,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#4",
+   "date": "2026-10-12",
+   "species": "コノシロ",
+   "sizeCm": 30,
+   "count": 2,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#5",
+   "date": "2026-10-12",
+   "species": "サヨリ",
+   "sizeCm": 30,
+   "count": 120,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#6",
+   "date": "2026-10-12",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 7,
+   "method": "ウキ・フカセ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#7",
+   "date": "2026-10-12",
+   "species": "スズキ",
+   "sizeCm": 30,
+   "count": 1,
+   "method": "ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261012.html#8",
+   "date": "2026-10-12",
+   "species": "スズキ",
+   "sizeCm": 41,
+   "count": 1,
+   "method": "ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261012.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
    "id": "https://www.marinacity.com/tsuri/post-3575/#0",
    "date": "2026-10-11",
    "species": "ヘダイ",
@@ -741,10 +2101,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3575/"
+   "url": "https://www.marinacity.com/tsuri/post-3575/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/#0",
    "date": "2026-10-11",
    "species": "イシダイ",
@@ -752,10 +2112,10 @@
    "count": 1,
    "method": "投げ釣り",
    "time": "6:00~15:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/#1",
    "date": "2026-10-11",
    "species": "ハマチ・ブリ",
@@ -763,10 +2123,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/#2",
    "date": "2026-10-11",
    "species": "ハマチ・ブリ",
@@ -774,21 +2134,252 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:30~10:30",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/#3",
    "date": "2026-10-11",
    "species": "アコウ（キジハタ）",
-   "sizeCm": 31.5,
+   "sizeCm": 43,
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~17:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8811%e6%97%a5%e6%97%a5/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
+   "id": "https://sumasakana-park.com/fishing/10-11/#0",
+   "date": "2026-10-11",
+   "species": "サゴシ（サワラ）",
+   "sizeCm": 75,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#1",
+   "date": "2026-10-11",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 67,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#2",
+   "date": "2026-10-11",
+   "species": "ウマヅラハギ",
+   "sizeCm": 45,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#3",
+   "date": "2026-10-11",
+   "species": "カワハギ",
+   "sizeCm": 15,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#4",
+   "date": "2026-10-11",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": 24,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#5",
+   "date": "2026-10-11",
+   "species": "グレ（メジナ）",
+   "sizeCm": 21,
+   "count": 40,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#6",
+   "date": "2026-10-11",
+   "species": "サバ",
+   "sizeCm": 32,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#7",
+   "date": "2026-10-11",
+   "species": "アジ",
+   "sizeCm": 30,
+   "count": 100,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#8",
+   "date": "2026-10-11",
+   "species": "イサキ",
+   "sizeCm": 12,
+   "count": 100,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#9",
+   "date": "2026-10-11",
+   "species": "マダイ",
+   "sizeCm": 19,
+   "count": 40,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#10",
+   "date": "2026-10-11",
+   "species": "ベラ",
+   "sizeCm": 12,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-11/#11",
+   "date": "2026-10-11",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-11/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#0",
+   "date": "2026-10-11",
+   "species": "サバ",
+   "sizeCm": 16,
+   "count": 1500,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#1",
+   "date": "2026-10-11",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 1600,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#2",
+   "date": "2026-10-11",
+   "species": "アジ",
+   "sizeCm": 13,
+   "count": 70,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#3",
+   "date": "2026-10-11",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 1350,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#4",
+   "date": "2026-10-11",
+   "species": "コノシロ",
+   "sizeCm": 30,
+   "count": 38,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#5",
+   "date": "2026-10-11",
+   "species": "サヨリ",
+   "sizeCm": 24,
+   "count": 130,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#6",
+   "date": "2026-10-11",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 7,
+   "method": "ウキ・サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#7",
+   "date": "2026-10-11",
+   "species": "スズキ",
+   "sizeCm": 39,
+   "count": 3,
+   "method": "ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261011.html#8",
+   "date": "2026-10-11",
+   "species": "スズキ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": "ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261011.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
    "id": "https://www.marinacity.com/tsuri/post-3572/#0",
    "date": "2026-10-10",
    "species": "アジ",
@@ -796,10 +2387,10 @@
    "count": null,
    "method": "サビキ釣り",
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3572/"
+   "url": "https://www.marinacity.com/tsuri/post-3572/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3569/#0",
    "date": "2026-10-10",
    "species": "アコウ（キジハタ）",
@@ -807,10 +2398,10 @@
    "count": null,
    "method": "サビキ釣り",
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3569/"
+   "url": "https://www.marinacity.com/tsuri/post-3569/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/#0",
    "date": "2026-10-10",
    "species": "ハマチ・ブリ",
@@ -818,10 +2409,10 @@
    "count": 2,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/#1",
    "date": "2026-10-10",
    "species": "アジ",
@@ -829,10 +2420,10 @@
    "count": 40,
    "method": "サビキ",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/#2",
    "date": "2026-10-10",
    "species": "ハマチ・ブリ",
@@ -840,10 +2431,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/#3",
    "date": "2026-10-10",
    "species": "ハマチ・ブリ",
@@ -851,10 +2442,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/#4",
    "date": "2026-10-10",
    "species": "ハマチ・ブリ",
@@ -862,10 +2453,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/#5",
    "date": "2026-10-10",
    "species": "ハマチ・ブリ",
@@ -873,10 +2464,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8810%e6%97%a5%e5%9c%9f/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/#0",
    "date": "2026-10-09",
    "species": "メバル",
@@ -884,10 +2475,10 @@
    "count": 1,
    "method": "ウキ釣り",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/#1",
    "date": "2026-10-09",
    "species": "ベラ",
@@ -895,10 +2486,10 @@
    "count": 1,
    "method": "落し込み",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/#2",
    "date": "2026-10-09",
    "species": "チヌ（クロダイ）",
@@ -906,10 +2497,10 @@
    "count": 1,
    "method": "落し込み",
    "time": "10:00~18:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%889%e6%97%a5%e9%87%91/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/#0",
    "date": "2026-10-07",
    "species": "ハマチ・ブリ",
@@ -917,10 +2508,10 @@
    "count": 1,
    "method": "ルアー",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/#1",
    "date": "2026-10-07",
    "species": "グレ（メジナ）",
@@ -928,10 +2519,10 @@
    "count": 1,
    "method": "落し込み",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/#2",
    "date": "2026-10-07",
    "species": "カワハギ",
@@ -939,10 +2530,10 @@
    "count": 2,
    "method": "投げ釣り",
    "time": "6:00~10:00",
-   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/"
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%887%e6%97%a5%e6%b0%b4/",
+   "spot": "hiraiso-umizuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3566/#0",
    "date": "2026-10-04",
    "species": "アジ",
@@ -950,10 +2541,10 @@
    "count": null,
    "method": "サビキ釣り",
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3566/"
+   "url": "https://www.marinacity.com/tsuri/post-3566/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3559/#0",
    "date": "2026-09-26",
    "species": "カワハギ",
@@ -961,10 +2552,10 @@
    "count": null,
    "method": "サビキ釣り",
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3559/"
+   "url": "https://www.marinacity.com/tsuri/post-3559/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3556/#0",
    "date": "2026-09-20",
    "species": "コノシロ",
@@ -972,10 +2563,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3556/"
+   "url": "https://www.marinacity.com/tsuri/post-3556/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3556/#1",
    "date": "2026-09-20",
    "species": "アジ",
@@ -983,10 +2574,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3556/"
+   "url": "https://www.marinacity.com/tsuri/post-3556/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3556/#2",
    "date": "2026-09-20",
    "species": "サバ",
@@ -994,10 +2585,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3556/"
+   "url": "https://www.marinacity.com/tsuri/post-3556/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3550/#0",
    "date": "2026-09-14",
    "species": "コノシロ",
@@ -1005,10 +2596,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3550/"
+   "url": "https://www.marinacity.com/tsuri/post-3550/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3550/#1",
    "date": "2026-09-14",
    "species": "ヘダイ",
@@ -1016,10 +2607,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3550/"
+   "url": "https://www.marinacity.com/tsuri/post-3550/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3550/#2",
    "date": "2026-09-14",
    "species": "アジ",
@@ -1027,10 +2618,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3550/"
+   "url": "https://www.marinacity.com/tsuri/post-3550/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3550/#3",
    "date": "2026-09-14",
    "species": "サバ",
@@ -1038,10 +2629,10 @@
    "count": null,
    "method": null,
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3550/"
+   "url": "https://www.marinacity.com/tsuri/post-3550/",
+   "spot": "marina-city-tsuri-koen"
   },
   {
-   "spot": "marina-city-tsuri-koen",
    "id": "https://www.marinacity.com/tsuri/post-3544/#0",
    "date": "2026-09-12",
    "species": "アオリイカ",
@@ -1049,7 +2640,19 @@
    "count": null,
    "method": "4杯リリースあり",
    "time": null,
-   "url": "https://www.marinacity.com/tsuri/post-3544/"
+   "url": "https://www.marinacity.com/tsuri/post-3544/",
+   "spot": "marina-city-tsuri-koen"
+  },
+  {
+   "spot": "suma-umizuri-koen",
+   "id": "point-3255322",
+   "date": "2026-09-05",
+   "species": "アオリイカ",
+   "sizeCm": null,
+   "count": null,
+   "method": "エギング 皆さんこんにちは！！",
+   "time": null,
+   "url": "https://www.point-i.jp/fishing_infos/3255322"
   }
  ]
 }
