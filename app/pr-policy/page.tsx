@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `広告・おすすめ商品の選定方針 | ${SITE.name}`,
+  title: "広告・おすすめ商品の選定方針",
   description: `${SITE.name}が釣り具などの商品を紹介するときの選び方と、広告表示についての方針です。`,
 };
 
