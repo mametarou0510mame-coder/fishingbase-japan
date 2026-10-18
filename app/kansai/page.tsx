@@ -35,7 +35,9 @@ export default function KansaiIndex() {
           </div>
         </section>
       ))}
-      <p className="small">掲載する釣り場は順次追加します。</p>
+      <p className="small">
+        掲載する釣り場は順次追加します。<Link href="/kansai/area/">エリア別の釣果まとめ</Link>もご覧ください。
+      </p>
     </>
   );
 }

@@ -28,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {SITE.name}
             </Link>
             <nav aria-label="メイン">
+              <Link href="/kansai/area/">エリア</Link>
               <Link href="/kansai/">釣り場</Link>
               <Link href="/species/">魚種</Link>
               <Link href="/kansai/month/">月別</Link>

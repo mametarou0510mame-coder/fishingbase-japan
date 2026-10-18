@@ -1,0 +1,43 @@
+name: Update catch reports
+
+# 施設公式の釣果情報を1日1回取得し、public/data/catches.json を更新する。
+# 変更があればコミットし、Cloudflare 側で自動的に再公開される。
+on:
+  schedule:
+    - cron: "7 12 * * *" # 毎日 21:07 JST
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/fetch-catches.mjs"
+      - "scripts/catch-parsers.mjs"
+      - ".github/workflows/update-catches.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-catches.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "fishingbase-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/catches.json
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update catch reports"
+            git pull --rebase origin main
+            git push
+          fi

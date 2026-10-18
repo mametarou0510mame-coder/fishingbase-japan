@@ -1,0 +1,49 @@
+// エリア定義。釣り場（lib/spots.ts の slug）をエリアにまとめる。
+export type Area = {
+  slug: string;
+  name: string;
+  region: string; // 含まれる地域
+  spots: string[];
+  intro: string;
+};
+
+export const AREAS: Area[] = [
+  {
+    slug: "osaka-bay-north",
+    name: "大阪湾奥",
+    region: "大阪市・堺・尼崎・西宮",
+    spots: ["sakai-umizuri-terrace", "nanko-uotsuri-en", "amagasaki-uotsuri-koen", "naruohama-umizuri-hiroba"],
+    intro: "大阪湾の奥にあたるエリアです。市街地から近く、短い時間でも釣りに行きやすい施設が集まっています。",
+  },
+  {
+    slug: "kobe-akashi",
+    name: "神戸・明石",
+    region: "神戸市須磨区・垂水区",
+    spots: ["suma-umizuri-koen", "hiraiso-umizuri-koen"],
+    intro: "明石海峡に近く、潮の流れがあるエリアです。秋には青物（ハマチなど）が回ってくることもあります。",
+  },
+  {
+    slug: "senshu",
+    name: "泉南・岬",
+    region: "大阪府泉南郡岬町",
+    spots: ["totto-park-kojima"],
+    intro: "大阪湾の南端、紀淡海峡に近いエリアです。魚種が豊富なことで知られています。",
+  },
+  {
+    slug: "wakayama",
+    name: "和歌山",
+    region: "和歌山市",
+    spots: ["marina-city-tsuri-koen"],
+    intro: "紀伊水道に面したエリアです。観光施設と組み合わせて家族で出かけやすい釣り場があります。",
+  },
+  {
+    slug: "maizuru",
+    name: "京都北部・舞鶴",
+    region: "京都府舞鶴市",
+    spots: ["maizuru-shinkai-koen"],
+    intro: "日本海側の舞鶴湾に面したエリアです。大阪湾とは潮や釣れる魚の時期が異なります。",
+  },
+];
+
+export const findArea = (slug: string) => AREAS.find((a) => a.slug === slug);
+export const areaOfSpot = (spotSlug: string) => AREAS.find((a) => a.spots.includes(spotSlug));

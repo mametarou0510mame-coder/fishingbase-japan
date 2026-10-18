@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CatchSummary from "@/app/components/CatchSummary";
 import TideWidget from "@/app/components/TideWidget";
+import { areaOfSpot } from "@/lib/areas";
+import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, summarize } from "@/lib/catches";
 import { PREF_LABEL, publishedSpots } from "@/lib/spots";
 
 type Params = { pref: string; slug: string };
@@ -33,11 +36,17 @@ function formatDate(iso: string) {
 export default async function SpotPage({ params }: { params: Promise<Params> }) {
   const spot = findSpot(await params);
   if (!spot) notFound();
+  const area = areaOfSpot(spot.slug);
+  const source = sourceOf(spot.slug);
+  const summary = summarize([spot.slug]);
+  const monthly = monthlyOf(spot.slug);
+  const recent = recentReports(spot.slug);
 
   return (
     <article>
       <p className="small">
-        <Link href="/kansai/">関西</Link> ＞ {PREF_LABEL[spot.pref]} ＞ {spot.name}
+        <Link href="/kansai/">関西</Link> ＞{" "}
+        {area ? <Link href={`/kansai/area/${area.slug}/`}>{area.name}</Link> : PREF_LABEL[spot.pref]} ＞ {spot.name}
       </p>
       <h1>{spot.name}</h1>
       <p className="lead">{spot.intro}</p>
@@ -88,15 +97,61 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         <p key={n} className="small">{n}</p>
       ))}
 
-      {spot.catchReportUrl && (
+      {source ? (
         <>
-          <h2>最近の釣果</h2>
-          <p>
-            施設が公開している最新の釣果は、
-            <a href={spot.catchReportUrl} rel="noopener">{spot.name}の釣果ページ（公式）</a>
-            でご覧いただけます。
+          <h2>最近釣れている魚</h2>
+          <p className="small">
+            直近{DEFAULT_DAYS}日間に施設が公開した釣果の集計です（出典：
+            <a href={source.url} rel="noopener">{source.name}</a>）。
           </p>
+          <CatchSummary list={summary.list} />
+          {monthly && monthly.rows.length > 0 && (
+            <>
+              <h3>施設発表の今月の釣果</h3>
+              <table className="catch-table">
+                <thead>
+                  <tr><th>魚種</th><th>評価</th><th>サイズ(cm)</th><th>1人あたり</th><th>仕掛け</th></tr>
+                </thead>
+                <tbody>
+                  {monthly.rows.map((r) => (
+                    <tr key={r.species + r.method}>
+                      <td>{r.species}</td>
+                      <td>{"★".repeat(r.stars) || "―"}</td>
+                      <td>{r.size}</td>
+                      <td>{r.perPerson}</td>
+                      <td>{r.method}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+          {recent.length > 0 && (
+            <>
+              <h3>最近の報告</h3>
+              <ul className="small">
+                {recent.map((r) => (
+                  <li key={r.id}>
+                    {r.date.slice(5).replace("-", "/")}　{r.species}
+                    {r.sizeCm !== null && ` ${r.sizeCm}cm`}
+                    {r.method && `（${r.method}）`}　<a href={r.url} rel="noopener">元の記事</a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </>
+      ) : (
+        spot.catchReportUrl && (
+          <>
+            <h2>最近の釣果</h2>
+            <p>
+              施設が公開している最新の釣果は、
+              <a href={spot.catchReportUrl} rel="noopener">{spot.name}の釣果ページ（公式）</a>
+              でご覧いただけます。
+            </p>
+          </>
+        )
       )}
 
       <div className="notice">

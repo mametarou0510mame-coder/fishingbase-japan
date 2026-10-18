@@ -105,3 +105,11 @@ th { width: 32%; color: var(--muted); font-weight: 600; }
 .months .card { text-align: center; padding: 12px; }
 .months .card h3 { margin: 0; }
 .quick-links { list-style: none; padding: 0; display: grid; gap: 6px; font-weight: 600; }
+
+.catch-table td, .catch-table th { width: auto; white-space: nowrap; }
+.catch-table td:first-child { white-space: normal; }
+.catch-table .bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--sea-2); margin-right: 6px; vertical-align: middle; }
+.spot-catch { margin: 12px 0; }
+.spot-catch h3 { margin: 0 0 4px; }
+.spot-catch p { margin: 4px 0; }
+article table { display: block; overflow-x: auto; }
