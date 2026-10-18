@@ -31,3 +31,13 @@ npm run build    # out/ に静的ファイルを出力
 
 1. `lib/site.ts` の `noindex` を `false` にする
 2. 独自ドメインを取得したら `url` を変更し、Cloudflare Pages にカスタムドメインを追加
+
+## Cloudflare Workers で公開する場合
+
+Cloudflare のダッシュボードで「Workers」として作成した場合は、リポジトリ直下の `wrangler.jsonc` を使います。
+
+| 項目 | 値 |
+| --- | --- |
+| ビルドコマンド | `npx next build` |
+| デプロイコマンド | `npx wrangler deploy` |
+| 公開URL | `fishingbase-japan.<アカウントのサブドメイン>.workers.dev` |
