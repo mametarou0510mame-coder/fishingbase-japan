@@ -2,7 +2,7 @@
 export const SITE = {
   name: "FishingBase Japan",
   tagline: "関西の釣果・潮・釣り場情報をひとつに",
-  url: "https://fishingbase-japan.pages.dev",
+  url: "https://fishingbase-japan.mametarou0510mame.workers.dev",
   instagram: "https://www.instagram.com/fishingbase.japan",
   // 公開用の問い合わせ先（2026-10-18 オーナー確定）
   contactEmail: "mametarou0510mame@gmail.com",

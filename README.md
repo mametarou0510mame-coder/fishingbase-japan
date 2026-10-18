@@ -20,7 +20,7 @@ npm run build    # out/ に静的ファイルを出力
 
 | 項目 | 値 |
 | --- | --- |
-| プロジェクト名 | fishingbase-japan（→ fishingbase-japan.pages.dev） |
+| プロジェクト名 | fishingbase-japan（→ fishingbase-japan.mametarou0510mame.workers.dev） |
 | 本番ブランチ | main |
 | フレームワーク | Next.js (Static HTML Export) |
 | ビルドコマンド | `npx next build` |
@@ -30,7 +30,7 @@ npm run build    # out/ に静的ファイルを出力
 ## 正式公開時にやること
 
 1. `lib/site.ts` の `noindex` を `false` にする
-2. 独自ドメインを取得したら `url` を変更し、Cloudflare Pages にカスタムドメインを追加
+2. 独自ドメインを取得したら `url` を変更し、Cloudflare Workers にカスタムドメインを追加
 
 ## Cloudflare Workers で公開する場合
 
