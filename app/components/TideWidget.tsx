@@ -97,8 +97,8 @@ function TideChart({
   const R = 4;
   const TOP = 12;
   const CH = 110; // 潮位グラフの高さ
-  const SUNROW = TOP + CH + 10; // 日の出・日の入の段
-  const AXIS = TOP + CH + (sun ? 22 : 12); // 時刻の目盛り
+  const SUNROW = TOP + CH + 11; // 日の出・日の入の段
+  const AXIS = TOP + CH + (sun ? 28 : 12); // 時刻の目盛り
   const WX = slots.length ? 82 : 0; // 天気欄の高さ
   const LEGEND = AXIS + WX + 14;
   const H = LEGEND + 6;
