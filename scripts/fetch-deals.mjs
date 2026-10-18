@@ -18,7 +18,7 @@ const CATEGORIES = [
 ];
 
 if (!APP_ID || !ACCESS_KEY) {
-  console.log("[deals] RAKUTEN_APP_ID / RAKUTEN_ACCESS_KEY が未設定のため取得しません");
+  console.log("::warning::[deals] RAKUTEN_APP_ID / RAKUTEN_ACCESS_KEY が未設定のため取得しません");
   process.exit(0);
 }
 
@@ -56,15 +56,15 @@ for (const c of CATEGORIES) {
       };
     });
     out.categories.push({ key: c.key, label: c.label, items });
-    console.log(`[deals] ${c.key}: ${items.length}`);
+    console.log(`::notice::[deals] ${c.key}: ${items.length}`);
   } catch (e) {
-    console.warn(`[deals] ${c.key}: ${e.message}`);
+    console.log(`::warning::[deals] ${c.key}: ${String(e.message).replaceAll(APP_ID, "***").replaceAll(ACCESS_KEY, "***")}`);
   }
   await new Promise((r) => setTimeout(r, 1200)); // 1秒に1回まで
 }
 
 if (out.categories.length === 0) {
-  console.warn("[deals] 1件も取得できなかったため、前回のデータを残します");
+  console.log("::warning::[deals] 1件も取得できなかったため、前回のデータを残します");
   process.exit(0);
 }
 await mkdir(new URL("../public/data/", import.meta.url), { recursive: true });
