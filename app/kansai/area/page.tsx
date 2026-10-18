@@ -20,7 +20,7 @@ export default function AreaIndex() {
             <Link key={a.slug} href={`/kansai/area/${a.slug}/`} className="card card-link">
               <h3>{a.name}</h3>
               <p>{a.region}（{a.spots.length}か所）</p>
-              {top.length > 0 && <p>最近：{top.map((t) => t.species.replace(/（.*）/, "")).join("・")}</p>}
+              {top.length > 0 && <p>最近：{top.map((t) => t.species.replace(/（.*）/, "")).join("、")}</p>}
             </Link>
           );
         })}
