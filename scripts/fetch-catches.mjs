@@ -10,6 +10,7 @@ import {
   parseHiraisoDaily,
   parseHiraisoDailyTitle,
   parseHiraisoMonthlyTable,
+  normalizeSpecies,
 } from "./catch-parsers.mjs";
 
 const OUT = new URL("../public/data/catches.json", import.meta.url);
@@ -77,7 +78,12 @@ try {
   /* 初回 */
 }
 
-const byId = new Map(prev.reports.filter((r) => r.date >= cutoff).map((r) => [`${r.spot}|${r.id}`, r]));
+// 魚種名の表記ルールを変えたときに過去分も揃うよう、保存済みデータも正規化し直す
+const byId = new Map(
+  prev.reports
+    .filter((r) => r.date >= cutoff)
+    .map((r) => [`${r.spot}|${r.id}`, { ...r, species: normalizeSpecies(r.species) }]),
+);
 const monthly = { ...(prev.monthly ?? {}) };
 const sources = [];
 
