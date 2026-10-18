@@ -8,9 +8,11 @@ import FishingIndex from "@/app/components/FishingIndex";
 import SpotGear from "@/app/components/SpotGear";
 import FavoriteButton from "@/app/components/FavoriteButton";
 import Checklist from "@/app/components/Checklist";
+import CatchPatterns from "@/app/components/CatchPatterns";
 import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
 import { STATION_COORDS } from "@/lib/sun";
+import { SITE } from "@/lib/site";
 import { areaOfSpot } from "@/lib/areas";
 import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, summarize } from "@/lib/catches";
 import { PREF_LABEL, publishedSpots } from "@/lib/spots";
@@ -68,6 +70,8 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         stationName={spot.tideStation.name}
         coords={STATION_COORDS[spot.tideStation.code]}
         weather={forecast.data}
+        spotName={spot.name}
+        pageUrl={`${SITE.url}/kansai/${spot.pref}/${spot.slug}/`}
         openByMonth={spot.openHourByMonth}
         closeByMonth={spot.closeHourByMonth}
       />
@@ -140,6 +144,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
             <a href={source.url} rel="noopener">{source.name}</a>）。
           </p>
           <CatchSummary list={summary.list} />
+          <CatchPatterns spotSlug={spot.slug} />
           {monthly && monthly.rows.length > 0 && (
             <>
               <h3>施設発表の今月の釣果</h3>
@@ -190,6 +195,9 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       )}
 
       <h2>持ち物チェックリスト</h2>
+      <p className="small">
+        ゴンズイやハオコゼなど毒のある魚も釣れます。見分け方は<Link href="/safety/fish/">危険な魚ガイド</Link>へ。
+      </p>
       <Checklist
         slug={spot.slug}
         noChum={!!spot.restrictions?.includes("no-chum")}

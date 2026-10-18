@@ -53,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <li><Link href="/about/">運営者情報</Link></li>
               <li><Link href="/privacy/">プライバシーポリシー</Link></li>
               <li><Link href="/terms/">利用規約</Link></li>
+              <li><Link href="/safety/fish/">危険な魚ガイド</Link></li>
               <li><Link href="/disclaimer/">免責事項・安全について</Link></li>
               <li><Link href="/pr-policy/">広告・選定方針</Link></li>
               <li><Link href="/data-deletion/">データ削除のご依頼</Link></li>

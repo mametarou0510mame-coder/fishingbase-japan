@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { computeJiai, windLookup, windowLabel, type JiaiResult } from "@/lib/jiai";
+import ShareDay from "@/app/components/ShareDay";
+import { moonInfo } from "@/lib/moon";
 import { hm, sunTimes } from "@/lib/sun";
 import type { WeatherArea } from "@/lib/weather";
 
@@ -222,6 +224,41 @@ function TideChart({
   );
 }
 
+// 共有用の文章（LINEなどで送る）
+function shareText(p: {
+  spotName: string;
+  pageUrl?: string;
+  date: string;
+  day: TideDay;
+  sun: Sun;
+  jiai: JiaiResult | null;
+  slots: Slot[];
+  weather: WeatherArea | null;
+}) {
+  const lines = [`【ツレドキ関西】${p.spotName}`, `${label(p.date)} ${moonInfo(p.date).tideName}`];
+  if (p.jiai) {
+    lines.push(
+      p.jiai.windows.length
+        ? `ねらい目：${p.jiai.windows.map((w) => `${w.grade}${windowLabel(w)}${w.reasons.length ? `（${w.reasons.join("・")}）` : ""}`).join("、")}`
+        : `ねらい目：${p.jiai.note ?? "なし"}`,
+    );
+  }
+  const hi = p.day.high.map((e) => e.time).join("・") || "なし";
+  const lo = p.day.low.map((e) => e.time).join("・") || "なし";
+  lines.push(`満潮 ${hi}／干潮 ${lo}`);
+  if (p.sun) lines.push(`日の出 ${hm(p.sun.rise)}／日の入 ${hm(p.sun.set)}`);
+  const day = p.slots.filter((s) => {
+    const h = toJst(s.time).getUTCHours();
+    return h >= 3 && h <= 18;
+  });
+  const top = [...day].sort((a, b) => (b.windMax ?? 0) - (a.windMax ?? 0))[0];
+  if (top && top.windMax != null) lines.push(`風：${top.windDir} 最大${top.windMax}m前後（日中）`);
+  const daily = p.weather?.days.find((d) => d.date === p.date);
+  if (daily) lines.push(`天気：${daily.weather}`, `波：${daily.wave || "―"}`);
+  if (p.pageUrl) lines.push(p.pageUrl);
+  return lines.join("\n");
+}
+
 // グラフの下：その日の波と、時間ごとの予報がない日の1日の予報、出典
 function WeatherNotes({ date, weather, hasSlots }: { date: string; weather: WeatherArea | null; hasSlots: boolean }) {
   if (!weather) return null;
@@ -295,7 +332,11 @@ export default function TideWidget({
   weather,
   openByMonth,
   closeByMonth,
+  spotName,
+  pageUrl,
 }: {
+  spotName?: string;
+  pageUrl?: string;
   code: string;
   stationName: string;
   coords?: { lat: number; lon: number };
@@ -338,6 +379,7 @@ export default function TideWidget({
             onClick={() => setOffset(i)}
           >
             {i === 0 ? "今日" : label(d)}
+            <span className="tab-sub">{moonInfo(d).tideName}</span>
           </button>
         ))}
       </div>
@@ -377,6 +419,12 @@ export default function TideWidget({
                   {tideRangeCm(day)}cm（{rangeClass(day, days ?? [])}）
                 </td>
               </tr>
+              <tr>
+                <th>潮名・月齢</th>
+                <td>
+                  {moonInfo(dates[offset]).tideName}（月齢{moonInfo(dates[offset]).age.toFixed(1)}）
+                </td>
+              </tr>
               {sun && (
                 <tr>
                   <th>日の出・日の入</th>
@@ -405,6 +453,11 @@ export default function TideWidget({
             jiai={jiai!}
           />
           <WeatherNotes date={dates[offset]} weather={weather ?? null} hasSlots={slots.length > 0} />
+          {spotName && (
+            <ShareDay
+              text={shareText({ spotName, pageUrl, date: dates[offset], day, sun, jiai, slots, weather: weather ?? null })}
+            />
+          )}
           <p className="small tide-tip">
             満潮・干潮の前後は潮の流れが止まりやすく、その間の「潮が動いている時間」は魚の活性が上がり、
             一般に最も釣れやすい時間帯といわれます。干満差が大きい日ほど潮がよく動きます。
