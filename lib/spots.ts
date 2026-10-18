@@ -14,6 +14,7 @@ export type Spot = {
   officialUrl: string;
   sourceUrls: string[];
   hours: string;
+  openHourByMonth?: (number | null)[]; // 1〜12月の開園時刻（時）。null・未設定は不明
   closeHourByMonth?: (number | null)[]; // 1〜12月の閉園時刻（時）。null・未設定は不明。道具のおすすめ（夜釣り向けの魚を出すか）に使う
   closed: string;
   fees: { label: string; value: string }[];
@@ -51,6 +52,7 @@ export const SPOTS: Spot[] = [
     officialUrl: "https://amagasaki-uoturikouen.com/",
     sourceUrls: ["https://amagasaki-uoturikouen.com/guide.html"],
     hours: "5・6・11月 6:00〜19:00／7〜10月 5:00〜20:00／12〜4月 7:00〜17:00",
+    openHourByMonth: [7, 7, 7, 7, 6, 6, 5, 5, 5, 5, 6, 7],
     closeHourByMonth: [17, 17, 17, 17, 19, 19, 20, 20, 20, 20, 19, 17],
     closed: "毎週火曜（祝日の場合はその直後の祝日以外の日）、12月31日〜1月1日、天候不良の日",
     fees: [
@@ -90,6 +92,7 @@ export const SPOTS: Spot[] = [
       "https://www.city.kobe.lg.jp/a67688/675097559697.html",
     ],
     hours: "月によって異なります（2026年10月は平日・日祝 6:00〜19:00、土曜 6:00〜21:00）",
+    openHourByMonth: [null, null, null, null, null, null, null, null, null, 6, null, null],
     closeHourByMonth: [null, null, null, null, null, null, null, null, null, 19, null, null],
     closed: "毎週木曜（祝日は開園）",
     fees: [
@@ -130,6 +133,7 @@ export const SPOTS: Spot[] = [
     officialUrl: "https://www.marinacity.com/tsuri/",
     sourceUrls: ["https://www.marinacity.com/tsuri/"],
     hours: "7:00〜17:00",
+    openHourByMonth: [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
     closeHourByMonth: [17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17],
     closed: "毎週火曜（2026年10月は6・13・20・27日）",
     fees: [
@@ -172,6 +176,7 @@ export const SPOTS: Spot[] = [
       "https://sumasakana-park.com/4%E6%9C%88%E3%81%8B%E3%82%89%E3%81%AE%E9%96%8B%E5%9C%92%E6%99%82%E9%96%93/",
     ],
     hours: "月によって異なります（10月 6:00〜19:00、11〜3月 7:00〜17:00、5〜9月は土日祝の閉園が遅くなります）",
+    openHourByMonth: [7, 7, 7, null, null, null, null, null, null, 6, 7, 7],
     closeHourByMonth: [17, 17, 17, null, 19, 19, 19, 19, 19, 19, 17, 17],
     closed: "毎週火曜（休日と7月21日〜8月31日は開園）、12月29日〜1月3日",
     fees: [
@@ -211,6 +216,7 @@ export const SPOTS: Spot[] = [
     officialUrl: "https://www.city.maizuru.kyoto.jp/kurashi/0000009016.html",
     sourceUrls: ["https://www.city.maizuru.kyoto.jp/kurashi/0000009016.html"],
     hours: "海釣り護岸：4・5・9・10・11月 7:00〜18:00／6〜8月 7:00〜19:00／12〜3月 7:00〜17:00",
+    openHourByMonth: [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
     closeHourByMonth: [17, 17, 17, 18, 18, 19, 19, 19, 18, 18, 18, 17],
     closed: "海釣り護岸：毎週水曜（祝日の場合は翌日）",
     fees: [{ label: "入園料", value: "無料" }],
@@ -241,6 +247,7 @@ export const SPOTS: Spot[] = [
       "https://www.city.sakai.lg.jp/shisei/toshi/rinkai/umifureai/index.html",
     ],
     hours: "9:00〜17:00（7月の海の日前の土曜〜8月末の土日祝は7:00〜19:00）",
+    openHourByMonth: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
     closeHourByMonth: [17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17],
     closed: "閉園日なし（気象警報の発令時や行事のときは閉鎖する場合あり）",
     fees: [{ label: "利用料", value: "堺市の公式ページに料金の記載はありません" }],
@@ -279,6 +286,7 @@ export const SPOTS: Spot[] = [
       "https://minnaga.com/totopark/kisoku.html",
     ],
     hours: "3〜11月 6:00〜20:00／12〜2月 7:00〜18:00",
+    openHourByMonth: [7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7],
     closeHourByMonth: [18, 18, 20, 20, 20, 20, 20, 20, 20, 20, 20, 18],
     closed: "毎週金曜（祝日は開園）、12月31日〜1月2日",
     fees: [
@@ -361,6 +369,7 @@ export const SPOTS: Spot[] = [
     officialUrl: "https://www.amagyo.com/index-tosenx.html",
     sourceUrls: ["https://www.amagyo.com/index-tosenx.html", "https://www.amagyo.com/ryoukinhyou.html"],
     hours: "1番船 5:00、最終便 19:00（2026年9月時点。天候により変更あり）",
+    openHourByMonth: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
     closeHourByMonth: [19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19],
     closed: "通年営業（強風・波浪注意報などで欠航・途中引き上げの場合あり）",
     fees: [
@@ -517,6 +526,8 @@ export const SPOTS: Spot[] = [
       "https://www.pref.osaka.lg.jp/o150010010/kowan/bousai-kikikanri/seigenkuikizu1.html",
     ],
     hours: "",
+    openHourByMonth: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+    closeHourByMonth: [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
     closed: "",
     fees: [],
     parking: "",
@@ -547,6 +558,8 @@ export const SPOTS: Spot[] = [
       "https://www.pref.osaka.lg.jp/o150010010/kowan/bousai-kikikanri/seigenkuikizu1.html",
     ],
     hours: "開門 9:00〜22:00（とされています）",
+    openHourByMonth: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+    closeHourByMonth: [22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22],
     closed: "水曜は閉門（とされています）",
     fees: [],
     parking: "",

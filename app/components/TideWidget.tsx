@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { computeJiai, windLookup, windowLabel, type JiaiResult } from "@/lib/jiai";
 import { hm, sunTimes } from "@/lib/sun";
 import type { WeatherArea } from "@/lib/weather";
 
@@ -72,6 +73,7 @@ function TideChart({
   slots,
   date,
   weather,
+  jiai,
 }: {
   day: TideDay;
   isToday: boolean;
@@ -79,6 +81,7 @@ function TideChart({
   slots: Slot[];
   date: string;
   weather: WeatherArea | null;
+  jiai: JiaiResult;
 }) {
   const values = day.hourly.filter((v): v is number => v !== null);
   if (values.length < 2) return null;
@@ -127,6 +130,11 @@ function TideChart({
       )}
       {ranges.map((r) => (
         <rect key={r.from} x={x(r.from)} y={TOP} width={x(r.to) - x(r.from)} height={CH} className="moving" />
+      ))}
+      {jiai.windows.map((w) => (
+        <g key={`j${w.from}`}>
+          <rect x={x(w.from)} y={2} width={x(w.to) - x(w.from)} height={7} rx={2} className="jiai" />
+        </g>
       ))}
       {/* 3時間ごとの区切り（潮位グラフから天気欄まで通す） */}
       {[0, 3, 6, 9, 12, 15, 18, 21, 24].map((h) => (
@@ -204,10 +212,12 @@ function TideChart({
       )}
       {slots.length > 0 && (
         <>
-          <rect x={L + 152} y={LEGEND - 7} width={10} height={7} className="warnbg" />
-          <text x={L + 166} y={LEGEND} className="axis">風10m以上</text>
+          <rect x={L + 148} y={LEGEND - 7} width={10} height={7} className="warnbg" />
+          <text x={L + 162} y={LEGEND} className="axis">風10m以上</text>
         </>
       )}
+      <rect x={L + 216} y={LEGEND - 7} width={10} height={7} rx={2} className="jiai" />
+      <text x={L + 230} y={LEGEND} className="axis">ねらい目</text>
     </svg>
   );
 }
@@ -283,11 +293,15 @@ export default function TideWidget({
   stationName,
   coords,
   weather,
+  openByMonth,
+  closeByMonth,
 }: {
   code: string;
   stationName: string;
   coords?: { lat: number; lon: number };
   weather?: WeatherArea | null;
+  openByMonth?: (number | null)[];
+  closeByMonth?: (number | null)[];
 }) {
   const [days, setDays] = useState<TideDay[] | null>(null);
   const [offset, setOffset] = useState(0);
@@ -301,6 +315,16 @@ export default function TideWidget({
   const day = days?.find((d) => d.date === dates[offset]);
   const sun = coords ? sunTimes(dates[offset], coords.lat, coords.lon) : null;
   const slots = slotsFor(dates[offset], weather ?? null);
+  const month = Number(dates[offset].slice(5, 7));
+  const jiai = day
+    ? computeJiai({
+        tide: day.hourly,
+        sun,
+        open: openByMonth?.[month - 1] ?? null,
+        close: closeByMonth?.[month - 1] ?? null,
+        windMaxAt: windLookup(weather?.hourly, dates[offset]),
+      })
+    : null;
 
   return (
     <section className="tide">
@@ -324,6 +348,21 @@ export default function TideWidget({
         <>
           <table className="tide-table">
             <tbody>
+              {jiai && (
+                <tr className="jiai-row">
+                  <th>ねらい目</th>
+                  <td>
+                    {jiai.windows.length > 0
+                      ? jiai.windows.map((w) => (
+                          <span key={w.from} className="jiai-chip">
+                            <b>{w.grade}</b> {windowLabel(w)}
+                            {w.reasons.length > 0 && <span className="small">（{w.reasons.join("・")}）</span>}
+                          </span>
+                        ))
+                      : jiai.note}
+                  </td>
+                </tr>
+              )}
               <tr>
                 <th>満潮</th>
                 <td>{day.high.length ? day.high.map((e) => `${e.time}（${e.cm}cm）`).join("　") : "なし"}</td>
@@ -363,11 +402,13 @@ export default function TideWidget({
             slots={slots}
             date={dates[offset]}
             weather={weather ?? null}
+            jiai={jiai!}
           />
           <WeatherNotes date={dates[offset]} weather={weather ?? null} hasSlots={slots.length > 0} />
           <p className="small tide-tip">
             満潮・干潮の前後は潮の流れが止まりやすく、その間の「潮が動いている時間」は魚の活性が上がり、
             一般に最も釣れやすい時間帯といわれます。干満差が大きい日ほど潮がよく動きます。
+            「ねらい目」は、潮の動き・朝夕のまずめ（日の出・日の入の前後）・営業時間・風の予報を組み合わせた当サイト独自の目安です（◎＞○＞△）。
           </p>
         </>
       )}

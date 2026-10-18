@@ -195,3 +195,23 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 .tide-chart .wxval { font-size: 8.5px; fill: var(--ink); }
 .tide-chart .warn { fill: var(--float); font-weight: 700; }
 .tide-chart .warnbg { fill: var(--float); opacity: 0.1; }
+
+/* ねらい目 */
+.tide-chart .jiai { fill: var(--glow); }
+.jiai-row th { color: var(--sea); }
+.jiai-chip { display: inline-block; margin-right: 10px; }
+.jiai-chip b { display: inline-block; min-width: 1.5em; text-align: center; background: var(--glow); color: #10283f; border-radius: 4px; margin-right: 2px; }
+
+/* ねらい目ランキング・お気に入り */
+.ranking h3 { color: var(--sea); margin-top: 14px; }
+.rank-list { list-style: none; padding: 0; margin: 6px 0; }
+.rank-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.rank-no { flex: 0 0 auto; width: 1.8em; height: 1.8em; display: grid; place-items: center; border-radius: 50%; background: var(--sea); color: var(--bg); font-weight: 700; font-size: 0.85rem; margin-top: 2px; }
+.rank-row:nth-child(-n+3) .rank-no { background: var(--float); color: #fff; }
+.rank-body { flex: 1; min-width: 0; }
+.rank-name { font-weight: 700; }
+.rank-win { margin: 2px 0; }
+.rank-warn { color: var(--float); font-size: 0.85rem; font-weight: 700; margin: 4px 0; }
+.fav { font: inherit; font-size: 0.85rem; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--glow); background: transparent; color: var(--ink); cursor: pointer; margin: 0 0 8px; }
+.fav.on { background: var(--glow); color: #10283f; font-weight: 700; }
+.fav:focus-visible, .tide-tabs button:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 2px; }

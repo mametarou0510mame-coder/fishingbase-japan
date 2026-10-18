@@ -6,6 +6,7 @@ import TideWidget from "@/app/components/TideWidget";
 import WeatherPanel from "@/app/components/WeatherPanel";
 import FishingIndex from "@/app/components/FishingIndex";
 import SpotGear from "@/app/components/SpotGear";
+import FavoriteButton from "@/app/components/FavoriteButton";
 import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
 import { STATION_COORDS } from "@/lib/sun";
@@ -57,6 +58,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         {area ? <Link href={`/kansai/area/${area.slug}/`}>{area.name}</Link> : PREF_LABEL[spot.pref]} ＞ {spot.name}
       </p>
       <h1>{spot.name}</h1>
+      <FavoriteButton slug={spot.slug} />
       <p className="lead">{spot.intro}</p>
 
       <h2>タイドグラフ・天気・風・波</h2>
@@ -65,6 +67,8 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         stationName={spot.tideStation.name}
         coords={STATION_COORDS[spot.tideStation.code]}
         weather={forecast.data}
+        openByMonth={spot.openHourByMonth}
+        closeByMonth={spot.closeHourByMonth}
       />
 
       <h3>3日間の天気（{forecast.label}）</h3>

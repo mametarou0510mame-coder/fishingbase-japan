@@ -1,5 +1,7 @@
 import Link from "next/link";
+import JiaiRanking from "@/app/components/JiaiRanking";
 import ThisMonthLink from "@/app/components/ThisMonthLink";
+import { buildJiai } from "@/lib/jiaiBuild";
 import { AREAS } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 import { SITE } from "@/lib/site";
@@ -7,6 +9,7 @@ import { publishedSpots } from "@/lib/spots";
 
 export default function Home() {
   const spotCount = publishedSpots().length;
+  const jiai = buildJiai();
   return (
     <>
       <section className="hero">
@@ -16,6 +19,9 @@ export default function Home() {
         </p>
       </section>
 
+      <JiaiRanking dates={jiai.dates} spots={jiai.spots} />
+
+      <h2>探す</h2>
       <ul className="quick-links">
         <li><Link href="/kansai/area/">エリア別：最近釣れている魚</Link></li>
         <li><Link href="/kansai/">関西の釣り場一覧</Link></li>
