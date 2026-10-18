@@ -37,7 +37,8 @@ export const SPECIES_DICT = [
   ["ハゼ", "ハゼ"],
   ["ボラ", "ボラ"],
   ["コノシロ", "コノシロ"],
-  ["イシダイ", "イシダイ"],
+  ["イシダイ", "石鯛", "サンバソウ", "イシダイ"],
+  ["イシガキダイ", "イシガキダイ"],
   ["ハオコゼ", "ハオコゼ"],
   ["イサキ", "ウリボウ", "イサキ"],
   ["サッパ", "サッパ"],
@@ -264,7 +265,7 @@ export function parseAmagasakiList(html) {
 
 // ---- 釣具のポイント（関西エリアの「お持込釣果」一覧）----
 // 釣人の名前・スタッフ名・写真は保存しない。釣場の書き方から当サイトの釣り場に結び付けられるものだけ使う。
-export const POINT_PLACE_RULES = [
+export const PLACE_RULES = [
   [/武庫川一文字|武庫一|武庫川渡船/, "mukogawa-ichimonji"],
   [/岸和田一文字|岸和田渡船|岸一/, "kishiwada-ichimonji"],
   [/尼崎.*(魚つり|魚釣り|釣り公園)|魚つり公園/, "amagasaki-uotsuri-koen"],
@@ -275,16 +276,22 @@ export const POINT_PLACE_RULES = [
   [/とっとパーク/, "totto-park-kojima"],
   [/貝塚人工島|貝塚.*人工島/, "kaizuka-jinkoto"],
   [/夢舞大橋/, "yumemai-ohashi-shita"],
+  [/夢洲|大阪北港/, "yumeshima-hato-yazawa"],
   [/舞洲/, "maishima-seaside-promenade"],
   [/汐見(埠頭|ふ頭)/, "shiomi-futo"],
   [/忠岡/, "tadaoka-suigintou"],
   [/鳴尾浜/, "naruohama-umizuri-hiroba"],
   [/海とのふれあい広場|堺.*釣りテラス/, "sakai-umizuri-terrace"],
   [/舞鶴親海公園/, "maizuru-shinkai-koen"],
+  [/大蔵海岸/, "okura-kaigan-higashi"],
+  [/中崎.*(護岸|ベランダ)|ベランダ護岸/, "nakasaki-veranda-gogan"],
+  [/下津ピアーランド|シモツピアーランド/, "shimotsu-pialand"],
 ];
-export function matchPointPlace(place) {
-  return POINT_PLACE_RULES.find(([re]) => re.test(place))?.[1] ?? null;
+export const POINT_PLACE_RULES = PLACE_RULES;
+export function matchPlace(text) {
+  return PLACE_RULES.find(([re]) => re.test(text))?.[1] ?? null;
 }
+export const matchPointPlace = matchPlace;
 
 export function parsePointList(html) {
   const out = [];
@@ -313,6 +320,76 @@ export function parsePointList(html) {
         time: null,
         url: `https://www.point-i.jp/fishing_infos/${id}`,
       }),
+    );
+  }
+  return out;
+}
+
+
+// ---- 鳴尾浜臨海公園 海づり広場（/choka/ の一覧）----
+// <p class="date">2026年10月18日（日）</p> … <li><span>カタクチイワシ ８－１２ｃｍ</span>合計 １０００ 匹</li>
+export function parseNaruohamaChoka(html) {
+  const out = [];
+  const blocks = html.split('<p class="date">').slice(1);
+  for (const b of blocks) {
+    const d = toHalf(b.slice(0, 40)).match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+    if (!d) continue;
+    const date = `${d[1]}-${d[2].padStart(2, "0")}-${d[3].padStart(2, "0")}`;
+    const body = b.split('<ul class="img')[0];
+    for (const m of body.matchAll(/<li><span>([^<]+)<\/span>\s*合計\s*([^<]*?)<\/li>/g)) {
+      const nameSize = decodeEntities(m[1]).trim();
+      const species = findSpecies(nameSize.split(/\s+/)[0] ?? "");
+      if (!species.length) continue;
+      const cnt = toHalf(m[2]).match(/(\d+)/);
+      out.push({ date, species: species[0], sizeCm: parseMaxSizeCm(nameSize), count: cnt ? Number(cnt[1]) : null, method: null, time: null });
+    }
+  }
+  return out;
+}
+
+// ---- 下津ピアーランド（釣果1件ずつのページ）----
+// <div class="fishing-meta"><span>魚種：<a rel="tag">シオ</a></span><span>サイズ：40ｃｍ</span><span>匹数：1匹</span><span>釣り方：</span><span>エサ：アジ呑ませ</span></div>
+export function parseShimotsuPost(html) {
+  const meta = html.match(/<div class="fishing-meta">([\s\S]*?)<\/div>/)?.[1];
+  if (!meta) return [];
+  const field = (name) => decodeEntities(stripTags(meta.match(new RegExp(`<span>${name}：([\\s\\S]*?)<\\/span>`))?.[1] ?? "")).trim();
+  const names = [...meta.matchAll(/rel="tag">([^<]+)<\/a>/g)].map((m) => decodeEntities(m[1]).trim());
+  const species = [...new Set(names.flatMap((n) => findSpecies(n)))];
+  const single = species.length === 1;
+  const method = (field("釣り方") || field("エサ")).slice(0, 20) || null;
+  return species.map((sp) => ({
+    species: sp,
+    sizeCm: single ? parseMaxSizeCm(field("サイズ")) : null,
+    count: single ? parseCount(field("匹数") + "匹") : null,
+    method,
+    time: null,
+  }));
+}
+
+// ---- 釣具店のブログ（Atom）：釣り場の名前が書かれた記事だけ使う ----
+export function parseAtomEntries(xml) {
+  const out = [];
+  for (const m of xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)) {
+    const e = m[1];
+    const title = decodeEntities(e.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] ?? "").trim();
+    const link = e.match(/<link rel="alternate"[^>]*href="([^"]+)"/)?.[1] ?? "";
+    const published = e.match(/<published>([^<]+)<\/published>/)?.[1] ?? "";
+    const content = decodeEntities(stripTags(decodeEntities(e.match(/<content[^>]*>([\s\S]*?)<\/content>/)?.[1] ?? "")));
+    out.push({ title, link, date: published.slice(0, 10), content });
+  }
+  return out;
+}
+
+export function storeBlogReports(entries, idPrefix) {
+  const out = [];
+  for (const e of entries) {
+    const head = `${e.title} ${e.content.slice(0, 300)}`;
+    const spot = matchPlace(head);
+    if (!spot || !e.date) continue;
+    let species = findSpecies(e.title);
+    if (!species.length) species = findSpecies(e.content.slice(0, 300)).slice(0, 2);
+    species.forEach((sp, i) =>
+      out.push({ spot, id: `${idPrefix}${e.link}#${i}`, date: e.date, species: sp, sizeCm: null, count: null, method: null, time: null, url: e.link }),
     );
   }
   return out;

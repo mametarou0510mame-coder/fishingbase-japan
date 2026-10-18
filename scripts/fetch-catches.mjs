@@ -15,6 +15,10 @@ import {
   parseCatchTables,
   parseAmagasakiList,
   parsePointList,
+  parseNaruohamaChoka,
+  parseShimotsuPost,
+  parseAtomEntries,
+  storeBlogReports,
 } from "./catch-parsers.mjs";
 
 const OUT = new URL("../public/data/catches.json", import.meta.url);
@@ -118,12 +122,44 @@ async function amagasaki() {
 // 釣具のポイント（関西エリアのお持込釣果）。釣場の書き方から当サイトの釣り場に結び付くものだけ。
 async function pointKansai() {
   const reports = [];
-  for (const page of [1, 2, 3]) {
+  for (const page of [1, 2, 3, 4, 5]) {
     const html = await get(`https://www.point-i.jp/fishing_infos?area_id=94&shop_id=0&page=${page}`);
+    if (!html.includes("/fishing_infos/")) break;
     reports.push(...parsePointList(html));
   }
   return { reports, monthly: null };
 }
+
+// 鳴尾浜臨海公園 海づり広場：釣果一覧ページ（日付ごとに魚種・サイズ・合計匹数）
+async function naruohama() {
+  const html = await get("http://www.naruohama-park.com/choka/");
+  const reports = parseNaruohamaChoka(html).map((r, i) => ({ id: `naruo-${r.date}-${r.species}-${i}`, ...r, url: "http://www.naruohama-park.com/choka/" }));
+  return { reports, monthly: null };
+}
+
+// 下津ピアーランド：釣果のRSSから1件ずつのページを開く
+async function shimotsu() {
+  const xml = await get("https://www.shimotsu-pialand.com/fishing/feed/");
+  const reports = [];
+  for (const item of parseRss(xml).slice(0, 10)) {
+    const link = item.link.split("?")[0];
+    const d = link.match(/\/fishing\/(\d{4})\/(\d{2})\/(\d{2})\//);
+    if (!d) continue;
+    try {
+      const html = await get(link);
+      parseShimotsuPost(html).forEach((r, i) => reports.push({ id: `${link}#${i}`, date: `${d[1]}-${d[2]}-${d[3]}`, ...r, url: link }));
+    } catch (e) {
+      console.log(`::warning::[catches] shimotsu 個別ページ失敗: ${e.message}`);
+    }
+  }
+  return { reports, monthly: null };
+}
+
+// まるは釣具の店舗ブログ：釣り場の名前が書かれた記事だけを、その釣り場の釣果として使う
+const maruhaBlog = (store) => async () => {
+  const xml = await get(`https://anglers.lekumo.biz/${store}/atom.xml`);
+  return { reports: storeBlogReports(parseAtomEntries(xml), `maruha-${store}-`), monthly: null };
+};
 
 // 当サイトの「みんなの釣果投稿」（投稿受付サーバーの公開API）
 async function userPosts() {
@@ -151,7 +187,24 @@ const SOURCES = [
   { spot: "kishiwada-ichimonji", name: "岸和田渡船 釣果情報", url: "https://kishiwadatosen.com/result/", run: kishiwada },
   { spot: "suma-umizuri-koen", name: "須磨海づり公園 釣果情報", url: "https://sumasakana-park.com/fishing/", run: suma },
   { spot: "amagasaki-uotsuri-koen", name: "尼崎市立魚つり公園 釣果情報", url: "https://amagasaki-uoturikouen.com/fishing/index.html", run: amagasaki },
+  { spot: "naruohama-umizuri-hiroba", name: "鳴尾浜臨海公園 海づり広場 釣果情報", url: "http://www.naruohama-park.com/choka/", run: naruohama },
+  { spot: "shimotsu-pialand", name: "下津ピアーランド 釣果情報", url: "https://www.shimotsu-pialand.com/fishing/", run: shimotsu },
   // 複数の釣り場にまたがる出典（各釣果に spot が入っている）
+  ...[
+    ["akashi", "明石店"],
+    ["futami", "二見店"],
+    ["nishimai", "西舞子店"],
+    ["sennan", "泉南店"],
+    ["himeji", "姫路店"],
+    ["awaji", "洲本店"],
+  ].map(([store, label]) => ({
+    spot: null,
+    key: `maruha-${store}`,
+    idPrefix: `maruha-${store}-`,
+    name: `まるは釣具 ${label} 釣果ブログ`,
+    url: `https://anglers.lekumo.biz/${store}/`,
+    run: maruhaBlog(store),
+  })),
   { spot: null, key: "point-kansai", idPrefix: "point-", name: "釣具のポイント お持込釣果", url: "https://www.point-i.jp/fishing_infos?area_id=94", run: pointKansai },
   { spot: null, key: "user-posts", idPrefix: "user-", name: "ツレドキ関西 みんなの釣果投稿", url: "https://tsuredoki-kansai.mametarou0510mame.workers.dev/post/", run: userPosts },
 ];
