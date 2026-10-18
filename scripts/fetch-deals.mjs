@@ -7,7 +7,7 @@ const APP_ID = process.env.RAKUTEN_APP_ID;
 const ACCESS_KEY = process.env.RAKUTEN_ACCESS_KEY;
 const AFFILIATE_ID = "5898e85a.312d89ad.5898e85b.c7f5d2cd";
 const ORIGIN = "https://tsuredoki-kansai.mametarou0510mame.workers.dev";
-const ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20220601";
+const ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701";
 
 const CATEGORIES = [
   { key: "sabiki", label: "サビキ釣りセット", keyword: "サビキ セット 竿 リール" },
