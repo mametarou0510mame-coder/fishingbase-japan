@@ -5,7 +5,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { parseFile } from "./tide-parser.mjs";
 
 // 釣り場データ(lib/spots.ts)の tideStation と揃えること
-const STATIONS = ["AM", "AK", "OS", "KB", "TN", "Z9", "SI", "MZ", "J5"];
+const STATIONS = ["AM", "AK", "OS", "KB", "TN", "Z9", "SI", "MZ", "J5", "J2"];
 const OUT_DIR = new URL("../public/data/tides/", import.meta.url);
 
 const now = new Date(Date.now() + 9 * 3600 * 1000); // JST

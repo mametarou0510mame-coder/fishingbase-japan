@@ -12,7 +12,13 @@ export const AREAS: Area[] = [
     slug: "osaka-bay-north",
     name: "大阪湾奥",
     region: "大阪市・堺・尼崎・西宮",
-    spots: ["sakai-umizuri-terrace", "nanko-uotsuri-en", "amagasaki-uotsuri-koen", "naruohama-umizuri-hiroba"],
+    spots: [
+      "sakai-umizuri-terrace",
+      "nanko-uotsuri-en",
+      "amagasaki-uotsuri-koen",
+      "mukogawa-ichimonji",
+      "naruohama-umizuri-hiroba",
+    ],
     intro: "大阪湾の奥にあたるエリアです。市街地から近く、短い時間でも釣りに行きやすい施設が集まっています。",
   },
   {
@@ -24,10 +30,10 @@ export const AREAS: Area[] = [
   },
   {
     slug: "senshu",
-    name: "泉南・岬",
-    region: "大阪府泉南郡岬町",
-    spots: ["totto-park-kojima"],
-    intro: "大阪湾の南端、紀淡海峡に近いエリアです。魚種が豊富なことで知られています。",
+    name: "泉州",
+    region: "岸和田市沖〜泉南郡岬町",
+    spots: ["kishiwada-ichimonji", "totto-park-kojima"],
+    intro: "大阪湾の南側のエリアです。沖堤防の岸和田一文字から、紀淡海峡に近い岬町の海釣り公園まであります。",
   },
   {
     slug: "wakayama",

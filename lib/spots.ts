@@ -5,7 +5,7 @@ export type Spot = {
   name: string;
   area: string;
   address: string;
-  type: "海釣り施設" | "公園の釣り場";
+  type: "海釣り施設" | "公園の釣り場" | "沖堤防（渡船）";
   published: boolean;
   // full: 公式情報で料金・時間・ルールまで確認済み / basic: 概要とリンクのみ（詳細はリンク先で確認）
   level: "full" | "basic";
@@ -330,6 +330,75 @@ export const SPOTS: Spot[] = [
     notes: [],
     tideStation: { code: "J5", name: "西宮" },
     intro: "西宮市の鳴尾浜臨海公園（南地区）にある海づり広場です。公園の指定管理者が運営しています。",
+  },
+  {
+    slug: "mukogawa-ichimonji",
+    pref: "hyogo",
+    name: "武庫川一文字",
+    area: "尼崎市・西宮市沖",
+    address: "武庫川河口の沖（武庫川渡船で渡ります）",
+    type: "沖堤防（渡船）",
+    published: true,
+    level: "full",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://www.amagyo.com/index-tosenx.html",
+    sourceUrls: ["https://www.amagyo.com/index-tosenx.html", "https://www.amagyo.com/ryoukinhyou.html"],
+    hours: "1番船 5:00、最終便 19:00（2026年9月時点。天候により変更あり）",
+    closed: "通年営業（強風・波浪注意報などで欠航・途中引き上げの場合あり）",
+    fees: [
+      { label: "渡船料（大人）", value: "2,800円（女性2,300円）" },
+      { label: "渡船料（高校生）", value: "2,000円" },
+      { label: "渡船料（中学生）", value: "1,600円" },
+      { label: "渡船料（小学生）", value: "1,100円" },
+      { label: "回数券", value: "10回分 25,000円" },
+    ],
+    parking: "公式サイトでご確認ください",
+    rentals: "保安基準適合の救命具を無料レンタル",
+    rules: [
+      "救命具は桜マーク・CSマーク付きのものだけ使用可（マークのないものは不可）",
+      "出船15分前までに受付。出船間際の来場は乗船不可",
+      "50cmを超えるクーラーボックス・大型キャリーは持ち込み不可",
+      "通し営業はなく、全員が最終便で引き上げ",
+      "乗船は4歳以上。小・中学生のみの場合は日没前に帰ること",
+      "回転灯と警笛が鳴ったら速やかに船着き場へ向かう",
+      "船長・スタッフの指示に従う",
+    ],
+    notes: ["トイレは約1時間に1度巡回する船を利用します。"],
+    tideStation: { code: "AM", name: "尼崎" },
+    intro:
+      "武庫川河口の沖にある沖堤防で、「武庫一（むこいち）」とも呼ばれます。武庫川渡船の船で渡り、救命具の着用が必須です。",
+  },
+  {
+    slug: "kishiwada-ichimonji",
+    pref: "osaka",
+    name: "岸和田一文字",
+    area: "岸和田市沖",
+    address: "岸和田市沖（岸和田渡船で渡ります。乗り場：大阪府泉北郡忠岡町新浜1丁目8-11）",
+    type: "沖堤防（渡船）",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://kishiwadatosen.com/",
+    sourceUrls: ["https://kishiwadatosen.com/?page_id=2"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "ライフジャケットのレンタルあり",
+    rules: [
+      "ライフジャケットは桜マークまたはCSマーク付きのものを着用",
+      "出船15分前までに受付（時間厳守）",
+      "予報で風速4〜5m以上の場合は休船の可能性あり。警報発表時や船長が危険と判断した場合は撤収",
+      "たき火・バーベキューは禁止",
+      "乗り降りは船長の合図まで待つ",
+    ],
+    notes: [
+      "渡船料金と出船時刻は公式サイトに画像で掲載されています。現在は午前便のみの営業です（2026年10月時点）。",
+      "ネット予約は前日12時から受け付けています。",
+    ],
+    tideStation: { code: "J2", name: "岸和田" },
+    intro:
+      "岸和田沖にある沖堤防です。忠岡漁港から出る岸和田渡船で渡ります。救命具の着用が必須です。",
   },
 ];
 
