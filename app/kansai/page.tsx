@@ -24,7 +24,7 @@ export default function KansaiIndex() {
       basic: s.level === "basic",
       free: s.fees.some((f) => f.value === "無料"),
       rentalRod: /レンタル竿/.test(s.rentals),
-      parking: /あり|台|駐車場/.test(s.parking) && !/確認ください/.test(s.parking),
+      parking: /あり|台|駐車場/.test(s.parking) && !/^公式サイトでご確認/.test(s.parking),
       catches: !!sourceOf(s.slug),
       closeByMonth: s.closeHourByMonth,
     }));

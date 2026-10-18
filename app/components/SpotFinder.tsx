@@ -24,7 +24,7 @@ const FILTERS: { key: string; label: string; test: (s: FinderSpot, month: number
   { key: "rental", label: "レンタル竿あり", test: (s) => s.rentalRod },
   { key: "free", label: "無料", test: (s) => s.free },
   { key: "parking", label: "駐車場あり", test: (s) => s.parking },
-  { key: "late", label: "今月は20時以降も開いている", test: (s, m) => (s.closeByMonth?.[m - 1] ?? 0) >= 20 },
+  { key: "late", label: "今月は20時まで開いている", test: (s, m) => (s.closeByMonth?.[m - 1] ?? 0) >= 20 },
   { key: "catches", label: "毎日の釣果情報あり", test: (s) => s.catches },
 ];
 
