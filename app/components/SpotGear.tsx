@@ -7,14 +7,20 @@ import type { Spot } from "@/lib/spots";
 
 const BLOCK_LABEL = { chum: "撒き餌（コマセ）禁止", lure: "ルアー釣り禁止", cast: "投げ釣り禁止" } as const;
 
+// 夕方以降が中心の魚。閉園が早い釣り場（18時以前）ではすすめない
+const NIGHT_SPECIES = ["tachiuo", "mebaru"];
+
 // その釣り場で今狙いやすい魚（最近の釣果 → 今月が旬の魚の順）を最大3種
 function targetSpecies(spot: Spot): Species[] {
+  const month = Number(new Date(Date.now() + 9 * 3600e3).toISOString().slice(5, 7));
+  const close = spot.closeHourByMonth?.[month - 1];
+  const closesEarly = typeof close === "number" && close <= 18;
   const picked: Species[] = [];
   const add = (s: Species) => {
+    if (closesEarly && NIGHT_SPECIES.includes(s.slug)) return;
     if (picked.length < 3 && !picked.some((p) => p.slug === s.slug)) picked.push(s);
   };
   for (const row of summarize([spot.slug]).list) speciesFromCatchName(row.species).forEach(add);
-  const month = Number(new Date(Date.now() + 9 * 3600e3).toISOString().slice(5, 7));
   const seasonal = speciesInMonth(month).sort(
     (a, b) => Number(b.peakMonths.includes(month)) - Number(a.peakMonths.includes(month)),
   );
