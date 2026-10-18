@@ -121,8 +121,8 @@ function TideChart({
         <>
           <rect x={x(0)} y={TOP} width={x(sun.rise) - x(0)} height={bottom - TOP} className="night" />
           <rect x={x(sun.set)} y={TOP} width={x(24) - x(sun.set)} height={bottom - TOP} className="night" />
-          <text x={x(sun.rise) + 2} y={TOP + CH - 3} textAnchor="start" className="sunmark">日の出{hm(sun.rise)}</text>
-          <text x={x(sun.set) - 2} y={TOP + CH - 3} textAnchor="end" className="sunmark">日の入{hm(sun.set)}</text>
+          <text x={x(sun.rise) - 2} y={TOP + CH - 3} textAnchor="end" className="sunmark">日の出{hm(sun.rise)}</text>
+          <text x={x(sun.set) + 2} y={TOP + CH - 3} textAnchor="start" className="sunmark">日の入{hm(sun.set)}</text>
         </>
       )}
       {ranges.map((r) => (
