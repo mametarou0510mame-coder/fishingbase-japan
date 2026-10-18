@@ -38,6 +38,6 @@ jobs:
             echo "No changes"
           else
             git commit -m "Update weather forecast"
-            git pull --rebase origin main
+            git pull --rebase -X theirs origin main
             git push
           fi

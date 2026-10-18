@@ -89,8 +89,9 @@ async function kishiwada() {
 async function suma() {
   const xml = await get("https://sumasakana-park.com/fishing/feed/");
   const reports = [];
-  for (const item of parseRss(xml).slice(0, 7)) {
+  for (const item of parseRss(xml).slice(0, 4)) {
     try {
+      await sleep(3000); // 須磨のサーバーに負担をかけないよう間隔を広げる
       const pub = rssDateToJst(item.pubDate);
       const md = item.title.match(/(\d{1,2})\/(\d{1,2})/);
       if (!pub) continue;

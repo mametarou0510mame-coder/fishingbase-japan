@@ -69,5 +69,5 @@ jobs:
           git add public/data/index.json
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
           git commit -m "Update fishing index"
-          git pull --rebase origin main
+          git pull --rebase -X theirs origin main
           git push
