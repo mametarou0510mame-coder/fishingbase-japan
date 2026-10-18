@@ -53,6 +53,38 @@ for (const t of TARGETS) {
     console.warn(`[weather] ${t.area}: ${e.message}`);
   }
   await new Promise((r) => setTimeout(r, 800));
+  // 地域時系列予報（3時間ごとの天気・風・気温。約2日先まで）
+  try {
+    const res = await fetch(`https://www.jma.go.jp/bosai/jmatile/data/wdist/VPFD/${t.area}.json`, {
+      headers: { "User-Agent": "TsuredokiKansai/0.1" },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const v = await res.json();
+    const at = v.areaTimeSeries;
+    const pt = v.pointTimeSeries;
+    const temps = new Map((pt?.timeDefines ?? []).map((d, i) => [d.dateTime ?? d, pt.temperature?.[i] ?? null]));
+    const hourly = (at?.timeDefines ?? []).map((d, i) => {
+      const w = at.wind?.[i] ?? {};
+      const [lo, hi] = String(w.range ?? "").split(/\s+/).map(Number);
+      return {
+        time: d.dateTime,
+        weather: at.weather?.[i] ?? "",
+        windDir: w.direction ?? "",
+        windMin: Number.isFinite(lo) ? lo : null,
+        windMax: Number.isFinite(hi) ? hi : null,
+        temp: temps.get(d.dateTime) ?? null,
+      };
+    });
+    if (out.areas[t.area]) {
+      out.areas[t.area].hourly = hourly;
+      out.areas[t.area].hourlyReport = v.reportDateTime;
+      out.areas[t.area].hourlyPoint = pt?.pointNameJP ?? "";
+    }
+    console.log(`[weather] ${t.area} hourly ${hourly.length}`);
+  } catch (e) {
+    console.warn(`[weather] ${t.area}: ${e.message}`);
+  }
+  await new Promise((r) => setTimeout(r, 800));
 }
 
 await mkdir(new URL("../public/data/", import.meta.url), { recursive: true });
