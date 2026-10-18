@@ -85,7 +85,8 @@ for (const [slug, cfg] of Object.entries(SPOTS)) {
   // 過去データより新しい日は、毎日の釣果データで補う
   const newest = Object.keys(days).sort().at(-1);
   const posts = new Map();
-  for (const r of catches.reports.filter((r) => r.spot === slug && r.date > newest)) {
+  // 利用者の投稿（id が user- で始まる）は、いたずらで指数が動かないよう使わない
+  for (const r of catches.reports.filter((r) => r.spot === slug && r.date > newest && !String(r.id).startsWith("user-"))) {
     const key = `${r.date}|${r.id.replace(/#\d+$/, "")}`;
     const p = posts.get(key) ?? { date: r.date, s: new Set() };
     p.s.add(r.species);

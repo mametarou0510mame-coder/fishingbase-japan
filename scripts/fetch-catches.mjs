@@ -125,6 +125,26 @@ async function pointKansai() {
   return { reports, monthly: null };
 }
 
+// 当サイトの「みんなの釣果投稿」（投稿受付サーバーの公開API）
+async function userPosts() {
+  const res = await fetch("https://tsuredoki-kansai.mametarou0510mame.workers.dev/api/posts?days=30", { headers: { "User-Agent": UA } });
+  if (res.status === 404) return { reports: [], monthly: null }; // 投稿機能が未公開
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const { posts } = await res.json();
+  const reports = (posts ?? []).map((p) => ({
+    spot: p.spot,
+    id: `user-${p.id}`,
+    date: p.date,
+    species: p.species,
+    sizeCm: p.sizeCm ?? null,
+    count: p.count ?? null,
+    method: p.method ?? null,
+    time: p.timeBand ?? null,
+    url: `https://tsuredoki-kansai.mametarou0510mame.workers.dev/post/`,
+  }));
+  return { reports, monthly: null };
+}
+
 const SOURCES = [
   { spot: "marina-city-tsuri-koen", name: "和歌山マリーナシティ釣り公園 釣果情報", url: "https://www.marinacity.com/tsuri/news/", run: marinaCity },
   { spot: "hiraiso-umizuri-koen", name: "平磯海づり公園 釣果情報", url: "https://kobeumiduri.jp/fishresult/", run: hiraiso },
@@ -133,6 +153,7 @@ const SOURCES = [
   { spot: "amagasaki-uotsuri-koen", name: "尼崎市立魚つり公園 釣果情報", url: "https://amagasaki-uoturikouen.com/fishing/index.html", run: amagasaki },
   // 複数の釣り場にまたがる出典（各釣果に spot が入っている）
   { spot: null, key: "point-kansai", idPrefix: "point-", name: "釣具のポイント お持込釣果", url: "https://www.point-i.jp/fishing_infos?area_id=94", run: pointKansai },
+  { spot: null, key: "user-posts", idPrefix: "user-", name: "ツレドキ関西 みんなの釣果投稿", url: "https://tsuredoki-kansai.mametarou0510mame.workers.dev/post/", run: userPosts },
 ];
 
 // ---- 実行 ----
@@ -158,6 +179,8 @@ for (const src of SOURCES) {
   let ok = false;
   try {
     const { reports, monthly: m } = await src.run();
+    // 投稿は毎回すべて取り直す（管理者が非表示にした投稿を残さないため）
+    if (src.key === "user-posts") for (const [k, r] of byId) if (String(r.id).startsWith("user-")) byId.delete(k);
     for (const r of reports) {
       const spot = r.spot ?? src.spot;
       if (r.date >= cutoff && r.date <= todayJst) byId.set(`${spot}|${r.id}`, { ...r, spot });

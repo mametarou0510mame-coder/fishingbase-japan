@@ -12,4 +12,6 @@ export const SITE = {
   // 検索エンジンへの登録（2026-10-18 解除）。true にすると全ページ noindex。
   noindex: false,
   policyUpdated: "2026年10月18日",
+  // 釣果投稿（Cloudflare Turnstile のサイトキー。公開してよい値）。空のあいだは投稿フォームを「準備中」にする
+  turnstileSiteKey: "",
 } as const;

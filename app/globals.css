@@ -261,3 +261,14 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 .share-line { display: inline-block; padding: 5px 14px; border-radius: 999px; background: #06c755; color: #fff; font-weight: 700; font-size: 0.85rem; text-decoration: none; }
 .share-line:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 2px; }
 .share .fav { margin: 0; }
+
+/* 釣果投稿 */
+.post-form { display: grid; gap: 12px; max-width: 520px; }
+.post-form label { display: grid; gap: 4px; font-weight: 700; font-size: 0.92rem; }
+.post-form select, .post-form input { font: inherit; font-weight: 400; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+.post-form select:focus-visible, .post-form input:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 1px; }
+.post-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.submit { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 8px; background: var(--float); color: #fff; cursor: pointer; }
+.submit:disabled { opacity: 0.6; }
+.submit:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 2px; }
+.post-link { display: inline-block; padding: 6px 14px; border-radius: 999px; background: var(--float); color: #fff; font-weight: 700; text-decoration: none; }
