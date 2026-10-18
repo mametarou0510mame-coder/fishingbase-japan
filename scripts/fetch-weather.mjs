@@ -10,12 +10,16 @@ const TARGETS = [
   { office: "260000", area: "260020" }, // 京都府北部
 ];
 
+// 気象庁の文は単語ごとに全角空白で区切られているので、読みやすく整える
+// 例: "北東の風　後　南の風　海上　では" → "北東の風 のち 南の風、海上では"
 const z2h = (s) =>
   (s ?? "")
     .replace(/[０-９．]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
-    .replace(/　/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/[　\s]+/g, " ")
+    .trim()
+    .split(" 後 ")
+    .map((part) => part.replace(/ 海上 では /g, "、海上では").replace(/ /g, ""))
+    .join(" のち ");
 
 const out = { fetchedAt: new Date().toISOString(), source: "気象庁", areas: {} };
 
