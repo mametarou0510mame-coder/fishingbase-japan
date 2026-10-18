@@ -1,0 +1,55 @@
+name: Probe pages
+
+# 取り込み先を追加するときの下調べ用。指定したURLを取得して probe-data ブランチに保存する（手動実行のみ）。
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: "空白区切りのURL"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch
+        env:
+          URLS: ${{ github.event.inputs.urls }}
+        run: |
+          mkdir -p /tmp/probe
+          node -e '
+            const urls = process.env.URLS.split(/\s+/).filter(Boolean);
+            const fs = require("fs");
+            (async () => {
+              let i = 0;
+              const index = [];
+              for (const u of urls) {
+                i++;
+                try {
+                  const r = await fetch(u, { headers: { "User-Agent": "TsuredokiKansai/0.1 (+https://tsuredoki-kansai.mametarou0510mame.workers.dev/about/)" } });
+                  const t = await r.text();
+                  fs.writeFileSync(`/tmp/probe/${i}.html`, t);
+                  index.push(`${i}\t${r.status}\t${t.length}\t${r.url}\t${u}`);
+                } catch (e) { index.push(`${i}\tERR\t0\t${e.message}\t${u}`); }
+                await new Promise(r => setTimeout(r, 2000));
+              }
+              fs.writeFileSync("/tmp/probe/index.tsv", index.join("\n") + "\n");
+            })();
+          '
+      - name: Save to probe-data branch
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan probe-data
+          git rm -rf . -q
+          cp /tmp/probe/* .
+          git add -A
+          git commit -qm "probe"
+          git push -f origin probe-data
