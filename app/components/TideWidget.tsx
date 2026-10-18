@@ -93,13 +93,13 @@ function TideChart({
   const min = vMin - pad;
   const max = vMax + pad;
   const W = 340;
-  const L = 34; // 左の見出し欄
+  const L = 40; // 左の見出し欄
   const R = 4;
   const TOP = 12;
   const CH = 110; // 潮位グラフの高さ
   const SUNROW = TOP + CH + 11; // 日の出・日の入の段
   const AXIS = TOP + CH + (sun ? 28 : 12); // 時刻の目盛り
-  const WX = slots.length ? 82 : 0; // 天気欄の高さ
+  const WX = slots.length ? 88 : 0; // 天気欄の高さ
   const LEGEND = AXIS + WX + 14;
   const H = LEGEND + 6;
   const x = (h: number) => L + (h / 24) * (W - L - R);
@@ -142,7 +142,7 @@ function TideChart({
     (v, i, a) => a.indexOf(v) === i && v >= min && v <= max,
   );
   const bottom = AXIS + WX; // 区切り線の下端
-  const rows = { icon: AXIS + 16, wx: AXIS + 28, arrow: AXIS + 44, wind: AXIS + 56, temp: AXIS + 68, pop: AXIS + 80 };
+  const rows = { icon: AXIS + 16, wx: AXIS + 28, arrow: AXIS + 44, wind: AXIS + 60, temp: AXIS + 73, pop: AXIS + 86 };
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="tide-chart" role="img" aria-label="1日の潮位の変化、潮がよく動く時間帯、日の出・日の入り、3時間ごとの天気・風・気温・降水確率">
       {sun && (
@@ -196,7 +196,7 @@ function TideChart({
             return (
               <g key={s.time}>
                 <title>{`${h}時〜${h + 3}時：${s.weather}、${s.windDir}の風 ${s.windMin ?? "?"}〜${s.windMax ?? "?"}m、${s.temp ?? "?"}℃`}</title>
-                {strong && <rect x={x(h) + 0.5} y={rows.arrow - 11} width={x(h + 3) - x(h) - 1} height={26} className="warnbg" />}
+                {strong && <rect x={x(h) + 0.5} y={rows.arrow - 11} width={x(h + 3) - x(h) - 1} height={rows.wind + 4 - (rows.arrow - 11)} className="warnbg" />}
                 <text x={cx} y={rows.icon} textAnchor="middle" className="wxicon">{icon(s.weather)}</text>
                 <text x={cx} y={rows.wx} textAnchor="middle" className="wxtext">{shortWeather(s.weather)}</text>
                 {i >= 0 && (
