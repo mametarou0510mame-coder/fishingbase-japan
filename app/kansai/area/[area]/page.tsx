@@ -5,6 +5,7 @@ import CatchSummary from "@/app/components/CatchSummary";
 import { AREAS, findArea } from "@/lib/areas";
 import { DEFAULT_DAYS, hasCatchSource, monthlyOf, sourceOf, summarize } from "@/lib/catches";
 import { speciesInMonth } from "@/lib/species";
+import { indexFor } from "@/lib/fishingIndex";
 import { SPOTS } from "@/lib/spots";
 
 type Params = { area: string };
@@ -38,6 +39,9 @@ export default async function AreaPage({ params }: { params: Promise<Params> }) 
   const names = Object.fromEntries(spots.map((s) => [s.slug, s.name]));
   const total = summarize(area.spots);
   const withData = spots.filter((s) => hasCatchSource(s.slug));
+  const indexed = spots
+    .map((spot) => ({ spot, data: indexFor(spot.slug).data }))
+    .filter((x): x is { spot: (typeof spots)[number]; data: NonNullable<typeof x.data> } => x.data !== null && x.data.days.length > 0);
   const month = Number((total.to ?? new Date(Date.now() + 9 * 3600 * 1000).toISOString()).slice(5, 7));
 
   return (
@@ -49,6 +53,25 @@ export default async function AreaPage({ params }: { params: Promise<Params> }) 
       <p className="lead">
         {area.region}。{area.intro}
       </p>
+
+      {indexed.length > 0 && (
+        <>
+          <h2>今日の釣れ指数</h2>
+          <ul>
+            {indexed.map(({ spot, data }) => (
+              <li key={spot.slug}>
+                <Link href={`/kansai/${spot.pref}/${spot.slug}/`}>{spot.name}</Link>：
+                {data.days[0].top
+                  .filter((t) => t.index >= 5)
+                  .slice(0, 3)
+                  .map((t) => `${t.species.replace(/（.*）/, "")} ${t.index}`)
+                  .join("、")}
+              </li>
+            ))}
+          </ul>
+          <p className="small">釣れ指数は過去の公開釣果から計算した目安です（詳しくは各釣り場のページ）。</p>
+        </>
+      )}
 
       <h2>エリアで最近釣れている魚</h2>
       {withData.length > 0 ? (

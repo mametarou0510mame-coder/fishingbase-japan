@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import CatchSummary from "@/app/components/CatchSummary";
 import TideWidget from "@/app/components/TideWidget";
 import WeatherPanel from "@/app/components/WeatherPanel";
+import FishingIndex from "@/app/components/FishingIndex";
+import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
 import { areaOfSpot } from "@/lib/areas";
 import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, summarize } from "@/lib/catches";
@@ -44,6 +46,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
   const monthly = monthlyOf(spot.slug);
   const recent = recentReports(spot.slug);
   const forecast = forecastFor(spot);
+  const fishIndex = indexFor(spot.slug);
 
   return (
     <article>
@@ -59,6 +62,13 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
 
       <h2>天気・風・波</h2>
       <WeatherPanel label={forecast.label} data={forecast.data} />
+
+      {fishIndex.data && (
+        <>
+          <h2>釣れ指数（今後7日）</h2>
+          <FishingIndex data={fishIndex.data} />
+        </>
+      )}
 
       <h2>基本情報</h2>
       <table>

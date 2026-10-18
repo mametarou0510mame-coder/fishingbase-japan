@@ -1,0 +1,73 @@
+name: Backfill history
+
+# 過去の釣果記事・潮位表を取り込む（釣れ指数の学習用）。全件取り込み後は「完了済み」で即終了する。
+# 長時間かかるため、途中で時間切れになっても続きから再開できる。週1回、未完了分を続ける。
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 17 * * 0" # 毎週月曜 02:23 JST
+  push:
+    branches: [main]
+    paths:
+      - "scripts/backfill-history.mjs"
+      - ".github/workflows/backfill-history.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      max-parallel: 3
+      fail-fast: false
+      matrix:
+        target: [kishiwada, hiraiso, tides]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/backfill-history.mjs ${{ matrix.target }} 320
+      - name: Commit
+        run: |
+          git config user.name "fishingbase-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/history
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Backfill history: ${{ matrix.target }}"
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push && exit 0
+            sleep $((i * 15))
+          done
+          exit 1
+
+  build-index:
+    needs: backfill
+    if: always()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: data-commit
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - run: git pull origin main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/build-index.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "fishingbase-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/index.json
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Update fishing index"
+          git pull --rebase origin main
+          git push

@@ -122,3 +122,8 @@ article table { display: block; overflow-x: auto; }
 .tide-tip { margin-top: 0; }
 .weather-table td, .weather-table th { width: auto; }
 .weather-table td:first-child { white-space: nowrap; }
+
+.index-table td, .index-table th { width: auto; }
+.index-table td:first-child { white-space: nowrap; }
+.idx { display: inline-flex; align-items: center; gap: 4px; margin: 2px 8px 2px 0; white-space: nowrap; }
+.idx b { background: var(--sea); color: var(--bg); border-radius: 6px; padding: 0 6px; font-size: 0.85rem; }

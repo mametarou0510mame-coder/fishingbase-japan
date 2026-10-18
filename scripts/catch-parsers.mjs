@@ -195,7 +195,8 @@ export function parseKishiwadaList(html) {
   const out = [];
   const seen = new Map();
   for (const block of html.split('class="result-bigbox').slice(1)) {
-    const d = toHalf(block).match(/<div class="title">\s*(\d{4})\.(\d{2})\.(\d{2})\s*<\/div>/);
+    const dm = toHalf(block).match(/<div class="title">\s*(\d{4})\.(\d{1,2})\.(\d{1,2})\s*<\/div>/);
+    const d = dm ? [dm[0], dm[1], dm[2].padStart(2, "0"), dm[3].padStart(2, "0")] : null;
     const term = block.match(/<div class="arch_term">([\s\S]*?)<\/div>/);
     if (!d || !term) continue;
     const tags = [...term[1].matchAll(/<a[^>]*>([\s\S]*?)<\/a>/g)].map((m) => stripTags(m[1]));
