@@ -20,7 +20,7 @@ npm run build    # out/ に静的ファイルを出力
 
 | 項目 | 値 |
 | --- | --- |
-| プロジェクト名 | fishingbase-japan（→ fishingbase-japan.mametarou0510mame.workers.dev） |
+| プロジェクト名 | fishingbase-japan（→ tsuredoki-kansai.mametarou0510mame.workers.dev） |
 | 本番ブランチ | main |
 | フレームワーク | Next.js (Static HTML Export) |
 | ビルドコマンド | `npx next build` |

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fishingbase-japan.mametarou0510mame.workers.dev/sitemap.xml
+Sitemap: https://tsuredoki-kansai.mametarou0510mame.workers.dev/sitemap.xml

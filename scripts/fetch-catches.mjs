@@ -15,7 +15,7 @@ import {
 } from "./catch-parsers.mjs";
 
 const OUT = new URL("../public/data/catches.json", import.meta.url);
-const UA = "TsuredokiKansai/0.1 (+https://fishingbase-japan.mametarou0510mame.workers.dev/about/)";
+const UA = "TsuredokiKansai/0.1 (+https://tsuredoki-kansai.mametarou0510mame.workers.dev/about/)";
 const KEEP_DAYS = 90;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
