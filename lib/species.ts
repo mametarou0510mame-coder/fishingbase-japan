@@ -1,8 +1,11 @@
+import type { GearKey } from "@/lib/gear";
+
 // 魚種データ。時期は関西（大阪湾・播磨灘・紀伊水道周辺）の岸釣りでの一般的な目安。
 // 年や水温で前後するため、ページ上でも「目安」と明記する。
 export type Gear = {
   name: string; // 道具の種類（商品名ではない）
   note: string;
+  key?: GearKey; // 広告リンクの対象（lib/gear.ts）。エサなど通販に向かないものは付けない
 };
 
 export type Species = {
@@ -35,10 +38,10 @@ export const SPECIES: Species[] = [
       { name: "アジング", detail: "小さなワーム（ルアー）で狙う方法。夜の常夜灯まわりで人気です。ルアー釣り禁止の施設では使えません。" },
     ],
     gear: [
-      { name: "2〜3m前後の万能竿またはサビキ用セット竿", note: "初めてならリール付きのセットが手軽です" },
-      { name: "サビキ仕掛け（針の大きさ3〜5号程度）", note: "豆アジの時期は小さい針が向きます" },
-      { name: "アミエビ（撒き餌）とカゴ", note: "撒き餌が禁止の施設では使いません" },
-      { name: "クーラーボックスと氷", note: "釣った魚の鮮度を保ちます" },
+      { name: "2〜3m前後の万能竿またはサビキ用セット竿", note: "初めてならリール付きのセットが手軽です", key: "sabiki-set" },
+      { name: "サビキ仕掛け（針の大きさ3〜5号程度）", note: "豆アジの時期は小さい針が向きます", key: "sabiki-rig" },
+      { name: "アミエビ（撒き餌）とカゴ", note: "撒き餌が禁止の施設では使いません", key: "chum-cage" },
+      { name: "クーラーボックスと氷", note: "釣った魚の鮮度を保ちます", key: "cooler" },
     ],
     caution: ["釣り場によっては撒き餌やルアー釣りが禁止されています。各釣り場のルールを確認してください。"],
   },
@@ -55,9 +58,9 @@ export const SPECIES: Species[] = [
       { name: "サビキ釣り", detail: "アジと同じ仕掛けで釣れます。群れが入ると仕掛けが絡みやすいので、取り込みは手早く行います。" },
     ],
     gear: [
-      { name: "2〜3m前後の万能竿", note: "アジと共通で使えます" },
-      { name: "サビキ仕掛け（針の大きさ4〜6号程度）", note: "サバの群れが多い時期はやや大きめが扱いやすいです" },
-      { name: "クーラーボックスと氷", note: "サバは傷みやすいので、すぐに冷やします" },
+      { name: "2〜3m前後の万能竿", note: "アジと共通で使えます", key: "sabiki-set" },
+      { name: "サビキ仕掛け（針の大きさ4〜6号程度）", note: "サバの群れが多い時期はやや大きめが扱いやすいです", key: "sabiki-rig" },
+      { name: "クーラーボックスと氷", note: "サバは傷みやすいので、すぐに冷やします", key: "cooler" },
     ],
     caution: ["サバは傷みが早い魚です。釣ったらすぐに冷やし、持ち帰ったら早めに調理してください。"],
   },
@@ -75,10 +78,10 @@ export const SPECIES: Species[] = [
       { name: "ワインド・メタルジグ（ルアー）", detail: "ルアーを投げて狙う方法。ルアー釣りや投げ釣りが禁止の施設では使えません。" },
     ],
     gear: [
-      { name: "3〜4m前後の磯竿またはルアー竿", note: "釣り方に合わせて選びます" },
-      { name: "電気ウキとタチウオ用の仕掛け（ワイヤー付き）", note: "歯が鋭く糸を切られやすいため、ワイヤーが付いたものが安心です" },
-      { name: "フィッシュグリップ（魚つかみ）", note: "鋭い歯から手を守ります" },
-      { name: "ヘッドライト", note: "夜釣りの必需品です" },
+      { name: "3〜4m前後の磯竿またはルアー竿", note: "釣り方に合わせて選びます", key: "tachiuo-rod" },
+      { name: "電気ウキとタチウオ用の仕掛け（ワイヤー付き）", note: "歯が鋭く糸を切られやすいため、ワイヤーが付いたものが安心です", key: "tachiuo-rig" },
+      { name: "フィッシュグリップ（魚つかみ）", note: "鋭い歯から手を守ります", key: "fish-grip" },
+      { name: "ヘッドライト", note: "夜釣りの必需品です", key: "headlamp" },
     ],
     caution: [
       "歯が非常に鋭いので、素手でつかまないでください。",
@@ -99,9 +102,9 @@ export const SPECIES: Species[] = [
       { name: "落とし込み・ヘチ釣り", detail: "岸壁ぎわにエサを落として狙う方法です。" },
     ],
     gear: [
-      { name: "4〜5m前後の磯竿", note: "ウキ釣りに向いています" },
-      { name: "ウキ仕掛けとチヌ用の針", note: "エサに合わせて針の大きさを選びます" },
-      { name: "タモ網（玉網）", note: "大きなチヌを取り込むときに必要です" },
+      { name: "4〜5m前後の磯竿", note: "ウキ釣りに向いています", key: "iso-rod" },
+      { name: "ウキ仕掛けとチヌ用の針", note: "エサに合わせて針の大きさを選びます", key: "uki-rig" },
+      { name: "タモ網（玉網）", note: "大きなチヌを取り込むときに必要です", key: "tamo" },
     ],
     caution: ["釣り場によっては撒き餌が禁止されています。"],
   },
@@ -119,9 +122,9 @@ export const SPECIES: Species[] = [
       { name: "メバリング（ルアー）", detail: "小さなワームやプラグで狙う方法。ルアー釣り禁止の施設では使えません。" },
     ],
     gear: [
-      { name: "3〜4m前後の竿", note: "軽い仕掛けが扱いやすい竿が向いています" },
-      { name: "ウキ仕掛けまたは小型ルアー", note: "釣り場のルールに合わせて選びます" },
-      { name: "ヘッドライト", note: "夕方以降の釣りに必要です" },
+      { name: "3〜4m前後の竿", note: "軽い仕掛けが扱いやすい竿が向いています", key: "light-rod" },
+      { name: "ウキ仕掛けまたは小型ルアー", note: "釣り場のルールに合わせて選びます", key: "mebaru-rig" },
+      { name: "ヘッドライト", note: "夕方以降の釣りに必要です", key: "headlamp" },
     ],
     caution: ["夜の釣りになることが多いので、施設の閉園時間と防寒対策に注意してください。"],
   },
@@ -139,8 +142,8 @@ export const SPECIES: Species[] = [
       { name: "胴突き仕掛け", detail: "足元の底付近を狙います。" },
     ],
     gear: [
-      { name: "1.5〜2m前後の短い竿", note: "足元を探る釣りに向いています" },
-      { name: "ブラクリ仕掛け", note: "根掛かりしやすいので予備を多めに用意します" },
+      { name: "1.5〜2m前後の短い竿", note: "足元を探る釣りに向いています", key: "short-rod" },
+      { name: "ブラクリ仕掛け", note: "根掛かりしやすいので予備を多めに用意します", key: "burakuri" },
       { name: "エサ（サバの切り身・イソメなど）", note: "釣具店で購入できます" },
     ],
     caution: ["背びれのトゲが鋭いので、つかむときは注意してください。"],
@@ -162,4 +165,12 @@ export function monthRangeLabel(months: number[]): string {
       return start === end ? `${start}月` : `${start}〜${end}月`;
     })
     .join("、");
+}
+
+// 釣果データの魚種名（例：「アジ・サバ・イワシ」「ガシラ（カサゴ）」）から、魚種ページのデータを探す
+export function speciesFromCatchName(catchName: string): Species[] {
+  const parts = catchName.split("・").map((p) => p.replace(/（.*?）/g, "").trim());
+  const extra = (catchName.match(/（(.*?)）/g) ?? []).map((x) => x.slice(1, -1));
+  const names = [...parts, ...extra];
+  return SPECIES.filter((s) => names.some((n) => n === s.name || s.aliases.includes(n)));
 }

@@ -1,3 +1,4 @@
+import type { Restriction } from "@/lib/gear";
 // 釣り場データ。公式情報で確認できたものだけ published: true にする（要件定義のルール）。
 export type Spot = {
   slug: string;
@@ -20,6 +21,7 @@ export type Spot = {
   rules: string[];
   // official: 管理者の公式情報 / report: 公開されている釣り情報の調査による（現地の掲示を優先）
   rulesSource?: "official" | "report";
+  restrictions?: Restriction[]; // 道具のおすすめに使う禁止・必須事項（rules から抜き出したもの）
   notes: string[];
   tideStation: { code: string; name: string };
   catchReportUrl?: string; // 施設公式の釣果ページ
@@ -36,6 +38,7 @@ export const PREF_LABEL: Record<Spot["pref"], string> = {
 export const SPOTS: Spot[] = [
   {
     slug: "amagasaki-uotsuri-koen",
+    restrictions: ["no-cast", "no-lure"],
     pref: "hyogo",
     name: "尼崎市立魚つり公園",
     area: "尼崎市",
@@ -150,6 +153,7 @@ export const SPOTS: Spot[] = [
   },
   {
     slug: "suma-umizuri-koen",
+    restrictions: ["no-chum"],
     pref: "hyogo",
     name: "須磨海づり公園",
     area: "神戸市須磨区",
@@ -216,6 +220,7 @@ export const SPOTS: Spot[] = [
   },
   {
     slug: "sakai-umizuri-terrace",
+    restrictions: ["no-cast", "no-chum"],
     pref: "osaka",
     name: "海とのふれあい広場 海釣りテラス",
     area: "堺市堺区",
@@ -250,6 +255,7 @@ export const SPOTS: Spot[] = [
   },
   {
     slug: "totto-park-kojima",
+    restrictions: ["lifejacket-required"],
     pref: "osaka",
     name: "とっとパーク小島",
     area: "泉南郡岬町",
@@ -335,6 +341,7 @@ export const SPOTS: Spot[] = [
   },
   {
     slug: "mukogawa-ichimonji",
+    restrictions: ["sakura-lifejacket"],
     pref: "hyogo",
     name: "武庫川一文字",
     area: "尼崎市・西宮市沖",
@@ -372,6 +379,7 @@ export const SPOTS: Spot[] = [
   },
   {
     slug: "kishiwada-ichimonji",
+    restrictions: ["sakura-lifejacket"],
     pref: "osaka",
     name: "岸和田一文字",
     area: "岸和田市沖",

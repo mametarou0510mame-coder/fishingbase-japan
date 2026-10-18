@@ -137,3 +137,7 @@ article table { display: block; overflow-x: auto; }
 .badge-s { font-size: 0.7rem; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: var(--accent-soft, rgba(0,120,200,.12)); }
 .aff-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 0; }
 .aff-links a { padding: 4px 10px; border-radius: 6px; border: 1px solid currentColor; text-decoration: none; }
+.gear-links { list-style: none; padding: 0; margin: 4px 0 0; }
+.gear-links li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 4px 0; border-bottom: 1px dotted var(--border, #ccc); }
+.gear-links li:last-child { border-bottom: 0; }
+.gear-links a, .aff-links a { white-space: nowrap; }

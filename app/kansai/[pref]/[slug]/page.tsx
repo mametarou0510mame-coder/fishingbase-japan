@@ -5,6 +5,7 @@ import CatchSummary from "@/app/components/CatchSummary";
 import TideWidget from "@/app/components/TideWidget";
 import WeatherPanel from "@/app/components/WeatherPanel";
 import FishingIndex from "@/app/components/FishingIndex";
+import SpotGear from "@/app/components/SpotGear";
 import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
 import { areaOfSpot } from "@/lib/areas";
@@ -176,6 +177,8 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
           </>
         )
       )}
+
+      {spot.type !== "一般の釣り場" && <SpotGear spot={spot} />}
 
       <div className="notice">
         <strong>
