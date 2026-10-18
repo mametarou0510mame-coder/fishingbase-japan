@@ -12,6 +12,12 @@
    "name": "平磯海づり公園 釣果情報",
    "url": "https://kobeumiduri.jp/fishresult/",
    "lastSuccess": "2026-10-18"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "name": "岸和田渡船 釣果情報",
+   "url": "https://kishiwadatosen.com/result/",
+   "lastSuccess": "2026-10-18"
   }
  ],
  "monthly": {
@@ -100,6 +106,171 @@
    "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8818%e6%97%a5%e6%97%a5/"
   },
   {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0407.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前・早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0407.jpg#1",
+   "date": "2026-10-18",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前・早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-20261018_115130.jpg#0",
+   "date": "2026-10-18",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-1792284521955.jpg#0",
+   "date": "2026-10-18",
+   "species": "スズキ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0406.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0405-2.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前・早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0405-2.jpg#1",
+   "date": "2026-10-18",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前・早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0403-2.jpg#0",
+   "date": "2026-10-18",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0397-5.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0400-5.jpg#0",
+   "date": "2026-10-18",
+   "species": "アジ・サバ・イワシ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0402-3.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0401-4.jpg#0",
+   "date": "2026-10-18",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-1792272025705.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-DSC_0398-3.jpg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261018-IMG_1145.jpeg#0",
+   "date": "2026-10-18",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
    "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/#0",
    "date": "2026-10-17",
@@ -166,6 +337,116 @@
    "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8817%e6%97%a5%e5%9c%9f/"
   },
   {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0401-3.jpg#0",
+   "date": "2026-10-17",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-20261017_115443.jpg#0",
+   "date": "2026-10-17",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0405-1.jpg#0",
+   "date": "2026-10-17",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0404-2.jpg#0",
+   "date": "2026-10-17",
+   "species": "アジ・サバ・イワシ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0400-4.jpg#0",
+   "date": "2026-10-17",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0399-3.jpg#0",
+   "date": "2026-10-17",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0398-2.jpg#0",
+   "date": "2026-10-17",
+   "species": "アジ・サバ・イワシ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前・早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-1792197948005.jpg#0",
+   "date": "2026-10-17",
+   "species": "スズキ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前・早朝",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0397-4.jpg#0",
+   "date": "2026-10-17",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261017-DSC_0395-4.jpg#0",
+   "date": "2026-10-17",
+   "species": "タチウオ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
    "spot": "hiraiso-umizuri-koen",
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/#0",
    "date": "2026-10-16",
@@ -208,6 +489,50 @@
    "method": "ウキ釣り",
    "time": "9:00~13:00",
    "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8816%e6%97%a5%e9%87%91/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261016-DSC_0396-2.jpg#0",
+   "date": "2026-10-16",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261016-DSC_0397-3.jpg#0",
+   "date": "2026-10-16",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261016-DSC_0400-3.jpg#0",
+   "date": "2026-10-16",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
+  },
+  {
+   "spot": "kishiwada-ichimonji",
+   "id": "20261016-DSC_0401-2.jpg#0",
+   "date": "2026-10-16",
+   "species": "青物（種類不明）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": "午前",
+   "url": "https://kishiwadatosen.com/result/"
   },
   {
    "spot": "hiraiso-umizuri-koen",
