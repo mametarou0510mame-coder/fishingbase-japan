@@ -232,3 +232,4 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 .deal-name { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.82rem; line-height: 1.45; margin-top: 6px; }
 .deal-price { font-weight: 700; color: var(--sea); }
 .deal-point { font-size: 0.8rem; font-weight: 700; color: var(--float); }
+.rank-more summary { cursor: pointer; color: var(--sea-2); font-size: 0.9rem; padding: 6px 0; }

@@ -29,6 +29,8 @@ export default function JiaiRanking({ dates, spots }: { dates: string[]; spots: 
 
   const date = dates[tab];
   const ranked = [...spots].sort((a, b) => best(b, date) - best(a, date) || b.recentReports - a.recentReports);
+  const withWin = ranked.filter((s) => best(s, date) > 0);
+  const withoutWin = ranked.filter((s) => best(s, date) === 0);
   const favSpots = spots.filter((s) => favs.includes(s.slug));
   const windy = spots.filter((s) => (s.days[date]?.maxWind ?? 0) >= 10).length;
 
@@ -74,7 +76,17 @@ export default function JiaiRanking({ dates, spots }: { dates: string[]; spots: 
       )}
       <h3>ねらい目ランキング</h3>
       {windy > 0 && <p className="rank-warn">{windy}か所で、営業時間中に風速10m以上の予報があります。</p>}
-      <ol className="rank-list">{ranked.slice(0, 6).map((s, i) => row(s, i + 1))}</ol>
+      {withWin.length > 0 ? (
+        <ol className="rank-list">{withWin.slice(0, 6).map((s, i) => row(s, i + 1))}</ol>
+      ) : (
+        <p className="small">この日は、営業時間内に目立つねらい目のある釣り場がありません。</p>
+      )}
+      {withoutWin.length > 0 && (
+        <details className="rank-more">
+          <summary>ねらい目が見つからなかった釣り場（{withoutWin.length}か所）</summary>
+          <ul className="rank-list">{withoutWin.map((s) => row(s))}</ul>
+        </details>
+      )}
       <p className="small">
         潮の動き・朝夕のまずめ・営業時間・風の予報（気象庁）から計算した当サイト独自の目安で、釣果を保証するものではありません。
         各釣り場のページで★を押すと、ここにお気に入りとして表示されます。
