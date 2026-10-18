@@ -7,6 +7,7 @@ import WeatherPanel from "@/app/components/WeatherPanel";
 import FishingIndex from "@/app/components/FishingIndex";
 import SpotGear from "@/app/components/SpotGear";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import Checklist from "@/app/components/Checklist";
 import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
 import { STATION_COORDS } from "@/lib/sun";
@@ -187,6 +188,18 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
           </>
         )
       )}
+
+      <h2>持ち物チェックリスト</h2>
+      <Checklist
+        slug={spot.slug}
+        noChum={!!spot.restrictions?.includes("no-chum")}
+        sakura={!!spot.restrictions?.includes("sakura-lifejacket")}
+        lifeRequired={!!spot.restrictions?.includes("lifejacket-required")}
+        ferry={spot.type === "沖堤防（渡船）"}
+        hasFee={spot.fees.some((f) => /円/.test(f.value)) || spot.type === "沖堤防（渡船）"}
+        closeByMonth={spot.closeHourByMonth}
+        cautions={spot.rules.filter((r) => /竿は1人|クーラー|キャリー|受付/.test(r))}
+      />
 
       {spot.type !== "一般の釣り場" && <SpotGear spot={spot} />}
 

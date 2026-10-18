@@ -215,3 +215,20 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 .fav { font: inherit; font-size: 0.85rem; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--glow); background: transparent; color: var(--ink); cursor: pointer; margin: 0 0 8px; }
 .fav.on { background: var(--glow); color: #10283f; font-weight: 700; }
 .fav:focus-visible, .tide-tabs button:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 2px; }
+
+/* 持ち物チェックリスト */
+.checklist ul { list-style: none; padding: 0; margin: 6px 0; }
+.checklist li label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 6px 0; border-bottom: 1px dotted var(--line); cursor: pointer; }
+.checklist input { width: 1.1rem; height: 1.1rem; accent-color: var(--sea-2); transform: translateY(2px); }
+.checklist input:checked + .cl-label { text-decoration: line-through; color: var(--muted); }
+.cl-caution li { color: var(--float); font-size: 0.88rem; padding: 2px 0; }
+
+/* 商品ページ */
+.starter li { align-items: center; }
+.deal-grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.deal { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--card); }
+.deal a { text-decoration: none; color: var(--ink); }
+.deal img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; background: #fff; border-radius: 4px; }
+.deal-name { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.82rem; line-height: 1.45; margin-top: 6px; }
+.deal-price { font-weight: 700; color: var(--sea); }
+.deal-point { font-size: 0.8rem; font-weight: 700; color: var(--float); }

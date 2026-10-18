@@ -1,0 +1,40 @@
+name: Update deals
+
+# 楽天市場の釣り道具（ポイントアップ中の人気商品）を1日1回取得して public/data/deals.json を更新する。
+# リポジトリの Settings > Secrets and variables > Actions に RAKUTEN_APP_ID と RAKUTEN_ACCESS_KEY が必要。
+on:
+  schedule:
+    - cron: "23 22 * * *" # 07:23 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-deals.mjs
+        env:
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+      - name: Commit if changed
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/deals.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update deals"
+            git pull --rebase origin main
+            git push
+          fi
