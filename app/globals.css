@@ -160,8 +160,8 @@ article table { display: block; overflow-x: auto; }
 /* 3時間ごとの天気 */
 .hourly { margin: 4px 0 8px; }
 .hourly-scroll { overflow-x: auto; }
-article table.hourly-table { display: table; width: 100%; min-width: 420px; table-layout: fixed; font-size: 0.8rem; margin: 4px 0; }
-.hourly-table th { width: 3.4em; padding: 6px 4px; background: var(--sand); }
+article table.hourly-table { display: table; width: 100%; table-layout: fixed; font-size: 0.8rem; margin: 4px 0; }
+.hourly-table th { width: 3.6em; text-align: left; padding: 6px 4px; background: var(--sand); }
 .hourly-table td { text-align: center; padding: 6px 2px; line-height: 1.35; }
 .hourly-table .wx { display: block; font-size: 1.2rem; line-height: 1.1; }
 .hourly-table .wx-text { display: block; font-size: 0.68rem; color: var(--muted); }
@@ -181,3 +181,6 @@ article table.hourly-table { display: table; width: 100%; min-width: 420px; tabl
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .tide-chart .night { opacity: 0.35; }
 }
+.quick-links li { display: flex; }
+.quick-links a { flex: 1; }
+.hero h1 .nb { display: inline-block; }

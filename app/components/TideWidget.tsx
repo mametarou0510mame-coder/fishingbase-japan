@@ -65,8 +65,8 @@ function TideChart({ day, isToday, sun }: { day: TideDay; isToday: boolean; sun:
         <>
           <rect x={x(0)} y={12} width={x(sun.rise) - x(0)} height={H - 40} className="night" />
           <rect x={x(sun.set)} y={12} width={x(23) - x(sun.set)} height={H - 40} className="night" />
-          <text x={x(sun.rise)} y={22} textAnchor="middle" className="sunmark">日の出</text>
-          <text x={x(sun.set)} y={22} textAnchor="middle" className="sunmark">日の入</text>
+          <text x={x(sun.rise) + 2} y={H - 31} textAnchor="start" className="sunmark">日の出</text>
+          <text x={x(sun.set) - 2} y={H - 31} textAnchor="end" className="sunmark">日の入</text>
         </>
       )}
       {ranges.map((r) => (
@@ -138,7 +138,7 @@ function HourlyWeather({ date, weather }: { date: string; weather: WeatherArea |
     <div className="hourly">
       {slots.length > 0 ? (
         <div className="hourly-scroll">
-          <table className="hourly-table">
+          <table className="hourly-table" style={{ minWidth: Math.max(220, 48 + slots.length * 46) }}>
             <tbody>
               <tr>
                 <th>時刻</th>

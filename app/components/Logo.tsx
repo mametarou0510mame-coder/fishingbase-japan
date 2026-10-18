@@ -1,5 +1,5 @@
 // ツレドキ関西のロゴ。波に浮かぶウキ（上半分が赤）をマークにしたオリジナルデザイン。
-export function FloatMark({ size = 30 }: { size?: number }) {
+export function FloatMark({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" className="float-mark">
       {/* 竿先へ伸びる糸 */}

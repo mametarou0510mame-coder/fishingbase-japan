@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <h1>今日はどこで、何時に釣る？</h1>
+        <h1><span className="nb">今日はどこで、</span><span className="nb">何時に釣る？</span></h1>
         <p>
           関西の海釣り施設・釣り場{spotCount}か所の、最近の釣果、潮がよく動く時間、時間ごとの天気・風、料金とルールを1ページずつにまとめています。
         </p>
