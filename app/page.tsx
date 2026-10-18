@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThisMonthLink from "@/app/components/ThisMonthLink";
 import { SITE } from "@/lib/site";
 
 export default function Home() {
@@ -13,9 +14,11 @@ export default function Home() {
         </p>
       </section>
 
-      <p>
-        <Link href="/kansai/">関西の釣り場一覧を見る →</Link>
-      </p>
+      <ul className="quick-links">
+        <li><Link href="/kansai/">関西の釣り場一覧 →</Link></li>
+        <li><ThisMonthLink /></li>
+        <li><Link href="/species/">魚種から探す →</Link></li>
+      </ul>
 
       <h2>機能</h2>
       <div className="cards">

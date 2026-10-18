@@ -98,3 +98,10 @@ th { width: 32%; color: var(--muted); font-weight: 600; }
 .tide-chart .line { stroke: var(--sea-2); stroke-width: 2.5; stroke-linejoin: round; }
 .tide-chart .grid { stroke: var(--line); stroke-width: 1; }
 .tide-chart .axis { fill: var(--muted); font-size: 10px; }
+
+.gear { padding-left: 1.2em; }
+.gear li { margin-bottom: 8px; }
+.months { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
+.months .card { text-align: center; padding: 12px; }
+.months .card h3 { margin: 0; }
+.quick-links { list-style: none; padding: 0; display: grid; gap: 6px; font-weight: 600; }

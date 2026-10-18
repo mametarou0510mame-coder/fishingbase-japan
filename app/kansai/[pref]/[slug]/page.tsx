@@ -69,6 +69,17 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         <p key={n} className="small">{n}</p>
       ))}
 
+      {spot.catchReportUrl && (
+        <>
+          <h2>最近の釣果</h2>
+          <p>
+            施設が公開している最新の釣果は、
+            <a href={spot.catchReportUrl} rel="noopener">{spot.name}の釣果ページ（公式）</a>
+            でご覧いただけます。
+          </p>
+        </>
+      )}
+
       <div className="notice">
         <strong>最終確認日：{formatDate(spot.verifiedOn)}</strong>
         <br />
