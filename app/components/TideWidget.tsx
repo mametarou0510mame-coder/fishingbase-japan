@@ -29,30 +29,105 @@ async function loadYear(code: string, year: number): Promise<TideDay[]> {
   }
 }
 
-function TideChart({ day }: { day: TideDay }) {
+function TideChart({ day, isToday }: { day: TideDay; isToday: boolean }) {
   const values = day.hourly.filter((v): v is number => v !== null);
   if (values.length < 2) return null;
   const min = Math.min(...values) - 10;
   const max = Math.max(...values) + 10;
-  const W = 320;
-  const H = 120;
-  const x = (h: number) => 24 + (h / 23) * (W - 34);
-  const y = (cm: number) => 10 + (1 - (cm - min) / (max - min)) * (H - 30);
+  const W = 340;
+  const H = 150;
+  const L = 34;
+  const x = (h: number) => L + (h / 23) * (W - L - 8);
+  const y = (cm: number) => 12 + (1 - (cm - min) / (max - min)) * (H - 40);
   const points = day.hourly
     .map((v, h) => (v === null ? null : `${x(h).toFixed(1)},${y(v).toFixed(1)}`))
     .filter(Boolean)
     .join(" ");
+  const toHour = (t: string) => {
+    const [hh, mm] = t.split(":").map(Number);
+    return hh + mm / 60;
+  };
+  const ranges = movingRanges(day);
+  const nowHour = isToday ? (() => {
+    const d = new Date(Date.now() + 9 * 3600 * 1000);
+    return d.getUTCHours() + d.getUTCMinutes() / 60;
+  })() : null;
+  const yTicks = [Math.ceil((min + 10) / 50) * 50, Math.floor((max - 10) / 50) * 50].filter(
+    (v, i, a) => a.indexOf(v) === i && v >= min && v <= max,
+  );
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="tide-chart" role="img" aria-label="1日の潮位の変化（1時間ごと）">
+    <svg viewBox={`0 0 ${W} ${H}`} className="tide-chart" role="img" aria-label="1日の潮位の変化と潮がよく動く時間帯">
+      {ranges.map((r) => (
+        <rect key={r.from} x={x(r.from)} y={12} width={x(r.to) - x(r.from)} height={H - 40} className="moving" />
+      ))}
       {[0, 6, 12, 18, 23].map((h) => (
         <g key={h}>
-          <line x1={x(h)} x2={x(h)} y1={10} y2={H - 20} className="grid" />
-          <text x={x(h)} y={H - 6} textAnchor="middle" className="axis">{h}時</text>
+          <line x1={x(h)} x2={x(h)} y1={12} y2={H - 28} className="grid" />
+          <text x={x(h)} y={H - 14} textAnchor="middle" className="axis">{h}時</text>
         </g>
       ))}
+      {yTicks.map((v) => (
+        <text key={v} x={L - 4} y={y(v) + 3} textAnchor="end" className="axis">{v}cm</text>
+      ))}
       <polyline points={points} className="line" fill="none" />
+      {day.high.map((e) => (
+        <g key={`h${e.time}`}>
+          <circle cx={x(toHour(e.time))} cy={y(e.cm)} r={3.5} className="hi" />
+          <text x={x(toHour(e.time))} y={y(e.cm) - 6} textAnchor="middle" className="mark">満{e.time}</text>
+        </g>
+      ))}
+      {day.low.map((e) => (
+        <g key={`l${e.time}`}>
+          <circle cx={x(toHour(e.time))} cy={y(e.cm)} r={3.5} className="lo" />
+          <text x={x(toHour(e.time))} y={y(e.cm) + 13} textAnchor="middle" className="mark">干{e.time}</text>
+        </g>
+      ))}
+      {nowHour !== null && (
+        <line x1={x(nowHour)} x2={x(nowHour)} y1={12} y2={H - 28} className="now" />
+      )}
+      <rect x={L} y={H - 9} width={10} height={7} className="moving" />
+      <text x={L + 14} y={H - 3} className="axis">潮がよく動く時間</text>
     </svg>
   );
+}
+
+// 1時間ごとの潮位の変化量から、その日に潮がよく動く時間帯を求める。
+// 変化量がその日の最大の6割以上の時間をまとめて返す。
+export function movingRanges(day: TideDay): { from: number; to: number }[] {
+  const rates: number[] = [];
+  for (let h = 0; h < 23; h++) {
+    const a = day.hourly[h];
+    const b = day.hourly[h + 1];
+    rates.push(a === null || b === null ? 0 : Math.abs(b - a));
+  }
+  const maxRate = Math.max(...rates);
+  if (maxRate < 3) return []; // 一日を通して潮があまり動かない日
+  const out: { from: number; to: number }[] = [];
+  rates.forEach((r, h) => {
+    if (r >= maxRate * 0.6) {
+      const last = out[out.length - 1];
+      if (last && last.to === h) last.to = h + 1;
+      else out.push({ from: h, to: h + 1 });
+    }
+  });
+  return out;
+}
+
+function tideRangeCm(day: TideDay) {
+  const v = day.hourly.filter((x): x is number => x !== null);
+  return v.length ? Math.max(...v) - Math.min(...v) : 0;
+}
+
+// 同じ地点の1年分の干満差と比べて、その日の潮の大きさを3段階で示す
+function rangeClass(day: TideDay, all: TideDay[]) {
+  const ranges = all.map(tideRangeCm).filter((r) => r > 0).sort((a, b) => a - b);
+  if (ranges.length < 30) return "―";
+  const r = tideRangeCm(day);
+  const q1 = ranges[Math.floor(ranges.length * 0.25)];
+  const q3 = ranges[Math.floor(ranges.length * 0.75)];
+  if (r >= q3) return "大きい：大潮前後";
+  if (r <= q1) return "小さい：小潮前後";
+  return "中くらい";
 }
 
 export default function TideWidget({ code, stationName }: { code: string; stationName: string }) {
@@ -97,9 +172,27 @@ export default function TideWidget({ code, stationName }: { code: string; statio
                 <th>干潮</th>
                 <td>{day.low.length ? day.low.map((e) => `${e.time}（${e.cm}cm）`).join("　") : "なし"}</td>
               </tr>
+              <tr>
+                <th>干満差</th>
+                <td>
+                  {tideRangeCm(day)}cm（{rangeClass(day, days ?? [])}）
+                </td>
+              </tr>
+              <tr>
+                <th>潮がよく動く時間</th>
+                <td>
+                  {movingRanges(day).length
+                    ? movingRanges(day).map((r) => `${r.from}時〜${r.to}時`).join("、")
+                    : "この日は一日を通して潮の動きが小さめです"}
+                </td>
+              </tr>
             </tbody>
           </table>
-          <TideChart day={day} />
+          <TideChart day={day} isToday={offset === 0} />
+          <p className="small tide-tip">
+            満潮・干潮の前後は潮の流れが止まりやすく、その間の「潮が動いている時間」は魚の活性が上がり、
+            一般に最も釣れやすい時間帯といわれます。干満差が大きい日ほど潮がよく動きます。
+          </p>
         </>
       )}
       <p className="small">

@@ -1,0 +1,43 @@
+name: Update weather forecast
+
+# 気象庁の府県天気予報（5時・11時・17時発表）を取得して public/data/weather.json を更新する。
+on:
+  schedule:
+    - cron: "43 20 * * *" # 05:43 JST
+    - cron: "43 2 * * *" # 11:43 JST
+    - cron: "43 8 * * *" # 17:43 JST
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/fetch-weather.mjs"
+      - ".github/workflows/update-weather.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-weather.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "fishingbase-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/weather.json
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update weather forecast"
+            git pull --rebase origin main
+            git push
+          fi

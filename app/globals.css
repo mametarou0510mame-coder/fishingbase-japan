@@ -113,3 +113,12 @@ th { width: 32%; color: var(--muted); font-weight: 600; }
 .spot-catch h3 { margin: 0 0 4px; }
 .spot-catch p { margin: 4px 0; }
 article table { display: block; overflow-x: auto; }
+
+.tide-chart .moving { fill: var(--accent); opacity: 0.16; }
+.tide-chart .hi { fill: var(--sea); }
+.tide-chart .lo { fill: var(--bg); stroke: var(--sea); stroke-width: 1.5; }
+.tide-chart .mark { fill: var(--ink); font-size: 9px; }
+.tide-chart .now { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 3 2; }
+.tide-tip { margin-top: 0; }
+.weather-table td, .weather-table th { width: auto; }
+.weather-table td:first-child { white-space: nowrap; }

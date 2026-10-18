@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CatchSummary from "@/app/components/CatchSummary";
 import TideWidget from "@/app/components/TideWidget";
+import WeatherPanel from "@/app/components/WeatherPanel";
+import { forecastFor } from "@/lib/weather";
 import { areaOfSpot } from "@/lib/areas";
 import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, summarize } from "@/lib/catches";
 import { PREF_LABEL, publishedSpots } from "@/lib/spots";
@@ -23,8 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const spot = findSpot(await params);
   if (!spot) return {};
   return {
-    title: `${spot.name}の潮汐・料金・ルール`,
-    description: `${spot.name}（${spot.area}）の今日の潮汐、料金、営業時間、禁止事項をまとめています。`,
+    title: `${spot.name}の釣果・タイドグラフ・天気`,
+    description: `${spot.name}（${spot.area}）のタイドグラフ（潮がよく動く時間）、天気・風・波、最近の釣果、料金・ルールをまとめています。`,
   };
 }
 
@@ -41,6 +43,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
   const summary = summarize([spot.slug]);
   const monthly = monthlyOf(spot.slug);
   const recent = recentReports(spot.slug);
+  const forecast = forecastFor(spot);
 
   return (
     <article>
@@ -51,8 +54,11 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       <h1>{spot.name}</h1>
       <p className="lead">{spot.intro}</p>
 
-      <h2>今日の潮汐</h2>
+      <h2>タイドグラフ・潮位</h2>
       <TideWidget code={spot.tideStation.code} stationName={spot.tideStation.name} />
+
+      <h2>天気・風・波</h2>
+      <WeatherPanel label={forecast.label} data={forecast.data} />
 
       <h2>基本情報</h2>
       <table>
