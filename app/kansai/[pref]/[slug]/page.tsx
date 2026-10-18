@@ -79,7 +79,8 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
           <strong>料金・営業時間・ルールはリンク先でご確認ください</strong>
           <br />
           この釣り場は、当サイトで最新のルールまで確認できていないため、概要のみ掲載しています。
-          お出かけ前に<a href={spot.officialUrl} rel="noopener">施設のサイト</a>
+          お出かけ前に
+          <a href={spot.officialUrl} rel="noopener">{spot.type === "一般の釣り場" ? "参照ページ" : "施設のサイト"}</a>
           {spot.sourceUrls.map((u) => (
             <span key={u}>
               、<a href={u} rel="noopener">案内ページ（{new URL(u).hostname}）</a>
@@ -91,7 +92,13 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
 
       {spot.rules.length > 0 && (
         <>
-          <h2>ルール・禁止事項</h2>
+          <h2>{spot.rulesSource === "report" ? "報告されている規制・注意点" : "ルール・禁止事項"}</h2>
+          {spot.rulesSource === "report" && (
+            <p className="small">
+              管理者の公式発表ではなく、公開されている釣り場情報の調査（参照リンク先）をもとにしています。
+              規制は変わることがあるため、現地の看板・柵・立入禁止の表示を必ず優先してください。
+            </p>
+          )}
           <ul>
             {spot.rules.map((r) => (
               <li key={r}>{r}</li>

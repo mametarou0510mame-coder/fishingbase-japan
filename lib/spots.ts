@@ -5,7 +5,7 @@ export type Spot = {
   name: string;
   area: string;
   address: string;
-  type: "海釣り施設" | "公園の釣り場" | "沖堤防（渡船）";
+  type: "海釣り施設" | "公園の釣り場" | "沖堤防（渡船）" | "一般の釣り場";
   published: boolean;
   // full: 公式情報で料金・時間・ルールまで確認済み / basic: 概要とリンクのみ（詳細はリンク先で確認）
   level: "full" | "basic";
@@ -18,6 +18,8 @@ export type Spot = {
   parking: string;
   rentals: string;
   rules: string[];
+  // official: 管理者の公式情報 / report: 公開されている釣り情報の調査による（現地の掲示を優先）
+  rulesSource?: "official" | "report";
   notes: string[];
   tideStation: { code: string; name: string };
   catchReportUrl?: string; // 施設公式の釣果ページ
@@ -399,6 +401,148 @@ export const SPOTS: Spot[] = [
     tideStation: { code: "J2", name: "岸和田" },
     intro:
       "岸和田沖にある沖堤防です。忠岡漁港から出る岸和田渡船で渡ります。救命具の着用が必須です。",
+  },
+  {
+    slug: "kaizuka-jinkoto",
+    pref: "osaka",
+    name: "貝塚人工島",
+    area: "貝塚市",
+    address: "大阪府貝塚市（二色の浜公園の対岸の人工島）",
+    type: "一般の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://fishcast.jp/spots/kaizuka-jinkoto",
+    sourceUrls: ["https://fishcast.jp/restrictions/osaka"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "二色の浜公園の駐車場（有料）",
+    rentals: "",
+    rules: [
+      "釣りができるのは水路沿いと外向きの一部とされています",
+      "北波止・プール内向き・二色の浜公園の海浜緑地内は釣り禁止とされています",
+      "夜間は車両の進入が禁止されています",
+    ],
+    rulesSource: "report",
+    notes: [],
+    tideStation: { code: "J2", name: "岸和田" },
+    intro: "貝塚市の二色の浜公園の対岸にある人工島です。水路沿いは柵があり、比較的足場のよい場所として知られています。",
+  },
+  {
+    slug: "yumemai-ohashi-shita",
+    pref: "osaka",
+    name: "夢舞大橋下（舞洲側）",
+    area: "大阪市此花区",
+    address: "大阪府大阪市此花区（舞洲側の夢舞大橋のたもと）",
+    type: "一般の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://fishcast.jp/spots/yumemai-ohashi-shita",
+    sourceUrls: ["https://fishcast.jp/restrictions/osaka"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "近くに有料駐車場あり",
+    rentals: "",
+    rules: [
+      "管理者が開放している公式の釣り場ではありません",
+      "夢洲側の護岸は立入禁止です",
+      "駐車場と遊歩道の先は立入禁止とされています",
+      "転落防止柵がない場所があります。ライフジャケットを着用してください",
+    ],
+    rulesSource: "report",
+    notes: ["夢洲周辺は工事などで規制が変わることがあります。看板とフェンスの表示に必ず従ってください。"],
+    tideStation: { code: "OS", name: "大阪" },
+    intro: "舞洲と夢洲を結ぶ夢舞大橋の、舞洲側のたもとにある護岸です。",
+  },
+  {
+    slug: "maishima-seaside-promenade",
+    pref: "osaka",
+    name: "舞洲シーサイドプロムナード（魚釣り解放区）",
+    area: "大阪市此花区",
+    address: "大阪府大阪市此花区（舞洲緑地内）",
+    type: "公園の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://fishcast.jp/spots/maishima-seaside-promenade",
+    sourceUrls: ["https://fishcast.jp/restrictions/osaka"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "舞洲緑地内の有料駐車場（釣り場まで徒歩5〜7分）",
+    rentals: "",
+    rules: [
+      "釣りができるのは約200mの「魚釣り解放区」だけとされています",
+      "親水テラスやその他の護岸では釣りはできません",
+      "路上駐車・ゴミの放置は禁止です",
+    ],
+    rulesSource: "report",
+    notes: ["満潮時は波をかぶることがあります。"],
+    tideStation: { code: "OS", name: "大阪" },
+    intro: "舞洲の緑地にある遊歩道の一部が、釣りのできる区間として開放されています。転落防止柵と浮き輪が設置されています。",
+  },
+  {
+    slug: "shiomi-futo",
+    pref: "osaka",
+    name: "汐見埠頭",
+    area: "泉大津市",
+    address: "大阪府泉大津市（汐見埠頭）",
+    type: "一般の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://fishcast.jp/spots/shiomi-futo",
+    sourceUrls: [
+      "https://fishcast.jp/restrictions/osaka",
+      "https://www.pref.osaka.lg.jp/o150010010/kowan/bousai-kikikanri/seigenkuikizu1.html",
+    ],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "20時〜翌5時は埠頭全体が封鎖され、夜釣りはできないとされています",
+      "西端のフェンスの先と保安区域（港湾施設の制限区域）は立入禁止です",
+      "柵がありません。子ども連れは特に注意してください",
+    ],
+    rulesSource: "report",
+    notes: ["大阪府が公表している堺泉北港の立入制限区域図もあわせて確認してください。"],
+    tideStation: { code: "IO", name: "泉大津" },
+    intro: "泉大津市にある埠頭です。開放されている岸壁で釣りができるとされていますが、港湾施設のため立入制限のある区域があります。",
+  },
+  {
+    slug: "tadaoka-suigintou",
+    pref: "osaka",
+    name: "忠岡水銀灯",
+    area: "泉北郡忠岡町",
+    address: "大阪府泉北郡忠岡町新浜（大津川河口の波止の先端）",
+    type: "一般の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-18",
+    officialUrl: "https://fishcast.jp/spots/tadaoka-suigintou",
+    sourceUrls: [
+      "https://fishcast.jp/restrictions/osaka",
+      "https://www.pref.osaka.lg.jp/o150010010/kowan/bousai-kikikanri/seigenkuikizu1.html",
+    ],
+    hours: "開門 9:00〜22:00（とされています）",
+    closed: "水曜は閉門（とされています）",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "閉門中の立ち入りは不法侵入になります",
+      "一部に釣り禁止・立入禁止の区域があります。現地の掲示を確認してください",
+      "先端は狭く、竿を出せるのは数人程度です",
+    ],
+    rulesSource: "report",
+    notes: [],
+    tideStation: { code: "IO", name: "泉大津" },
+    intro: "大津川の河口に突き出た波止の先端にある釣り場です。開門時間が決まっています。",
   },
 ];
 
