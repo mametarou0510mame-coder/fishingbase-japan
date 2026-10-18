@@ -5,6 +5,7 @@
    "key": "sabiki",
    "label": "サビキ釣りセット",
    "kind": "popular",
+   "unverified": false,
    "items": [
     {
      "name": "プロマリン わくわくサビキ釣りセットSG 仕掛セット 270cm 釣りセット アジ、イワシ ファミリー キッズ",
@@ -78,18 +79,8 @@
    "key": "lifejacket",
    "label": "ライフジャケット（桜マーク）",
    "kind": "popular",
+   "unverified": false,
    "items": [
-    {
-     "name": "ライフジャケット ライフジャケット 子供 大人用 釣り AI キッズ ジュニア ライフベスト 子ども ママ シュノーケリング シーケー 人気",
-     "price": 2180,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tyrro.kz1wa435.g00tyrro.kz1wb078%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmio30294%252Fck12001-2%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmio30294%252Fi%252F10000055%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tyrro.kz1wa435.g00tyrro.kz1wb078%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmio30294%252Fck12001-2%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmio30294%252Fi%252F10000055%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mio30294/cabinet/compass1717210104.jpg?_ex=200x200",
-     "shop": "みをつくし",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.7,
-     "reviewCount": 502
-    },
     {
      "name": "SEAWOLF(シーウルフ) SW-J-F06 腰巻 ライフジャケット 桜マーク 自動・手動膨脹式 TYPE-A ベルトタイプ 国土交通省型",
      "price": 13100,
@@ -133,17 +124,6 @@
      "pointEnd": "",
      "review": 4.69,
      "reviewCount": 68
-    },
-    {
-     "name": "ライフジャケット ジュニアフローティングベスト 子供用 FV-6153 釣り用 川遊び 水遊び用 釣り こども用 ファインジャパン",
-     "price": 2836,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00sag4o.kz1waf7d.g00sag4o.kz1wbe6a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Faquabeach%252Ffv6153%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Faquabeach%252Fi%252F10003163%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00sag4o.kz1waf7d.g00sag4o.kz1wbe6a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Faquabeach%252Ffv6153%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Faquabeach%252Fi%252F10003163%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/aquabeach/cabinet/04770688/fv6153-21.jpg?_ex=200x200",
-     "shop": "ライフジャケット釣具アクアビーチ",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.66,
-     "reviewCount": 58
     }
    ]
   },
@@ -151,6 +131,7 @@
    "key": "cooler",
    "label": "クーラーボックス",
    "kind": "point",
+   "unverified": false,
    "items": [
     {
      "name": "クーラーボックス 小型 保冷剤付き 5L 7L 10L 黒 ブラック UNPLUGGED CP アンプラグドキャンプ CHILL ハード 子",
@@ -224,6 +205,7 @@
    "key": "tachiuo",
    "label": "タチウオ仕掛け",
    "kind": "point",
+   "unverified": false,
    "items": [
     {
      "name": "タチウオウキ釣り直行仕掛けセットSASAME ( ササメ ) うきうき堤防太刀魚セット ( Mサイズ ) ルミカ LUMICA ウミホタル3",
@@ -297,6 +279,7 @@
    "key": "rig",
    "label": "サビキ仕掛け",
    "kind": "point",
+   "unverified": false,
    "items": [
     {
      "name": "メジャークラフト ナノアジサビキ(2セット入) S AD-SABIKI S",
