@@ -1,0 +1,103 @@
+name: SNS auto post
+
+# 自動投稿（Instagram・Threads・X）。キーが未設定のSNSには投稿せず、下書き（sns-media ブランチの draft.md）だけを作る。
+#  毎朝 6:40  今日のねらい目TOP3（Instagram画像・Threads・X）
+#  毎夕 18:30 今日の釣果ハイライト（Threads・X）
+#  金曜 20:00 週末の釣り予報（Instagram画像・Threads・X）
+on:
+  schedule:
+    - cron: "40 21 * * *" # 06:40 JST
+    - cron: "30 9 * * *" # 18:30 JST
+    - cron: "0 11 * * 5" # 金曜 20:00 JST
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "morning / evening / weekend"
+        required: true
+        default: morning
+      publish:
+        description: "true で投稿する（false は下書きだけ）"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sns
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decide mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
+            echo "publish=${{ github.event.inputs.publish }}" >> $GITHUB_OUTPUT
+          else
+            case "${{ github.event.schedule }}" in
+              "40 21 * * *") echo "mode=morning" >> $GITHUB_OUTPUT ;;
+              "30 9 * * *") echo "mode=evening" >> $GITHUB_OUTPUT ;;
+              "0 11 * * 5") echo "mode=weekend" >> $GITHUB_OUTPUT ;;
+            esac
+            echo "publish=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Install fonts and Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra > /dev/null
+          pip install --quiet pillow
+      - name: Compose
+        run: python scripts/sns/post.py compose ${{ steps.mode.outputs.mode }} /tmp/sns
+      - name: Save image and draft to sns-media branch
+        id: media
+        run: |
+          [ -f /tmp/sns/post.json ] || exit 0
+          IMG=$(python -c "import json;print(json.load(open('/tmp/sns/post.json'))['image'])")
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin sns-media || true
+          if git rev-parse --verify origin/sns-media >/dev/null 2>&1; then
+            git worktree add /tmp/media origin/sns-media
+            cd /tmp/media && git checkout -B sns-media
+          else
+            git worktree add --detach /tmp/media && cd /tmp/media && git checkout --orphan sns-media && git rm -rf . -q || true
+          fi
+          cp /tmp/sns/$IMG /tmp/sns/draft.md /tmp/media/
+          # 古い画像は新しい順に30枚だけ残す
+          ls -1t /tmp/media/*.jpg 2>/dev/null | tail -n +31 | xargs -r rm -f
+          git add -A && git commit -qm "sns media $IMG" && git push -f origin sns-media
+          echo "url=https://raw.githubusercontent.com/${{ github.repository }}/sns-media/$IMG" >> $GITHUB_OUTPUT
+      - name: Publish
+        if: steps.mode.outputs.publish == 'true' && steps.media.outputs.url != ''
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: python scripts/sns/post.py publish /tmp/sns "${{ steps.media.outputs.url }}"
+
+  # Threads のトークンは60日で切れるため、週1回延長する（GH_PAT があるときだけ、シークレットを書き換える）
+  refresh-threads-token:
+    if: github.event.schedule == '0 11 * * 5'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -z "$THREADS_TOKEN" ] || [ -z "$GH_TOKEN" ]; then echo "::notice::[sns] Threadsトークン延長はスキップ（キー未設定）"; exit 0; fi
+          NEW=$(curl -s "https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=$THREADS_TOKEN" | python -c "import sys,json;print(json.load(sys.stdin).get('access_token',''))")
+          if [ -z "$NEW" ]; then echo "::warning::[sns] Threadsトークンの延長に失敗しました"; exit 0; fi
+          echo "::add-mask::$NEW"
+          gh secret set THREADS_TOKEN --repo ${{ github.repository }} --body "$NEW"
+          echo "::notice::[sns] Threadsトークンを延長しました"
