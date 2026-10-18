@@ -99,7 +99,7 @@ function TideChart({
   const CH = 110; // 潮位グラフの高さ
   const SUNROW = TOP + CH + 11; // 日の出・日の入の段
   const AXIS = TOP + CH + (sun ? 28 : 12); // 時刻の目盛り
-  const WX = slots.length ? 88 : 0; // 天気欄の高さ
+  const WX = slots.length ? 92 : 0; // 天気欄の高さ
   const LEGEND = AXIS + WX + 14;
   const H = LEGEND + 6;
   const x = (h: number) => L + (h / 24) * (W - L - R);
@@ -142,7 +142,7 @@ function TideChart({
     (v, i, a) => a.indexOf(v) === i && v >= min && v <= max,
   );
   const bottom = AXIS + WX; // 区切り線の下端
-  const rows = { icon: AXIS + 16, wx: AXIS + 28, arrow: AXIS + 44, wind: AXIS + 60, temp: AXIS + 73, pop: AXIS + 86 };
+  const rows = { icon: AXIS + 16, wx: AXIS + 28, arrow: AXIS + 48, wind: AXIS + 64, temp: AXIS + 77, pop: AXIS + 90 };
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="tide-chart" role="img" aria-label="1日の潮位の変化、潮がよく動く時間帯、日の出・日の入り、3時間ごとの天気・風・気温・降水確率">
       {sun && (
