@@ -1,0 +1,38 @@
+name: Update tide tables
+
+# 気象庁の潮位表を取得して public/data/tides/ に保存し、変更があればコミットする。
+# コミットされると Cloudflare 側で自動的に再公開される。
+on:
+  schedule:
+    - cron: "17 18 1 * *" # 毎月2日 03:17 JST
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/fetch-tides.mjs"
+      - "scripts/tide-parser.mjs"
+      - ".github/workflows/update-tides.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-tides.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "fishingbase-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/tides
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update tide tables from JMA"
+            git push
+          fi

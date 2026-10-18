@@ -34,7 +34,6 @@ for (const code of STATIONS) {
         year: y,
         source: "気象庁ホームページ「潮位表」",
         sourceUrl: url,
-        fetchedAt: new Date().toISOString(),
         days: days.map(({ date, hourly, high, low }) => ({ date, hourly, high, low })),
       };
       await writeFile(new URL(`${code}-${y}.json`, OUT_DIR), JSON.stringify(data));
