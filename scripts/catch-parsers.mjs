@@ -299,7 +299,8 @@ export function parsePointList(html) {
     const spot = matchPointPlace(place);
     const species = findSpecies(field("釣魚"));
     if (!spot || !species.length) continue;
-    const method = field("釣り方").replace(/\s*\.\.\.?\s*$/, "").replace(/&nbsp;|\u00a0/g, "").trim() || null;
+    // 釣り方の後ろに店員のコメントが続くため、最初の語（15文字まで）だけを使う
+    const method = field("釣り方").replace(/&nbsp;|\u00a0/g, " ").trim().split(/\s+/)[0]?.replace(/\.{2,}$/, "").slice(0, 15) || null;
     species.forEach((sp, i) =>
       out.push({
         spot,
