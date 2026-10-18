@@ -87,14 +87,18 @@ function TideChart({
 }) {
   const values = day.hourly.filter((v): v is number => v !== null);
   if (values.length < 2) return null;
-  const min = Math.min(...values) - 10;
-  const max = Math.max(...values) + 10;
+  const vMin = Math.min(...values);
+  const vMax = Math.max(...values);
+  const pad = (vMax - vMin) * 0.22 + 6; // 上下に余白を取り、満潮・干潮の文字がはみ出さないようにする
+  const min = vMin - pad;
+  const max = vMax + pad;
   const W = 340;
   const L = 34; // 左の見出し欄
   const R = 4;
   const TOP = 12;
   const CH = 110; // 潮位グラフの高さ
-  const AXIS = TOP + CH + 12; // 時刻の目盛り
+  const SUNROW = TOP + CH + 10; // 日の出・日の入の段
+  const AXIS = TOP + CH + (sun ? 22 : 12); // 時刻の目盛り
   const WX = slots.length ? 82 : 0; // 天気欄の高さ
   const LEGEND = AXIS + WX + 14;
   const H = LEGEND + 6;
@@ -115,6 +119,25 @@ function TideChart({
         return d.getUTCHours() + d.getUTCMinutes() / 60;
       })()
     : null;
+  const clampX = (v: number, half: number) => Math.min(Math.max(v, L + half), W - R - half);
+  // 満潮・干潮の文字の位置：上下の端からはみ出さないようにし、近い文字どうしは上下にずらす
+  const marks = [
+    ...day.high.map((e) => ({ key: `h${e.time}`, kind: "hi" as const, text: `満${e.time}`, h: toHour(e.time), cm: e.cm })),
+    ...day.low.map((e) => ({ key: `l${e.time}`, kind: "lo" as const, text: `干${e.time}`, h: toHour(e.time), cm: e.cm })),
+  ]
+    .map((m) => {
+      const py = y(m.cm);
+      let ty = m.kind === "hi" ? py - 6 : py + 13;
+      if (ty < TOP + 9) ty = py + 13;
+      if (ty > TOP + CH - 2) ty = py - 6;
+      return { ...m, px: x(m.h), py, tx: clampX(x(m.h), 18), ty };
+    })
+    .sort((a, b) => a.tx - b.tx);
+  for (let i = 1; i < marks.length; i++) {
+    const a = marks[i - 1];
+    const b = marks[i];
+    if (Math.abs(a.tx - b.tx) < 40 && Math.abs(a.ty - b.ty) < 10) b.ty = a.ty + (b.ty >= a.ty ? 11 : -11);
+  }
   const yTicks = [Math.ceil((min + 10) / 50) * 50, Math.floor((max - 10) / 50) * 50].filter(
     (v, i, a) => a.indexOf(v) === i && v >= min && v <= max,
   );
@@ -126,8 +149,8 @@ function TideChart({
         <>
           <rect x={x(0)} y={TOP} width={x(sun.rise) - x(0)} height={bottom - TOP} className="night" />
           <rect x={x(sun.set)} y={TOP} width={x(24) - x(sun.set)} height={bottom - TOP} className="night" />
-          <text x={x(sun.rise) - 2} y={TOP + CH - 3} textAnchor="end" className="sunmark">日の出{hm(sun.rise)}</text>
-          <text x={x(sun.set) + 2} y={TOP + CH - 3} textAnchor="start" className="sunmark">日の入{hm(sun.set)}</text>
+          <text x={clampX(x(sun.rise), 26)} y={SUNROW} textAnchor="middle" className="sunmark">▲日の出{hm(sun.rise)}</text>
+          <text x={clampX(x(sun.set), 26)} y={SUNROW} textAnchor="middle" className="sunmark">▼日の入{hm(sun.set)}</text>
         </>
       )}
       {ranges.map((r) => (
@@ -150,16 +173,10 @@ function TideChart({
         <text key={v} x={L - 4} y={y(v) + 3} textAnchor="end" className="axis">{v}cm</text>
       ))}
       <polyline points={points} className="line" fill="none" />
-      {day.high.map((e) => (
-        <g key={`h${e.time}`}>
-          <circle cx={x(toHour(e.time))} cy={y(e.cm)} r={3.5} className="hi" />
-          <text x={x(toHour(e.time))} y={y(e.cm) - 6} textAnchor="middle" className="mark">満{e.time}</text>
-        </g>
-      ))}
-      {day.low.map((e) => (
-        <g key={`l${e.time}`}>
-          <circle cx={x(toHour(e.time))} cy={y(e.cm)} r={3.5} className="lo" />
-          <text x={x(toHour(e.time))} y={y(e.cm) + 13} textAnchor="middle" className="mark">干{e.time}</text>
+      {marks.map((m) => (
+        <g key={m.key}>
+          <circle cx={m.px} cy={m.py} r={3.5} className={m.kind} />
+          <text x={m.tx} y={m.ty} textAnchor="middle" className="mark">{m.text}</text>
         </g>
       ))}
       {nowHour !== null && <line x1={x(nowHour)} x2={x(nowHour)} y1={TOP} y2={bottom} className="now" />}
