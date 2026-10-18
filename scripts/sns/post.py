@@ -196,9 +196,10 @@ def http(method, url, data=None, headers=None):
 
 
 def post_threads(text):
-    uid, token = os.environ.get("THREADS_USER_ID"), os.environ.get("THREADS_TOKEN")
-    if not uid or not token:
+    token = os.environ.get("THREADS_TOKEN")
+    if not token:
         return "skip（キー未設定）"
+    uid = os.environ.get("THREADS_USER_ID") or "me"  # 未設定ならトークンの持ち主（me）に投稿する
     c = http("POST", f"https://graph.threads.net/v1.0/{uid}/threads", {"media_type": "TEXT", "text": text, "access_token": token})
     time.sleep(5)
     r = http("POST", f"https://graph.threads.net/v1.0/{uid}/threads_publish", {"creation_id": c["id"], "access_token": token})
