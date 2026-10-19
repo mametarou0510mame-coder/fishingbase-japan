@@ -33,6 +33,13 @@ export const AREAS: Area[] = [
     intro: "明石海峡に近く、潮の流れがあるエリアです。秋には青物（ハマチなど）が回ってくることもあります。",
   },
   {
+    slug: "awaji",
+    name: "淡路島",
+    region: "淡路市・洲本市・南あわじ市",
+    spots: ["minamiawaji-megafloat"],
+    intro: "大阪湾と播磨灘、紀伊水道に囲まれた島です。潮通しが良く、青物やアオリイカなど大物の実績も豊富です。",
+  },
+  {
     slug: "senshu",
     name: "泉州",
     region: "泉大津市〜泉南郡岬町",
@@ -49,9 +56,9 @@ export const AREAS: Area[] = [
   {
     slug: "maizuru",
     name: "京都北部・舞鶴",
-    region: "京都府舞鶴市",
-    spots: ["maizuru-shinkai-koen"],
-    intro: "日本海側の舞鶴湾に面したエリアです。大阪湾とは潮や釣れる魚の時期が異なります。",
+    region: "京都府舞鶴市・京丹後市",
+    spots: ["maizuru-shinkai-koen", "amino-asamogawa-ko", "taiza-ko"],
+    intro: "日本海側の舞鶴湾と丹後半島のエリアです。大阪湾とは潮や釣れる魚の時期が異なります。",
   },
 ];
 
