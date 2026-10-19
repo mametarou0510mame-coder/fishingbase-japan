@@ -159,7 +159,7 @@ def heading(d, text, a=1.0):
 def scene_title(d, t, dur, s, meta):
     no = meta.get("no")
     f = F(FONT_BOLD, 40)
-    tag = f"釣り方ガイド No.{no}" if no else "釣り方ガイド"
+    tag = meta.get("tag") or (f"釣り方ガイド No.{no}" if no else "釣り方ガイド")
     tw = d.textlength(tag, font=f)
     d.rounded_rectangle([PW / 2 - tw / 2 - 24, 90, PW / 2 + tw / 2 + 24, 150], radius=30, fill=NAVY)
     center_text(d, PW / 2, 96, tag, f, WHITE)
@@ -1410,11 +1410,11 @@ def base_frame(meta, total_scenes, idx, voice):
         d.line(pts, fill=(30, 76, 122), width=4)
     logo(d, 50, 56, 74)
     fb = F(FONT_BOLD, 34)
-    tag = "釣り方ガイド"
+    tag = (meta.get("tag") or "釣り方ガイド").split(" No.")[0]
     tw = d.textlength(tag, font=fb)
     d.rounded_rectangle([W - 70 - tw - 30, 80, W - 70, 136], radius=28, outline=WHITE, width=3)
     d.text((W - 70 - tw - 15, 86), tag, font=fb, fill=WHITE)
-    ft = F(FONT_BLACK, 46)
+    ft = fit_font(d, meta["title"], FONT_BLACK, [46, 40, 34, 30], W - 120)
     d.text((56, 178), meta["title"], font=ft, fill=WHITE)
     if voice:
         fc = F(FONT_REG, 26)
@@ -1494,7 +1494,7 @@ def main():
     stills = "--stills" in sys.argv
     d = f"build/video/{slug}"
     tl = json.load(open(f"{d}/timeline.json", encoding="utf-8"))
-    meta = {"title": tl["title"], "sub": tl.get("sub", ""), "no": tl.get("no")}
+    meta = {"title": tl["title"], "sub": tl.get("sub", ""), "no": tl.get("no"), "tag": tl.get("tag")}
     timeline, total = build_timeline(tl)
     n = len(timeline)
     bases = [base_frame(meta, n, i, tl.get("voice")) for i in range(n)]
@@ -1507,12 +1507,13 @@ def main():
             render_frame(meta, timeline, i, tg, bases).save(f"{d}/stills/{i:02d}-{item['scene']['type']}.jpg", quality=80)
         return
 
-    os.makedirs("public/videos", exist_ok=True)
+    outdir = sys.argv[sys.argv.index("--outdir") + 1] if "--outdir" in sys.argv else "public/videos"
+    os.makedirs(outdir, exist_ok=True)
     audio = f"{d}/narration.wav"
     has_audio = any(ln.get("wav") for s in tl["scenes"] for ln in s["lines"])
     if has_audio:
         mix_audio(timeline, total, audio)
-    out = f"public/videos/{slug}.mp4"
+    out = f"{outdir}/{slug}.mp4"
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-"]
     if has_audio:
         cmd += ["-i", audio, "-c:a", "aac", "-b:a", "96k"]
@@ -1527,7 +1528,7 @@ def main():
         frame = render_frame(meta, timeline, idx, tg, bases)
         proc.stdin.write(frame.tobytes())
         if fi == int(timeline[0]["end"] * FPS * 0.7):
-            frame.save(f"public/videos/{slug}.jpg", quality=82)
+            frame.save(f"{outdir}/{slug}.jpg", quality=82)
     proc.stdin.close()
     proc.wait()
     print(f"wrote {out} ({os.path.getsize(out) / 1e6:.1f}MB)")

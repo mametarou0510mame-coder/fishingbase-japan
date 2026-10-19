@@ -20,7 +20,13 @@ READINGS = [
     (r"#7119", "シャープ、ななのいちいちきゅう"),
     (r"118番", "いちいちはちばん"),
     (r"119番", "いちいちきゅうばん"),
+    (r"(\d{1,2}):00", r"\1時"),
+    (r"(\d{1,2}):(\d{2})", r"\1時\2分"),
     (r"(\d+(?:\.\d+)?)\s*〜\s*(\d+(?:\.\d+)?)", r"\1から\2"),
+    (r"〜", "から"),
+    (r"(\d),(\d{3})", r"\1\2"),
+    (r"%OFF", "パーセントオフ"),
+    (r"PR", "ピーアール"),
     (r"(\d+(?:\.\d+)?)\s*lb", r"\1ポンド"),
     (r"(\d+(?:\.\d+)?)\s*ft", r"\1フィート"),
     (r"(\d+(?:\.\d+)?)\s*g(?![a-zA-Z])", r"\1グラム"),
@@ -68,9 +74,12 @@ def synth(text, out):
 
 
 def main():
-    slug = sys.argv[1]
+    src = sys.argv[1]
     silent = "--silent" in sys.argv
-    guide = json.load(open(f"content/guides/{slug}.json", encoding="utf-8"))
+    # ガイド名（content/guides/<slug>.json）か、JSON ファイルのパスを受け付ける
+    path = src if src.endswith(".json") else f"content/guides/{src}.json"
+    slug = os.path.basename(path)[:-5]
+    guide = json.load(open(path, encoding="utf-8"))
     out_dir = f"build/video/{slug}"
     os.makedirs(out_dir, exist_ok=True)
     scenes = []
@@ -89,7 +98,7 @@ def main():
             print(f"{n:02d} {dur:5.2f}s {text}")
         scenes.append({**{k: v for k, v in s.items() if k != "lines"}, "lines": lines})
     json.dump(
-        {"slug": slug, "title": guide["title"], "sub": guide.get("sub", ""), "no": guide.get("no"), "voice": None if silent else VOICE_CREDIT, "scenes": scenes},
+        {"slug": slug, "title": guide["title"], "sub": guide.get("sub", ""), "no": guide.get("no"), "tag": guide.get("tag"), "voice": None if silent else VOICE_CREDIT, "scenes": scenes},
         open(f"{out_dir}/timeline.json", "w", encoding="utf-8"),
         ensure_ascii=False,
         indent=1,

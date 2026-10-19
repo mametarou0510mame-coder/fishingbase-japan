@@ -1,0 +1,134 @@
+name: SNS reels
+
+# 1日4回のリール投稿（Instagram／YouTube）。動画は投稿の約20分前に作り始め、時間ちょうどに投稿する。
+#   06:00 今日の釣れる時間（spots） 12:00 釣り方ガイド（guide） 18:00 お得情報・PR（deals） 00:00 釣りの豆知識（trivia）
+# 定期投稿は data/sns/video-posts.json の enabled が true の時だけ。
+on:
+  schedule:
+    - cron: "40 20 * * *" # 05:40 JST → 06:00 spots
+    - cron: "40 2 * * *" # 11:40 JST → 12:00 guide
+    - cron: "40 8 * * *" # 17:40 JST → 18:00 deals
+    - cron: "40 14 * * *" # 23:40 JST → 00:00 trivia
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: "spots / guide / deals / trivia"
+        required: true
+        default: spots
+      publish:
+        description: "true で投稿する（false は動画と投稿文を作るだけ）"
+        required: true
+        default: "false"
+      wait:
+        description: "true で決まった時刻まで待ってから投稿する"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sns-reels
+  cancel-in-progress: false
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+        ports:
+          - 50021:50021
+    env:
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      IG_TOKEN: ${{ secrets.IG_TOKEN }}
+      YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decide slot
+        id: s
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SLOT="${{ github.event.inputs.slot }}"; PUB="${{ github.event.inputs.publish }}"; WAIT="${{ github.event.inputs.wait }}"
+          else
+            case "${{ github.event.schedule }}" in
+              "40 20 * * *") SLOT=spots ;;
+              "40 2 * * *") SLOT=guide ;;
+              "40 8 * * *") SLOT=deals ;;
+              "40 14 * * *") SLOT=trivia ;;
+            esac
+            PUB=$(python3 -c "import json;print('true' if json.load(open('data/sns/video-posts.json')).get('enabled') else 'false')")
+            WAIT=true
+          fi
+          case "$SLOT" in spots) H=6 ;; guide) H=12 ;; deals) H=18 ;; trivia) H=0 ;; esac
+          echo "slot=$SLOT" >> $GITHUB_OUTPUT; echo "publish=$PUB" >> $GITHUB_OUTPUT; echo "wait=$WAIT" >> $GITHUB_OUTPUT; echo "hour=$H" >> $GITHUB_OUTPUT
+          echo "::notice::slot=$SLOT publish=$PUB"
+      - name: Install fonts, ffmpeg, Python packages
+        if: steps.s.outputs.slot != 'guide'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet pillow numpy
+      - name: Make video
+        id: make
+        if: steps.s.outputs.slot != 'guide'
+        run: |
+          python scripts/sns/reels.py make ${{ steps.s.outputs.slot }} build/reels
+          ID=$(python3 -c "import json;print(json.load(open('build/reels/post.json'))['id'])")
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version >/dev/null && break; sleep 5; done
+          python scripts/video/narrate.py build/reels/$ID.json
+          python scripts/video/render.py $ID --outdir public/sns
+          echo "id=$ID" >> $GITHUB_OUTPUT
+      - name: Put video on the site
+        if: steps.s.outputs.slot != 'guide' && steps.s.outputs.publish == 'true'
+        run: |
+          # 3日より前のリール動画はサイトから消す（投稿済みのSNS側には残る）
+          python3 - <<'EOF'
+          import os, re, datetime
+          lim = (datetime.date.today() - datetime.timedelta(days=3)).isoformat()
+          for f in os.listdir("public/sns"):
+              m = re.search(r"(\d{4}-\d{2}-\d{2})", f)
+              if m and m.group(1) < lim:
+                  os.remove(os.path.join("public/sns", f))
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A public/sns
+          git commit -qm "SNSリール動画: ${{ steps.make.outputs.id }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+          exit 1
+      - name: Wait until posting time
+        if: steps.s.outputs.wait == 'true' && steps.s.outputs.publish == 'true'
+        run: |
+          python3 - <<'EOF'
+          import datetime, time
+          jst = datetime.timezone(datetime.timedelta(hours=9))
+          now = datetime.datetime.now(jst)
+          h = ${{ steps.s.outputs.hour }}
+          t = now.replace(hour=h, minute=0, second=0, microsecond=0)
+          if t < now - datetime.timedelta(hours=2):
+              t += datetime.timedelta(days=1)
+          wait = (t - now).total_seconds()
+          print(f"now {now:%H:%M}, target {t:%m/%d %H:%M}, wait {max(0, wait):.0f}s")
+          if 0 < wait < 3600:
+              time.sleep(wait)
+          EOF
+      - name: Publish guide video
+        if: steps.s.outputs.slot == 'guide' && steps.s.outputs.publish == 'true'
+        run: python scripts/sns/video_post.py --publish --platforms "instagram youtube"
+      - name: Publish reel
+        if: steps.s.outputs.slot != 'guide' && steps.s.outputs.publish == 'true'
+        run: python scripts/sns/reels.py publish build/reels
+      - name: Save posting record
+        if: always() && steps.s.outputs.publish == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -qm "SNSリールの投稿記録を更新"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+          exit 1
