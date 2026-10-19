@@ -1,77 +1,33 @@
 {
- "updatedOn": "2026-10-19",
+ "updatedOn": "2026-10-20",
  "categories": [
   {
    "key": "sabiki",
    "label": "サビキ釣りセット",
-   "kind": "popular",
+   "kind": "point",
    "unverified": false,
    "items": [
     {
-     "name": "プロマリン わくわくサビキ釣りセットSG 仕掛セット 270cm 釣りセット アジ、イワシ ファミリー キッズ",
-     "price": 3373,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rqaso.kz1wa48f.g00rqaso.kz1wb169%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnankiya00%252Fwakuwaku-s%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnankiya00%252Fi%252F10014487%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rqaso.kz1wa48f.g00rqaso.kz1wb169%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnankiya00%252Fwakuwaku-s%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnankiya00%252Fi%252F10014487%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/nankiya00/cabinet/14/4997223615936.jpg?_ex=200x200",
-     "shop": "釣具の通販 南紀屋楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.42,
-     "reviewCount": 401
+     "name": "サビキ釣りセット 振出し竿 スピニングリール 仕掛けケース 〔アジ サバ イワシ釣り〕",
+     "price": 8600,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qpavo.kz1wa4a0.g00qpavo.kz1wb2ea%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252F1bankanwebshop%252Fzzds-1827787%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252F1bankanwebshop%252Fi%252F63755603%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qpavo.kz1wa4a0.g00qpavo.kz1wb2ea%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252F1bankanwebshop%252Fzzds-1827787%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252F1bankanwebshop%252Fi%252F63755603%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/1bankanwebshop/cabinet/dsproducts/488/0001827787-1.jpg?_ex=200x200",
+     "shop": "インテリアの壱番館",
+     "pointRate": 20,
+     "pointEnd": "9999-12-31 23:59",
+     "review": 0,
+     "reviewCount": 0
     },
     {
-     "name": "プロマリン わくわくサビキ釣りセットSG 仕掛セット 240cm 釣りセット アジ、イワシ ファミリー キッズ",
-     "price": 3273,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rqaso.kz1wa48f.g00rqaso.kz1wb169%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnankiya00%252Fwakuwaku-st%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnankiya00%252Fi%252F10026954%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rqaso.kz1wa48f.g00rqaso.kz1wb169%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnankiya00%252Fwakuwaku-st%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnankiya00%252Fi%252F10026954%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/nankiya00/cabinet/14/4997223615936.jpg?_ex=200x200",
-     "shop": "釣具の通販 南紀屋楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.51,
-     "reviewCount": 206
-    },
-    {
-     "name": "(F1)誰でも簡単！サビキ釣り入門セット 270 (セット内容：竿/2.7m・リール・仕掛け・水汲みバケツ・魚掴みバサミ等)",
-     "price": 3980,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r1e5o.kz1wa169.g00r1e5o.kz1wbd0b%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmarunishi%252Fsabiki_fishing_set270-05%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmarunishi%252Fi%252F10016155%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r1e5o.kz1wa169.g00r1e5o.kz1wbd0b%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmarunishi%252Fsabiki_fishing_set270-05%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmarunishi%252Fi%252F10016155%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_gold/marunishi/img/sabiki/sabiki-set-270_01.jpg?_ex=200x200",
-     "shop": "つり具のマルニシ楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.34,
-     "reviewCount": 106
-    },
-    {
-     "name": "釣り竿 セット ＆ リールセット 2m 釣竿セット ロッド 200A 海釣り 川釣り 釣りセット 初心者用 釣り入門 釣り具セット 釣竿 ロ",
-     "price": 2680,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s3iho.kz1waef2.g00s3iho.kz1wb534%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmooshop%252F200a-lodreel%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmooshop%252Fi%252F10000044%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s3iho.kz1waef2.g00s3iho.kz1wb534%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmooshop%252F200a-lodreel%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmooshop%252Fi%252F10000044%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mooshop/cabinet/mem_item/fishingset/imgrc0135699370.jpg?_ex=200x200",
-     "shop": "満点ポイント",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.04,
-     "reviewCount": 83
-    },
-    {
-     "name": "サビキ釣りセット 180 万能 コンパクトロッド と 糸付リールセット と 簡単装着 サビキ仕掛けセット 波止釣り サビキセット ちょい投げ",
-     "price": 1998,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rj3ko.kz1wad63.g00rj3ko.kz1wb3c8%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fupis777%252Fsb-8%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fupis777%252Fi%252F10000391%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rj3ko.kz1wad63.g00rj3ko.kz1wb3c8%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fupis777%252Fsb-8%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fupis777%252Fi%252F10000391%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/upis777/cabinet/03143585/05794094/imgrc0083720212.jpg?_ex=200x200",
-     "shop": "ユピス楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.18,
-     "reviewCount": 34
-    },
-    {
-     "name": "プロマリン わくわくちょい投げ+サビキ釣りセット 仕掛セット ちょい投げ＆サビキ仕掛セット 釣りセット 240cm",
-     "price": 3373,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rqaso.kz1wa48f.g00rqaso.kz1wb169%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnankiya00%252Fwakuwaku-s-240%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnankiya00%252Fi%252F10028404%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rqaso.kz1wa48f.g00rqaso.kz1wb169%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnankiya00%252Fwakuwaku-s-240%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnankiya00%252Fi%252F10028404%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/nankiya00/cabinet/92/wakuwaku-sg-2.jpg?_ex=200x200",
-     "shop": "釣具の通販 南紀屋楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.48,
-     "reviewCount": 21
+     "name": "話題の品 フィッシングスターターセット HAC4625 釣竿セット リール ロッド 魚釣りセット 初心者用釣りセット 海釣り 釣り竿キット ",
+     "price": 2880,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pueeo.kz1wa390.g00pueeo.kz1wb8a2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmatsucame%252Fwat6963%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmatsucame%252Fi%252F10074069%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pueeo.kz1wa390.g00pueeo.kz1wb8a2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmatsucame%252Fwat6963%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmatsucame%252Fi%252F10074069%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/matsucame/cabinet/wat-20/wat6963.jpg?_ex=200x200",
+     "shop": "マツカメショッピング 扇風機",
+     "pointRate": 5,
+     "pointEnd": "2026-10-20 23:59",
+     "review": 0,
+     "reviewCount": 0
     }
    ]
   },
@@ -135,25 +91,14 @@
    "items": [
     {
      "name": "クーラーボックス 小型 保冷剤付き 5L 7L 10L 黒 ブラック UNPLUGGED CP アンプラグドキャンプ CHILL ハード 子",
-     "price": 1980,
+     "price": 2280,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tvybo.kz1wa32f.g00tvybo.kz1wb4fd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funplugged-cp%252Fchill-pop-oya%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funplugged-cp%252Fi%252F10000468%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tvybo.kz1wa32f.g00tvybo.kz1wb4fd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funplugged-cp%252Fchill-pop-oya%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funplugged-cp%252Fi%252F10000468%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/unplugged-cp/cabinet/chill-pop/pop-main-04.jpg?_ex=200x200",
      "shop": "アンプラグドキャンプ",
      "pointRate": 10,
-     "pointEnd": "2026-10-19 03:59",
+     "pointEnd": "2026-10-21 03:59",
      "review": 4.54,
      "reviewCount": 755
-    },
-    {
-     "name": "クーラーボックス 小型 ベルト付 コンパクト ミニクーラーボックス かわいい 7リットル おしゃれ クーラーバッグ 保冷バッグ キャンプ レ",
-     "price": 2580,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00suspo.kz1wada2.g00suspo.kz1wb317%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdubai-cc%252Fcoolbox1%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdubai-cc%252Fi%252F10097143%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00suspo.kz1wada2.g00suspo.kz1wb317%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdubai-cc%252Fcoolbox1%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdubai-cc%252Fi%252F10097143%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/dubai-cc/cabinet/sale/coolbox1-2026ra-1.jpg?_ex=200x200",
-     "shop": "ドバイ工務店",
-     "pointRate": 3,
-     "pointEnd": "2026-10-19 09:59",
-     "review": 4.61,
-     "reviewCount": 152
     },
     {
      "name": "《ポイント10倍☆20日迄》 クーラーボックス 小型 大型 釣り 部活 クーラーバッグ アイリスオーヤマ 7L 15L 20L 25L 32",
@@ -167,28 +112,6 @@
      "reviewCount": 145
     },
     {
-     "name": "クーラーボックス 小型 部活 クーラーバッグ アイリスオーヤマ 7L 15L 20L 25L 32L 45L 保冷バッグ ミニ クーラーバス",
-     "price": 1850,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pjh9o.kz1wa922.g00pjh9o.kz1wb58a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funidy%252F204475%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funidy%252Fi%252F10143754%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pjh9o.kz1wa922.g00pjh9o.kz1wb58a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funidy%252F204475%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funidy%252Fi%252F10143754%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/unidy/cabinet/11076768/12004294/imgrc0105888720.jpg?_ex=200x200",
-     "shop": "ゆにでのこづち",
-     "pointRate": 10,
-     "pointEnd": "2026-10-19 09:59",
-     "review": 4.23,
-     "reviewCount": 88
-    },
-    {
-     "name": "キャリーカート 荷物 運ぶ 買い物 小型 2輪 折りたたみ ショッピング キャスター付き 固定ロープ付き 安い 軽量 アウトドア 釣り キャ",
-     "price": 2090,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ssuao.kz1wa075.g00ssuao.kz1wb930%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkohnan-eshop%252F4522831024742%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkohnan-eshop%252Fi%252F10055248%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ssuao.kz1wa075.g00ssuao.kz1wb930%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkohnan-eshop%252F4522831024742%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkohnan-eshop%252Fi%252F10055248%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/kohnan-eshop/cabinet/goods/201709/s7/4522831024742.jpg?_ex=200x200",
-     "shop": "コーナンeショップ 楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.56,
-     "reviewCount": 81
-    },
-    {
      "name": "氷点下パック GT-16℃・ハード ロゴス LOGOS 氷点下 保冷剤 凍結 アウトドア クーラーボックス 氷 キャンプ スポーツ 釣り 保",
      "price": 693,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00uv40o.kz1wabab.g00uv40o.kz1wb35e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Flogosshop%252Flgs28958%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Flogosshop%252Fi%252F10000476%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00uv40o.kz1wabab.g00uv40o.kz1wb35e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Flogosshop%252Flgs28958%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Flogosshop%252Fi%252F10000476%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
@@ -196,8 +119,41 @@
      "shop": "ロゴスショップ公式楽天市場店",
      "pointRate": 1,
      "pointEnd": "2026-10-21 02:59",
-     "review": 4.68,
-     "reviewCount": 60
+     "review": 4.7,
+     "reviewCount": 63
+    },
+    {
+     "name": "保冷剤 長時間 クーラーショック アイスパック COOLER SHOCK SET Sサイズ 5個セット 繰り返し使える強力保冷パック クーラ",
+     "price": 4840,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-s%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000623%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-s%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000623%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mecu/cabinet/photo/point/new01/shockset-snew.jpg?_ex=200x200",
+     "shop": "mecu インテリア北欧雑貨店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-20 23:59",
+     "review": 4.11,
+     "reviewCount": 44
+    },
+    {
+     "name": "クーラーボックス 大型 保温 保冷 キャンプ バーベキュー キャスター付き 38L 熱中症対策 釣り キャンプ用品 アウトドア用品 防災用 ",
+     "price": 12300,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00u51jo.kz1waaf5.g00u51jo.kz1wb3d5%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fhokkoh%252Fcl-38%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fhokkoh%252Fi%252F10000029%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00u51jo.kz1waaf5.g00u51jo.kz1wb3d5%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fhokkoh%252Fcl-38%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fhokkoh%252Fi%252F10000029%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/hokkoh/cabinet/coolerbox/clrtop.jpg?_ex=200x200",
+     "shop": "プランニングホッコー",
+     "pointRate": 2,
+     "pointEnd": "2026-10-20 23:59",
+     "review": 4.38,
+     "reviewCount": 39
+    },
+    {
+     "name": "保冷剤 長時間 クーラーショック アイスパック COOLER SHOCK SET Mサイズ 4個セット 繰り返し使える強力保冷パック クーラ",
+     "price": 5720,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-m%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000624%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-m%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000624%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mecu/cabinet/photo/point/new01/shockset-mnew.jpg?_ex=200x200",
+     "shop": "mecu インテリア北欧雑貨店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-20 23:59",
+     "review": 4.24,
+     "reviewCount": 33
     }
    ]
   },
@@ -207,6 +163,39 @@
    "kind": "point",
    "unverified": false,
    "items": [
+    {
+     "name": "集魚ライト 漁船 led ライト しらすうなぎ led 水中集魚灯 水中ライト LED作業灯 イカ釣り 集魚灯 60w 黄色 ブルー グリー",
+     "price": 13680,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-60w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10000486%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-60w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10000486%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/diycenter/cabinet/07349351/08562920/imgrc0096986413.jpg?_ex=200x200",
+     "shop": "Ms.LABO【ミズラボ】",
+     "pointRate": 5,
+     "pointEnd": "2026-10-26 23:59",
+     "review": 4.75,
+     "reviewCount": 4
+    },
+    {
+     "name": "漁船 led ライト イカ釣り LED 水中集魚灯 集魚ライト 400W 黄色 ブルー グリーン 白光 ホワイト yellow 黄色光 イエ",
+     "price": 38000,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-400%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10001736%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-400%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10001736%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/diycenter/cabinet/07349351/08562920/700_400w-top.jpg?_ex=200x200",
+     "shop": "Ms.LABO【ミズラボ】",
+     "pointRate": 5,
+     "pointEnd": "2026-10-26 23:59",
+     "review": 3,
+     "reviewCount": 2
+    },
+    {
+     "name": "漁船 led ライト しらすうなぎ 集魚灯 LED 水中集魚灯 イカ釣り 12v24v 600w 黄色 ブルー グリーン 白光 ホワイト y",
+     "price": 56800,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rkbuo.kz1wa1c7.g00rkbuo.kz1wbc81%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-towajapan0615%252F600w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-towajapan0615%252Fi%252F10003113%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rkbuo.kz1wa1c7.g00rkbuo.kz1wbc81%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-towajapan0615%252F600w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-towajapan0615%252Fi%252F10003113%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/auc-towajapan0615/cabinet/03195649/700_600w_top.jpg?_ex=200x200",
+     "shop": "東和株式会社楽天市場店",
+     "pointRate": 5,
+     "pointEnd": "2026-10-26 23:59",
+     "review": 4.5,
+     "reviewCount": 2
+    },
     {
      "name": "タチウオウキ釣り直行仕掛けセットSASAME ( ササメ ) うきうき堤防太刀魚セット ( Mサイズ ) ルミカ LUMICA ウミホタル3",
      "price": 970,
@@ -239,39 +228,6 @@
      "pointEnd": "2026-10-20 23:59",
      "review": 0,
      "reviewCount": 0
-    },
-    {
-     "name": "ダイワ(Daiwa) 快適堤防タチウオ仕掛け移動式2本針 L 7207625",
-     "price": 472,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F186230%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F16264616%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F186230%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F16264616%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum/cabinet/goods/001862/30_1.jpg?_ex=200x200",
-     "shop": "ナチュラム 楽天市場支店",
-     "pointRate": 3,
-     "pointEnd": "2026-10-20 23:59",
-     "review": 0,
-     "reviewCount": 0
-    },
-    {
-     "name": "ダイワ(Daiwa) 船タチウオテンヤSS AH 50号 マイワシ 07347824",
-     "price": 1168,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tabxo.kz1waa24.g00tabxo.kz1wbb56%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum-fishing%252F3427888%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum-fishing%252Fi%252F10885660%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tabxo.kz1waa24.g00tabxo.kz1wbb56%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum-fishing%252F3427888%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum-fishing%252Fi%252F10885660%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum-fishing/cabinet/goods/034278/88_1.jpg?_ex=200x200",
-     "shop": "ナチュラム フィッシング専門店",
-     "pointRate": 3,
-     "pointEnd": "2026-10-20 23:59",
-     "review": 0,
-     "reviewCount": 0
-    },
-    {
-     "name": "ダイワ(Daiwa) 速攻船タチウオテンヤリーダーSS 14号 07347933",
-     "price": 411,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tabxo.kz1waa24.g00tabxo.kz1wbb56%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum-fishing%252F3427899%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum-fishing%252Fi%252F10886626%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tabxo.kz1waa24.g00tabxo.kz1wbb56%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum-fishing%252F3427899%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum-fishing%252Fi%252F10886626%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum-fishing/cabinet/goods/034278/99_1.jpg?_ex=200x200",
-     "shop": "ナチュラム フィッシング専門店",
-     "pointRate": 5,
-     "pointEnd": "2026-10-20 23:59",
-     "review": 0,
-     "reviewCount": 0
     }
    ]
   },
@@ -282,70 +238,70 @@
    "unverified": false,
    "items": [
     {
-     "name": "メジャークラフト ナノアジサビキ(2セット入) S AD-SABIKI S",
-     "price": 391,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F3173829%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F17552864%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F3173829%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F17552864%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum/cabinet/goods/031738/29_1.jpg?_ex=200x200",
-     "shop": "ナチュラム 楽天市場支店",
-     "pointRate": 3,
-     "pointEnd": "2026-10-20 23:59",
-     "review": 4,
-     "reviewCount": 1
-    },
-    {
-     "name": "オーナー 遠投ヒラメサビキ 03 ハリス6号 ナチュラルキス",
-     "price": 643,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s41zo.kz1wa8b5.g00s41zo.kz1wbbf1%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fcasting%252F4953873219696%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fcasting%252Fi%252F10165769%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s41zo.kz1wa8b5.g00s41zo.kz1wbbf1%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fcasting%252F4953873219696%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fcasting%252Fi%252F10165769%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/casting/cabinet/xm274/4953873219696.jpg?_ex=200x200",
-     "shop": "釣具のキャスティング 楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "9999-12-31 23:59",
-     "review": 4,
-     "reviewCount": 1
-    },
-    {
-     "name": "ハヤブサ(Hayabusa) 蓄光スキンサビキ (堤防小アジ五目) フラッシュ 鈎6/ハリス1.5 金 HS401",
-     "price": 417,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F865290%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F16472924%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F865290%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F16472924%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum/cabinet/goods/008652/90_1.jpg?_ex=200x200",
-     "shop": "ナチュラム 楽天市場支店",
-     "pointRate": 3,
-     "pointEnd": "2026-10-20 23:59",
+     "name": "HS730 9ー3号 これ一番 ママカリサビキ 白袖 8本鈎",
+     "price": 266,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4993722628439%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F10113101%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4993722628439%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F10113101%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/439/4993722628439.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-23 01:59",
      "review": 5,
-     "reviewCount": 1
+     "reviewCount": 5
     },
     {
-     "name": "ハヤブサ(Hayabusa) ぐるくんサビキ ケイムラMIXスキン 6本鈎 鈎4/ハリス4 白 HS636",
-     "price": 327,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tabxo.kz1waa24.g00tabxo.kz1wbb56%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum-fishing%252F2709926%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum-fishing%252Fi%252F10142284%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tabxo.kz1waa24.g00tabxo.kz1wbb56%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum-fishing%252F2709926%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum-fishing%252Fi%252F10142284%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum-fishing/cabinet/goods/027099/26_1.jpg?_ex=200x200",
-     "shop": "ナチュラム フィッシング専門店",
-     "pointRate": 3,
-     "pointEnd": "2026-10-20 23:59",
-     "review": 4,
-     "reviewCount": 1
-    },
-    {
-     "name": "プロマリン(PRO MARINE) ハゲ皮サビキ (3枚組) オーロラ付 6号/ハリス0.8 ASA015",
-     "price": 475,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F2626595%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F16476567%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pn5fo.kz1wabf8.g00pn5fo.kz1wbf91%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fnaturum%252F2626595%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fnaturum%252Fi%252F16476567%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/naturum/cabinet/goods/026265/95_1.jpg?_ex=200x200",
-     "shop": "ナチュラム 楽天市場支店",
-     "pointRate": 7,
-     "pointEnd": "2026-10-20 23:59",
-     "review": 1,
-     "reviewCount": 1
-    },
-    {
-     "name": "オーナー ショートハイパーパニック7 6号 ハリス1.5",
-     "price": 376,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s41zo.kz1wa8b5.g00s41zo.kz1wbbf1%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fcasting%252F4953873262548%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fcasting%252Fi%252F10390336%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s41zo.kz1wa8b5.g00s41zo.kz1wbbf1%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fcasting%252F4953873262548%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fcasting%252Fi%252F10390336%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/casting/cabinet/xm146/4953873262494.jpg?_ex=200x200",
-     "shop": "釣具のキャスティング 楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "9999-12-31 23:59",
+     "name": "大漁ケイムラサビキ 3枚組 針7号-ハリス2号",
+     "price": 539,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4996774367707%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F12747677%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4996774367707%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F12747677%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/707/4996774367707.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-23 01:59",
      "review": 5,
-     "reviewCount": 1
+     "reviewCount": 4
+    },
+    {
+     "name": "HS711 6ー1．5号 これ一番 白スキンサビキ 6本鈎",
+     "price": 248,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4993722628743%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F10113132%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4993722628743%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F10113132%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/743/4993722628743.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-23 01:59",
+     "review": 4.33,
+     "reviewCount": 3
+    },
+    {
+     "name": "マルシン漁具（DRAGON） 絶好釣 アジサビキ ミックスラメ入り 針10号−ハリス3号",
+     "price": 154,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4535090081364%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F11954346%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4535090081364%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F11954346%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/364/4535090081364.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-23 01:59",
+     "review": 3,
+     "reviewCount": 3
+    },
+    {
+     "name": "マルシン漁具（DRAGON） 絶好釣 アジサビキ ミックスラメ入り 針9号−ハリス3号",
+     "price": 154,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4535090081357%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F11954345%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4535090081357%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F11954345%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/357/4535090081357.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-23 01:59",
+     "review": 4,
+     "reviewCount": 3
+    },
+    {
+     "name": "HS710 4ー0．8号 これ一番 ピンクスキンサビキ 6本鈎",
+     "price": 248,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4993722628613%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F10113119%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4993722628613%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F10113119%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/613/4993722628613.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
+     "pointRate": 10,
+     "pointEnd": "2026-10-23 01:59",
+     "review": 4.33,
+     "reviewCount": 3
     }
    ]
   }
