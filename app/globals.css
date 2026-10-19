@@ -272,3 +272,18 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 .submit:disabled { opacity: 0.6; }
 .submit:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 2px; }
 .post-link { display: inline-block; padding: 6px 14px; border-radius: 999px; background: var(--float); color: #fff; font-weight: 700; text-decoration: none; }
+
+/* 釣り方ガイド */
+.guide-video { display: block; width: 100%; max-width: 360px; aspect-ratio: 9 / 16; margin: 12px auto 4px; border-radius: 14px; background: #0b2440; }
+.guide-meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.92rem; margin: 10px 0; }
+.guide-meta dt { font-weight: 700; color: var(--sea); }
+.guide-meta dd { margin: 0; }
+.guide-steps { padding-left: 1.4em; }
+.guide-steps li { margin-bottom: 8px; }
+.tackle-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.tackle-table th, .tackle-table td { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top; }
+.tackle-table th { white-space: nowrap; color: var(--sea); }
+.tackle-table td:last-child { white-space: nowrap; }
+.pattern-table td:first-child { font-weight: 700; }
+.guide-card .num { font-size: 0.75rem; color: var(--muted); }
+.plan-list { columns: 2 240px; font-size: 0.9rem; color: var(--muted); padding-left: 1.2em; }

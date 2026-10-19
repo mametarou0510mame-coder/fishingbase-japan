@@ -45,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/kansai/">釣り場</Link>
               <Link href="/species/">魚種</Link>
               <Link href="/kansai/month/">月別</Link>
+              <Link href="/guide/">釣り方</Link>
               <Link href="/gear/">道具</Link>
               <Link href="/gear/sale/">セール</Link>
             </nav>

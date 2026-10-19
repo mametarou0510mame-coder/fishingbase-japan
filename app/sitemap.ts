@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { AREAS } from "@/lib/areas";
+import { guides } from "@/lib/guides";
 import { SITE } from "@/lib/site";
 import { SPECIES } from "@/lib/species";
 import { publishedSpots } from "@/lib/spots";
@@ -22,6 +23,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     { url: u("/species/"), lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     ...SPECIES.map((s) => ({ url: u(`/species/${s.slug}/`), lastModified: now, changeFrequency: "monthly" as const, priority: 0.6 })),
+    { url: u("/guide/"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    ...guides().map((g) => ({ url: u(`/guide/${g.slug}/`), lastModified: now, changeFrequency: "monthly" as const, priority: 0.7 })),
     { url: u("/kansai/month/"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     ...Array.from({ length: 12 }, (_, i) => ({
       url: u(`/kansai/month/${i + 1}/`),
