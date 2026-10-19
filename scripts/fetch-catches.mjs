@@ -162,6 +162,22 @@ const maruhaBlog = (store) => async () => {
   return { reports: storeBlogReports(parseAtomEntries(xml), `maruha-${store}-`), monthly: null };
 };
 
+// 南あわじ海釣り公園メガフロート：市が公開しているExcelの釣果（scripts/fetch-xls-catches.py が先に読み込む）
+async function minamiawaji() {
+  const d = JSON.parse(await readFile(new URL("../data/extra-catches/minamiawaji.json", import.meta.url), "utf8"));
+  const reports = d.reports.map((r, i) => ({
+    id: `mega-${r.date}-${i}`,
+    date: r.date,
+    species: normalizeSpecies(r.species),
+    sizeCm: r.sizeCm ?? null,
+    count: r.count ?? null,
+    method: null,
+    time: null,
+    url: d.url,
+  }));
+  return { reports, monthly: null };
+}
+
 // 当サイトの「みんなの釣果投稿」（投稿受付サーバーの公開API）
 async function userPosts() {
   const res = await fetch("https://tsuredoki-kansai.mametarou0510mame.workers.dev/api/posts?days=30", { headers: { "User-Agent": UA } });
@@ -190,6 +206,7 @@ const SOURCES = [
   { spot: "amagasaki-uotsuri-koen", name: "尼崎市立魚つり公園 釣果情報", url: "https://amagasaki-uoturikouen.com/fishing/index.html", run: amagasaki },
   { spot: "naruohama-umizuri-hiroba", name: "鳴尾浜臨海公園 海づり広場 釣果情報", url: "http://www.naruohama-park.com/choka/", run: naruohama },
   { spot: "shimotsu-pialand", name: "下津ピアーランド 釣果情報", url: "https://www.shimotsu-pialand.com/fishing/", run: shimotsu },
+  { spot: "minamiawaji-megafloat", name: "南あわじ海釣り公園メガフロート 釣果情報（南あわじ市）", url: "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html", run: minamiawaji },
   // 複数の釣り場にまたがる出典（各釣果に spot が入っている）
   ...[
     ["akashi", "明石店"],

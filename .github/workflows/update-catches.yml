@@ -12,6 +12,7 @@ on:
       - "scripts/fetch-catches.mjs"
       - "scripts/catch-parsers.mjs"
       - "scripts/build-index.mjs"
+      - "scripts/fetch-xls-catches.py"
       - ".github/workflows/update-catches.yml"
 
 permissions:
@@ -29,6 +30,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Excel の釣果を読み込む
+        run: |
+          pip install --quiet xlrd
+          python scripts/fetch-xls-catches.py
       - run: node scripts/fetch-catches.mjs
       - run: node scripts/build-index.mjs
       - name: Commit if changed

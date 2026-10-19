@@ -6,3 +6,4 @@ out/
 .DS_Store
 build/
 __pycache__/
+data/extra-catches/
