@@ -2,6 +2,7 @@ name: SNS reels
 
 # 1日4回のリール投稿（Instagram／YouTube）。動画は投稿の約20分前に作り始め、時間ちょうどに投稿する。
 #   06:00 今日の釣れる時間（spots） 12:00 釣り方ガイド（guide） 18:00 お得情報・PR（deals） 00:00 釣りの豆知識（trivia）
+#   金曜20:00 週末の釣れる時間（weekend）
 # 定期投稿は data/sns/video-posts.json の enabled が true の時だけ。
 on:
   schedule:
@@ -9,10 +10,11 @@ on:
     - cron: "40 2 * * *" # 11:40 JST → 12:00 guide
     - cron: "40 8 * * *" # 17:40 JST → 18:00 deals
     - cron: "40 14 * * *" # 23:40 JST → 00:00 trivia
+    - cron: "40 10 * * 5" # 金曜 19:40 JST → 20:00 weekend
   workflow_dispatch:
     inputs:
       slot:
-        description: "spots / guide / deals / trivia"
+        description: "spots / guide / deals / trivia / weekend"
         required: true
         default: spots
       publish:
@@ -59,11 +61,12 @@ jobs:
               "40 2 * * *") SLOT=guide ;;
               "40 8 * * *") SLOT=deals ;;
               "40 14 * * *") SLOT=trivia ;;
+              "40 10 * * 5") SLOT=weekend ;;
             esac
             PUB=$(python3 -c "import json;print('true' if json.load(open('data/sns/video-posts.json')).get('enabled') else 'false')")
             WAIT=true
           fi
-          case "$SLOT" in spots) H=6 ;; guide) H=12 ;; deals) H=18 ;; trivia) H=0 ;; esac
+          case "$SLOT" in spots) H=6 ;; guide) H=12 ;; deals) H=18 ;; trivia) H=0 ;; weekend) H=20 ;; esac
           echo "slot=$SLOT" >> $GITHUB_OUTPUT; echo "publish=$PUB" >> $GITHUB_OUTPUT; echo "wait=$WAIT" >> $GITHUB_OUTPUT; echo "hour=$H" >> $GITHUB_OUTPUT
           echo "::notice::slot=$SLOT publish=$PUB"
       - name: Install fonts, ffmpeg, Python packages

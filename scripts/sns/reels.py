@@ -3,6 +3,7 @@
 #   12:00 guide   … 釣り方ガイド（作成済みの動画を順番に）
 #   18:00 deals   … 釣り道具のお得情報（楽天市場・PR）
 #   00:00 trivia  … 釣りの豆知識
+#   金曜20:00 weekend … 週末の釣れる時間
 # 使い方:
 #   python scripts/sns/reels.py make <slot> <outdir>   動画の台本（JSON）と投稿文を作る
 #   python scripts/sns/reels.py publish <outdir>        作った動画を投稿する（動画はサイトに公開済みであること）
@@ -119,6 +120,43 @@ def make_spots(day):
     return guide, "\n".join(cap)
 
 
+# ---------- 金曜 20:00 週末の釣れる時間 ----------
+def make_weekend(day):
+    data = get_json(f"{SITE}/sns/today.json")
+    dates = [d["date"] for d in data["dates"]]
+    wk = [x for x in dates if datetime.strptime(x, "%Y-%m-%d").weekday() in (5, 6)][:2] or dates[1:3]
+
+    def best(s, date):
+        ws = s["days"].get(date, {}).get("windows", [])
+        return max(ws, key=lambda w: w["score"]) if ws else None
+
+    scenes = [{"type": "title", "lines": ["今週末の釣れる時間をお知らせします。"]}]
+    cap = ["【週末の釣れる時間】", ""]
+    for i, date in enumerate(wk):
+        tide = next((d["tideName"] for d in data["dates"] if d["date"] == date), "")
+        ranked = sorted([s for s in data["spots"] if best(s, date)], key=lambda s: (-best(s, date)["score"], -s.get("recentReports", 0)))[:3]
+        windy = sum(1 for s in data["spots"] if (s["days"].get(date, {}).get("maxWind") or 0) >= 10)
+        rows = [[short_spot(s["name"]), f"{best(s, date)['grade']} {best(s, date)['from']}:00〜{best(s, date)['to']}:00"] for s in ranked]
+        label = md(date)
+        if rows:
+            s0 = ranked[0]
+            line = f"{label}は{tide}。おすすめは、{short_spot(s0['name'])}の、{best(s0, date)['from']}:00から{best(s0, date)['to']}:00です。"
+            if windy:
+                line += f"{windy}か所で風が強い予報です。"
+            scenes.append({"type": "pattern", "heading": f"{'①②'[i]} {label}・{tide}", "rows": rows, "lines": [line]})
+        cap.append(f"▼{label} {tide}" + (f"（⚠ {windy}か所で風速10m以上の予報）" if windy else ""))
+        cap += [f"・{s['name']}　{best(s, date)['grade']}{best(s, date)['from']}〜{best(s, date)['to']}時" for s in ranked] or ["・目立つねらい目が少ない日です"]
+        cap.append("")
+    scenes.append({"type": "points", "heading": "週末に出かける前に", "items": ["前日に風と波の予報を確認", "ライフジャケットを着る", "混雑時は周りと譲り合う"],
+                   "lines": ["前の日に、風と波の予報をもう一度確認してから出かけましょう。"]})
+    scenes.append(END)
+    g = {"title": "週末の釣れる時間", "sub": "・".join(md(x) for x in wk), "tag": "週末の釣り情報", "video": {"scenes": scenes}}
+    cap += ["潮の動き・朝夕のまずめ・営業時間・風の予報（気象庁）から計算した目安です。予報は変わることがあるので、前日にもう一度確認しましょう。"]
+    cap += site_lead("/", "釣り場ごとのタイドグラフ・天気・最近の釣果")
+    cap += [CREDIT, "", TAGS + " #週末釣り #釣り情報"]
+    return g, "\n".join(cap)
+
+
 # ---------- 18:00 お得情報（PR） ----------
 def short_item(name):
     """楽天の長い商品名を、動画に入る短い名前にする"""
@@ -191,6 +229,8 @@ def make(slot, outdir):
     log = load_log()
     if slot == "spots":
         g, cap = make_spots(day)
+    elif slot == "weekend":
+        g, cap = make_weekend(day)
     elif slot == "deals":
         g, cap = make_deals(day)
     elif slot == "trivia":
