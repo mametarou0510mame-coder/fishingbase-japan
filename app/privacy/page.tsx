@@ -100,6 +100,17 @@ export default function Privacy() {
         <Link href="/data-deletion/">データ削除のご依頼</Link>の手順でご連絡ください。
       </p>
 
+      <h2>7の2. 動画の投稿（YouTube API サービス）</h2>
+      <p>
+        当サイトは、運営者自身の YouTube チャンネルに釣り方ガイドなどの動画を投稿するため、YouTube API サービスを利用しています。
+        この機能は運営者のアカウントだけで使用し、閲覧者の Google アカウントの情報を取得・保存することはありません。
+        YouTube のご利用には
+        <a href="https://www.youtube.com/t/terms" rel="noopener" target="_blank">YouTube 利用規約</a>
+        と
+        <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google プライバシー ポリシー</a>
+        が適用されます。
+      </p>
+
       <h2>8. 改定</h2>
       <p>本ポリシーは、法令の変更やサービス内容の変更に応じて改定することがあります。改定後の内容は本ページに掲載した時点から効力を生じます。</p>
 
