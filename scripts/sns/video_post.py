@@ -156,6 +156,15 @@ def main():
     ap.add_argument("--scheduled", action="store_true")
     a = ap.parse_args()
     platforms = a.platforms.split()
+    if a.publish:
+        # キーが登録されているSNSだけを対象にする（未設定のSNSのせいで同じ動画が止まらないように）
+        keys = {"instagram": ("IG_USER_ID", "IG_TOKEN"), "youtube": ("YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN")}
+        ready = [p for p in platforms if all(clean(os.environ.get(k)) for k in keys.get(p, ()))]
+        for p in set(platforms) - set(ready):
+            print(f"::notice::{p} はキーが未設定のため今回は投稿しません")
+        platforms = ready
+        if not platforms:
+            return
     st = load_state()
     if a.scheduled and not st.get("enabled"):
         print("::notice::定期投稿は停止中です（data/sns/video-posts.json の enabled が false）。下書きだけ作ります。")
