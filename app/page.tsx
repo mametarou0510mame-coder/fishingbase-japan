@@ -73,6 +73,13 @@ export default function Home() {
         <Link href="/guide/">釣り方ガイドをすべて見る（全{gs.length}本・動画つき）</Link>
       </p>
 
+      <div className="card aq-promo">
+        <h3>
+          <Link href="/aquarium/">マイ水族館</Link>：釣った魚を登録して、あなただけの水族館に
+        </h3>
+        <p>アバターを作って、釣った魚を入れると水槽で泳ぎ出します。図鑑とバッジも集められます（ログイン不要）。</p>
+      </div>
+
       <h2>エリア</h2>
       <div className="cards">
         {AREAS.map((a) => {

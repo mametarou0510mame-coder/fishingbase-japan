@@ -299,3 +299,44 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 iframe.guide-video { border: 0; }
 .faq dt { font-weight: 700; margin-top: 12px; }
 .faq dd { margin: 4px 0 0; color: var(--muted); }
+
+/* マイ水族館 */
+.aq-head { display: flex; align-items: center; gap: 12px; }
+.aq-name { font-family: var(--font-display), sans-serif; font-size: 1.3rem; margin: 0; color: var(--sea); }
+.tank { position: relative; height: 340px; border-radius: 18px; overflow: hidden; margin: 10px 0; background: linear-gradient(#5fc3e4 0%, #2a8fc4 45%, #155f95 100%); border: 4px solid #0d3557; }
+.tank-light { position: absolute; inset: 0; background: repeating-linear-gradient(105deg, rgba(255,255,255,0.10) 0 40px, transparent 40px 110px); animation: aq-shimmer 8s linear infinite; }
+.sand { position: absolute; left: 0; right: 0; bottom: 0; height: 34px; background: radial-gradient(ellipse at 30% 0, #f1deb0, #d9bf86); }
+.weed { position: absolute; bottom: 20px; transform-origin: bottom center; animation: aq-sway 4s ease-in-out infinite alternate; }
+.bubble { position: absolute; bottom: 30px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.8); animation: aq-bubble 6s linear infinite; }
+.tank-empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #fff; font-weight: 700; padding: 20px; }
+.swimmer { position: absolute; left: 0; border: 0; background: none; padding: 0; cursor: pointer; animation: aq-swim 14s ease-in-out infinite alternate; }
+.swimmer .flip { display: inline-block; animation: aq-flip 28s steps(1) infinite; }
+.swimmer .bob { display: inline-block; animation: aq-bob 3s ease-in-out infinite alternate; }
+.swimmer:focus-visible { outline: 2px solid var(--glow); border-radius: 8px; }
+@keyframes aq-swim { from { left: 2%; } to { left: calc(96% - 120px); } }
+@keyframes aq-flip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+@keyframes aq-bob { from { transform: translateY(-4px); } to { transform: translateY(4px); } }
+@keyframes aq-sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@keyframes aq-bubble { from { transform: translateY(0); opacity: 0.9; } to { transform: translateY(-300px); opacity: 0; } }
+@keyframes aq-shimmer { from { background-position: 0 0; } to { background-position: 220px 0; } }
+@media (prefers-reduced-motion: reduce) { .swimmer, .swimmer .flip, .swimmer .bob, .weed, .bubble, .tank-light { animation: none; } }
+.aq-card { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.aq-card-actions { margin-left: auto; display: flex; flex-direction: column; gap: 4px; }
+.badges { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.badges li { padding: 4px 10px; border-radius: 999px; border: 1px dashed var(--line); color: var(--muted); font-size: 0.85rem; }
+.badges li.on { border: 1px solid var(--glow); color: inherit; background: rgba(242,182,48,0.15); font-weight: 700; }
+.zukan { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.zk { display: flex; flex-direction: column; align-items: center; padding: 6px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.8rem; text-align: center; }
+.zk.got { background: var(--card); }
+.aq-avatar { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.aq-avatar label { display: block; margin-bottom: 8px; }
+.swatches { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+.swatches button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; }
+.swatches button.on { outline: 3px solid var(--glow); outline-offset: 1px; }
+.file-btn { display: inline-block; margin-left: 8px; cursor: pointer; text-decoration: underline; }
+.file-btn input { display: none; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.check { display: flex; gap: 6px; align-items: center; }
+.post-form textarea { font: inherit; font-weight: 400; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+.post-form .check { display: flex; font-weight: 400; }
+.aq-promo { margin: 16px 0; border-left: 5px solid var(--glow); }
