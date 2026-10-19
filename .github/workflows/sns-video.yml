@@ -1,11 +1,8 @@
 name: SNS video post
 
-# 釣り方ガイドの動画を Instagram（リール）と YouTube（ショート）に、毎日18:52に1本ずつ投稿する。
-# 定期投稿は data/sns/video-posts.json の enabled が true の時だけ（false の間は下書きを作るだけ）。
+# 釣り方ガイドの動画を Instagram（リール）と YouTube（ショート）に手動で投稿する（定期投稿は sns-reels.yml）。
 # 投稿文は実行結果の「Summary」で確認できる。
 on:
-  schedule:
-    - cron: "52 9 * * *" # 18:52 JST
   workflow_dispatch:
     inputs:
       slug:
@@ -16,6 +13,10 @@ on:
         description: "instagram youtube（空白区切り）"
         required: true
         default: "instagram youtube"
+      count:
+        description: "続けて投稿する本数（2本目以降は約2分おき）"
+        required: false
+        default: "1"
       publish:
         description: "true で投稿する（false は下書きだけ）"
         required: true
@@ -31,7 +32,7 @@ concurrency:
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Post
@@ -45,7 +46,7 @@ jobs:
           if [ "${{ github.event_name }}" = "schedule" ]; then
             python scripts/sns/video_post.py --scheduled --publish
           else
-            ARGS="--platforms '${{ github.event.inputs.platforms }}'"
+            ARGS="--platforms '${{ github.event.inputs.platforms }}' --count ${{ github.event.inputs.count || 1 }}"
             [ -n "${{ github.event.inputs.slug }}" ] && ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"
             [ "${{ github.event.inputs.publish }}" = "true" ] && ARGS="$ARGS --publish"
             eval python scripts/sns/video_post.py $ARGS

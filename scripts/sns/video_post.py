@@ -66,12 +66,19 @@ def first_sentence(text):
     return text[: i + 1] if i > 0 else text
 
 
+def site_lead(path, what):
+    """サイトへの誘導（Instagram はキャプションのリンクを押せないので、プロフィールと検索も案内する）"""
+    host = SITE.replace("https://", "")
+    return ["", f"▶ {what}は「ツレドキ関西」で", "・プロフィールのリンクから", "・または「ツレドキ関西」で検索", f"{host}{path}", ""]
+
+
 def caption_instagram(g):
     lines = [f"【釣り方ガイド No.{g['no']}】{g['title']}（{g['sub']}）", "", first_sentence(g["summary"]), "", "▼手順"]
     lines += [f"{CIRCLED[i]} {s['title']}" for i, s in enumerate(g["steps"][:5])]
     lines += ["", "▼その日のパターン"]
     lines += [f"・{r['when']} → {r['do']}" for r in g["patterns"]["rows"][:3]]
-    lines += ["", "道具リスト（初級・中級・上級）と、向いている関西の釣り場は、プロフィールのリンク「ツレドキ関西」の釣り方ガイドへ。", "", CREDIT, "", " ".join("#" + w for w in tag_words(g))]
+    lines += site_lead(f"/guide/{g['slug']}/", "道具リスト（初級・中級・上級）・向いている関西の釣り場・今日の釣れる時間")
+    lines += [CREDIT, "", " ".join("#" + w for w in tag_words(g))]
     return "\n".join(lines)
 
 
@@ -149,12 +156,27 @@ def post_youtube(g):
 
 
 def main():
+    a = parse()
+    n = max(1, a.count)
+    for i in range(n):
+        if run_once(a) is False:
+            break
+        if i < n - 1:
+            time.sleep(a.gap)
+
+
+def parse():
     ap = argparse.ArgumentParser()
     ap.add_argument("--slug")
     ap.add_argument("--platforms", default="instagram youtube")
     ap.add_argument("--publish", action="store_true")
     ap.add_argument("--scheduled", action="store_true")
-    a = ap.parse_args()
+    ap.add_argument("--count", type=int, default=1, help="続けて投稿する本数")
+    ap.add_argument("--gap", type=int, default=120, help="続けて投稿する間隔（秒）")
+    return ap.parse_args()
+
+
+def run_once(a):
     platforms = a.platforms.split()
     if a.publish:
         # キーが登録されているSNSだけを対象にする（未設定のSNSのせいで同じ動画が止まらないように）
@@ -164,7 +186,7 @@ def main():
             print(f"::notice::{p} はキーが未設定のため今回は投稿しません")
         platforms = ready
         if not platforms:
-            return
+            return False
     st = load_state()
     if a.scheduled and not st.get("enabled"):
         print("::notice::定期投稿は停止中です（data/sns/video-posts.json の enabled が false）。下書きだけ作ります。")
@@ -177,7 +199,7 @@ def main():
         g = next((x for x in guides if any(p not in st["posts"].get(x["slug"], {}) for p in platforms)), None)
         if not g:
             print("::notice::すべてのガイド動画を投稿済みです。")
-            return
+            return False
     if not os.path.exists(f"public/videos/{g['slug']}.mp4"):
         print(f"::warning::{g['slug']} の動画がありません")
         return
