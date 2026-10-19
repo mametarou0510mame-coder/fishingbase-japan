@@ -319,8 +319,12 @@ def publish(outdir):
             rec["youtube"] = yt
             print(f"::notice::youtube ok {yt}")
     except Exception as e:
-        print(f"::error::youtube: {e}")
-        failed = True
+        if "uploadLimitExceeded" in str(e):
+            # 新しいチャンネルは1日に投稿できる本数が少ない。翌日には戻るので失敗扱いにしない
+            print("::warning::youtube: 1日の投稿上限に達したため、今回はYouTubeに投稿しませんでした")
+        else:
+            print(f"::error::youtube: {e}")
+            failed = True
     log["posts"].append(rec)
     save_log(log)
     if failed:

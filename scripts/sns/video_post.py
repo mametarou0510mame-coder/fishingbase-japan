@@ -224,8 +224,11 @@ def run_once(a):
         try:
             pid, msg = post_instagram(g) if p == "instagram" else post_youtube(g)
         except Exception as e:  # 片方が失敗しても、もう片方は続ける
-            print(f"::error::{p}: {e}")
-            failed = True
+            if "uploadLimitExceeded" in str(e):
+                print(f"::warning::{p}: 1日の投稿上限に達したため、今回は投稿しませんでした")
+            else:
+                print(f"::error::{p}: {e}")
+                failed = True
             continue
         print(f"::notice::{p}: {msg} {pid or ''}")
         if pid:
