@@ -91,8 +91,15 @@ def youtube_meta(g):
     }
 
 
+def clean(v):
+    """コピー時に混じりやすい空白・改行・引用符を取り除く"""
+    return (v or "").strip().strip('"').strip("'").strip() or None
+
+
 def post_instagram(g):
-    uid, token = os.environ.get("IG_USER_ID"), os.environ.get("IG_TOKEN")
+    uid, token = clean(os.environ.get("IG_USER_ID")), clean(os.environ.get("IG_TOKEN"))
+    if token and token.lower().startswith("bearer "):
+        token = token[7:].strip()
     if not uid or not token:
         return None, "skip（IG_USER_ID / IG_TOKEN 未設定）"
     api = "https://graph.facebook.com/v21.0"
@@ -118,7 +125,7 @@ def post_instagram(g):
 
 
 def post_youtube(g):
-    cid, csec, rtok = (os.environ.get(k) for k in ("YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN"))
+    cid, csec, rtok = (clean(os.environ.get(k)) for k in ("YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN"))
     if not (cid and csec and rtok):
         return None, "skip（YT_CLIENT_ID / YT_CLIENT_SECRET / YT_REFRESH_TOKEN 未設定）"
     tok = http("POST", "https://oauth2.googleapis.com/token", {"client_id": cid, "client_secret": csec, "refresh_token": rtok, "grant_type": "refresh_token"})["access_token"]
