@@ -40,6 +40,30 @@ export const PREF_LABEL: Record<Spot["pref"], string> = {
 
 export const SPOTS: Spot[] = [
   {
+    slug: "azur-maiko-shinsui-gogan",
+    pref: "hyogo",
+    name: "アジュール舞子 親水護岸",
+    area: "神戸市垂水区",
+    address: "兵庫県神戸市垂水区海岸通（アジュール舞子）",
+    type: "公園の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-20",
+    officialUrl: "https://www.city.kobe.lg.jp/a42810/business/kowanjigyo/kobekukonishiryokuchi-tsuri.html",
+    sourceUrls: ["https://www.city.kobe.lg.jp/a42810/business/kowanjigyo/kobekukonishiryokuchi-tsuri.html", "https://btimes.jp/hyogo/spot/2606/"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "有料駐車場あり（西駐車場・東駐車場。夏の休日は早く満車になります）",
+    rentals: "",
+    rules: ["夏の海水浴シーズンは砂浜での釣りは禁止", "護岸以外の港湾施設（岸壁・物揚場など）は釣り禁止です"],
+    rulesSource: "report",
+    notes: ["明石海峡大橋のすぐそばの海浜公園です。神戸市が「魚釣り開放エリア」として案内しています。"],
+    tideStation: { code: "AK", name: "明石" },
+    intro:
+      "明石海峡大橋のふもとにある海浜公園の親水護岸で、神戸市が魚釣りのできるエリアとして案内しています。サヨリ・アジ・イワシ、秋はアオリイカも狙えます。",
+  },
+  {
     slug: "kobe-airport-shinsui-gogan",
     pref: "hyogo",
     name: "神戸空港島 親水護岸",

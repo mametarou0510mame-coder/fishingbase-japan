@@ -29,7 +29,7 @@ export const AREAS: Area[] = [
     slug: "kobe-akashi",
     name: "神戸・明石",
     region: "神戸市（空港島・須磨・垂水）・明石市",
-    spots: ["kobe-airport-shinsui-gogan", "suma-umizuri-koen", "hiraiso-umizuri-koen", "okura-kaigan-higashi", "nakasaki-veranda-gogan"],
+    spots: ["kobe-airport-shinsui-gogan", "suma-umizuri-koen", "hiraiso-umizuri-koen", "azur-maiko-shinsui-gogan", "okura-kaigan-higashi", "nakasaki-veranda-gogan"],
     intro: "明石海峡に近く、潮の流れがあるエリアです。秋には青物（ハマチなど）が回ってくることもあります。",
   },
   {
