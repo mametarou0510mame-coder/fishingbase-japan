@@ -17,6 +17,7 @@ import { SITE } from "@/lib/site";
 import { areaOfSpot } from "@/lib/areas";
 import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, sourcesOf, summarize } from "@/lib/catches";
 import { PREF_LABEL, publishedSpots } from "@/lib/spots";
+import { guidesForSpot } from "@/lib/guides";
 
 type Params = { pref: string; slug: string };
 
@@ -33,9 +34,16 @@ function findSpot(p: Params) {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const spot = findSpot(await params);
   if (!spot) return {};
+  const recentSp = summarize([spot.slug]).list.slice(0, 3).map((x) => x.species.replace(/（.*?）/g, ""));
+  const path = `/kansai/${spot.pref}/${spot.slug}/`;
+  const desc = `${spot.name}（${spot.area}）の今日の釣れる時間（ねらい目）、タイドグラフ、時間ごとの天気・風、${recentSp.length ? `最近の釣果（${recentSp.join("・")}など）` : "最近の釣果"}、料金・ルールをまとめています。`;
+  const og = { url: `/og/spot-${spot.slug}.png`, width: 1200, height: 630, alt: `${spot.name}の釣果・タイドグラフ・天気` };
   return {
     title: `${spot.name}の釣果・タイドグラフ・天気`,
-    description: `${spot.name}（${spot.area}）のタイドグラフ（潮がよく動く時間）、天気・風・波、最近の釣果、料金・ルールをまとめています。`,
+    description: desc,
+    alternates: { canonical: path },
+    openGraph: { title: `${spot.name}の釣果・タイドグラフ・天気`, description: desc, url: path, images: [og] },
+    twitter: { card: "summary_large_image", images: [og.url] },
   };
 }
 
@@ -55,8 +63,32 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
   const forecast = forecastFor(spot);
   const fishIndex = indexFor(spot.slug);
 
+  const pageUrl = `${SITE.url}/kansai/${spot.pref}/${spot.slug}/`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "TouristAttraction",
+      name: spot.name,
+      description: spot.intro,
+      url: pageUrl,
+      image: `${SITE.url}/og/spot-${spot.slug}.png`,
+      address: { "@type": "PostalAddress", addressCountry: "JP", streetAddress: spot.address },
+      ...(spot.officialUrl ? { sameAs: [spot.officialUrl] } : {}),
+      touristType: "釣り",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "関西", item: `${SITE.url}/kansai/` },
+        ...(area ? [{ "@type": "ListItem", position: 2, name: area.name, item: `${SITE.url}/kansai/area/${area.slug}/` }] : []),
+        { "@type": "ListItem", position: area ? 3 : 2, name: spot.name, item: pageUrl },
+      ],
+    },
+  ];
   return (
     <article>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <p className="small">
         <Link href="/kansai/">関西</Link> ＞{" "}
         {area ? <Link href={`/kansai/area/${area.slug}/`}>{area.name}</Link> : PREF_LABEL[spot.pref]} ＞ {spot.name}
@@ -224,6 +256,23 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       />
 
       {spot.type !== "一般の釣り場" && <SpotGear spot={spot} />}
+
+      {(() => {
+        const gl = guidesForSpot(spot, summary.list.map((x) => x.species));
+        return gl.length > 0 ? (
+          <>
+            <h2>ここで楽しめる釣り方（動画つき）</h2>
+            <ul>
+              {gl.map((g) => (
+                <li key={g.slug}>
+                  <Link href={`/guide/${g.slug}/`}>{g.title}</Link> <span className="small">{g.sub}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="small">ルールで禁止が確認されている釣り方は除いています。現地の掲示も必ずご確認ください。</p>
+          </>
+        ) : null;
+      })()}
 
       <div className="notice">
         <strong>

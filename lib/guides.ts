@@ -77,3 +77,27 @@ export function recentSpotsForGuide(g: Guide, days = 14): { spot: Spot; reports:
     .map(([slug, v]) => ({ spot: ok.get(slug)!, ...v }))
     .sort((a, b) => b.reports - a.reports);
 }
+
+// SNSに投稿済みの YouTube 動画ID（data/sns/video-posts.json）
+export function guideYoutubeId(slug: string): string | null {
+  try {
+    const d = JSON.parse(readFileSync(join(process.cwd(), "data/sns/video-posts.json"), "utf8"));
+    return d.posts?.[slug]?.youtube?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// 釣り場で使える釣り方ガイド（禁止事項に合うもの）。最近の釣果の魚に合うものを先に並べる
+export function guidesForSpot(spot: Spot, recentSpecies: string[], limit = 6): Guide[] {
+  const list = guides().filter((g) => g.category !== "基本" && allowed(g.gearTags, spot.restrictions));
+  const score = (g: Guide) => {
+    const re = new RegExp(g.catchRegex);
+    return recentSpecies.slice(0, 6).reduce((n, sp, i) => n + (re.test(sp) ? 10 - i : 0), 0);
+  };
+  return list
+    .map((g) => ({ g, sc: score(g) }))
+    .sort((a, b) => b.sc - a.sc || a.g.no - b.g.no)
+    .slice(0, limit)
+    .map((x) => x.g);
+}

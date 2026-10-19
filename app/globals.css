@@ -287,3 +287,15 @@ article table.hourly-table { display: table; width: 100%; table-layout: fixed; f
 .pattern-table td:first-child { font-weight: 700; }
 .guide-card .num { font-size: 0.75rem; color: var(--muted); }
 .plan-list { columns: 2 240px; font-size: 0.9rem; color: var(--muted); padding-left: 1.2em; }
+
+/* SNSへの導線 */
+.follow { margin: 16px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.follow-lead { margin: 0 0 10px; font-size: 0.9rem; }
+.follow-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.follow-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; text-decoration: none; color: #fff; }
+.follow-btn.ig { background: linear-gradient(45deg, #f09433, #dc2743 50%, #bc1888); }
+.follow-btn.yt { background: #e00; }
+.follow-btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+iframe.guide-video { border: 0; }
+.faq dt { font-weight: 700; margin-top: 12px; }
+.faq dd { margin: 4px 0 0; color: var(--muted); }

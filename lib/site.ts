@@ -7,6 +7,7 @@ export const SITE = {
   url: "https://tsuredoki-kansai.mametarou0510mame.workers.dev",
   instagram: "https://www.instagram.com/tsuredokikansai",
   instagramHandle: "@tsuredokikansai",
+  youtube: "https://www.youtube.com/@%E3%83%84%E3%83%AC%E3%83%89%E3%82%AD%E9%96%A2%E8%A5%BF",
   // 公開用の問い合わせ先（2026-10-18 オーナー確定）
   contactEmail: "mametarou0510mame@gmail.com",
   // 検索エンジンへの登録（2026-10-18 解除）。true にすると全ページ noindex。

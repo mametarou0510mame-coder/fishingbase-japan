@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import SocialFollow from "@/app/components/SocialFollow";
 import { Dela_Gothic_One } from "next/font/google";
 import Logo from "@/app/components/Logo";
 import { SITE } from "@/lib/site";
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="wrap">{children}</main>
         <footer className="site-footer">
           <div className="wrap">
+            <SocialFollow />
             <ul className="footer-links">
               <li><Link href="/about/">運営者情報</Link></li>
               <li><Link href="/privacy/">プライバシーポリシー</Link></li>
