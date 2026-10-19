@@ -118,7 +118,11 @@ jobs:
           EOF
       - name: Publish guide video
         if: steps.s.outputs.slot == 'guide' && steps.s.outputs.publish == 'true'
-        run: python scripts/sns/video_post.py --publish --platforms "instagram youtube"
+        # SNSごとに「次の未投稿」を選ぶ（片方が遅れていても、もう片方は止まらない）
+        run: |
+          python scripts/sns/video_post.py --publish --platforms instagram || F=1
+          python scripts/sns/video_post.py --publish --platforms youtube || F=1
+          exit ${F:-0}
       - name: Publish reel
         if: steps.s.outputs.slot != 'guide' && steps.s.outputs.publish == 'true'
         run: python scripts/sns/reels.py publish build/reels
