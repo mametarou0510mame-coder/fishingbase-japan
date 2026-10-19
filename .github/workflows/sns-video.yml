@@ -1,0 +1,65 @@
+name: SNS video post
+
+# 釣り方ガイドの動画を Instagram（リール）と YouTube（ショート）に、毎日18:52に1本ずつ投稿する。
+# 定期投稿は data/sns/video-posts.json の enabled が true の時だけ（false の間は下書きを作るだけ）。
+# 投稿文は実行結果の「Summary」で確認できる。
+on:
+  schedule:
+    - cron: "52 9 * * *" # 18:52 JST
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "投稿するガイドの slug（空なら次の未投稿）"
+        required: false
+        default: ""
+      platforms:
+        description: "instagram youtube（空白区切り）"
+        required: true
+        default: "instagram youtube"
+      publish:
+        description: "true で投稿する（false は下書きだけ）"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sns-video
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python scripts/sns/video_post.py --scheduled --publish
+          else
+            ARGS="--platforms '${{ github.event.inputs.platforms }}'"
+            [ -n "${{ github.event.inputs.slug }}" ] && ARGS="$ARGS --slug ${{ github.event.inputs.slug }}"
+            [ "${{ github.event.inputs.publish }}" = "true" ] && ARGS="$ARGS --publish"
+            eval python scripts/sns/video_post.py $ARGS
+          fi
+      - name: Save posting record
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns/video-posts.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "SNS動画の投稿記録を更新"
+          for i in 1 2 3 4 5; do
+            git pull --rebase -X theirs origin main && git push && exit 0
+            sleep 10
+          done
+          exit 1
