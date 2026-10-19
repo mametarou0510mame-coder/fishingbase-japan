@@ -165,8 +165,13 @@ const maruhaBlog = (store) => async () => {
 // 南あわじ海釣り公園メガフロート：市が公開しているExcelの釣果（scripts/fetch-xls-catches.py が先に読み込む）
 async function minamiawaji() {
   const d = JSON.parse(await readFile(new URL("../data/extra-catches/minamiawaji.json", import.meta.url), "utf8"));
-  const reports = d.reports.map((r, i) => ({
-    id: `mega-${r.date}-${i}`,
+  const seen = new Map();
+  const reports = d.reports.map((r) => {
+    const k = `${r.date}-${r.species}`;
+    seen.set(k, (seen.get(k) ?? 0) + 1);
+    return { r, id: `mega-${k}-${seen.get(k)}` };
+  }).map(({ r, id }) => ({
+    id,
     date: r.date,
     species: normalizeSpecies(r.species),
     sizeCm: r.sizeCm ?? null,
