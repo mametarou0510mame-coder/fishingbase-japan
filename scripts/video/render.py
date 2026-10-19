@@ -232,18 +232,10 @@ def scene_rig(d, t, dur, s, meta):
         if ycut > 580:
             d.ellipse([cx - 16, 570, cx + 16, 610], outline=INK, width=6)
         if kind == "jig" and ycut > 620:
-            hook(d, cx + 18, 612, 34, INK, 4)
-            jig_shape(d, cx, 760, 280 * clamp01((ycut - 620) / 200 + 0.2))
+            metal_jig(d, cx, 770, 300, 90, t)
         if kind == "blade" and ycut > 620:
-            jig_shape(d, cx, 700, 170 * clamp01((ycut - 620) / 120 + 0.3), color=(225, 196, 90))
-            d.ellipse([cx - 10, 786, cx + 10, 806], outline=INK, width=4)
+            blade_jig(d, cx, 720, 320, 90, t)
             if ycut > 800:
-                ph = t * 14
-                bw = 46 * abs(math.cos(ph)) + 6
-                d.ellipse([cx - bw, 812, cx + bw, 900], fill=(236, 200, 70), outline=(150, 110, 20), width=3)
-                hl = 0.5 + 0.5 * math.cos(ph)
-                d.ellipse([cx - bw * 0.4, 830, cx + bw * 0.3, 860], fill=alpha(WHITE, hl * 0.9))
-                hook(d, cx + 14, 620, 30, INK, 4)
                 # 光と振動
                 for k in range(3):
                     r = 70 + ((t * 120 + k * 40) % 120)
@@ -369,22 +361,22 @@ def action_path(kind, u):
     """u: 0〜1。戻り値 (x, depth 0〜1, angle, jerking)"""
     if kind == "fast":
         if u < 0.08:
-            return XS, 0.1 * u / 0.08, 0, False
+            return XS, 0.1 * u / 0.08, 60, False
         v = (u - 0.08) / 0.92
-        return XS - (XS - XE) * v, 0.08 + 0.012 * math.sin(v * 60), -90, False
+        return XS - (XS - XE) * v, 0.08 + 0.012 * math.sin(v * 60), 0, False
     if kind == "steady":
         if u < 0.25:
-            return XS, 0.45 * u / 0.25, 0, False
+            return XS, 0.45 * u / 0.25, 60, False
         v = (u - 0.25) / 0.75
-        return XS - (XS - XE) * v, 0.45 - 0.08 * v, -90, False
+        return XS - (XS - XE) * v, 0.45 - 0.08 * v, 0, False
     if kind == "countdown":
         if u < 0.5:
-            return XS, 0.62 * u / 0.5, 0, False
+            return XS, 0.62 * u / 0.5, 60, False
         v = (u - 0.5) / 0.5
-        return XS - (XS - XE) * v, 0.6, -90, False
+        return XS - (XS - XE) * v, 0.6, 0, False
     if kind == "onepitch":
         if u < 0.18:
-            return XS, u / 0.18, 0, False
+            return XS, u / 0.18, 60, False
         n = 7
         v = (u - 0.18) / 0.82 * n
         k = min(int(v), n - 1)
@@ -397,13 +389,12 @@ def action_path(kind, u):
             e = ease(w / 0.35)
             dd = Lk - step * 1.3 * e
             x = xk - dx * 0.8 * e
-            ang = -40 if k % 2 == 0 else -140
-            return x, dd, ang, True
+            return x, dd, -35, True
         r = (w - 0.35) / 0.65
-        return xk - dx * (0.8 + 0.2 * r), Lk - step * 1.3 + step * 0.3 * r, 0 if k % 2 else 180, False
+        return xk - dx * (0.8 + 0.2 * r), Lk - step * 1.3 + step * 0.3 * r, 15, False
     if kind == "liftfall":
         if u < 0.15:
-            return XS, u / 0.15, 0, False
+            return XS, u / 0.15, 60, False
         n = 4
         v = (u - 0.15) / 0.85 * n
         k = min(int(v), n - 1)
@@ -412,9 +403,9 @@ def action_path(kind, u):
         xk = XS - dx * k
         if w < 0.3:
             e = ease(w / 0.3)
-            return xk - dx * 0.5 * e, 1 - 0.5 * e, -90, True
+            return xk - dx * 0.5 * e, 1 - 0.5 * e, -45, True
         r = (w - 0.3) / 0.7
-        return xk - dx * (0.5 + 0.5 * r), 0.5 + 0.5 * r ** 1.4, 30, False
+        return xk - dx * (0.5 + 0.5 * r), 0.5 + 0.5 * r ** 1.4, 35, False
     if kind == "sabiki":
         x = 230
         if u < 0.25:
@@ -525,16 +516,11 @@ def scene_action(d, t, dur, s, meta):
         fx, fdd, _, _ = action_path(kind, uu)
         a = ease((u - 0.55) / 0.1)
         if u > 0.86:
-            fx, fdd = x + 40, dd
+            fx, fdd = x + 110, dd
             hit = True
-        fish(d, fx + 60, ydepth(fdd) + 6, 130, -1, (40, 90, 130), a)
+        fish(d, fx + 140 if not hit else fx + 60, ydepth(fdd) + 6, 130, -1, (40, 90, 130), a)
     # ルアー
-    if s.get("lure") == "blade" or kind in ("countdown", "steady"):
-        jig_shape(d, x, y, 70, ang + 90 if ang else 0, color=(225, 196, 90))
-        bw = 14 * abs(math.cos(t * 16)) + 3
-        d.ellipse([x - bw + (34 if ang == -90 else 0), y - 12, x + bw + (34 if ang == -90 else 0), y + 12], fill=(236, 200, 70))
-    else:
-        jig_shape(d, x, y, 84, ang + 90 if ang else 0)
+    lure(d, "blade" if (s.get("lure") == "blade" or kind in ("countdown", "steady")) else "jig", x, y, ang, 80, t)
     if jerking and kind in ("onepitch", "liftfall"):
         fb = F(FONT_BLACK, 52)
         word = "シャクる！" if kind == "onepitch" else "持ち上げる"
@@ -632,12 +618,683 @@ def scene_end(d, t, dur, s, meta):
     center_text(d, PW / 2, 760, "tsuredoki-kansai.mametarou0510mame.workers.dev", fs, alpha(MUTED, b))
 
 
+# ---------- 追加：生き物・ルアー・仕掛けの部品 ----------
+NIGHT_SKY = (24, 38, 66)
+NIGHT_SEA = (36, 78, 120)
+NIGHT_DEEP = (22, 52, 88)
+PINK = (238, 120, 150)
+ORANGE = (240, 140, 50)
+LEAD_GRAY = (120, 126, 134)
+
+FISH_COLORS = {
+    "aomono": ((40, 90, 130), 130),
+    "kisu": ((222, 200, 160), 80),
+    "haze": ((160, 140, 100), 70),
+    "gashira": ((176, 82, 58), 90),
+    "chinu": ((96, 104, 114), 120),
+    "aji": ((90, 130, 170), 70),
+    "mebaru": ((120, 84, 70), 80),
+    "suzuki": ((150, 170, 190), 140),
+    "sayori": ((120, 170, 160), 90),
+    "kawahagi": ((186, 160, 110), 80),
+    "sawara": ((120, 150, 180), 140),
+}
+
+
+def rot(pts, cx, cy, deg):
+    r = math.radians(deg)
+    c, s_ = math.cos(r), math.sin(r)
+    return [(cx + px * c - py * s_, cy + px * s_ + py * c) for px, py in pts]
+
+
+def creature(d, kind, x, y, facing=-1, a=1.0, t=0.0, scale=1.0):
+    if kind == "tachiuo":
+        L = 220 * scale
+        pts = [(x + facing * (-L / 2 + L * i / 24) * -1, y + 7 * math.sin(i / 3 + t * 6)) for i in range(25)]
+        d.line(pts, fill=alpha((214, 224, 234), a), width=int(18 * scale), joint="curve")
+        hx, hy = pts[0]
+        d.ellipse([hx - 4, hy - 6, hx + 4, hy + 2], fill=alpha(INK, a))
+        return
+    if kind == "ika":
+        s = 120 * scale
+        body = [(-s * 0.1, -s * 0.16), (s * 0.55, -s * 0.06), (s * 0.62, 0), (s * 0.55, s * 0.06), (-s * 0.1, s * 0.16)]
+        fins = [(s * 0.35, -s * 0.05), (s * 0.62, -s * 0.2), (s * 0.62, s * 0.2), (s * 0.35, s * 0.05)]
+        sign = -facing  # 頭（足）が進む向き
+        bp = [(x + sign * px * -1, y + py) for px, py in body]
+        fp = [(x + sign * px * -1, y + py) for px, py in fins]
+        d.polygon(fp, fill=alpha((230, 200, 190), a * 0.9))
+        d.polygon(bp, fill=alpha((240, 214, 204), a), outline=alpha((200, 150, 140), a))
+        for k in range(5):
+            yy = y - s * 0.12 + k * s * 0.06
+            d.line([(x - sign * s * 0.1 * -1, y + (k - 2) * s * 0.04), (x + sign * s * 0.45 * -1 * -1, yy + 4 * math.sin(t * 5 + k))], fill=alpha((220, 170, 160), a), width=4)
+        ex = x - sign * s * 0.02 * -1
+        d.ellipse([ex - 6, y - 6, ex + 6, y + 6], fill=alpha(INK, a))
+        return
+    if kind == "tako":
+        s = 110 * scale
+        d.ellipse([x - s * 0.3, y - s * 0.75, x + s * 0.3, y - s * 0.15], fill=alpha((176, 70, 70), a))
+        for k in range(6):
+            ang = math.radians(200 + k * 28)
+            pts = []
+            for j in range(8):
+                rr = s * 0.2 + j * s * 0.08
+                pts.append((x + math.cos(ang) * rr + 4 * math.sin(t * 4 + j + k), y - s * 0.15 - math.sin(ang) * rr * 0.4 + j * 3))
+            d.line(pts, fill=alpha((176, 70, 70), a), width=int(9 * scale), joint="curve")
+        d.ellipse([x - 14, y - s * 0.5, x - 4, y - s * 0.4], fill=alpha(WHITE, a))
+        return
+    col, size = FISH_COLORS.get(kind, ((60, 100, 140), 100))
+    fish(d, x, y, size * scale, facing, col, a)
+    if kind == "gashira":
+        d.polygon([(x - 20, y - 16), (x + 20, y - 16), (x, y - 34)], fill=alpha(col, a))
+
+
+def lure(d, kind, x, y, ang=0.0, s=80, t=0.0):
+    """ルアー・エサを横向き（頭が左＝釣り人の方）で描く。ang は傾き（度、正で頭が下）"""
+    ang = -ang  # 画面の回転は時計回りが正なので、頭が下がる向きにそろえる
+    if kind == "jig":
+        metal_jig(d, x, y, s * 2.0, ang, t)
+        return
+    if kind == "blade":
+        blade_jig(d, x, y, s * 2.6, ang, t)
+        return
+    if kind == "pencil":
+        minnow_plug(d, x, y, s * 1.9, ang, t, lip=False, back=(70, 90, 160))
+        return
+    if kind == "egi" or kind == "takoegi":
+        body = [(-s * 0.5, 0), (-s * 0.3, -s * 0.14), (s * 0.35, -s * 0.12), (s * 0.45, 0), (s * 0.35, s * 0.12), (-s * 0.3, s * 0.14)]
+        col = ORANGE if kind == "egi" else (245, 245, 245)
+        d.polygon(rot(body, x, y, ang), fill=col, outline=INK)
+        d.polygon(rot([(-s * 0.3, -s * 0.14), (s * 0.35, -s * 0.12), (s * 0.3, -s * 0.04), (-s * 0.3, -s * 0.05)], x, y, ang), fill=(200, 60, 40) if kind == "egi" else (220, 60, 60))
+        ex, ey = rot([(-s * 0.36, -s * 0.02)], x, y, ang)[0]
+        d.ellipse([ex - 5, ey - 5, ex + 5, ey + 5], fill=INK)
+        tx, ty = rot([(s * 0.45, 0)], x, y, ang)[0]
+        n = 6 if kind == "egi" else 2
+        for k in range(n):
+            a2 = ang + (k - (n - 1) / 2) * (22 if kind == "egi" else 50)
+            ex2, ey2 = rot([(s * 0.18, 0)], tx, ty, a2)[0]
+            d.line([(tx, ty), (ex2, ey2)], fill=INK, width=3 if kind == "egi" else 5)
+        if kind == "takoegi":
+            sx, sy = rot([(-s * 0.1, s * 0.25)], x, y, ang)[0]
+            d.ellipse([sx - 12, sy - 10, sx + 12, sy + 10], fill=LEAD_GRAY)
+        return
+    if kind in ("jighead", "wind"):
+        d.ellipse([x - s * 0.14, y - s * 0.14, x + s * 0.14, y + s * 0.14], fill=(230, 60, 60) if kind == "wind" else LEAD_GRAY)
+        pts = [(x + s * 0.1 + s * 0.8 * i / 10, y + 4 * math.sin(i + t * 10)) for i in range(11)]
+        pts = rot([(px - x, py - y) for px, py in pts], x, y, ang)
+        d.line(pts, fill=(250, 220, 120) if kind == "wind" else (200, 230, 240), width=int(s * 0.14), joint="curve")
+        return
+    if kind == "minnow":
+        minnow_plug(d, x, y, s * 1.9, ang, t)
+        return
+    if kind == "tenya":
+        d.polygon(rot([(-s * 0.5, -s * 0.1), (-s * 0.25, -s * 0.12), (-s * 0.25, s * 0.12), (-s * 0.5, s * 0.06)], x, y, ang), fill=LEAD_GRAY)
+        d.polygon(rot([(-s * 0.25, -s * 0.09), (s * 0.4, -s * 0.05), (s * 0.55, 0), (s * 0.4, s * 0.05), (-s * 0.25, s * 0.09)], x, y, ang), fill=SILVER, outline=INK)
+        hx, hy = rot([(-s * 0.2, s * 0.12)], x, y, ang)[0]
+        d.arc([hx - 14, hy - 4, hx + 14, hy + 24], 0, 180, fill=INK, width=4)
+        return
+    if kind == "bait":
+        pts = [(x + s * 0.4 * i / 8 - s * 0.2, y + 6 * math.sin(i * 1.2 + t * 8)) for i in range(9)]
+        d.line(pts, fill=PINK, width=int(s * 0.12), joint="curve")
+        hook(d, x - s * 0.2, y - 10, 18, INK, 3)
+        return
+    if kind == "live":
+        fish(d, x, y, s * 0.8, -1 if math.sin(t * 2) > 0 else 1, (110, 150, 190))
+        return
+    if kind == "kani":
+        d.ellipse([x - s * 0.18, y - s * 0.12, x + s * 0.18, y + s * 0.12], fill=(170, 90, 60))
+        for k in range(3):
+            for sg in (-1, 1):
+                d.line([(x + sg * s * 0.14, y - s * 0.04 + k * s * 0.06), (x + sg * s * 0.3, y + k * s * 0.06)], fill=(170, 90, 60), width=3)
+        return
+    if kind == "burakuri":
+        d.ellipse([x - s * 0.14, y - s * 0.2, x + s * 0.14, y + s * 0.12], fill=(220, 50, 50))
+        hook(d, x, y + s * 0.1, 18, INK, 3)
+        lure(d, "bait", x + 6, y + s * 0.3, 0, s * 0.7, t)
+        return
+    if kind == "tenbin":
+        d.line([(x, y), (x, y - s * 0.4), (x + s * 0.7, y - s * 0.4)], fill=INK, width=3)
+        d.ellipse([x - s * 0.12, y - s * 0.05, x + s * 0.12, y + s * 0.2], fill=LEAD_GRAY)
+        d.line([(x + s * 0.7, y - s * 0.4), (x + s * 1.2, y - s * 0.1)], fill=(150, 190, 230), width=3)
+        lure(d, "bait", x + s * 1.3, y - s * 0.1, 0, s * 0.6, t)
+        return
+    if kind == "dotsuki":
+        d.line([(x, y - s * 0.8), (x, y)], fill=(120, 120, 120), width=3)
+        for k in range(2):
+            by = y - s * 0.7 + k * s * 0.35
+            d.line([(x, by), (x + s * 0.3, by + 10)], fill=(150, 190, 230), width=3)
+            lure(d, "bait", x + s * 0.42, by + 14, 0, s * 0.5, t)
+        d.ellipse([x - 12, y, x + 12, y + 26], fill=LEAD_GRAY)
+        return
+    fish(d, x, y, s, -1, (110, 150, 190))
+
+
+# 縦に並べた仕掛けの部品（rig シーンの parts で使う）
+def part(d, kind, cx, y, t):
+    if kind == "pe":
+        for yy in range(int(y - 50), int(y + 50), 18):
+            d.line([(cx, yy), (cx, yy + 10)], fill=(90, 170, 60), width=5)
+    elif kind == "nylon":
+        d.line([(cx, y - 50), (cx, y + 50)], fill=(110, 110, 110), width=4)
+    elif kind in ("leader", "harisu"):
+        d.line([(cx, y - 50), (cx, y + 50)], fill=(150, 190, 230), width=8 if kind == "leader" else 5)
+    elif kind == "wire":
+        d.line([(cx, y - 50), (cx, y + 50)], fill=(150, 150, 160), width=5)
+    elif kind == "knot":
+        d.ellipse([cx - 14, y - 14, cx + 14, y + 14], fill=RED)
+    elif kind == "stopper":
+        d.rectangle([cx - 14, y - 22, cx + 14, y - 12], fill=GLOW)
+        d.ellipse([cx - 9, y + 2, cx + 9, y + 20], fill=RED)
+    elif kind == "swivel":
+        d.ellipse([cx - 9, y - 22, cx + 9, y - 2], outline=INK, width=4)
+        d.ellipse([cx - 9, y + 2, cx + 9, y + 22], outline=INK, width=4)
+    elif kind == "snap":
+        d.ellipse([cx - 14, y - 20, cx + 14, y + 20], outline=INK, width=5)
+    elif kind == "float":
+        d.line([(cx, y - 70), (cx, y - 40)], fill=INK, width=4)
+        d.chord([cx - 30, y - 50, cx + 30, y + 10], 180, 360, fill=RED)
+        d.chord([cx - 30, y - 50, cx + 30, y + 10], 0, 180, fill=WHITE, outline=INK)
+        d.ellipse([cx - 30, y - 50, cx + 30, y + 10], outline=INK, width=3)
+        d.line([(cx, y + 10), (cx, y + 50)], fill=INK, width=4)
+    elif kind == "efloat":
+        g = 0.5 + 0.5 * math.sin(t * 5)
+        for r in (44, 32, 22):
+            d.ellipse([cx - r, y - 70 - r, cx + r, y - 70 + r], fill=alpha((150, 255, 120), 0.12 + 0.1 * g))
+        d.rounded_rectangle([cx - 8, y - 80, cx + 8, y - 56], radius=6, fill=(140, 240, 110))
+        d.rounded_rectangle([cx - 16, y - 56, cx + 16, y + 50], radius=14, fill=(250, 140, 40), outline=INK, width=3)
+    elif kind == "sinker":
+        d.polygon([(cx, y - 30), (cx + 20, y + 10), (cx, y + 30), (cx - 20, y + 10)], fill=LEAD_GRAY)
+    elif kind == "gan":
+        d.ellipse([cx - 12, y - 12, cx + 12, y + 12], fill=LEAD_GRAY)
+    elif kind == "cage":
+        d.rounded_rectangle([cx - 36, y - 46, cx + 36, y + 46], radius=10, fill=(255, 210, 160), outline=INK, width=4)
+        for gx in range(-24, 30, 16):
+            d.line([(cx + gx, y - 40), (cx + gx, y + 40)], fill=(200, 150, 100), width=2)
+    elif kind == "hook":
+        hook(d, cx, y - 30, 40, INK, 5)
+    elif kind == "sabiki":
+        d.line([(cx, y - 60), (cx, y + 60)], fill=(150, 150, 150), width=3)
+        for k in range(3):
+            by = y - 50 + k * 40
+            sd = 1 if k % 2 == 0 else -1
+            d.line([(cx, by), (cx + sd * 40, by + 12)], fill=(150, 150, 150), width=3)
+            d.polygon([(cx + sd * 44, by + 8), (cx + sd * 64, by), (cx + sd * 64, by + 22)], fill=PINK)
+    else:
+        horizontal = {"egi": 110, "takoegi": 110, "jighead": 90, "wind": 100, "minnow": 120, "tenya": 140, "bait": 90, "live": 90, "kani": 90, "burakuri": 90, "tenbin": 90, "dotsuki": 120, "jig": 150, "blade": 120}
+        if kind == "jig":
+            metal_jig(d, cx, y, 170, 90, t)
+        elif kind == "blade":
+            blade_jig(d, cx, y - 20, 190, 90, t)
+        elif kind in ("minnow", "pencil"):
+            minnow_plug(d, cx, y, 150, 0, t, lip=kind == "minnow")
+        else:
+            lure(d, kind, cx, y + (40 if kind == "dotsuki" else 0), 0, horizontal.get(kind, 90), t)
+
+
+def scene_rig_parts(d, t, dur, s, meta):
+    heading(d, s.get("heading", "仕掛け"))
+    parts = s["parts"]
+    n = len(parts)
+    cx = 300
+    top, bottom = 200, 920
+    gap = (bottom - top) / max(n - 1, 1)
+    prog = ease(t / max(1.5, dur * 0.55))
+    shown = prog * n
+    fl = F(FONT_BOLD, 40)
+    ys = [top + i * gap for i in range(n)]
+    for i in range(n - 1):
+        if shown > i + 1:
+            d.line([(cx, ys[i]), (cx, ys[i + 1])], fill=(170, 170, 170), width=3)
+    for i, (kind, txt) in enumerate(parts):
+        a = clamp01(shown - i)
+        if a <= 0:
+            break
+        part(d, kind, cx, ys[i], t)
+        lx = 520
+        d.line([(cx + 70, ys[i]), (lx - 16, ys[i])], fill=alpha(MUTED, a), width=3)
+        f2 = fl if d.textlength(txt, font=fl) < PW - lx - 30 else F(FONT_BOLD, 32)
+        label(d, lx, ys[i] - 22, txt, f2, alpha(INK, a), bg=alpha(WHITE, a))
+
+
+# --- 追加のアクション ---
+def stage(d, t, s, jerk=False, rod_up=False):
+    night = s.get("night", False)
+    sky = NIGHT_SKY if night else PANEL
+    sea = NIGHT_SEA if night else SEA
+    deep = NIGHT_DEEP if night else SEA_DEEP
+    d.rectangle([0, 130, PW, SURF], fill=sky)
+    if night:
+        for k in range(12):
+            sx, sy = (k * 157) % PW, 150 + (k * 71) % 150
+            d.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill=alpha(WHITE, 0.6))
+    d.rectangle([0, SURF, PW, PH], fill=sea)
+    d.rectangle([0, SURF + 260, PW, PH], fill=alpha(deep, 0.45))
+    pts = [(x, SURF + 6 * math.sin(x / 50 + t * 3)) for x in range(0, PW + 1, 8)]
+    d.line(pts, fill=alpha(WHITE, 0.8), width=4)
+    sand = [(x, BOT + 10 * math.sin(x / 90)) for x in range(0, PW + 1, 10)]
+    d.polygon(sand + [(PW, PH), (0, PH)], fill=SAND)
+    d.rectangle([0, SURF - 60, 150, PH], fill=CONCRETE)
+    if s.get("light"):
+        d.line([(130, SURF - 60), (130, SURF - 300)], fill=(80, 80, 90), width=8)
+        d.ellipse([110, SURF - 320, 160, SURF - 290], fill=(255, 230, 120))
+        d.polygon([(135, SURF - 300), (520, BOT), (150, BOT)], fill=alpha((255, 240, 160), 0.16))
+    ink = (230, 236, 244) if night else INK
+    d.ellipse([60, SURF - 190, 96, SURF - 154], fill=ink)
+    d.line([(78, SURF - 154), (78, SURF - 90)], fill=ink, width=8)
+    d.line([(78, SURF - 90), (62, SURF - 60)], fill=ink, width=7)
+    d.line([(78, SURF - 90), (96, SURF - 60)], fill=ink, width=7)
+    rod_ang = -75 if (jerk or rod_up) else -35
+    rx0, ry0 = 90, SURF - 120
+    tipx = rx0 + 170 * math.cos(math.radians(rod_ang))
+    tipy = ry0 + 170 * math.sin(math.radians(rod_ang))
+    d.line([(rx0, ry0), (tipx, tipy)], fill=(200, 200, 200) if night else (40, 40, 40), width=7)
+    d.line([(78, SURF - 140), (rx0, ry0)], fill=ink, width=6)
+    fn = F(FONT_BLACK, 58)
+    fs = F(FONT_BOLD, 38)
+    d.rectangle([0, 0, PW, 128], fill=PANEL)
+    heading(d, s.get("heading", "アクション"))
+    nm_col = (255, 140, 120) if night else RED
+    d.text((260, 136), s.get("name", ""), font=fn, fill=nm_col)
+    d.text((262, 210), s.get("sub", ""), font=fs, fill=WHITE if night else INK)
+    return tipx, tipy
+
+
+def callouts(d, s, u, t):
+    fb = F(FONT_BLACK, 48)
+    for c in s.get("callouts", []):
+        if c[0] <= u < c[1]:
+            label(d, 520, 286, c[2], fb, WHITE, bg=RED)
+    if u > 0.86 and s.get("hit"):
+        sc = 1 + 0.08 * math.sin(t * 20)
+        return F(FONT_BLACK, int(84 * sc))
+    return None
+
+
+def scene_action2(d, t, dur, s, meta):
+    kind = s["kind"]
+    u = clamp01((t - 0.2) / max(1.0, dur - 0.6))
+    who = s.get("fish", "aomono")
+    lk = s.get("lure", "bait")
+    jerk = False
+    trail = True
+    if kind == "uki":
+        fx_end = 640
+        if u < 0.12:
+            v = u / 0.12
+            fx = 200 + (fx_end - 200) * v
+            fy = SURF - 200 * math.sin(math.pi * v)
+        else:
+            fx, fy = fx_end, SURF + 4 * math.sin(t * 3)
+        tana = s.get("tana", 0.45)
+        by = ydepth(tana)
+        sink = 0.0
+        if u > 0.68:
+            sink = min(60, (u - 0.68) * 600)
+        tipx, tipy = stage(d, t, s, rod_up=u > 0.82)
+        d.line([(tipx, tipy), (fx, fy - 30 + sink)], fill=(90, 90, 90), width=2)
+        if u >= 0.12:
+            d.line([(fx, fy + sink), (fx, by - 20)], fill=(120, 120, 120), width=2)
+            for yy in range(int(fy + 30), int(by - 20), 22):
+                d.line([(fx + 40, yy), (fx + 40, yy + 10)], fill=alpha(WHITE, 0.8), width=3)
+            label(d, fx + 54, (fy + by) / 2 - 20, "タナ", F(FONT_BOLD, 36), WHITE, bg=alpha(NAVY, 0.9))
+            lure(d, lk, fx, by, 0, 90, t)
+            if u > 0.4:
+                a = ease((u - 0.4) / 0.1)
+                cx = fx + 260 - 200 * clamp01((u - 0.4) / 0.3)
+                creature(d, who, cx + 40, by + 10, -1, a, t)
+        part(d, "efloat" if s.get("night") else "float", fx, fy + sink + 10, t)
+        hitf = callouts(d, s, u, t)
+        if hitf:
+            center_text(d, fx + 120, fy - 180, s["hit"], hitf, RED)
+        return
+    if kind == "vertical":
+        wall = s.get("mode") == "wall"
+        tipx, tipy = stage(d, t, s, jerk=False)
+        if not wall:
+            for k, (rx, rw) in enumerate([(170, 120), (330, 150), (520, 130)]):
+                d.ellipse([rx - rw / 2, BOT - 120 + (k % 2) * 30, rx + rw / 2, BOT + 40], fill=(130, 136, 146), outline=(90, 96, 106), width=3)
+            x = 255
+            depth = 0.82 * clamp01(u / 0.3)
+            if 0.3 < u < 0.7:
+                depth -= 0.03 * abs(math.sin(t * 4))
+        else:
+            for k in range(14):
+                my = SURF + 30 + k * 40
+                d.ellipse([150, my, 172, my + 30], fill=(40, 50, 80))
+            x = 190
+            depth = 0.85 * clamp01((u - 0.05) / 0.75)
+        y = ydepth(depth)
+        d.line([(tipx, tipy), (x, SURF), (x, y)], fill=(90, 90, 90), width=2)
+        lure(d, lk, x, y, 0, 80, t)
+        if u > 0.45:
+            a = ease((u - 0.45) / 0.15)
+            if wall:
+                cx = x + 120 - 80 * clamp01((u - 0.45) / 0.3)
+                creature(d, who, cx + 20, y + 10, -1, a, t)
+            else:
+                rise = 60 * clamp01((u - 0.45) / 0.25)
+                creature(d, who, x + 30, BOT - 30 - rise, -1, a, t)
+        hitf = callouts(d, s, u, t)
+        if hitf:
+            center_text(d, x + 220, y - 160, s["hit"], hitf, RED)
+        return
+
+    # 以下は「投げて引いてくる」型。path(u) -> (x, depth, ang, jerk)
+    def path(uu):
+        if kind == "drag":
+            if uu < 0.12:
+                return 860, uu / 0.12, 0, False
+            v = (uu - 0.12) / 0.88
+            n = 5
+            k = min(int(v * n), n - 1)
+            w = v * n - k
+            mv = ease(min(1, w / 0.5))
+            x = 860 - (860 - 320) * (k + mv) / n
+            return x, 1.0, 0, False
+        if kind == "eging":
+            if uu < 0.25:
+                return 860, uu / 0.25, 0, False
+            v = (uu - 0.25) / 0.75
+            n = 2
+            k = min(int(v * n), n - 1)
+            w = v * n - k
+            x0 = 860 - 260 * k
+            if w < 0.3:
+                jk = int(w / 0.15)
+                ww = (w % 0.15) / 0.15
+                lift = 0.25 * (jk + ease(ww))
+                return x0 - 80 * (jk + ease(ww)) / 2, 1 - lift, -30, ww < 0.6
+            r = (w - 0.3) / 0.7
+            return x0 - 80 - 180 * r, 0.5 + 0.5 * r, 18, False
+        if kind == "drift":
+            if uu < 0.08:
+                return 820, 0.02, 0, False
+            v = (uu - 0.08) / 0.92
+            return 820 - 540 * v, 0.02 + 0.55 * (1 - (1 - v) ** 2), 15 * (1 - v), False
+        if kind == "wind":
+            if uu < 0.15:
+                return 860, 0.45 * uu / 0.15, 0, False
+            v = (uu - 0.15) / 0.85
+            n = 8
+            k = min(int(v * n), n - 1)
+            w = v * n - k
+            base = 0.45 - 0.1 * (k / n)
+            x = 860 - (860 - 300) * (k + w) / n
+            if w < 0.3:
+                return x, base - 0.12 * ease(w / 0.3) * (1 if k % 2 == 0 else 0.6), -35 if k % 2 == 0 else -20, True
+            return x, base - 0.12 * (1 - (w - 0.3) / 0.7) * (1 if k % 2 == 0 else 0.6), 20, False
+        if kind == "tenya":
+            if uu < 0.15:
+                return 820, 0.5 * uu / 0.15, 0, False
+            v = (uu - 0.15) / 0.85
+            n = 4
+            k = min(int(v * n), n - 1)
+            w = v * n - k
+            x0 = 820 - 110 * k
+            if w < 0.35:
+                e = ease(w / 0.35)
+                return x0 - 60 * e, 0.5 - 0.18 * e, -20, True
+            r = (w - 0.35) / 0.65
+            return x0 - 60 - 50 * r, 0.32 + 0.18 * r, 10, False
+        if kind == "tako":
+            x0, x1 = 600, 200
+            if uu < 0.15:
+                return x0, uu / 0.15, 0, False
+            v = (uu - 0.15) / 0.85
+            x = x0 - (x0 - x1) * min(1, v * 1.2)
+            return x, 0.97 - 0.02 * abs(math.sin(uu * 80)), 0, (int(uu * 40) % 2 == 0)
+        if kind == "retrieve":
+            dep = s.get("depth", 0.25)
+            if uu < 0.12:
+                return 860, dep * uu / 0.12, 0, False
+            v = (uu - 0.12) / 0.88
+            return 860 - 600 * v, dep, 0, False
+        return 860, 0.5, 0, False
+
+    x, dd, ang, jerk = path(u)
+    y = ydepth(dd)
+    tipx, tipy = stage(d, t, s, jerk=jerk)
+    if kind == "drift" and s.get("light"):
+        pass
+    pts = [path(u * k / 59) for k in range(60)]
+    tr = [(p[0], ydepth(p[1])) for p in pts]
+    for k in range(0, len(tr) - 1, 2):
+        d.line([tr[k], tr[k + 1]], fill=alpha(WHITE, 0.7), width=4)
+    d.line([(tipx, tipy), (x, y)], fill=(90, 90, 90) if not s.get("night") else (200, 200, 200), width=2)
+    if kind == "drag" and dd > 0.95:
+        for k in range(6):
+            ph = (t * 1.5 + k / 6) % 1
+            d.ellipse([x + 10 + ph * 50, y + 10 - ph * 30, x + 18 + ph * 50, y + 18 - ph * 30], fill=alpha(SAND, 1 - ph))
+    # 生き物
+    if u > 0.5:
+        a = ease((u - 0.5) / 0.12)
+        if u > 0.86:
+            cxp, cyp = x + 150, y
+        else:
+            px, pdd, _, _ = path(max(0.0, u - 0.06))
+            cxp, cyp = px + 170, ydepth(pdd) + 8
+        if kind == "tako":
+            cxp, cyp = (x + 40, y + 20) if u > 0.6 else (x - 60, BOT + 5)
+            a = 1.0
+        creature(d, who, cxp, cyp, -1, a, t)
+    elif kind == "tako":
+        creature(d, who, 140 + 80, BOT + 5, -1, 1.0, t)
+    lure(d, lk, x, y, ang, 80, t)
+    hitf = callouts(d, s, u, t)
+    if hitf:
+        center_text(d, x + 140, y - 170, s["hit"], hitf, RED)
+
+
+NEW_ACTIONS = {"uki", "vertical", "drag", "eging", "drift", "wind", "tenya", "tako", "retrieve"}
+
+
+# --- ユニノット（結び方の4段階）---
+def scene_knot(d, t, dur, s, meta):
+    heading(d, s.get("heading", "結び方"))
+    steps = s.get("steps", ["輪に通して折り返す", "輪を作る", "輪の中に5回くぐらせる", "締めて余りを切る"])
+    step = (dur * 0.7) / len(steps)
+    fl = F(FONT_BOLD, 34)
+    fn = F(FONT_BLACK, 40)
+    for i, txt in enumerate(steps):
+        a = ease((t - 0.3 - i * step) / 0.4)
+        if a <= 0:
+            continue
+        col, row = i % 2, i // 2
+        x0, y0 = 30 + col * 470, 150 + row * 430
+        d.rounded_rectangle([x0, y0, x0 + 450, y0 + 410], radius=20, fill=alpha(WHITE, a), outline=alpha((200, 214, 228), a), width=3)
+        d.ellipse([x0 + 16, y0 + 16, x0 + 70, y0 + 70], fill=alpha(RED, a))
+        center_text(d, x0 + 43, y0 + 18, str(i + 1), fn, alpha(WHITE, a))
+        ex, ey = x0 + 90, y0 + 190  # 針の環（アイ）
+        d.ellipse([ex - 16, ey - 16, ex + 16, ey + 16], outline=alpha(INK, a), width=6)
+        d.line([(ex - 16, ey), (ex - 70, ey)], fill=alpha(INK, a), width=8)
+        main = alpha((60, 120, 200), a)
+        tag = alpha((230, 90, 60), a)
+        d.line([(ex, ey), (x0 + 430, ey - 30)], fill=main, width=5)
+        if i == 0:
+            d.line([(ex, ey), (x0 + 380, ey + 40)], fill=tag, width=5)
+        elif i in (1, 2):
+            d.line([(ex, ey), (x0 + 330, ey + 30)], fill=tag, width=5)
+            d.arc([x0 + 220, ey - 80, x0 + 400, ey + 40], 200, 520 if i == 1 else 380, fill=tag, width=5)
+            if i == 2:
+                for k in range(5):
+                    cx = x0 + 180 + k * 26
+                    d.ellipse([cx - 12, ey - 40, cx + 12, ey + 30], outline=tag, width=4)
+        else:
+            d.rounded_rectangle([ex + 18, ey - 20, ex + 110, ey + 14], radius=10, fill=tag)
+            d.line([(ex + 110, ey - 3), (ex + 130, ey + 10)], fill=tag, width=4)
+        lines = wrap(d, txt, fl, 410)
+        for j, ln in enumerate(lines[:2]):
+            d.text((x0 + 22, y0 + 300 + j * 46), ln, font=fl, fill=alpha(INK, a))
+
+
+# ---------- ルアーの詳しい絵（ローカル座標：頭が -x、背中が -y。a は回転角度・度） ----------
+JIG_BACK = (40, 96, 190)
+JIG_BELLY = (226, 232, 240)
+HOLO = [(255, 120, 200), (120, 230, 255), (255, 240, 120)]
+GOLD = (226, 186, 70)
+GOLD_DARK = (150, 110, 20)
+LIP = (200, 232, 248)
+
+
+def _tf(pts, x, y, a):
+    return rot(pts, x, y, a)
+
+
+def _contour(L, H, prof, n=24):
+    up, lo = [], []
+    for i in range(n + 1):
+        tt = i / n
+        px = -L / 2 + L * tt
+        hu, hl = prof(tt)
+        up.append((px, -H * hu))
+        lo.append((px, H * hl))
+    return up, lo
+
+
+def _jhook(d, x, y, a, ax, ay, s, flip=1, w=4):
+    pts = []
+    pts.append((ax, ay))
+    pts.append((ax + s * 0.7, ay))
+    cx, cy, r = ax + s * 0.7, ay + flip * s * 0.28, s * 0.28
+    for k in range(0, 181, 15):
+        th = math.radians(k)
+        pts.append((cx + r * math.sin(th), cy - flip * r * math.cos(th)))
+    lx, ly = pts[-1]
+    pts.append((lx - s * 0.2, ly - flip * s * 0.12))
+    d.line(_tf(pts, x, y, a), fill=(60, 64, 70), width=w, joint="curve")
+
+
+def _treble(d, x, y, a, ax, ay, s, t=0.0):
+    """トレブルフック（3本針）。ax,ay が吊り下げ位置。下に垂れる"""
+    sw = 4 * math.sin(t * 3)
+    ring = _tf([(ax, ay)], x, y, a)[0]
+    d.ellipse([ring[0] - 6, ring[1] - 6, ring[0] + 6, ring[1] + 6], outline=(70, 74, 80), width=3)
+    # 吊り下げは常に画面の下向き（重力）
+    bx, by = ring[0] + sw * 0.3, ring[1] + s * 0.75
+    d.line([ring, (bx, by)], fill=(70, 74, 80), width=4)
+    for sg in (-1, 1):
+        pts = [(bx, by)]
+        for k in range(0, 181, 20):
+            th = math.radians(k)
+            pts.append((bx + sg * s * 0.22 * math.sin(th), by - s * 0.22 + s * 0.22 * math.cos(th) * -1 + s * 0.22))
+        pts.append((pts[-1][0] - sg * s * 0.06, pts[-1][1] - s * 0.1))
+        d.line(pts, fill=(70, 74, 80), width=4, joint="curve")
+    d.line([(bx, by), (bx, by + s * 0.18)], fill=(70, 74, 80), width=4)
+
+
+def metal_jig(d, x, y, L, a=0.0, t=0.0, back=JIG_BACK, belly=JIG_BELLY, hooks=True, fat=1.0):
+    """メタルジグ：細長い金属の体、ホロの模様、目、前のリングとアシストフック"""
+    H = L * 0.11 * fat
+
+    def prof(tt):
+        base = math.sin(math.pi * min(1.0, 0.08 + tt * 0.95)) ** 0.55
+        taper = 1 - 0.45 * tt
+        return base * taper, base * taper * 0.95
+
+    up, lo = _contour(L, H, prof)
+    body = up + lo[::-1]
+    d.polygon(_tf(body, x, y, a), fill=belly, outline=(30, 40, 60))
+    backp = up + [(p[0], H * 0.05) for p in up[::-1]]
+    d.polygon(_tf(backp, x, y, a), fill=back)
+    # ホロのきらめき
+    for k in range(7):
+        tt = 0.18 + k * 0.1
+        px = -L / 2 + L * tt
+        hu, hl = prof(tt)
+        col = HOLO[(k + int(t * 6)) % 3]
+        d.line(_tf([(px, H * 0.15), (px + L * 0.04, H * hl * 0.8)], x, y, a), fill=col, width=3)
+    # 側面のハイライト
+    d.line(_tf([(-L * 0.38, -H * 0.1), (L * 0.3, -H * 0.05)], x, y, a), fill=(255, 255, 255), width=2)
+    # 目
+    ex, ey = _tf([(-L * 0.36, -H * 0.15)], x, y, a)[0]
+    r = max(4, L * 0.035)
+    d.ellipse([ex - r, ey - r, ex + r, ey + r], fill=(250, 220, 60), outline=INK)
+    d.ellipse([ex - r * 0.45, ey - r * 0.45, ex + r * 0.45, ey + r * 0.45], fill=INK)
+    # 前のリング
+    rx, ry = _tf([(-L / 2 - L * 0.035, 0)], x, y, a)[0]
+    rr = max(5, L * 0.03)
+    d.ellipse([rx - rr, ry - rr, rx + rr, ry + rr], outline=(70, 74, 80), width=3)
+    if hooks:
+        # アシストラインと針（頭から背中側へ沿う）
+        d.line(_tf([(-L / 2 - L * 0.035, 0), (-L * 0.3, -H * 1.5)], x, y, a), fill=(240, 200, 80), width=4)
+        _jhook(d, x, y, a, -L * 0.3, -H * 1.5, L * 0.2, flip=-1, w=4)
+        d.line(_tf([(-L / 2 - L * 0.035, 0), (-L * 0.32, H * 1.4)], x, y, a), fill=(240, 120, 80), width=4)
+        _jhook(d, x, y, a, -L * 0.32, H * 1.4, L * 0.18, flip=1, w=4)
+
+
+def blade_jig(d, x, y, L, a=0.0, t=0.0):
+    """ブレードジグ：短い金属の体＋お腹の針＋お尻で回るブレード"""
+    body_L = L * 0.62
+    cx = -L * 0.19  # 体の中心（ローカル）
+    bx, by = _tf([(cx, 0)], x, y, a)[0]
+    metal_jig(d, bx, by, body_L, a, t, back=(60, 130, 90), belly=(236, 214, 120), hooks=False, fat=1.7)
+    # お尻のリング・スイベル
+    tail = cx + body_L / 2
+    p1 = _tf([(tail + L * 0.04, 0)], x, y, a)[0]
+    p2 = _tf([(tail + L * 0.11, 0)], x, y, a)[0]
+    d.ellipse([p1[0] - 5, p1[1] - 5, p1[0] + 5, p1[1] + 5], outline=(70, 74, 80), width=3)
+    d.ellipse([p2[0] - 6, p2[1] - 4, p2[0] + 6, p2[1] + 4], outline=(70, 74, 80), width=3)
+    # ブレード（回転で幅が変わる木の葉形）
+    ph = t * 16
+    w = abs(math.cos(ph))
+    bl = L * 0.3
+    leaf = []
+    for k in range(0, 361, 20):
+        th = math.radians(k)
+        leaf.append((tail + L * 0.14 + bl / 2 + bl / 2 * math.cos(th), L * 0.1 * (0.15 + 0.85 * w) * math.sin(th)))
+    d.polygon(_tf(leaf, x, y, a), fill=GOLD if math.cos(ph) > 0 else (250, 230, 140), outline=GOLD_DARK)
+    hl = _tf([(tail + L * 0.2, -L * 0.02 * w), (tail + L * 0.34, -L * 0.01 * w)], x, y, a)
+    d.line(hl, fill=(255, 255, 230), width=3)
+    # お腹の針（トレブル）
+    _treble(d, x, y, a, cx - body_L * 0.15, L * 0.07, L * 0.22, t)
+    # 前のアシスト
+    _jhook(d, x, y, a, cx - body_L * 0.3, -L * 0.08, L * 0.13, flip=-1, w=3)
+
+
+def minnow_plug(d, x, y, L, a=0.0, t=0.0, lip=True, back=(40, 120, 90)):
+    """ミノー（プラグ）：魚の形の体、リップ、2つのトレブルフック"""
+    H = L * 0.17
+
+    def prof(tt):
+        base = math.sin(math.pi * min(1.0, 0.06 + tt * 0.98)) ** 0.75
+        taper = 1 - 0.25 * tt
+        return base * taper, base * taper * 0.9
+
+    up, lo = _contour(L * 0.9, H, prof)
+    body = up + lo[::-1]
+    off = -L * 0.03
+    body = [(px + off, py) for px, py in body]
+    if lip:
+        lp = [(-L * 0.45, H * 0.35), (-L * 0.62, H * 1.15), (-L * 0.55, H * 1.35), (-L * 0.4, H * 0.75)]
+        d.polygon(_tf(lp, x, y, a), fill=LIP, outline=(120, 160, 190))
+        ex, ey = _tf([(-L * 0.6, H * 1.25)], x, y, a)[0]
+        d.ellipse([ex - 5, ey - 5, ex + 5, ey + 5], outline=(70, 74, 80), width=3)
+    else:
+        ex, ey = _tf([(-L * 0.5, 0)], x, y, a)[0]
+        d.ellipse([ex - 5, ey - 5, ex + 5, ey + 5], outline=(70, 74, 80), width=3)
+    d.polygon(_tf(body, x, y, a), fill=(240, 244, 248), outline=(30, 40, 60))
+    backp = [(p[0] + off, p[1]) for p in up] + [(p[0] + off, -H * 0.1) for p in up[::-1]]
+    d.polygon(_tf(backp, x, y, a), fill=back)
+    d.line(_tf([(-L * 0.3, H * 0.05), (L * 0.35, H * 0.05)], x, y, a), fill=(250, 200, 120), width=3)
+    # 尾びれ
+    d.polygon(_tf([(L * 0.42, 0), (L * 0.52, -H * 0.5), (L * 0.52, H * 0.5)], x, y, a), fill=back)
+    # エラと目
+    gx = -L * 0.27
+    d.arc([_tf([(gx, 0)], x, y, a)[0][0] - H * 0.5, _tf([(gx, 0)], x, y, a)[0][1] - H * 0.7, _tf([(gx, 0)], x, y, a)[0][0] + H * 0.5, _tf([(gx, 0)], x, y, a)[0][1] + H * 0.7], -60, 60, fill=(200, 60, 60), width=3)
+    ex, ey = _tf([(-L * 0.36, -H * 0.15)], x, y, a)[0]
+    r = H * 0.32
+    d.ellipse([ex - r, ey - r, ex + r, ey + r], fill=(250, 220, 60), outline=INK)
+    d.ellipse([ex - r * 0.5, ey - r * 0.5, ex + r * 0.5, ey + r * 0.5], fill=INK)
+    _treble(d, x, y, a, -L * 0.1, H * 0.85, L * 0.2, t)
+    _treble(d, x, y, a, L * 0.3, H * 0.7, L * 0.2, t + 1)
+
+
 SCENES = {
     "title": scene_title,
     "tackle": scene_tackle,
-    "rig": scene_rig,
+    "rig": lambda d, t, dur, s, m: (scene_rig_parts if "parts" in s else scene_rig)(d, t, dur, s, m),
     "place": scene_place,
-    "action": scene_action,
+    "action": lambda d, t, dur, s, m: (scene_action2 if s["kind"] in NEW_ACTIONS else scene_action)(d, t, dur, s, m),
+    "knot": scene_knot,
     "pattern": scene_pattern,
     "points": scene_points,
     "end": scene_end,
