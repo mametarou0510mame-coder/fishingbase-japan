@@ -103,6 +103,9 @@ def post_instagram(g):
     if not uid or not token:
         return None, "skip（IG_USER_ID / IG_TOKEN 未設定）"
     api = "https://graph.facebook.com/v21.0"
+    # キーの形だけを記録する（中身は出さない）
+    shape = f"長さ{len(token)}・先頭{token[:3]}・英数字以外{sorted(set(ch for ch in token if not ch.isalnum()))[:5]}"
+    print(f"::notice::IG_TOKEN の形: {shape} / IG_USER_ID の桁数: {len(uid)}")
     c = http("POST", f"{api}/{uid}/media", {
         "media_type": "REELS",
         "video_url": f"{SITE}/videos/{g['slug']}.mp4",
