@@ -1,4 +1,6 @@
 {
   "enabled": false,
-  "posts": {}
+  "posts": {
+    "sabiki": {}
+  }
 }
