@@ -34,9 +34,9 @@ jobs:
                 i++;
                 try {
                   const r = await fetch(u, { headers: { "User-Agent": "TsuredokiKansai/0.1 (+https://tsuredoki-kansai.mametarou0510mame.workers.dev/about/)" } });
-                  const t = await r.text();
+                  const t = Buffer.from(await r.arrayBuffer());
                   fs.writeFileSync(`/tmp/probe/${i}.html`, t);
-                  index.push(`${i}\t${r.status}\t${t.length}\t${r.url}\t${u}`);
+                  index.push(`${i}\t${r.status}\t${t.length}\t${r.headers.get("content-type")}\t${r.url}\t${u}`);
                 } catch (e) { index.push(`${i}\tERR\t0\t${e.message}\t${u}`); }
                 await new Promise(r => setTimeout(r, 2000));
               }
