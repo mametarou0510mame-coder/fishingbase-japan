@@ -41,7 +41,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             S="${{ github.event.inputs.slugs }}"
           else
-            S=$(git diff --name-only HEAD~1 HEAD -- 'content/guides/*.json' | xargs -r -n1 basename | sed 's/\.json$//' | tr '\n' ' ')
+            S=$(git diff --name-only HEAD~1 HEAD -- 'content/guides/*.json' | xargs -r -n1 basename | sed 's/\.json$//' | grep -v '^_' | tr '\n' ' ')
           fi
           if [ "$S" = "all" ]; then
             S=$(ls content/guides/*.json | xargs -n1 basename | sed 's/\.json$//' | grep -v '^_' | tr '\n' ' ')
