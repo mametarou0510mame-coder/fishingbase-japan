@@ -1,0 +1,105 @@
+name: Long videos
+
+# YouTube 用の長尺動画（横向き・約10分）を作る。できた動画は long-media ブランチに保存する。
+# 投稿は upload に true を指定した時だけ（1本ずつ）。
+on:
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: "作る動画（content/long の slug、空白区切り。all で全部）"
+        required: true
+        default: all
+      upload:
+        description: "作った動画を YouTube に投稿するか（true は1本ずつ指定して使う）"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: long-videos-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.s.outputs.json }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: s
+        run: |
+          S="${{ github.event.inputs.slugs }}"
+          [ "$S" = "all" ] && S=$(ls content/long/*.json | xargs -n1 basename | sed 's/\.json$//' | tr '\n' ' ')
+          echo "json=$(python3 -c "import json,sys;print(json.dumps(sys.argv[1].split()))" "$S")" >> $GITHUB_OUTPUT
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        slug: ${{ fromJson(needs.plan.outputs.slugs) }}
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet pillow numpy
+      - name: Narrate and render
+        run: |
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version >/dev/null && break; sleep 5; done
+          python scripts/video/narrate.py content/long/${{ matrix.slug }}.json
+          python scripts/video/render_long.py ${{ matrix.slug }} --outdir out
+          echo "::notice::${{ matrix.slug }}: $(du -h out/${{ matrix.slug }}.mp4 | cut -f1)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: long-${{ matrix.slug }}
+          path: out/
+          retention-days: 7
+      - name: Upload to YouTube
+        if: github.event.inputs.upload == 'true'
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          python scripts/sns/yt_long.py ${{ matrix.slug }} out/${{ matrix.slug }}.mp4 out/${{ matrix.slug }}.jpg out/${{ matrix.slug }}-chapters.txt --publish
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns/long-posts.json && git commit -qm "長尺動画の投稿記録: ${{ matrix.slug }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+
+  save:
+    needs: render
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: long-*
+          path: /tmp/long
+          merge-multiple: true
+      - name: Save to long-media branch
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git rev-parse --verify origin/long-media >/dev/null 2>&1; then
+            git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          else
+            git worktree add --detach /tmp/media && cd /tmp/media && git checkout --orphan long-media && git rm -rf . -q || true
+          fi
+          cp /tmp/long/* /tmp/media/
+          git add -A && git commit -qm "long videos" && git push origin long-media

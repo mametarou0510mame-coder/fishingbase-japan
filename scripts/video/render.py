@@ -44,6 +44,12 @@ def ease(x):
     return 1 - (1 - x) ** 3
 
 
+def appear_at(s, i, default):
+    """行を出すタイミング（秒）。長尺動画ではナレーションに合わせた時刻（s["appear"]）を使う"""
+    ap = s.get("appear")
+    return ap[i] if ap and i < len(ap) else default
+
+
 def clamp01(x):
     return max(0.0, min(1.0, x))
 
@@ -198,7 +204,7 @@ def scene_tackle(d, t, dur, s, meta):
     fv = F(FONT_BLACK, 52)
     y = 170
     for i, (k, v) in enumerate(items):
-        a = ease((t - 0.3 - i * step) / 0.45)
+        a = ease((t - appear_at(s, i, 0.3 + i * step)) / 0.45)
         if a <= 0:
             y += 160
             continue
@@ -562,7 +568,7 @@ def scene_pattern(d, t, dur, s, meta):
     rh = 190 if n <= 4 else 150
     y = 170
     for i, (w, do) in enumerate(rows):
-        a = ease((t - 0.3 - i * step) / 0.45)
+        a = ease((t - appear_at(s, i, 0.3 + i * step)) / 0.45)
         if a > 0:
             dx = (1 - a) * 80
             d.rounded_rectangle([30 + dx, y, 400 + dx, y + rh - 30], radius=20, fill=alpha((214, 236, 240), a))
@@ -589,10 +595,10 @@ def scene_points(d, t, dur, s, meta):
     f = F(FONT_BOLD, 46)
     y = 190
     for i, txt in enumerate(items):
-        a = ease((t - 0.3 - i * step) / 0.4)
+        a = ease((t - appear_at(s, i, 0.3 + i * step)) / 0.4)
         if a > 0:
             d.ellipse([50, y, 120, y + 70], fill=alpha(RED, a))
-            c = ease((t - 0.5 - i * step) / 0.3)
+            c = ease((t - appear_at(s, i, 0.3 + i * step) - 0.2) / 0.3)
             if c > 0:
                 p1, p2, p3 = (68, y + 36), (80, y + 50), (104, y + 20)
                 if c < 0.5:
@@ -1174,7 +1180,7 @@ def scene_knot(d, t, dur, s, meta):
     fl = F(FONT_BOLD, 34)
     fn = F(FONT_BLACK, 40)
     for i, txt in enumerate(steps):
-        a = ease((t - 0.3 - i * step) / 0.4)
+        a = ease((t - appear_at(s, i, 0.3 + i * step)) / 0.4)
         if a <= 0:
             continue
         col, row = i % 2, i // 2
