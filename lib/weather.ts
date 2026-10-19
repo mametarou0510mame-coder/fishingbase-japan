@@ -22,8 +22,10 @@ const FORECAST_AREA: Record<Spot["pref"], { code: string; label: string }> = {
   kyoto: { code: "260020", label: "京都府北部" },
 };
 
+const EXTRA_AREA: Record<string, string> = { "280020": "兵庫県北部", "300020": "和歌山県南部" };
+
 export function forecastFor(spot: Spot): { label: string; data: WeatherArea | null } {
-  const fa = FORECAST_AREA[spot.pref];
+  const fa = spot.weatherArea ? { code: spot.weatherArea, label: EXTRA_AREA[spot.weatherArea] ?? spot.weatherArea } : FORECAST_AREA[spot.pref];
   try {
     const json = JSON.parse(readFileSync(join(process.cwd(), "public/data/weather.json"), "utf8"));
     return { label: fa.label, data: (json.areas?.[fa.code] as WeatherArea) ?? null };

@@ -14,6 +14,18 @@ export const STATION_COORDS: Record<string, { lat: number; lon: number }> = {
   J5: { lat: 34.72, lon: 135.33 }, // 西宮
   J2: { lat: 34.47, lon: 135.37 }, // 岸和田
   IO: { lat: 34.51, lon: 135.4 }, // 泉大津
+  KK: { lat: 34.44, lon: 135.2 }, // 関空島
+  ST: { lat: 34.35, lon: 134.9 }, // 洲本
+  EI: { lat: 34.47, lon: 134.83 }, // 江井（淡路島西岸）
+  K1: { lat: 34.78, lon: 134.67 }, // 姫路（飾磨）
+  WY: { lat: 34.22, lon: 135.15 }, // 和歌山
+  H1: { lat: 34.12, lon: 135.14 }, // 下津
+  GB: { lat: 33.85, lon: 135.17 }, // 御坊
+  SR: { lat: 33.68, lon: 135.38 }, // 白浜
+  KS: { lat: 33.47, lon: 135.78 }, // 串本
+  UR: { lat: 33.57, lon: 135.9 }, // 浦神
+  T2: { lat: 35.55, lon: 135.2 }, // 宮津
+  T6: { lat: 35.65, lon: 134.83 }, // 津居山
 };
 
 const rad = Math.PI / 180;

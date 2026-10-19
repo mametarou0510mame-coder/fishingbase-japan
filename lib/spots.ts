@@ -26,6 +26,7 @@ export type Spot = {
   restrictions?: Restriction[]; // 道具のおすすめに使う禁止・必須事項（rules から抜き出したもの）
   notes: string[];
   tideStation: { code: string; name: string };
+  weatherArea?: string; // 気象庁の予報区（未設定なら府県ごとの既定。例: 兵庫県北部 280020、和歌山県南部 300020）
   catchReportUrl?: string; // 施設公式の釣果ページ
   intro: string;
 };
@@ -38,6 +39,76 @@ export const PREF_LABEL: Record<Spot["pref"], string> = {
 };
 
 export const SPOTS: Spot[] = [
+  {
+    slug: "kobe-airport-shinsui-gogan",
+    pref: "hyogo",
+    name: "神戸空港島 親水護岸",
+    area: "神戸市中央区",
+    address: "兵庫県神戸市中央区神戸空港（神戸空港島 西緑地）",
+    type: "公園の釣り場",
+    published: true,
+    level: "full",
+    verifiedOn: "2026-10-20",
+    officialUrl: "https://www.city.kobe.lg.jp/a42810/business/kowanjigyo/kobekukonishiryokuchi-tsuri.html",
+    sourceUrls: ["https://www.city.kobe.lg.jp/a42810/business/kowanjigyo/kobekukonishiryokuchi-tsuri.html"],
+    hours: "24時間（開場時間の定めなし）",
+    closed: "なし（迷惑行為があった場合は閉鎖することがあります）",
+    fees: [{ label: "釣り", value: "無料" }],
+    parking: "親水護岸横の駐車場：入庫から10時間まで1時間ごとに150円、10時間を超えて24時間まで1,500円",
+    rentals: "エサの販売・釣具のレンタルはありません（周辺に釣具店もありません）",
+    rules: [
+      "黄色で示された通路部分での釣りは禁止",
+      "航路近くへの遠投は禁止",
+      "ライフジャケットの着用をお願いしています",
+      "立入禁止エリアへの侵入、手すりを越えるなどの危険な行為は禁止",
+      "ゴミ・残ったエサ・釣り針は持ち帰る（ゴミ箱はありません）",
+    ],
+    rulesSource: "official",
+    notes: [
+      "ポートライナー「神戸空港」駅から徒歩約7分。神戸港の港湾施設で唯一、魚釣りができるエリアです。",
+      "周辺にトイレはありません。夜は水面付近がとても暗いので、ライトを用意しましょう。",
+    ],
+    tideStation: { code: "KB", name: "神戸" },
+    intro:
+      "神戸空港島の西緑地にある親水護岸（通称ベランダ）で、神戸市が釣りのできる場所として案内しています。無料・24時間利用でき、神戸港の港湾施設で唯一の釣り場です。",
+  },
+  {
+    slug: "minami-ashiyahama-minami-gogan",
+    pref: "hyogo",
+    name: "南芦屋浜 南護岸（開放区域）",
+    area: "芦屋市",
+    address: "兵庫県芦屋市（南芦屋浜の南護岸。南緑地東駐車場から入場）",
+    type: "公園の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-20",
+    officialUrl: "https://www.city.ashiya.lg.jp/gairoju/documents/kaihouzikannohenkou.pdf",
+    sourceUrls: [
+      "https://www.city.ashiya.lg.jp/gairoju/documents/minamigogansikennkaihou.pdf",
+      "https://www.city.ashiya.lg.jp/gairoju/documents/kaihouzikannohenkou.pdf",
+      "https://web.pref.hyogo.lg.jp/org/amagasakikokanri/documents/riyoujyoukyour4-r7.pdf",
+    ],
+    hours: "8:00〜20:00（2022年12月の芦屋市のお知らせ。最新は現地・公式でご確認ください）",
+    openHourByMonth: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+    closeHourByMonth: [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
+    closed: "",
+    fees: [],
+    parking: "南緑地東駐車場を利用（周辺道路・住宅地への駐車は禁止）",
+    rentals: "",
+    rules: [
+      "釣り公園ではなく、散歩やジョギングの人と共用の護岸です。譲り合って利用してください",
+      "開場の1時間以上前から門の前に並ばない（周辺は住宅地です）",
+      "ゴミ・エサ・釣り針は持ち帰る（ゴミ箱はありません）",
+      "火の使用（バーベキュー・花火など）は禁止",
+      "通路の真ん中に釣具・テント・椅子・自転車を置かない",
+      "マナー違反が多いと開放が中止されることがあります",
+    ],
+    rulesSource: "official",
+    notes: ["2022年10月から試験的に開放されている区域（南護岸の南東部と東護岸の一部、約550m）です。兵庫県の利用状況の記録は2026年3月まで続いています。"],
+    tideStation: { code: "J5", name: "西宮" },
+    intro:
+      "芦屋市と兵庫県が試験的に開放している南芦屋浜の南護岸です。釣り公園ではなく散歩の人とも共用の護岸なので、マナーを守って利用しましょう。",
+  },
   {
     slug: "amagasaki-uotsuri-koen",
     restrictions: ["no-cast", "no-lure"],
