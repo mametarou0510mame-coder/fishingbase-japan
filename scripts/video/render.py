@@ -242,13 +242,13 @@ def scene_rig(d, t, dur, s, meta):
         if kind == "jig" and ycut > 620:
             metal_jig(d, cx, 770, 300, 90, t)
         if kind == "blade" and ycut > 620:
-            blade_jig(d, cx, 720, 320, 90, t)
+            blade_jig(d, cx, 778, 320, 90, t)
             if ycut > 800:
                 # 光と振動
                 for k in range(3):
                     r = 70 + ((t * 120 + k * 40) % 120)
                     a = 1 - (r - 70) / 120
-                    d.arc([cx - r, 856 - r, cx + r, 856 + r], 20, 160, fill=alpha((240, 190, 40), a * 0.8), width=4)
+                    d.arc([cx - r, 910 - r, cx + r, 910 + r], 20, 160, fill=alpha((240, 190, 40), a * 0.8), width=4)
     else:  # sabiki
         parts_y = [180, 260, 420, 520, 860]
         d.line([(cx, top), (cx, min(ycut, 245))], fill=(90, 90, 90), width=4)
@@ -516,7 +516,8 @@ def scene_action(d, t, dur, s, meta):
     for k in range(0, len(trail) - 1, 2):
         d.line([trail[k], trail[k + 1]], fill=alpha(WHITE, 0.85), width=4)
     # 糸
-    d.line([(tipx, tipy), (x, y)], fill=(60, 60, 60), width=2)
+    lk0 = s.get("lure") or ("blade" if kind in ("countdown", "steady") else "jig")
+    d.line([(tipx, tipy), lure_eye(lk0, x, y, ang, 80)], fill=(60, 60, 60), width=2)
     # 追ってくる魚
     hit = False
     if kind in ("fast", "steady", "countdown", "onepitch", "liftfall") and u > 0.55:
@@ -785,6 +786,50 @@ def lure(d, kind, x, y, ang=0.0, s=80, t=0.0):
     fish(d, x, y, s, -1, (110, 150, 190))
 
 
+def lure_eye(kind, x, y, tilt=0.0, s=80):
+    """lure() で描いたルアー・エサの、糸を結ぶ位置（アイ）"""
+    a = -tilt
+    if kind == "jig":
+        L = s * 2.0
+        p = (-L / 2 - L * 0.035, 0)
+    elif kind == "blade":
+        L = s * 2.6
+        bl = L * 0.62
+        p = (-L * 0.19 - bl / 2 - bl * 0.035, 0)
+    elif kind == "minnow":
+        L = s * 1.9
+        p = (-L * 0.6, L * 0.17 * 1.25)
+    elif kind == "pencil":
+        p = (-s * 1.9 * 0.5, 0)
+    elif kind in ("egi", "takoegi", "tenya"):
+        p = (-s * 0.5, 0)
+    elif kind in ("jighead", "wind"):
+        p = (-s * 0.14, 0)
+    elif kind == "kibinago":
+        p = (-s * 0.6, 0)
+    elif kind == "tenbin":
+        p = (0, -s * 0.4)
+    elif kind == "bait":
+        p = (-s * 0.2, -s * 0.12)
+    elif kind == "burakuri":
+        p = (0, -s * 0.2)
+    elif kind == "dotsuki":
+        p = (0, -s * 0.8)
+    elif kind == "kani":
+        p = (0, -s * 0.12)
+    elif kind == "live":
+        p = (-s * 0.25, -s * 0.05)
+    else:
+        p = (0, 0)
+    if kind in ("tenbin", "burakuri", "dotsuki", "kani", "bait", "live"):
+        return x + p[0], y + p[1]  # 傾けずに描くエサ・仕掛け
+    return rot([p], x, y, a)[0]
+
+
+PART_SIZE = {"egi": 150, "takoegi": 150, "jighead": 130, "wind": 140, "tenya": 170, "bait": 180, "live": 160, "kani": 160, "burakuri": 220, "tenbin": 180, "dotsuki": 190, "kibinago": 170, "jig": 120, "blade": 100, "minnow": 110, "pencil": 110}
+HANG_UP = {"jig", "blade", "minnow", "pencil", "egi", "takoegi", "jighead", "wind", "tenya", "kibinago"}
+
+
 # 縦に並べた仕掛けの部品（rig シーンの parts で使う）
 def part(d, kind, cx, y, t):
     if kind == "pe":
@@ -842,15 +887,13 @@ def part(d, kind, cx, y, t):
             hook(d, cx + sd * 54, by + 12, 24, INK, 3)
             d.polygon([(cx + sd * 50, by + 6), (cx + sd * 80, by - 4), (cx + sd * 80, by + 22)], fill=PINK)
     else:
-        horizontal = {"egi": 170, "takoegi": 170, "jighead": 130, "wind": 140, "tenya": 190, "bait": 180, "live": 160, "kani": 160, "burakuri": 220, "tenbin": 180, "dotsuki": 190, "kibinago": 200}
-        if kind == "jig":
-            metal_jig(d, cx, y, 170, 90, t)
-        elif kind == "blade":
-            blade_jig(d, cx, y - 20, 190, 90, t)
-        elif kind in ("minnow", "pencil"):
-            minnow_plug(d, cx, y, 150, 0, t, lip=kind == "minnow")
-        else:
-            lure(d, kind, cx, y + (40 if kind == "dotsuki" else 0), 0, horizontal.get(kind, 90), t)
+        size = PART_SIZE.get(kind, 90)
+        tilt = -90 if kind in HANG_UP else 0
+        ex, ey = lure_eye(kind, cx, y, tilt, size)
+        lx, ly = cx + (cx - ex), y + (y - ey)  # アイが (cx, y) に来るように中心をずらす
+        lure(d, kind, lx, ly, tilt, size, t)
+        return ly
+    return y
 
 
 def scene_rig_parts(d, t, dur, s, meta):
@@ -863,6 +906,12 @@ def scene_rig_parts(d, t, dur, s, meta):
     prog = ease(t / max(1.5, dur * 0.55))
     shown = prog * n
     fl = F(FONT_BOLD, 40)
+    last = parts[-1][0]
+    if last in PART_SIZE:
+        lsz = PART_SIZE[last]
+        ex, ey = lure_eye(last, 0, 0, -90 if last in HANG_UP else 0, lsz)
+        bottom = min(bottom, PH - 70 + 2 * ey)  # ぶら下がるルアーがパネルに収まるように
+        gap = (bottom - top) / max(n - 1, 1)
     ys = [top + i * gap for i in range(n)]
     for i in range(n - 1):
         if shown > i + 1:
@@ -871,11 +920,11 @@ def scene_rig_parts(d, t, dur, s, meta):
         a = clamp01(shown - i)
         if a <= 0:
             break
-        part(d, kind, cx, ys[i], t)
+        ly = part(d, kind, cx, ys[i], t) or ys[i]
         lx = 520
-        d.line([(cx + 70, ys[i]), (lx - 16, ys[i])], fill=alpha(MUTED, a), width=3)
+        d.line([(cx + 70, ly), (lx - 16, ly)], fill=alpha(MUTED, a), width=3)
         f2 = fl if d.textlength(txt, font=fl) < PW - lx - 30 else F(FONT_BOLD, 32)
-        label(d, lx, ys[i] - 22, txt, f2, alpha(INK, a), bg=alpha(WHITE, a))
+        label(d, lx, ly - 22, txt, f2, alpha(INK, a), bg=alpha(WHITE, a))
 
 
 # --- 追加のアクション ---
@@ -960,7 +1009,8 @@ def scene_action2(d, t, dur, s, meta):
         tipx, tipy = stage(d, t, s, rod_up=u > 0.82)
         d.line([(tipx, tipy), (fx, fy - 30 + sink)], fill=(90, 90, 90), width=2)
         if u >= 0.12:
-            d.line([(fx, fy + sink), (fx, by - 20)], fill=(120, 120, 120), width=2)
+            bex, bey = lure_eye(lk, fx, by, 0, 90)
+            d.line([(fx, fy + sink), (fx, bey - 30), (bex, bey)], fill=(120, 120, 120), width=2)
             for yy in range(int(fy + 30), int(by - 20), 22):
                 d.line([(fx + 40, yy), (fx + 40, yy + 10)], fill=alpha(WHITE, 0.8), width=3)
             label(d, fx + 54, (fy + by) / 2 - 20, "タナ", F(FONT_BOLD, 36), WHITE, bg=alpha(NAVY, 0.9))
@@ -991,7 +1041,8 @@ def scene_action2(d, t, dur, s, meta):
             x = 190
             depth = 0.85 * clamp01((u - 0.05) / 0.75)
         y = ydepth(depth)
-        d.line([(tipx, tipy), (x, SURF), (x, y)], fill=(90, 90, 90), width=2)
+        ex, ey = lure_eye(lk, x, y, 0, 80)
+        d.line([(tipx, tipy), (ex, SURF), (ex, ey)], fill=(90, 90, 90), width=2)
         lure(d, lk, x, y, 0, 80, t)
         if u > 0.45:
             a = ease((u - 0.45) / 0.15)
@@ -1087,7 +1138,7 @@ def scene_action2(d, t, dur, s, meta):
     tr = [(p[0], ydepth(p[1])) for p in pts]
     for k in range(0, len(tr) - 1, 2):
         d.line([tr[k], tr[k + 1]], fill=alpha(WHITE, 0.7), width=4)
-    d.line([(tipx, tipy), (x, y)], fill=(90, 90, 90) if not s.get("night") else (200, 200, 200), width=2)
+    d.line([(tipx, tipy), lure_eye(lk, x, y, ang, 80)], fill=(90, 90, 90) if not s.get("night") else (200, 200, 200), width=2)
     if kind == "drag" and dd > 0.95:
         for k in range(6):
             ph = (t * 1.5 + k / 6) % 1
