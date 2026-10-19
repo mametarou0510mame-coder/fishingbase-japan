@@ -3,6 +3,7 @@ name: Guide videos
 # 釣り方ガイドの図解アニメ動画を作る。ナレーションは VOICEVOX（ずんだもん）で合成する。
 #  - 手動実行: slugs に作りたいガイド（空白区切り）。all で全部。
 #  - content/guides/ のガイドを変更して push したときは、変更したガイドだけ作り直す。
+#  - 動画の作成はガイドごとに並行して行い、最後にまとめて1回だけコミットする。
 on:
   workflow_dispatch:
     inputs:
@@ -19,18 +20,14 @@ permissions:
   contents: write
 
 concurrency:
-  group: data-commit
+  group: guide-videos-${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
-  render:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    services:
-      voicevox:
-        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
-        ports:
-          - 50021:50021
+    outputs:
+      slugs: ${{ steps.slugs.outputs.json }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,16 +43,33 @@ jobs:
           if [ "$S" = "all" ]; then
             S=$(ls content/guides/*.json | xargs -n1 basename | sed 's/\.json$//' | grep -v '^_' | tr '\n' ' ')
           fi
-          echo "slugs=$S" >> $GITHUB_OUTPUT
+          J=$(python3 -c "import json,sys;print(json.dumps(sys.argv[1].split()))" "$S")
+          echo "json=$J" >> $GITHUB_OUTPUT
           echo "::notice::guides: $S"
+
+  render:
+    needs: plan
+    if: needs.plan.outputs.slugs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        slug: ${{ fromJson(needs.plan.outputs.slugs) }}
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
       - name: Install fonts, ffmpeg, Python packages
-        if: steps.slugs.outputs.slugs != ''
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
           pip install --quiet pillow numpy
       - name: Wait for VOICEVOX engine
-        if: steps.slugs.outputs.slugs != ''
         run: |
           for i in $(seq 1 60); do
             if curl -sf http://127.0.0.1:50021/version; then echo; exit 0; fi
@@ -63,23 +77,39 @@ jobs:
           done
           echo "::error::VOICEVOX engine did not start"; exit 1
       - name: Narrate and render
-        if: steps.slugs.outputs.slugs != ''
         run: |
-          for s in ${{ steps.slugs.outputs.slugs }}; do
-            python scripts/video/narrate.py "$s"
-            python scripts/video/render.py "$s"
-            echo "::notice::$s: $(du -h public/videos/$s.mp4 | cut -f1)"
-          done
+          python scripts/video/narrate.py "${{ matrix.slug }}"
+          python scripts/video/render.py "${{ matrix.slug }}"
+          echo "::notice::${{ matrix.slug }}: $(du -h public/videos/${{ matrix.slug }}.mp4 | cut -f1)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ matrix.slug }}
+          path: |
+            public/videos/${{ matrix.slug }}.mp4
+            public/videos/${{ matrix.slug }}.jpg
+          retention-days: 3
+
+  commit:
+    needs: render
+    if: always() && needs.render.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: video-*
+          path: public/videos
+          merge-multiple: true
       - name: Commit videos
-        if: steps.slugs.outputs.slugs != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           git add public/videos
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
-          git commit -m "釣り方ガイドの動画を更新: ${{ steps.slugs.outputs.slugs }}"
-          for i in 1 2 3; do
+          N=$(git diff --cached --name-only | grep -c '\.mp4$' || true)
+          git commit -m "釣り方ガイドの動画を更新（${N}本）"
+          for i in 1 2 3 4 5; do
             git pull --rebase -X theirs origin main && git push && exit 0
-            sleep 10
+            sleep 15
           done
           exit 1

@@ -28,7 +28,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const video = guideVideo(g.slug);
   const spots = spotsForGuide(g);
   const recent = recentSpotsForGuide(g);
-  const others = guides().filter((x) => x.slug !== g.slug);
+  const others = guides()
+    .filter((x) => x.slug !== g.slug && x.category === g.category)
+    .slice(0, 8);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "HowTo",
@@ -160,17 +162,24 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           </ul>
         </>
       )}
-      <h3>この釣り方ができる関西の釣り場</h3>
-      <p className="small">
-        {g.gearTags.map((t) => TAG_LABEL[t]).join("・")}の禁止が確認されていない釣り場です。現地の掲示やルールを必ず確認してください。
-      </p>
-      <ul className="spot-mini">
-        {spots.map((s) => (
-          <li key={s.slug}>
-            <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link> <span className="small">{s.type}</span>
-          </li>
-        ))}
-      </ul>
+      {g.category !== "基本" && (
+        <>
+          <h3>この釣り方ができる関西の釣り場</h3>
+          <p className="small">
+            {g.gearTags.length > 0
+              ? `${g.gearTags.map((t) => TAG_LABEL[t]).join("・")}の禁止が確認されていない釣り場です。`
+              : "当サイトで紹介している釣り場です。"}
+            現地の掲示やルールを必ず確認してください。
+          </p>
+          <ul className="spot-mini">
+            {spots.map((s) => (
+              <li key={s.slug}>
+                <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link> <span className="small">{s.type}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <h2>安全とルール</h2>
       <ul>
@@ -184,7 +193,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
 
       {others.length > 0 && (
         <>
-          <h2>ほかの釣り方ガイド</h2>
+          <h2>ほかの釣り方ガイド（{g.category}）</h2>
           <ul>
             {others.map((o) => (
               <li key={o.slug}>
@@ -192,6 +201,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
               </li>
             ))}
           </ul>
+          <p>
+            <Link href="/guide/">釣り方ガイドの一覧（全{guides().length}本）</Link>
+          </p>
         </>
       )}
     </article>

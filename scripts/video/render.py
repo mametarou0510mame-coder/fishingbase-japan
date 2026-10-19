@@ -94,6 +94,14 @@ def fit_lines(d, text, path, sizes, maxw, max_lines=2):
     return f, wrap(d, text, f, maxw, tokens=True)
 
 
+def fit_font(d, text, path, sizes, maxw):
+    for sz in sizes:
+        f = F(path, sz)
+        if d.textlength(text, font=f) <= maxw:
+            return f
+    return F(path, sizes[-1])
+
+
 def center_text(d, cx, y, text, f, fill):
     w = d.textlength(text, font=f)
     d.text((cx - w / 2, y), text, font=f, fill=fill)
@@ -423,7 +431,7 @@ def scene_action(d, t, dur, s, meta):
     heading(d, s.get("heading", "アクション"))
     kind = s["kind"]
     # 名前
-    fn = F(FONT_BLACK, 58)
+    fn = fit_font(d, s.get("name", ""), FONT_BLACK, [58, 52, 46, 40], PW - 290)
     fs = F(FONT_BOLD, 38)
     d.text((260, 136), s.get("name", ""), font=fn, fill=RED)
     d.text((262, 210), s.get("sub", ""), font=fs, fill=INK)
@@ -520,7 +528,7 @@ def scene_action(d, t, dur, s, meta):
             hit = True
         fish(d, fx + 140 if not hit else fx + 60, ydepth(fdd) + 6, 130, -1, (40, 90, 130), a)
     # ルアー
-    lure(d, "blade" if (s.get("lure") == "blade" or kind in ("countdown", "steady")) else "jig", x, y, ang, 80, t)
+    lure(d, s.get("lure") or ("blade" if kind in ("countdown", "steady") else "jig"), x, y, ang, 80, t)
     if jerking and kind in ("onepitch", "liftfall"):
         fb = F(FONT_BLACK, 52)
         word = "シャクる！" if kind == "onepitch" else "持ち上げる"
@@ -734,8 +742,17 @@ def lure(d, kind, x, y, ang=0.0, s=80, t=0.0):
         return
     if kind == "bait":
         pts = [(x + s * 0.4 * i / 8 - s * 0.2, y + 6 * math.sin(i * 1.2 + t * 8)) for i in range(9)]
-        d.line(pts, fill=PINK, width=int(s * 0.12), joint="curve")
-        hook(d, x - s * 0.2, y - 10, 18, INK, 3)
+        d.line(pts, fill=PINK, width=max(5, int(s * 0.1)), joint="curve")
+        hook(d, x - s * 0.2, y - s * 0.12, max(18, s * 0.2), INK, max(3, int(s / 40)))
+        return
+    if kind == "kibinago":
+        L = s
+        body = [(-L * 0.45, 0), (-L * 0.3, -L * 0.09), (L * 0.35, -L * 0.05), (L * 0.45, 0), (L * 0.35, L * 0.05), (-L * 0.3, L * 0.09)]
+        d.polygon(rot(body, x, y, ang), fill=(210, 222, 234), outline=(90, 110, 130))
+        d.line(rot([(-L * 0.3, 0), (L * 0.35, 0)], x, y, ang), fill=(80, 150, 200), width=3)
+        d.line(rot([(-L * 0.6, 0), (-L * 0.45, 0)], x, y, ang), fill=(150, 150, 160), width=3)
+        hx, hy = rot([(-L * 0.1, L * 0.1)], x, y, ang)[0]
+        d.arc([hx - 12, hy - 4, hx + 12, hy + 20], 0, 180, fill=INK, width=3)
         return
     if kind == "live":
         fish(d, x, y, s * 0.8, -1 if math.sin(t * 2) > 0 else 1, (110, 150, 190))
@@ -748,8 +765,8 @@ def lure(d, kind, x, y, ang=0.0, s=80, t=0.0):
         return
     if kind == "burakuri":
         d.ellipse([x - s * 0.14, y - s * 0.2, x + s * 0.14, y + s * 0.12], fill=(220, 50, 50))
-        hook(d, x, y + s * 0.1, 18, INK, 3)
-        lure(d, "bait", x + 6, y + s * 0.3, 0, s * 0.7, t)
+        hook(d, x, y + s * 0.1, max(18, s * 0.2), INK, 3)
+        lure(d, "bait", x + s * 0.1, y + s * 0.38, 0, s * 0.7, t)
         return
     if kind == "tenbin":
         d.line([(x, y), (x, y - s * 0.4), (x + s * 0.7, y - s * 0.4)], fill=INK, width=3)
@@ -810,16 +827,22 @@ def part(d, kind, cx, y, t):
         for gx in range(-24, 30, 16):
             d.line([(cx + gx, y - 40), (cx + gx, y + 40)], fill=(200, 150, 100), width=2)
     elif kind == "hook":
-        hook(d, cx, y - 30, 40, INK, 5)
+        hook(d, cx, y - 40, 60, INK, 6)
+    elif kind == "renfloat":
+        d.line([(cx, y - 60), (cx, y + 60)], fill=(110, 110, 110), width=3)
+        for k in range(4):
+            fy = y - 48 + k * 32
+            d.ellipse([cx - 13, fy - 11, cx + 13, fy + 11], fill=(250, 200, 40) if k % 2 == 0 else RED, outline=INK, width=2)
     elif kind == "sabiki":
         d.line([(cx, y - 60), (cx, y + 60)], fill=(150, 150, 150), width=3)
         for k in range(3):
             by = y - 50 + k * 40
             sd = 1 if k % 2 == 0 else -1
-            d.line([(cx, by), (cx + sd * 40, by + 12)], fill=(150, 150, 150), width=3)
-            d.polygon([(cx + sd * 44, by + 8), (cx + sd * 64, by), (cx + sd * 64, by + 22)], fill=PINK)
+            d.line([(cx, by), (cx + sd * 50, by + 14)], fill=(150, 150, 150), width=3)
+            hook(d, cx + sd * 54, by + 12, 24, INK, 3)
+            d.polygon([(cx + sd * 50, by + 6), (cx + sd * 80, by - 4), (cx + sd * 80, by + 22)], fill=PINK)
     else:
-        horizontal = {"egi": 110, "takoegi": 110, "jighead": 90, "wind": 100, "minnow": 120, "tenya": 140, "bait": 90, "live": 90, "kani": 90, "burakuri": 90, "tenbin": 90, "dotsuki": 120, "jig": 150, "blade": 120}
+        horizontal = {"egi": 170, "takoegi": 170, "jighead": 130, "wind": 140, "tenya": 190, "bait": 180, "live": 160, "kani": 160, "burakuri": 220, "tenbin": 180, "dotsuki": 190, "kibinago": 200}
         if kind == "jig":
             metal_jig(d, cx, y, 170, 90, t)
         elif kind == "blade":
@@ -888,7 +911,7 @@ def stage(d, t, s, jerk=False, rod_up=False):
     tipy = ry0 + 170 * math.sin(math.radians(rod_ang))
     d.line([(rx0, ry0), (tipx, tipy)], fill=(200, 200, 200) if night else (40, 40, 40), width=7)
     d.line([(78, SURF - 140), (rx0, ry0)], fill=ink, width=6)
-    fn = F(FONT_BLACK, 58)
+    fn = fit_font(d, s.get("name", ""), FONT_BLACK, [58, 52, 46, 40], PW - 290)
     fs = F(FONT_BOLD, 38)
     d.rectangle([0, 0, PW, 128], fill=PANEL)
     heading(d, s.get("heading", "アクション"))
@@ -899,10 +922,15 @@ def stage(d, t, s, jerk=False, rod_up=False):
 
 
 def callouts(d, s, u, t):
-    fb = F(FONT_BLACK, 48)
     for c in s.get("callouts", []):
         if c[0] <= u < c[1]:
-            label(d, 520, 286, c[2], fb, WHITE, bg=RED)
+            fb = F(FONT_BLACK, 48)
+            for sz in (48, 42, 36, 32):
+                fb = F(FONT_BLACK, sz)
+                if d.textlength(c[2], font=fb) <= PW - 300:
+                    break
+            w = d.textlength(c[2], font=fb)
+            label(d, PW - 40 - w, 290, c[2], fb, WHITE, bg=RED)
     if u > 0.86 and s.get("hit"):
         sc = 1 + 0.08 * math.sin(t * 20)
         return F(FONT_BLACK, int(84 * sc))
@@ -1369,9 +1397,9 @@ def render_frame(meta, timeline, idx, t_global, bases):
     t = t_global - item["start"]
     dur = item["end"] - item["start"]
     img = bases[idx].copy()
-    layer = Image.new("RGBA", (PW, PH), (0, 0, 0, 0))
+    # RGB の画像に RGBA で描くと半透明の色が正しく重なる（RGBA の画像だと上書きになる）
+    layer = Image.new("RGB", (PW, PH), PANEL)
     ld = ImageDraw.Draw(layer, "RGBA")
-    ld.rounded_rectangle([0, 0, PW, PH], radius=36, fill=PANEL)
     SCENES[s["type"]](ld, t, dur, s, meta)
     # 角を丸く切り抜く
     mask = Image.new("L", (PW, PH), 0)
@@ -1379,7 +1407,7 @@ def render_frame(meta, timeline, idx, t_global, bases):
     a = ease(t / 0.35)
     if a < 1:
         mask = mask.point(lambda v: int(v * a))
-    img.paste(layer.convert("RGB"), (PX, PY + int((1 - a) * 40)), mask)
+    img.paste(layer, (PX, PY + int((1 - a) * 40)), mask)
     # 字幕
     cap, ca = None, 0.0
     for c0, c1, ln in item["cues"]:
