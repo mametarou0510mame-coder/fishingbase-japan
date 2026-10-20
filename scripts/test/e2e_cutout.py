@@ -6,7 +6,12 @@ from playwright.sync_api import sync_playwright
 SITE = "https://tsuredoki-kansai.mametarou0510mame.workers.dev"
 with sync_playwright() as p:
     b = p.chromium.launch()
-    pg = b.new_page(viewport={"width": 800, "height": 1000})
+    pg = b.new_page(viewport={"width": 940, "height": 1100}, device_scale_factor=1.5)
+    # 見本用に、水族館に何匹か入れておく
+    pg.add_init_script("""if (!localStorage.getItem('tsuredoki:aquarium:v1')) localStorage.setItem('tsuredoki:aquarium:v1', JSON.stringify({v:1,nickname:'まめたろう',fish:[
+      {id:'s1',date:'2026-10-17',spot:'',species:'アジ',sizeCm:18,count:1,method:'',memo:''},{id:'s2',date:'2026-10-16',spot:'',species:'アジ',sizeCm:16,count:1,method:'',memo:''},
+      {id:'s3',date:'2026-10-15',spot:'',species:'ガシラ（カサゴ）',sizeCm:20,count:1,method:'',memo:''},{id:'s4',date:'2026-10-14',spot:'',species:'アオリイカ',sizeCm:25,count:1,method:'',memo:''},
+      {id:'s5',date:'2026-10-13',spot:'',species:'タチウオ',sizeCm:70,count:1,method:'',memo:''},{id:'s6',date:'2026-10-12',spot:'',species:'カワハギ',sizeCm:20,count:1,method:'',memo:''}]}));""")
     logs = []
     pg.on("console", lambda m: logs.append(f"{m.type}: {m.text}"))
     pg.on("pageerror", lambda e: logs.append(f"pageerror: {e}"))
@@ -15,6 +20,7 @@ with sync_playwright() as p:
     pg.get_by_role("tab", name="釣果を登録").click()
     pg.wait_for_timeout(800)
     pg.locator("select").nth(1).select_option("マダイ")
+    pg.locator("input[type=number]").first.fill("42")
     pg.locator("input[type=file]").set_input_files("scripts/test/fishphoto.jpg")
     pg.locator("form button[type=submit]").click()
     pg.wait_for_timeout(1500)
@@ -44,7 +50,7 @@ with sync_playwright() as p:
         pg.get_by_text("墨の魚拓").click()
         pg.wait_for_timeout(1500)
         g.screenshot(path="shots/3-ink.png")
-        pg.wait_for_timeout(1000)
+        pg.wait_for_timeout(5000)
         pg.locator(".tank").screenshot(path="shots/4-tank.png")
     b.close()
     sys.exit(0 if cov > 0.05 else 1)
