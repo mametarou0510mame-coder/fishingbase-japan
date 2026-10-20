@@ -67,7 +67,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
   const svgRef = useRef<SVGSVGElement>(null);
   const name = data.species.replace(/（.*?）/g, "");
   const fishW = 820, fishX = 40, fishY = 130;
-  // 魚の絵は横幅の 6%（尾の先）〜 94%（口先）が全長
+  // 魚の絵は横幅の 6%（口先）〜 94%（尾の先）が全長（頭が左）
   // 写真は 820×470 の枠に収める（写真の横幅＝全長）
   const ph = photo ? (() => { const k = Math.min(820 / photo.w, 470 / photo.h); const w = photo.w * k, h = photo.h * k; return { x: 40 + (820 - w) / 2, y: 385 - h / 2, w, h }; })() : null;
   const x0 = ph ? ph.x : fishX + fishW * 0.06, x1 = ph ? ph.x + ph.w : fishX + fishW * 0.94;
@@ -167,17 +167,20 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
         <rect width={W} height={H} fill="#f1e9d6" filter="url(#gy-paper)" />
         <rect x="18" y="18" width={W - 36} height={H - 36} fill="none" stroke="#c9b48a" strokeWidth="2" opacity="0.6" />
 
+        {/* 魚拓は昔ながらの「頭が左」に。絵・写真とも左右を反転して置く */}
         {ph && photo ? (
-          mode === "photo" ? (
-            <g>
-              <image href={photo.url} x={ph.x + 6} y={ph.y + 10} width={ph.w} height={ph.h} filter="url(#gy-shadow)" opacity="0.5" />
-              <image href={photo.url} x={ph.x} y={ph.y} width={ph.w} height={ph.h} />
-            </g>
-          ) : (
-            <image href={photo.ink} x={ph.x} y={ph.y} width={ph.w} height={ph.h} style={{ mixBlendMode: "multiply" }} />
-          )
+          <g transform={`translate(${ph.x * 2 + ph.w} 0) scale(-1 1)`}>
+            {mode === "photo" ? (
+              <>
+                <image href={photo.url} x={ph.x - 6} y={ph.y + 10} width={ph.w} height={ph.h} filter="url(#gy-shadow)" opacity="0.5" />
+                <image href={photo.url} x={ph.x} y={ph.y} width={ph.w} height={ph.h} />
+              </>
+            ) : (
+              <image href={photo.ink} x={ph.x} y={ph.y} width={ph.w} height={ph.h} style={{ mixBlendMode: "multiply" }} />
+            )}
+          </g>
         ) : (
-          <g transform={`translate(${fishX} ${fishY})`}>
+          <g transform={`translate(${fishX + fishW} ${fishY}) scale(-1 1)`}>
             <FishSprite species={data.species} width={fishW} ink={mode === "ink"} />
           </g>
         )}
