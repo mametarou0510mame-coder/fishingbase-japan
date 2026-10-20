@@ -1,0 +1,96 @@
+name: Instagram images
+
+# Instagram の画像投稿（カルーセル）。6:00 今アツい釣り場 ／ 23:00 釣り方・豆知識（1日おき）
+on:
+  schedule:
+    - cron: "40 20 * * *" # 5:40 JST に作り始め、6:00 に投稿
+    - cron: "40 13 * * *" # 22:40 JST に作り始め、23:00 に投稿
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: "morning / night"
+        required: true
+        default: night
+      publish:
+        description: "true で投稿する"
+        required: true
+        default: "false"
+      wait:
+        description: "true で決まった時刻まで待ってから投稿する"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ig-images
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decide
+        id: s
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "slot=${{ github.event.inputs.slot }}" >> $GITHUB_OUTPUT
+            echo "publish=${{ github.event.inputs.publish }}" >> $GITHUB_OUTPUT
+            echo "wait=${{ github.event.inputs.wait }}" >> $GITHUB_OUTPUT
+          else
+            [ "${{ github.event.schedule }}" = "40 20 * * *" ] && echo "slot=morning" >> $GITHUB_OUTPUT || echo "slot=night" >> $GITHUB_OUTPUT
+            echo "publish=true" >> $GITHUB_OUTPUT
+            echo "wait=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra > /dev/null
+          pip install --quiet pillow
+      - name: Make
+        run: python scripts/sns/ig_images.py make ${{ steps.s.outputs.slot }} /tmp/ig
+      - name: Upload images (sns-media branch)
+        run: |
+          STAMP=$(python -c "import json;print(json.load(open('/tmp/ig/post.json'))['stamp'])")
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin sns-media || true
+          if git rev-parse --verify origin/sns-media >/dev/null 2>&1; then
+            git worktree add /tmp/media origin/sns-media && cd /tmp/media && git checkout -B sns-media
+          else
+            git worktree add --detach /tmp/media && cd /tmp/media && git checkout --orphan sns-media && git rm -rf . -q || true
+          fi
+          for f in /tmp/ig/*.jpg; do cp "$f" "/tmp/media/$STAMP-$(basename $f)"; done
+          ls -1t /tmp/media/*.jpg 2>/dev/null | tail -n +121 | xargs -r rm -f
+          git add -A && git commit -qm "ig images $STAMP" && git push -f origin sns-media
+      - name: Wait until posting time
+        if: steps.s.outputs.wait == 'true'
+        run: |
+          H=$([ "${{ steps.s.outputs.slot }}" = "morning" ] && echo 6 || echo 23)
+          python - <<PY
+          import time
+          from datetime import datetime, timedelta, timezone
+          jst = timezone(timedelta(hours=9)); now = datetime.now(jst)
+          t = now.replace(hour=$H, minute=0, second=0, microsecond=0)
+          if t < now - timedelta(minutes=30): t += timedelta(days=1)
+          s = (t - now).total_seconds()
+          if 0 < s < 3600: print(f"wait {s:.0f}s"); time.sleep(s)
+          PY
+      - name: Publish
+        if: steps.s.outputs.publish == 'true'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python scripts/sns/ig_images.py publish /tmp/ig "https://raw.githubusercontent.com/${{ github.repository }}/sns-media"
+      - name: Save log
+        if: steps.s.outputs.publish == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns/ig-images.json
+          git diff --cached --quiet && exit 0
+          git commit -qm "Instagram 画像投稿の記録"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
