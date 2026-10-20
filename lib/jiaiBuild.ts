@@ -39,9 +39,11 @@ export function jstDates(n: number): string[] {
 }
 
 export function buildJiai(): { dates: string[]; spots: SpotJiai[] } {
-  const dates = jstDates(3);
+  // 今日・明日・あさって＋この週末（土日がまだ入っていなければ足す）
+  const week = jstDates(7);
+  const dates = [...week.slice(0, 3), ...week.slice(3).filter((d) => [0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay()))];
   const spots = publishedSpots()
-    .filter((s) => s.type !== "一般の釣り場")
+    .filter((s) => s.type !== "一般の釣り場" && s.type !== "海上釣り堀") // 釣り堀は潮のねらい目の対象外
     .map((spot) => {
       const coords = STATION_COORDS[spot.tideStation.code];
       const forecast = forecastFor(spot).data;

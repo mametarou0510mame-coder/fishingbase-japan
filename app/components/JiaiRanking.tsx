@@ -8,7 +8,7 @@ import { readFavorites } from "@/app/components/FavoriteButton";
 function dayLabel(date: string, i: number) {
   const [y, m, d] = date.split("-").map(Number);
   const w = "日月火水木金土"[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-  return `${i === 0 ? "今日" : i === 1 ? "明日" : "あさって"} ${m}/${d}(${w})`;
+  return `${i === 0 ? "今日" : i === 1 ? "明日" : i === 2 ? "あさって" : "週末"} ${m}/${d}(${w})`;
 }
 
 const best = (s: SpotJiai, date: string) => Math.max(0, ...(s.days[date]?.windows ?? []).map((w) => w.score));
@@ -53,6 +53,7 @@ export default function JiaiRanking({ dates, spots }: { dates: string[]; spots: 
               : <span className="small">{d?.note ?? "潮汐データ準備中"}</span>}
           </div>
           {s.recent.length > 0 && <div className="small">最近：{s.recent.join("、")}</div>}
+          {tab >= 3 && d?.maxWind == null && <div className="small">風の予報はまだ出ていません（前日ごろに反映）</div>}
           {d?.maxWind != null && d.maxWind >= 10 && <div className="rank-warn">営業時間中に風速{d.maxWind}m前後の予報</div>}
         </div>
       </li>
