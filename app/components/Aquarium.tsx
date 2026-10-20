@@ -6,8 +6,10 @@ import Avatar, { AVATAR_DEFAULT, HAT_COLORS, JACKET_COLORS, SKIN_COLORS, type Av
 import FishSprite from "@/app/components/FishSprite";
 import Tank from "@/app/components/Tank";
 import Gyotaku from "@/app/components/Gyotaku";
+import PhotoCutout from "@/app/components/PhotoCutout";
+import { blobToDataUrl, deletePhoto, getAllPhotos, putPhoto } from "@/lib/photoStore";
 
-type Catch = { id: string; date: string; spot: string; species: string; sizeCm: number | null; count: number; method: string; memo: string; shared?: boolean };
+type Catch = { id: string; date: string; spot: string; species: string; sizeCm: number | null; count: number; method: string; memo: string; shared?: boolean; photo?: boolean };
 type Store = { v: 1; nickname: string; avatar: AvatarConf; fish: Catch[] };
 type Options = { spots: { slug: string; name: string }[]; species: string[]; methods: string[] };
 type TurnstileApi = { render: (el: HTMLElement, o: Record<string, unknown>) => string; reset: (id?: string) => void };
@@ -50,6 +52,47 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const [opt, setOpt] = useState<Options | null>(null);
   const [pick, setPick] = useState<Catch | null>(null);
   const [gyo, setGyo] = useState<Catch | null>(null);
+  const [gyoPhoto, setGyoPhoto] = useState<string | undefined>(undefined);
+  const [cut, setCut] = useState<{ id: string; file: File } | null>(null);
+  const [photos, setPhotos] = useState<Record<string, { url: string; aspect: number }>>({});
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // 端末に保存した写真を読み込む
+  const loadPhotos = async () => {
+    const all = await getAllPhotos();
+    const out: Record<string, { url: string; aspect: number }> = {};
+    for (const [id, b] of Object.entries(all)) {
+      try {
+        const bmp = await createImageBitmap(b);
+        out[id] = { url: URL.createObjectURL(b), aspect: bmp.height / bmp.width };
+        bmp.close();
+      } catch {
+        /* 読めない写真は使わない */
+      }
+    }
+    setPhotos((old) => {
+      Object.values(old).forEach((p) => URL.revokeObjectURL(p.url));
+      return out;
+    });
+  };
+  useEffect(() => {
+    loadPhotos();
+  }, []);
+  const openGyotaku = async (c: Catch) => {
+    setGyo(c);
+    setGyoPhoto(undefined);
+    const all = await getAllPhotos();
+    if (all[c.id]) setGyoPhoto(await blobToDataUrl(all[c.id]));
+  };
+  const savePhoto = async (id: string, b: Blob) => {
+    await putPhoto(id, b);
+    update((s) => ({ ...s, fish: s.fish.map((x) => (x.id === id ? { ...x, photo: true } : x)) }));
+    await loadPhotos();
+    setCut(null);
+    const c = st.fish.find((x) => x.id === id);
+    if (c) openGyotaku({ ...c, photo: true });
+    setTab("tank");
+  };
 
   useEffect(() => {
     setSt(load());
@@ -67,7 +110,10 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const species = useMemo(() => [...new Set(st.fish.map((f) => f.species))], [st.fish]);
   const total = st.fish.reduce((n, f) => n + (f.count || 1), 0);
   const biggest = st.fish.reduce<Catch | null>((b, f) => ((f.sizeCm ?? 0) > (b?.sizeCm ?? 0) ? f : b), null);
-  const swimmers = useMemo(() => [...st.fish].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 24), [st.fish]);
+  const swimmers = useMemo(
+    () => [...st.fish].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 24).map((f) => ({ id: f.id, species: f.species, sizeCm: f.sizeCm, photo: photos[f.id] })),
+    [st.fish, photos],
+  );
 
   return (
     <div className="aq">
@@ -132,14 +178,18 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
                 {pick.memo && <p className="small">{pick.memo}</p>}
               </div>
               <div className="aq-card-actions">
-                <button className="submit small" onClick={() => { setGyo(pick); setPick(null); }}>
+                <button className="submit small" onClick={() => { openGyotaku(pick); setPick(null); }}>
                   魚拓にする
+                </button>
+                <button className="linklike small" onClick={() => fileRef.current?.click()}>
+                  {photos[pick.id] ? "写真を変える" : "写真を取り込む"}
                 </button>
                 <button
                   className="linklike small"
                   onClick={() => {
                     if (confirm("この魚を水族館から外しますか？")) {
                       update((s) => ({ ...s, fish: s.fish.filter((x) => x.id !== pick.id) }));
+                      deletePhoto(pick.id).then(loadPhotos).catch(() => undefined);
                       setPick(null);
                     }
                   }}
@@ -152,9 +202,22 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
               </div>
             </div>
           )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              const id = pick?.id;
+              if (f && id) { setCut({ id, file: f }); setPick(null); }
+              e.target.value = "";
+            }}
+          />
+          {cut && <PhotoCutout file={cut.file} onDone={(b) => savePhoto(cut.id, b)} onCancel={() => setCut(null)} />}
           {gyo && (
             <Gyotaku
-              data={{ species: gyo.species, sizeCm: gyo.sizeCm, date: gyo.date, spot: spotName(gyo.spot), angler: st.nickname || "わたし", method: gyo.method }}
+              data={{ species: gyo.species, sizeCm: gyo.sizeCm, date: gyo.date, spot: spotName(gyo.spot), angler: st.nickname || "わたし", method: gyo.method, photo: gyoPhoto }}
               onClose={() => setGyo(null)}
             />
           )}
@@ -162,7 +225,17 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
         </>
       )}
 
-      {tab === "add" && <AddForm opt={opt} siteKey={siteKey} onAdd={(c) => { update((s) => ({ ...s, fish: [...s.fish, c] })); setTab("tank"); }} />}
+      {tab === "add" && (
+        <AddForm
+          opt={opt}
+          siteKey={siteKey}
+          onAdd={(c, file) => {
+            update((s) => ({ ...s, fish: [...s.fish, c] }));
+            setTab("tank");
+            if (file) setCut({ id: c.id, file });
+          }}
+        />
+      )}
 
       {tab === "zukan" && (
         <>
@@ -245,7 +318,8 @@ function Swatches({ label, colors, value, onPick }: { label: string; colors: str
   );
 }
 
-function AddForm({ opt, siteKey, onAdd }: { opt: Options | null; siteKey: string; onAdd: (c: Catch) => void }) {
+function AddForm({ opt, siteKey, onAdd }: { opt: Options | null; siteKey: string; onAdd: (c: Catch, photo?: File) => void }) {
+  const [photo, setPhoto] = useState<File | undefined>(undefined);
   const [f, setF] = useState({ date: today(), spot: "", species: "", sizeCm: "", count: "1", method: "", memo: "", share: false });
   const [token, setToken] = useState("");
   const [msg, setMsg] = useState("");
@@ -300,7 +374,7 @@ function AddForm({ opt, siteKey, onAdd }: { opt: Options | null; siteKey: string
         setMsg(`${(err as Error).message}（水族館には入れました）`);
       }
     }
-    onAdd(c);
+    onAdd(c, photo);
   };
 
   if (!opt) return <p>読み込み中…</p>;
@@ -350,6 +424,11 @@ function AddForm({ opt, siteKey, onAdd }: { opt: Options | null; siteKey: string
             <option key={m}>{m}</option>
           ))}
         </select>
+      </label>
+      <label>
+        写真（任意・この端末だけに保存）
+        <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0])} />
+        <span className="small">魚の写真を入れると、魚だけを切り抜いて水族館で泳がせたり、写真の魚拓を作れます。</span>
       </label>
       <label>
         メモ（この端末だけに保存）

@@ -8,7 +8,7 @@
 import { useEffect, useRef } from "react";
 import FishSprite from "@/app/components/FishSprite";
 
-export type TankFish = { id: string; species: string; sizeCm: number | null };
+export type TankFish = { id: string; species: string; sizeCm: number | null; photo?: { url: string; aspect: number } };
 type Kind = "school" | "cruise" | "bottom" | "hover" | "vertical" | "crawl" | "eel" | "squid";
 
 const kindOf = (sp: string): Kind =>
@@ -41,6 +41,9 @@ const seed = (id: string, k: number) => {
   return ((h >>> 0) % 1000) / 1000;
 };
 
+// 写真の魚は少し大きめに見せる
+const wOf = (f: TankFish, z: number) => Math.max(44, Math.min(f.photo ? 200 : 170, (f.photo ? 40 : 30) + (f.sizeCm ?? 15) * (f.photo ? 2.8 : 2.4))) * (0.82 + 0.18 * z);
+
 type State = {
   x: number; y: number; vx: number; vy: number; tx: number; ty: number;
   want: number; timer: number; face: number; dir: number; beat: number; resting: boolean; back: boolean;
@@ -60,8 +63,8 @@ export default function Tank({ fish, onPick, children }: { fish: TankFish[]; onP
     ro.observe(el);
 
     const size = (f: TankFish) => {
-      const w = Math.max(44, Math.min(170, 30 + (f.sizeCm ?? 15) * 2.4)) * (0.82 + 0.18 * seed(f.id, 5));
-      return { w, h: w * 0.6 };
+      const w = wOf(f, seed(f.id, 5));
+      return { w, h: w * (f.photo ? f.photo.aspect : 0.6) };
     };
     const pickTarget = (f: TankFish, s: State, k: Kind) => {
       const P = PROFILE[k];
@@ -188,9 +191,17 @@ export default function Tank({ fish, onPick, children }: { fish: TankFish[]; onP
             }}
           >
             <span className="orient">
-              <span className={`fs-swim k-${kindOf(f.species)}`}>
-                <FishSprite species={f.species} width={Math.max(44, Math.min(170, 30 + (f.sizeCm ?? 15) * 2.4)) * (0.82 + 0.18 * z)} />
-              </span>
+              {f.photo ? (
+                // 写真の魚：後ろ3分の1（尾の側）を別に振って泳いでいるように見せる
+                <span className={`fs-swim photo k-${kindOf(f.species)}`} style={{ width: wOf(f, z), height: wOf(f, z) * f.photo.aspect }}>
+                  <img src={f.photo.url} alt="" className="ph-front" draggable={false} />
+                  <img src={f.photo.url} alt="" className="ph-tail" draggable={false} />
+                </span>
+              ) : (
+                <span className={`fs-swim k-${kindOf(f.species)}`}>
+                  <FishSprite species={f.species} width={wOf(f, z)} />
+                </span>
+              )}
             </span>
           </button>
         );

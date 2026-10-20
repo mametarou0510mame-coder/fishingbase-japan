@@ -2,10 +2,11 @@
 
 // デジタル魚拓。釣った魚を和紙に墨で写したような1枚の絵にして、画像で保存・共有できる。
 // 魚は寸法に合わせた目盛り（cm）の上にのせ、魚種・全長・日付・釣り場・釣り人を縦書きで入れる。
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { inkify } from "@/lib/inkify";
 import FishSprite from "@/app/components/FishSprite";
 
-export type GyotakuData = { species: string; sizeCm: number | null; date: string; spot: string; angler: string; method?: string };
+export type GyotakuData = { species: string; sizeCm: number | null; date: string; spot: string; angler: string; method?: string; photo?: string /* 切り抜いた写真（data URL） */ };
 
 const KANJI = "〇一二三四五六七八九";
 // 数字を漢数字に（例：2026 → 二〇二六、32 → 三十二）
@@ -49,13 +50,27 @@ function VText({ x, y, text, size, color = "#1a1a1a", weight = 400, gap = 1.12 }
 const W = 1200, H = 800;
 
 export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?: () => void }) {
-  const [mode, setMode] = useState<"ink" | "color">("ink");
+  const [mode, setMode] = useState<"ink" | "color" | "photo">(data.photo ? "photo" : "ink");
+  const [photo, setPhoto] = useState<{ url: string; ink: string; w: number; h: number } | null>(null);
+  // 写真があれば、墨の魚拓用の絵もこの端末の中で作る
+  useEffect(() => {
+    if (!data.photo) return setPhoto(null);
+    setMode("photo");
+    const img = new Image();
+    img.onload = () => {
+      const ink = inkify(img).toDataURL("image/png");
+      setPhoto({ url: data.photo!, ink, w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.src = data.photo;
+  }, [data.photo]);
   const [busy, setBusy] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const name = data.species.replace(/（.*?）/g, "");
   const fishW = 820, fishX = 40, fishY = 130;
   // 魚の絵は横幅の 6%（尾の先）〜 94%（口先）が全長
-  const x0 = fishX + fishW * 0.06, x1 = fishX + fishW * 0.94;
+  // 写真は 820×470 の枠に収める（写真の横幅＝全長）
+  const ph = photo ? (() => { const k = Math.min(820 / photo.w, 470 / photo.h); const w = photo.w * k, h = photo.h * k; return { x: 40 + (820 - w) / 2, y: 385 - h / 2, w, h }; })() : null;
+  const x0 = ph ? ph.x : fishX + fishW * 0.06, x1 = ph ? ph.x + ph.w : fishX + fishW * 0.94;
   const size = data.sizeCm && data.sizeCm > 0 ? data.sizeCm : null;
   const pxPerCm = size ? (x1 - x0) / size : 0;
   const step = size ? (size > 80 ? 10 : size > 30 ? 5 : 1) : 0;
@@ -120,8 +135,9 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
   return (
     <section className="gyotaku">
       <div className="chips" role="group" aria-label="魚拓の種類">
+        {data.photo && <button className={`chip${mode === "photo" ? " on" : ""}`} aria-pressed={mode === "photo"} onClick={() => setMode("photo")}>写真の魚拓</button>}
         <button className={`chip${mode === "ink" ? " on" : ""}`} aria-pressed={mode === "ink"} onClick={() => setMode("ink")}>墨の魚拓</button>
-        <button className={`chip${mode === "color" ? " on" : ""}`} aria-pressed={mode === "color"} onClick={() => setMode("color")}>カラー魚拓</button>
+        {!data.photo && <button className={`chip${mode === "color" ? " on" : ""}`} aria-pressed={mode === "color"} onClick={() => setMode("color")}>カラー魚拓</button>}
       </div>
       <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${W} ${H}`} className="gyotaku-svg" role="img" aria-label={`${name}の魚拓`}>
         <defs>
@@ -136,6 +152,10 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
               <feMergeNode in="g" />
             </feMerge>
           </filter>
+          <filter id="gy-shadow" x="-10%" y="-10%" width="120%" height="130%">
+            <feColorMatrix type="matrix" values="0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0.8 0" />
+            <feGaussianBlur stdDeviation="8" />
+          </filter>
           <filter id="gy-seal" x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2" result="n" />
             <feDisplacementMap in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G" result="d" />
@@ -147,9 +167,20 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
         <rect width={W} height={H} fill="#f1e9d6" filter="url(#gy-paper)" />
         <rect x="18" y="18" width={W - 36} height={H - 36} fill="none" stroke="#c9b48a" strokeWidth="2" opacity="0.6" />
 
-        <g transform={`translate(${fishX} ${fishY})`}>
-          <FishSprite species={data.species} width={fishW} ink={mode === "ink"} />
-        </g>
+        {ph && photo ? (
+          mode === "photo" ? (
+            <g>
+              <image href={photo.url} x={ph.x + 6} y={ph.y + 10} width={ph.w} height={ph.h} filter="url(#gy-shadow)" opacity="0.5" />
+              <image href={photo.url} x={ph.x} y={ph.y} width={ph.w} height={ph.h} />
+            </g>
+          ) : (
+            <image href={photo.ink} x={ph.x} y={ph.y} width={ph.w} height={ph.h} style={{ mixBlendMode: "multiply" }} />
+          )
+        ) : (
+          <g transform={`translate(${fishX} ${fishY})`}>
+            <FishSprite species={data.species} width={fishW} ink={mode === "ink"} />
+          </g>
+        )}
 
         {size && (
           <g stroke="#3a3326" fill="#3a3326" fontFamily="serif">
@@ -174,7 +205,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
         <VText x={1115} y={95} text={name.slice(0, 6)} size={name.length > 4 ? 52 : 62} weight={700} />
         {size && <VText x={1040} y={110} text={`全長${kanjiSize(size)}センチ`} size={28} />}
         <VText x={size ? 990 : 1040} y={110} text={kanjiDate(data.date)} size={24} />
-        <VText x={size ? 945 : 995} y={110} text={data.spot.slice(0, 14)} size={24} />
+        {data.spot && data.spot !== "未記入" && <VText x={size ? 945 : 995} y={110} text={data.spot.slice(0, 14)} size={24} />}
         {/* 右下：釣り人と落款 */}
         <VText x={1115} y={name.length > 4 ? 560 : 500} text={`${data.angler.slice(0, name.length > 4 ? 4 : 6)}釣`} size={28} />
         <g filter="url(#gy-seal)" transform={`rotate(-3 1050 ${H - 80})`}>
@@ -188,7 +219,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
         <button className="submit" onClick={share} disabled={busy}>画像で保存・共有</button>
         {onClose && <button className="linklike" onClick={onClose}>閉じる</button>}
       </div>
-      <p className="small">魚の絵は魚種ごとのイラストで、目盛りは登録した全長に合わせています。画像はこの端末の中だけで作られ、どこにも送信されません。</p>
+      <p className="small">{data.photo ? "写真の魚の横幅を全長として目盛りを付けています。" : "魚の絵は魚種ごとのイラストです。写真を取り込むと、写真から魚拓を作れます。"}画像はこの端末の中だけで作られ、どこにも送信されません。</p>
     </section>
   );
 }

@@ -385,3 +385,14 @@ iframe.guide-video { border: 0; }
 .gyotaku { margin: 12px 0; }
 .gyotaku-svg { width: 100%; height: auto; display: block; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.18); margin: 8px 0; }
 .gyotaku-actions { display: flex; gap: 12px; align-items: center; }
+/* 写真の魚 */
+.fs-swim.photo { position: relative; display: block; animation: fs-bend-ph var(--beat) ease-in-out infinite alternate; transform-origin: 100% 50%; animation-delay: calc(var(--beat) * -0.5); }
+.fs-swim.photo img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 3px 4px rgba(0, 20, 40, .25)); }
+.fs-swim.photo .ph-front { clip-path: inset(0 0 0 34%); }
+.fs-swim.photo .ph-tail { clip-path: inset(0 65% 0 0); transform-origin: 35% 50%; animation: fs-tail-ph var(--beat) ease-in-out infinite alternate; }
+@keyframes fs-tail-ph { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes fs-bend-ph { from { transform: skewY(-1.5deg); } to { transform: skewY(1.5deg); } }
+/* 写真の切り抜き */
+.cutout-canvas { display: block; width: auto; height: auto; max-width: 100%; max-height: 70vh; margin: 8px auto; border-radius: 8px; background: #222; }
+.cutout-preview { background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 20px 20px; border-radius: 8px; padding: 8px; margin: 8px 0; }
+.cutout-preview canvas { width: 100%; height: auto; display: block; }
