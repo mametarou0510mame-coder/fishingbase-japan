@@ -26,12 +26,12 @@
 | 海上釣り堀 海釣ぽーと田尻 | 大阪・田尻町、海上釣り堀 | http://www.osaka-tajiri.com/ |
 | 海上釣り堀 岬 | 大阪・岬町、海上釣り堀 | http://www.osaka-misaki.com/ |
 
-下の2つは、robots.txt を確かめようとしたところ承認が必要になり、読めませんでした（ページ本体は検索結果から読めています）。釣果の自動取得（fetch-catches.mjs）に足すかどうかは、robots.txt を確かめてから決めます。
+robots.txt の確認結果（2026-10-20、オーナー承認後）:
 
-| 施設 | 確かめたいURL |
-|---|---|
-| 和歌山北港海つり公園 | https://wakayama-fising.jp/robots.txt |
-| 淡路じゃのひれ フィッシングパーク | https://janohire.co.jp/robots.txt |
+| 施設 | URL | 結果 |
+|---|---|---|
+| 淡路じゃのひれ フィッシングパーク | https://janohire.co.jp/robots.txt | 管理画面（/wp/wp-admin/）など以外は許可。利用規約のページは見当たらない（プライバシーポリシーのみ）。釣果は /news_cat/fishing-report/ に毎日の記事（/news/{ID}/）として出ている。記事本文の書き方を確かめてから fetch-catches.mjs に足す。本文確認用に記事URL（例: https://janohire.co.jp/news/3923/）の承認が必要 |
+| 和歌山北港海つり公園 | https://wakayama-fising.jp/robots.txt | 承認後も読み込みエラーで確認できず。公式の釣果ページもないため、自動取得はしない |
 
 ## 次回の候補（公式ページは見つかっている）
 
