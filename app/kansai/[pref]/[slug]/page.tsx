@@ -255,9 +255,19 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         cautions={spot.rules.filter((r) => /竿は1人|クーラー|キャリー|受付/.test(r))}
       />
 
-      {spot.type !== "一般の釣り場" && <SpotGear spot={spot} />}
+      {spot.type === "海上釣り堀" && (
+        <>
+          <h2>海上釣り堀の楽しみ方</h2>
+          <p>
+            放流された魚を、筏や生簀のまわりで釣ります。竿のレンタルがあるので手ぶらでも大丈夫です。エサ・仕掛けは施設で買えるほか、持ち込みもできます（使える仕掛けは施設のルールに従ってください）。
+            撒き餌・サビキ・ルアーなど、ふつうの堤防とは禁止のルールが違うことが多いので、上の「ルール」を必ず確認しましょう。
+          </p>
+        </>
+      )}
 
-      {(() => {
+      {spot.type !== "一般の釣り場" && spot.type !== "海上釣り堀" && <SpotGear spot={spot} />}
+
+      {spot.type !== "海上釣り堀" && (() => {
         const gl = guidesForSpot(spot, summary.list.map((x) => x.species));
         return gl.length > 0 ? (
           <>

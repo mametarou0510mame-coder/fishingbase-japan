@@ -21,6 +21,7 @@ export type FinderSpot = {
 const FILTERS: { key: string; label: string; test: (s: FinderSpot, month: number) => boolean }[] = [
   { key: "facility", label: "海釣り施設", test: (s) => s.type === "海釣り施設" },
   { key: "ferry", label: "沖堤防（渡船）", test: (s) => s.type === "沖堤防（渡船）" },
+  { key: "tsuribori", label: "海上釣り堀", test: (s) => s.type === "海上釣り堀" },
   { key: "rental", label: "レンタル竿あり", test: (s) => s.rentalRod },
   { key: "free", label: "無料", test: (s) => s.free },
   { key: "parking", label: "駐車場あり", test: (s) => s.parking },

@@ -6,7 +6,7 @@ export type Spot = {
   name: string;
   area: string;
   address: string;
-  type: "海釣り施設" | "公園の釣り場" | "沖堤防（渡船）" | "一般の釣り場";
+  type: "海釣り施設" | "公園の釣り場" | "沖堤防（渡船）" | "一般の釣り場" | "海上釣り堀";
   published: boolean;
   // full: 公式情報で料金・時間・ルールまで確認済み / basic: 概要とリンクのみ（詳細はリンク先で確認）
   level: "full" | "basic";
@@ -808,6 +808,81 @@ export const SPOTS: Spot[] = [
     tideStation: { code: "Z9", name: "海南" },
     intro:
       "由良湾に面した海釣り公園で、長さ40mの浮き桟橋とコンクリート桟橋から釣りができ、網で囲んだ釣り堀も5か所あります。梅雨のころはカンパチの幼魚、初秋の朝夕はタチウオ、冬はヒラメなどが狙えます。",
+  },
+  {
+    slug: "sennan-fishing-park-sazan",
+    pref: "osaka",
+    name: "泉南フィッシング・パーク SAZAN",
+    area: "泉南市",
+    address: "大阪府泉南市りんくう南浜2-202（樽井漁港内）",
+    type: "海上釣り堀",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-20",
+    officialUrl: "https://www.sazanfisher.com/",
+    sourceUrls: ["https://www.sazanfisher.com/", "https://www.sazanfisher.com/price/", "https://www.sazanfisher.com/beginner/", "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"],
+    hours: "受付 6:00〜6:30／釣り 7:00〜14:00（夏の土日祝はナイターあり）",
+    closed: "公式サイトでご確認ください。悪天候・台風の時は早上がり・中止あり",
+    fees: [{ label: "入場料", value: "公式サイトの料金ページでご確認ください（予約制・空きがあれば当日も可）" }, { label: "貸竿", value: "1,200円（仕掛けと替え針2本付き）" }],
+    parking: "公式サイトでご確認ください",
+    rentals: "貸竿（1,200円）・タモ・スカリ・ライフジャケット（無料）。エサ・仕掛け・氷・弁当の販売あり",
+    rules: [
+      "撒き餌・サビキ・2本針・ルアー・紀州釣りは禁止",
+      "竿1本・針1本で釣る。持ち込みの竿は3.5mまで",
+      "係員の合図があるまで釣りを始めない",
+      "入場は小学生以上で、入場券を買った人だけ（見学のみは不可）",
+      "青物がかかったら、周りの人も一斉に仕掛けを上げて協力する",
+      "ライフジャケットを着用する",
+    ],
+    rulesSource: "official",
+    restrictions: ["no-chum", "no-lure", "lifejacket-required"],
+    notes: ["樽井漁業協同組合が運営する海上釣り堀です。マダイ・シマアジ・ハマチなどを放流しています。", "大阪府の「大阪湾で食べよう・遊ぼう」でも紹介されています。"],
+    tideStation: { code: "TN", name: "淡輪" },
+    catchReportUrl: "https://www.sazanfisher.com/fishing/",
+    intro:
+      "泉南市の樽井漁港にある海上釣り堀です。竿のレンタルとスタッフの案内があるので、道具を持っていなくても、放流されたマダイ・シマアジ・ハマチなどの大物を狙えます。釣った魚の締め・下処理（有料）も頼めます。",
+  },
+  {
+    slug: "kaijo-tsuribori-opa",
+    pref: "osaka",
+    name: "海上釣り堀 オーパ!!",
+    area: "泉南郡岬町",
+    address: "大阪府泉南郡岬町多奈川谷川3821",
+    type: "海上釣り堀",
+    published: true,
+    level: "full",
+    verifiedOn: "2026-10-20",
+    officialUrl: "https://tsuribori-opa.com/",
+    sourceUrls: ["https://tsuribori-opa.com/system.html", "https://tsuribori-opa.com/access.html", "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"],
+    hours: "6:00〜13:00（受付 6:10〜6:30・釣りは5時間半）",
+    openHourByMonth: [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    closeHourByMonth: [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13],
+    closed: "元日、毎週水曜日、第2・第4火曜日（祝日は営業）。1月末ごろ・8月末ごろに臨時休業あり。台風・強風の時は中止あり",
+    fees: [
+      { label: "一般", value: "14,000円" },
+      { label: "女性", value: "11,000円" },
+      { label: "子ども（12歳まで）", value: "9,000円" },
+      { label: "見学", value: "3,300円" },
+      { label: "貸切", value: "平日 70,000円〜／土日祝 98,000円〜" },
+      { label: "貸竿", value: "1本 1,500円" },
+    ],
+    parking: "料金に駐車料金がふくまれます",
+    rentals: "貸竿（1本1,500円）、タモ・スカリ（無料・数に限りあり）、ライフジャケット",
+    rules: [
+      "竿は1人1本、釣り針は1本",
+      "撒き餌・複数の針・疑似餌・ルアーは禁止",
+      "係員の合図があるまで釣りを始めない",
+      "筏を勝手に移動しない",
+      "前日までに予約し、乗船名簿を出す",
+      "渡船ではライフジャケットの着用が法律で必要",
+    ],
+    rulesSource: "official",
+    restrictions: ["no-chum", "no-lure", "lifejacket-required"],
+    notes: ["料金は税・渡船料・駐車料金込みです。釣り堀までは船で約3分です。", "大阪府の「大阪湾で食べよう・遊ぼう」でも紹介されています。"],
+    tideStation: { code: "TN", name: "淡輪" },
+    catchReportUrl: "https://tsuribori-opa.com/catch.html",
+    intro:
+      "岬町の深日港近くから船で約3分の筏で釣る海上釣り堀です。タイ・シマアジ・ハマチ・カンパチ・ヒラメなどが放流され、竿のレンタルもあるので手ぶらで大物釣りを楽しめます。",
   },
   {
     slug: "shimotsu-pialand",

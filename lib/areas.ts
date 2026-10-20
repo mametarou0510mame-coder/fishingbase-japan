@@ -43,7 +43,7 @@ export const AREAS: Area[] = [
     slug: "senshu",
     name: "泉州",
     region: "泉大津市〜泉南郡岬町",
-    spots: ["shiomi-futo", "tadaoka-suigintou", "kishiwada-ichimonji", "kaizuka-jinkoto", "totto-park-kojima"],
+    spots: ["shiomi-futo", "tadaoka-suigintou", "kishiwada-ichimonji", "kaizuka-jinkoto", "totto-park-kojima", "sennan-fishing-park-sazan", "kaijo-tsuribori-opa"],
     intro: "大阪湾の南側のエリアです。泉大津・忠岡の埠頭、沖堤防の岸和田一文字、貝塚人工島から、紀淡海峡に近い岬町の海釣り公園まであります。",
   },
   {
