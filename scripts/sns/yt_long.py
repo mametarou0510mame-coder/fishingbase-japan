@@ -5,6 +5,7 @@ import json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from video_post import SITE, clean, http  # noqa: E402
 import discuss  # noqa: E402
+from affiliate import tackle_lines  # noqa: E402
 
 CREDIT = "音声合成：VOICEVOX:ずんだもん"
 
@@ -30,7 +31,11 @@ def main():
     src = json.load(open(f"content/long/{slug}.json", encoding="utf-8"))
     gs = [json.load(open(f"content/guides/{g}.json", encoding="utf-8")) for g in src["guides"]]
     chapters = open(chap, encoding="utf-8").read().strip()
-    desc = [src["video"]["scenes"][0]["lines"][0].replace("10分で", ""), "", "▼目次", chapters, "", "▼くわしい解説・道具リスト（初級・中級・上級）"]
+    desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
+    gear = tackle_lines(gs)
+    if gear:
+        desc += ["▼この動画で紹介した道具（楽天市場で探す）【PR】"] + gear + ["※楽天アフィリエイトのリンクです。価格・在庫はリンク先でご確認ください。", ""]
+    desc += ["▼くわしい解説・道具リスト（初級・中級・上級）"]
     desc += [f"・{g['title']}：{SITE}/guide/{g['slug']}/" for g in gs]
     desc += ["", "▼関西の釣果・潮・今日の釣れる時間（ねらい目）", f"{SITE}/"]
     if slug in discuss.LONG:
