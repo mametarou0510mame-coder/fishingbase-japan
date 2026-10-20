@@ -63,6 +63,7 @@ const ART: Record<string, Art> = {
 export const artOf = (sp: string) => ART[sp] ?? ART["その他"];
 
 const CY = 30;
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 // 体の輪郭（口 → 背 → 尾の付け根 → 腹 → 口）
 function bodyPath(h: number, p: number, snout = 94, peduncle = 22, hump = 0.45) {
@@ -100,13 +101,18 @@ function Eye({ x, y, r = 3, iris = "#c9a24a" }: { x: number; y: number; r?: numb
   );
 }
 
-export default function FishSprite({ species, width = 120, gray = false }: { species: string; width?: number; gray?: boolean }) {
+// ink: 墨の魚拓のように白黒で、にじみ・かすれを付けて描く（デジタル魚拓用）
+export default function FishSprite({ species, width = 120, gray = false, ink = false }: { species: string; width?: number; gray?: boolean; ink?: boolean }) {
   // 同じページに何匹も描くので、id は魚種と描画ごとに変える
-  const uid = useId().replace(/[^a-zA-Z0-9]/g, "") + [...species].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 99991, 7) + (gray ? "g" : "");
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, "") + [...species].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 99991, 7) + (gray ? "g" : "") + (ink ? "i" : "");
   const a0 = artOf(species);
   const g = (x: string) => (gray ? "#c9d1d9" : x);
-  const a = gray ? { ...a0, back: "#aeb8c2", side: "#c9d1d9", belly: "#dfe5ea", fin: "#b8c1ca", pc: "#b0bac4", accent: "#b0bac4" } : a0;
-  const grad = `fg${uid}`, shine = `fs${uid}`, clip = `fc${uid}`;
+  const a = gray
+    ? { ...a0, back: "#aeb8c2", side: "#c9d1d9", belly: "#dfe5ea", fin: "#b8c1ca", pc: "#b0bac4", accent: "#b0bac4" }
+    : ink
+      ? { ...a0, back: "#0d0d0d", side: "#1c1c1c", belly: "#3a3a3a", fin: "#262626", pc: "rgba(0,0,0,.55)", accent: "#111" }
+      : a0;
+  const grad = `fg${uid}`, shine = `fs${uid}`, clip = `fc${uid}`, scale = `sc${uid}`, rays = `ry${uid}`, inkF = `ik${uid}`;
   const defs = (
     <defs>
       <linearGradient id={grad} x1="0" y1="0" x2="0" y2="1">
@@ -119,9 +125,27 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
         <stop offset="0.5" stopColor="#fff" stopOpacity="0.28" />
         <stop offset="1" stopColor="#fff" stopOpacity="0" />
       </linearGradient>
+      {/* うろこ（魚拓ではうろこの縁が白く抜ける） */}
+      <pattern id={scale} width="1.8" height="1.4" patternUnits="userSpaceOnUse">
+        <path d="M0 1.4 Q0.9 0.3 1.8 1.4 M-0.9 0.7 Q0 -0.4 0.9 0.7 M0.9 0.7 Q1.8 -0.4 2.7 0.7" fill="none" stroke="#fff" strokeWidth={ink ? 0.32 : 0.22} opacity={ink ? 0.55 : 0.22} />
+      </pattern>
+      {/* ひれの筋（鰭条） */}
+      <pattern id={rays} width="1.4" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+        <rect width="1.4" height="6" fill={a.fin} />
+        <path d="M0.7 0 L0.7 6" stroke={ink ? "#000" : a.back} strokeWidth="0.45" opacity={ink ? 0.9 : 0.35} />
+      </pattern>
+      {ink && (
+        <filter id={inkF} x="-5%" y="-15%" width="110%" height="130%">
+          <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="3" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d" />
+          <feTurbulence type="fractalNoise" baseFrequency="3.2" numOctaves="1" seed="8" result="n2" />
+          <feColorMatrix in="n2" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.75" result="m" />
+          <feComposite in="d" in2="m" operator="in" />
+        </filter>
+      )}
     </defs>
   );
-  const fin = { fill: a.fin, opacity: 0.88 };
+  const fin = { fill: `url(#${rays})`, opacity: ink ? 0.92 : 0.9 };
   let art: React.ReactNode;
 
   switch (a.body) {
@@ -140,7 +164,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           <ellipse cx="96" cy="26" rx="1.8" ry="1.2" fill={a.back} />
           <ellipse cx="96" cy="36" rx="1.8" ry="1.2" fill={a.back} />
           </g>
-          <Eye x={66} y={28} r={3.2} iris="#3f6d8a" />
+          <Eye x={66} y={28} r={3.2} iris={ink ? "#efe7d6" : "#3f6d8a"} />
         </g>
       );
       break;
@@ -163,8 +187,8 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           </g>
           <path d="M34 32 C30 18 38 4 52 4 C66 4 72 16 68 30 C62 36 40 36 34 32 Z" fill={`url(#${grad})`} />
           {[...Array(10)].map((_, i) => <circle key={i} cx={42 + (i % 5) * 5} cy={10 + Math.floor(i / 5) * 8} r="1.2" fill={a.back} opacity="0.5" />)}
-          <Eye x={42} y={29} r={2.3} iris="#d8b04a" />
-          <Eye x={61} y={29} r={2.3} iris="#d8b04a" />
+          <Eye x={42} y={29} r={2.3} iris={ink ? "#efe7d6" : "#d8b04a"} />
+          <Eye x={61} y={29} r={2.3} iris={ink ? "#efe7d6" : "#d8b04a"} />
         </g>
       );
       break;
@@ -177,7 +201,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           <path d="M14 30 C30 26 50 22 74 22 C84 22 92 25 97 29 L90 31 C80 36 60 37 40 35 C26 34 14 31 2 33 Z" fill={`url(#${shine})`} />
           <path d="M97 29 L88 30.5 L92 31.5" stroke="#55606a" strokeWidth="0.7" fill="none" />
           {[0, 1, 2].map((i) => <path key={i} d={`M${93 - i * 2} 29.5 l0.6 1.4`} stroke="#fff" strokeWidth="0.6" />)}
-          <Eye x={88} y={26} r={2.6} iris="#e6e9ec" />
+          <Eye x={88} y={26} r={2.6} iris={ink ? "#efe7d6" : "#e6e9ec"} />
         </g>
       );
       break;
@@ -188,7 +212,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           <path d="M2 30 C20 22 50 22 78 23 C88 23 95 26 98 29 C95 32 88 34 78 34 C50 35 20 36 2 30 Z" fill={a.fin} opacity="0.55" transform="translate(0,0) scale(1,1)" />
           <path d="M4 30 C20 25 50 25 78 25.5 C88 25.5 95 27 98 29.5 C95 31.5 88 32.5 78 32.5 C50 33 20 34 4 30 Z" fill={`url(#${grad})`} />
           <path d="M98 29.5 L90 30.6" stroke="#3a3328" strokeWidth="0.7" />
-          <Eye x={90} y={27.5} r={1.8} iris="#c9b07a" />
+          <Eye x={90} y={27.5} r={1.8} iris={ink ? "#efe7d6" : "#c9b07a"} />
         </g>
       );
       break;
@@ -204,7 +228,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           <path d="M84 30.4 L100 31.2 L84 31.6 Z" fill="#d7dcde" />
           <path d="M96 31 L100 31.2 L96 31.5 Z" fill={a.accent} />
           <path d="M26 28.6 L32 26.6 L34 28.4 Z M26 31.4 L32 33.6 L34 31.6 Z" {...fin} />
-          <Eye x={84} y={28.9} r={1.6} iris="#d9dfe3" />
+          <Eye x={84} y={28.9} r={1.6} iris={ink ? "#efe7d6" : "#d9dfe3"} />
         </g>
       );
       break;
@@ -222,13 +246,14 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
             <path d={`M20 30 L4 20 Q8 30 4 40 Z`} fill={a.fin} />
           </g>
           <ellipse cx="54" cy="30" rx="34" ry="18" fill={`url(#${grad})`} />
+          <ellipse cx="54" cy="30" rx="34" ry="18" fill={`url(#${scale})`} opacity="0.7" />
           {a.pattern === "mottle" &&
             [...Array(9)].map((_, i) => <ellipse key={i} cx={30 + (i % 5) * 11} cy={22 + Math.floor(i / 5) * 14 + (i % 2) * 3} rx="3.4" ry="2.4" fill={a.pc} opacity="0.45" />)}
           {a.pattern === "spots" && [...Array(10)].map((_, i) => <circle key={i} cx={28 + (i % 5) * 11} cy={22 + Math.floor(i / 5) * 13 + (i % 2) * 3} r="1.5" fill={a.pc} opacity="0.7" />)}
           <path d="M24 30 C40 27 64 26 84 28" stroke={a.belly} strokeWidth="0.6" fill="none" opacity="0.6" />
           <path d="M80 18 C86 24 86 36 80 42" stroke={a.back} strokeWidth="0.8" fill="none" opacity="0.7" />
-          <Eye x={82} y={24} r={2.2} iris="#e2c66a" />
-          <Eye x={85} y={30} r={2.2} iris="#e2c66a" />
+          <Eye x={82} y={24} r={2.2} iris={ink ? "#efe7d6" : "#e2c66a"} />
+          <Eye x={85} y={30} r={2.2} iris={ink ? "#efe7d6" : "#e2c66a"} />
           <path d="M88 35 Q91 36 90 38" stroke="#3a2f20" strokeWidth="0.8" fill="none" />
         </g>
       );
@@ -249,7 +274,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
             <path d="M70 30 C66 25 66 35 70 32 Z" fill={a.fin} opacity="0.8" />
           </g>
           <path d="M91 31 Q93 32 91 33" stroke="#2b2a1f" strokeWidth="1" fill="none" />
-          <Eye x={80} y={23} r={3.2} iris="#5fb0a0" />
+          <Eye x={80} y={23} r={3.2} iris={ink ? "#efe7d6" : "#5fb0a0"} />
         </g>
       );
       break;
@@ -268,37 +293,61 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
       const eyeY = CY - h * (B === "rock" ? 0.42 : 0.3);
       // 背びれ（とげのある前半＋やわらかい後半）
       const spiny = B === "bream" || B === "rock" || B === "bass";
+      // 体の上下のふち（ひれの付け根を体に沿わせるため）
+      const hx = 22 + (snout - 22) * (1 - hump);
+      const eT = (x: number) => {
+        if (x <= hx) { const t = clamp01((x - 22) / (hx - 22)); return CY - (p + (h - p) * Math.sin((t * Math.PI) / 2)); }
+        const t = clamp01((x - hx) / (snout - hx)); return CY - h * (1 - Math.pow(t, 1.7)) - 1 * t;
+      };
+      const eB = (x: number) => {
+        if (x <= hx) { const t = clamp01((x - 22) / (hx - 22)); return CY + (p + (h * 0.92 - p) * Math.sin((t * Math.PI) / 2)); }
+        const t = clamp01((x - hx) / (snout - hx)); return CY + h * 0.92 * (1 - Math.pow(t, 2.2)) + 1 * t;
+      };
+      // ふちに沿ったひれ（付け根は体の内側に少し入れる）
+      const finAlong = (top: boolean, x1: number, x2: number, h1: number, h2: number, n = 8) => {
+        const e = top ? eT : eB, sg = top ? -1 : 1;
+        const pts: string[] = [];
+        for (let k = 0; k <= n; k++) {
+          const t = k / n, x = x1 + (x2 - x1) * t;
+          // 前の方が高く、後ろへ低くなる帆の形
+          const hh = t < 0.15 ? h1 * (0.25 + 0.75 * (t / 0.15)) : h1 + (h2 - h1) * Math.pow((t - 0.15) / 0.85, 0.8);
+          pts.push(`${x.toFixed(2)} ${(e(x) + sg * Math.max(0.2, hh)).toFixed(2)}`);
+        }
+        const base = [x2, (x1 + x2) / 2, x1].map((x) => `${x.toFixed(2)} ${(e(x) - sg * 2).toFixed(2)}`);
+        return `M${base[2]} L${pts.join(" L")} L${base.join(" L")} Z`;
+      };
+      const spineH = B === "rock" ? 7.5 : B === "bream" ? 6.5 : 5.5;
       const dorsal = spiny ? (
         <g>
           <path
-            d={`M${headX - 2} ${top + 1.2} ${[...Array(8)].map((_, i) => `L${headX - 4 - i * 3.6} ${top - (B === "rock" ? 7 : 5.5) + (i % 2) * 2.2} L${headX - 6 - i * 3.6} ${top + 0.6 + i * 0.25}`).join(" ")} Z`}
-            fill={a.fin}
-            opacity="0.9"
+            d={`M${headX - 2} ${eT(headX - 2) + 2} ${[...Array(9)]
+              .map((_, i) => {
+                const xt = headX - 3 - i * 3.3, xv = xt - 1.65;
+                const L = spineH * (1 - i * 0.05) * (i === 0 ? 0.7 : 1);
+                return `L${xt.toFixed(2)} ${(eT(xt) - L).toFixed(2)} L${xv.toFixed(2)} ${(eT(xv) - L * 0.35).toFixed(2)}`;
+              })
+              .join(" ")} L${headX - 33} ${eT(headX - 33) + 2} Z`}
+            {...fin}
           />
-          <path d={`M${headX - 33} ${top + 3} C${headX - 38} ${top - 6} ${headX - 48} ${top - 4} ${headX - 54} ${CY - p - 2} L${headX - 48} ${top + 7} Z`} {...fin} />
+          <path d={finAlong(true, headX - 33, Math.max(27, headX - 56), spineH * 0.8, 2.5)} {...fin} />
         </g>
       ) : B === "mackerel" || B === "jack" ? (
         <g>
-          <path d={`M${headX - 6} ${top + 0.8} L${headX - 12} ${top - 6} L${headX - 18} ${top + 1.4} Z`} {...fin} />
-          <path d={`M${headX - 24} ${top + 1.6} C${headX - 28} ${top - 6} ${headX - 34} ${top - 3} ${headX - 42} ${top + 4} Z`} {...fin} />
-          {B === "mackerel" && [...Array(5)].map((_, i) => <path key={i} d={`M${headX - 45 - i * 3.2} ${CY - p - 1.4 - (4 - i) * 0.6} l-1.6 -2 l-0.6 2 Z`} fill={a.fin} />)}
+          <path d={finAlong(true, headX - 6, headX - 18, 7.5, 1, 6)} {...fin} />
+          <path d={finAlong(true, headX - 21, headX - 44, 6.5, 1.2)} {...fin} />
+          {B === "mackerel" && [...Array(5)].map((_, i) => { const x = headX - 45 - i * 3.2; return <path key={i} d={`M${x} ${eT(x) + 1} l-1.6 -2.6 l-0.6 2.6 Z`} fill={a.fin} />; })}
         </g>
       ) : B === "file" ? (
         <g>
-          <path d={`M${headX - 2} ${top + 2} L${headX + 1} ${top - 9} L${headX - 1} ${top + 2} Z`} fill={a.back} />
-          <path d={`M${headX - 18} ${top + 4} C${headX - 26} ${top - 2} ${headX - 40} ${CY - 12} ${headX - 46} ${CY - p - 1} L${headX - 30} ${CY - 8} Z`} {...fin} />
+          <path d={`M${headX - 1} ${eT(headX) + 2} L${headX + 1} ${eT(headX) - 9} L${headX - 2.5} ${eT(headX - 2) + 2} Z`} fill={a.back} />
+          <path d={finAlong(true, headX - 18, headX - 46, 7, 2)} {...fin} />
         </g>
       ) : (
-        <path d={`M${headX - 14} ${top + 1} C${headX - 18} ${top - 6} ${headX - 26} ${top - 5} ${headX - 32} ${top + 3} Z`} {...fin} />
+        <path d={finAlong(true, headX - 12, headX - 34, 6, 1.5)} {...fin} />
       );
-      // 尻びれ・腹びれ・胸びれ
-      const anal =
-        B === "file" ? (
-          <path d={`M${headX - 18} ${CY + h * 0.85} C${headX - 26} ${CY + h * 0.9} ${headX - 40} ${CY + 12} ${headX - 46} ${CY + p + 1} L${headX - 30} ${CY + 8} Z`} {...fin} />
-        ) : (
-          <path d={`M${headX - 26} ${CY + h * 0.82} C${headX - 30} ${CY + h + 5} ${headX - 38} ${CY + h + 3} ${headX - 44} ${CY + h * 0.5} Z`} {...fin} />
-        );
-      const pelvic = <path d={`M${headX - 2} ${CY + h * 0.86} L${headX - 9} ${CY + h + 5} L${headX - 12} ${CY + h * 0.8} Z`} {...fin} />;
+      // 尻びれ・腹びれ
+      const anal = B === "file" ? <path d={finAlong(false, headX - 18, headX - 46, 7, 2)} {...fin} /> : <path d={finAlong(false, headX - 26, headX - 44, 6, 1.5, 6)} {...fin} />;
+      const pelvic = <path d={`M${headX - 2} ${eB(headX - 2) - 2} L${headX - 10} ${eB(headX - 10) + 6} L${headX - 11} ${eB(headX - 11) - 1} Z`} {...fin} />;
       const pectoral = <path d={`M${headX - 1} ${CY + 2} C${headX - 8} ${CY - 1} ${headX - 14} ${CY + 2} ${headX - 16} ${CY + 5} C${headX - 10} ${CY + 6} ${headX - 4} ${CY + 6} ${headX - 1} ${CY + 4} Z`} fill={a.fin} opacity="0.75" />;
 
       // 模様（体の形で切り抜く）
@@ -372,6 +421,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           <path d={body} fill={`url(#${grad})`} />
           <g clipPath={`url(#${clip})`}>
             {pattern}
+            {B !== "file" && <rect x="0" y="0" width={headX - 1} height="60" fill={`url(#${scale})`} />}
             {/* 側線 */}
             {a.pattern !== "scute" && (
               <path d={`M${headX} ${CY - h * 0.45} C${headX - 20} ${CY - h * 0.55} ${headX - 40} ${CY - h * 0.3} 22 ${CY}`} stroke={a.back} strokeWidth="0.5" fill="none" opacity="0.5" />
@@ -385,7 +435,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           {/* 口 */}
           <path d={`M${snout} ${CY + 1} L${snout - (B === "rock" ? 7 : B === "bass" ? 6 : 4)} ${CY + 1.8}`} stroke="#2c2c2c" strokeWidth="0.7" opacity="0.7" />
           {B === "rock" && [...Array(4)].map((_, i) => <path key={i} d={`M${headX + 2 + i * 3} ${eyeY - 3.4} l0.8 -2.2`} stroke={a.back} strokeWidth="0.8" />)}
-          <Eye x={snout - (B === "rock" ? 10 : B === "file" ? 12 : 8.5)} y={eyeY} r={eyeR} iris={B === "jack" ? "#e8d27a" : B === "bream" ? "#d9a24a" : "#c9a24a"} />
+          <Eye x={snout - (B === "rock" ? 10 : B === "file" ? 12 : 8.5)} y={eyeY} r={eyeR} iris={ink ? "#efe7d6" : (B === "jack" ? "#e8d27a" : B === "bream" ? "#d9a24a" : "#c9a24a")} />
         </g>
       );
     }
@@ -393,7 +443,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
   return (
     <svg viewBox="0 0 100 60" width={width} height={(width * 60) / 100} aria-label={species} role="img">
       {defs}
-      <g fill={g(a.side)}>{art}</g>
+      <g fill={g(a.side)} filter={ink ? `url(#${inkF})` : undefined}>{art}</g>
     </svg>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Avatar, { AVATAR_DEFAULT, HAT_COLORS, JACKET_COLORS, SKIN_COLORS, type AvatarConf } from "@/app/components/Avatar";
 import FishSprite from "@/app/components/FishSprite";
 import Tank from "@/app/components/Tank";
+import Gyotaku from "@/app/components/Gyotaku";
 
 type Catch = { id: string; date: string; spot: string; species: string; sizeCm: number | null; count: number; method: string; memo: string; shared?: boolean };
 type Store = { v: 1; nickname: string; avatar: AvatarConf; fish: Catch[] };
@@ -48,6 +49,7 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const [tab, setTab] = useState<"tank" | "add" | "zukan" | "avatar" | "backup">("tank");
   const [opt, setOpt] = useState<Options | null>(null);
   const [pick, setPick] = useState<Catch | null>(null);
+  const [gyo, setGyo] = useState<Catch | null>(null);
 
   useEffect(() => {
     setSt(load());
@@ -130,6 +132,9 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
                 {pick.memo && <p className="small">{pick.memo}</p>}
               </div>
               <div className="aq-card-actions">
+                <button className="submit small" onClick={() => { setGyo(pick); setPick(null); }}>
+                  魚拓にする
+                </button>
                 <button
                   className="linklike small"
                   onClick={() => {
@@ -147,7 +152,13 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
               </div>
             </div>
           )}
-          <p className="small">魚をタップすると、釣った日と場所が見られます。最近の24匹が泳いでいます。</p>
+          {gyo && (
+            <Gyotaku
+              data={{ species: gyo.species, sizeCm: gyo.sizeCm, date: gyo.date, spot: spotName(gyo.spot), angler: st.nickname || "わたし", method: gyo.method }}
+              onClose={() => setGyo(null)}
+            />
+          )}
+          <p className="small">魚をタップすると、釣った日と場所が見られ、「魚拓にする」で全長の目盛りつきのデジタル魚拓を作れます。最近の24匹が泳いでいます。</p>
         </>
       )}
 

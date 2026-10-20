@@ -380,3 +380,8 @@ iframe.guide-video { border: 0; }
 @keyframes fs-sfin { from { transform: scaleY(0.8); } to { transform: scaleY(1.08); } }
 @keyframes fs-arms { from { transform: skewY(-5deg) scaleX(0.96); } to { transform: skewY(5deg) scaleX(1.03); } }
 @media (prefers-reduced-motion: reduce) { .fs-swim * { animation: none !important; } }
+
+/* デジタル魚拓 */
+.gyotaku { margin: 12px 0; }
+.gyotaku-svg { width: 100%; height: auto; display: block; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.18); margin: 8px 0; }
+.gyotaku-actions { display: flex; gap: 12px; align-items: center; }
