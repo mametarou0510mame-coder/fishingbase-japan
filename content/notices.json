@@ -1,6 +1,11 @@
 {
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
+  {"date": "2026-10-20", "kind": "新規掲載", "spot": "saikazaki-seapark", "text": "雑賀崎シーパーク（和歌山市）を掲載しました。予約制の海上釣堀と、予約なしの「ちょい釣り」があります。", "source": "https://saikazaki-seapark.com/about/"},
+  {"date": "2026-10-20", "kind": "新規掲載", "spot": "awaji-janohire-fishing-park", "text": "淡路じゃのひれ フィッシングパーク（南あわじ市）を掲載しました。撒き餌・2本針・サビキ・ルアーは禁止です。", "source": "https://janohire.co.jp/play/fishing-park/"},
+  {"date": "2026-10-20", "kind": "新規掲載", "spot": "rokko-marine-park-umigo", "text": "海釣りGO!! ROKKO MARINE PARK（神戸市東灘区）を掲載しました。アプリで1時間単位に予約して使います。", "source": "https://umigo.co.jp/rokko-marine-park/"},
+  {"date": "2026-10-20", "kind": "新規掲載", "spot": "wakayama-hokko-umizuri-koen", "text": "和歌山北港海つり公園（和歌山市）を掲載しました。入園には誓約書の持参が必要です。", "source": "https://wakayama-fising.jp/pages/51/"},
+  {"date": "2026-10-20", "kind": "再開", "spot": "wakayama-hokko-umizuri-koen", "text": "和歌山北港海つり公園は、2018年の台風21号による休園から2026年4月1日に営業を再開しています。", "source": "https://wakayama-fising.jp/pages/50?detail=1&b_id=239&r_id=59#block239"},
   {"date": "2026-10-20", "kind": "新規掲載", "spot": "kaijo-tsuribori-opa", "text": "海上釣り堀 オーパ!!（岬町）を掲載しました。料金・定休日・禁止事項は公式サイトで確認しています。", "source": "https://tsuribori-opa.com/system.html"},
   {"date": "2026-10-20", "kind": "新規掲載", "spot": "sennan-fishing-park-sazan", "text": "泉南フィッシング・パーク SAZAN（泉南市）を掲載しました。撒き餌・サビキ・ルアーは禁止です。", "source": "https://www.sazanfisher.com/beginner/"},
   {"date": "2026-10-20", "kind": "新規掲載", "spot": "yura-umizuri-koen", "text": "由良海つり公園（由良町）を掲載しました。", "source": "https://www.mlit.go.jp/tagengo-db/R5-00654.html"}
