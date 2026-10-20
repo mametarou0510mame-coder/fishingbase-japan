@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Avatar, { AVATAR_DEFAULT, HAT_COLORS, JACKET_COLORS, SKIN_COLORS, type AvatarConf } from "@/app/components/Avatar";
 import FishSprite from "@/app/components/FishSprite";
+import Tank from "@/app/components/Tank";
 
 type Catch = { id: string; date: string; spot: string; species: string; sizeCm: number | null; count: number; method: string; memo: string; shared?: boolean };
 type Store = { v: 1; nickname: string; avatar: AvatarConf; fish: Catch[] };
@@ -29,12 +30,6 @@ function save(s: Store) {
     /* 保存できない環境（プライベートモードなど）では、このページを開いている間だけ有効 */
   }
 }
-// id から毎回同じ値を作る（泳ぐ位置・速さをばらけさせる）
-const seed = (id: string, k: number) => {
-  let h = 2166136261 ^ k;
-  for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  return ((h >>> 0) % 1000) / 1000;
-};
 
 const BADGES: { id: string; label: string; test: (f: Catch[]) => boolean }[] = [
   { id: "first", label: "はじめての1匹", test: (f) => f.length >= 1 },
@@ -70,7 +65,7 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const species = useMemo(() => [...new Set(st.fish.map((f) => f.species))], [st.fish]);
   const total = st.fish.reduce((n, f) => n + (f.count || 1), 0);
   const biggest = st.fish.reduce<Catch | null>((b, f) => ((f.sizeCm ?? 0) > (b?.sizeCm ?? 0) ? f : b), null);
-  const swimmers = [...st.fish].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 24);
+  const swimmers = useMemo(() => [...st.fish].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 24), [st.fish]);
 
   return (
     <div className="aq">
@@ -103,7 +98,7 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
 
       {tab === "tank" && (
         <>
-          <div className="tank" aria-label="水槽">
+          <Tank fish={swimmers} onPick={(id) => setPick(st.fish.find((x) => x.id === id) ?? null)}>
             <div className="tank-light" />
             {[12, 30, 61, 84].map((x, i) => (
               <svg key={i} className="weed" style={{ left: `${x}%`, animationDelay: `${i * 0.7}s` }} viewBox="0 0 30 100" width="30" height={90 + (i % 2) * 30}>
@@ -121,27 +116,7 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
                 「釣果を登録」から、釣った魚を入れてみましょう。
               </p>
             )}
-            {swimmers.map((f) => {
-              const w = Math.max(44, Math.min(170, 30 + (f.sizeCm ?? 15) * 2.4));
-              const dur = 9 + seed(f.id, 1) * 10;
-              const top = /カレイ|ヒラメ|ハゼ|タコ|ガシラ|アイナメ/.test(f.species) ? 68 + seed(f.id, 2) * 10 : 10 + seed(f.id, 2) * 55;
-              return (
-                <button
-                  key={f.id}
-                  className="swimmer"
-                  style={{ top: `${top}%`, animationDuration: `${dur}s`, animationDelay: `${-seed(f.id, 3) * dur}s` }}
-                  onClick={() => setPick(f)}
-                  aria-label={`${f.species} ${f.sizeCm ?? ""}cm`}
-                >
-                  <span className="flip" style={{ animationDuration: `${dur * 2}s`, animationDelay: `${-seed(f.id, 3) * dur}s` }}>
-                    <span className="bob" style={{ animationDelay: `${-seed(f.id, 4) * 3}s` }}>
-                      <FishSprite species={f.species} width={w} />
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          </Tank>
           {pick && (
             <div className="aq-card">
               <FishSprite species={pick.species} width={90} />

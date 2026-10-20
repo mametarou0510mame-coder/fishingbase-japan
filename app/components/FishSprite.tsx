@@ -128,9 +128,10 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
     case "squid":
       art = (
         <g>
-          <path d="M6 30 C8 20 14 14 22 18 C20 22 20 38 22 42 C14 46 8 40 6 30 Z" fill={a.fin} opacity="0.7" />
+          <path className="fs-sfin" style={{ transformOrigin: "22px 30px" }} d="M6 30 C8 20 14 14 22 18 C20 22 20 38 22 42 C14 46 8 40 6 30 Z" fill={a.fin} opacity="0.7" />
           <path d="M12 30 C14 20 40 16 62 21 C68 23 70 27 70 30 C70 33 68 37 62 39 C40 44 14 40 12 30 Z" fill={`url(#${grad})`} />
           {a.pattern === "dots" && [...Array(14)].map((_, i) => <circle key={i} cx={20 + (i % 7) * 6.5} cy={25 + Math.floor(i / 7) * 7 + (i % 2)} r="1" fill={a.pc} opacity="0.6" />)}
+          <g className="fs-arms" style={{ transformOrigin: "68px 30px" }}>
           {[...Array(8)].map((_, i) => (
             <path key={i} d={`M68 ${27 + i * 0.9} C76 ${26 + i * 1.2} 82 ${24 + i * 2} ${88 + (i % 3)} ${22 + i * 2.6}`} stroke={a.back} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.9" />
           ))}
@@ -138,6 +139,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
           <path d="M68 31 C80 32 88 33 96 36" stroke={a.back} strokeWidth="1" fill="none" />
           <ellipse cx="96" cy="26" rx="1.8" ry="1.2" fill={a.back} />
           <ellipse cx="96" cy="36" rx="1.8" ry="1.2" fill={a.back} />
+          </g>
           <Eye x={66} y={28} r={3.2} iris="#3f6d8a" />
         </g>
       );
@@ -145,6 +147,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
     case "octopus":
       art = (
         <g>
+          <g className="fs-arms oct" style={{ transformOrigin: "50px 30px" }}>
           {[...Array(8)].map((_, i) => {
             const x0 = 36 + i * 4;
             const dx = -14 + i * 4.2;
@@ -157,6 +160,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
               </g>
             );
           })}
+          </g>
           <path d="M34 32 C30 18 38 4 52 4 C66 4 72 16 68 30 C62 36 40 36 34 32 Z" fill={`url(#${grad})`} />
           {[...Array(10)].map((_, i) => <circle key={i} cx={42 + (i % 5) * 5} cy={10 + Math.floor(i / 5) * 8} r="1.2" fill={a.back} opacity="0.5" />)}
           <Eye x={42} y={29} r={2.3} iris="#d8b04a" />
@@ -167,7 +171,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
     case "ribbon":
       // タチウオ：銀色の帯のような体、尾びれはなく先がとがる、長い背びれ、鋭い歯
       art = (
-        <g>
+        <g className="fs-bend long" style={{ transformOrigin: "95px 30px" }}>
           <path d="M14 30 C30 26 50 22 74 22 C84 22 92 25 97 29 L90 31 C80 36 60 37 40 35 C26 34 14 31 2 33 Z" fill={`url(#${grad})`} stroke="#9aa6b0" strokeWidth="0.5" />
           <path d="M8 31.5 C28 26.5 50 22 74 22" stroke={a.fin} strokeWidth="2.2" fill="none" opacity="0.8" />
           <path d="M14 30 C30 26 50 22 74 22 C84 22 92 25 97 29 L90 31 C80 36 60 37 40 35 C26 34 14 31 2 33 Z" fill={`url(#${shine})`} />
@@ -180,7 +184,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
     case "eel":
       // ハモ：細長い体、背びれと尻びれが尾までつながる
       art = (
-        <g>
+        <g className="fs-bend long" style={{ transformOrigin: "95px 30px" }}>
           <path d="M2 30 C20 22 50 22 78 23 C88 23 95 26 98 29 C95 32 88 34 78 34 C50 35 20 36 2 30 Z" fill={a.fin} opacity="0.55" transform="translate(0,0) scale(1,1)" />
           <path d="M4 30 C20 25 50 25 78 25.5 C88 25.5 95 27 98 29.5 C95 31.5 88 32.5 78 32.5 C50 33 20 34 4 30 Z" fill={`url(#${grad})`} />
           <path d="M98 29.5 L90 30.6" stroke="#3a3328" strokeWidth="0.7" />
@@ -192,7 +196,9 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
       // サヨリ：細い体、下あごが長く先が赤い
       art = (
         <g>
-          <path d={tailPath("fork", 6, 1.6, 16)} {...fin} />
+          <g className="fs-tail" style={{ transformOrigin: "17px 30px" }}>
+            <path d={tailPath("fork", 6, 1.6, 16)} {...fin} />
+          </g>
           <path d="M16 28.6 C30 26 60 25.5 82 27 C86 27.4 88 28.3 89 29.2 L82 31.4 C60 33.5 30 33 16 31.4 Z" fill={`url(#${grad})`} />
           <path d="M18 29.2 C40 27.6 64 27.4 84 28.6" stroke={a.back} strokeWidth="0.9" fill="none" opacity="0.7" />
           <path d="M84 30.4 L100 31.2 L84 31.6 Z" fill="#d7dcde" />
@@ -212,7 +218,9 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
             const x = 52 + Math.cos(Math.PI - t) * 37;
             return <path key={i} d={`M${x} ${30 - Math.sin(t) * 19} L${x} ${30 - Math.sin(t) * 22.5}`} stroke={a.back} strokeWidth="0.5" opacity="0.5" />;
           })}
-          <path d={`M20 30 L4 20 Q8 30 4 40 Z`} fill={a.fin} />
+          <g className="fs-tail" style={{ transformOrigin: "20px 30px" }}>
+            <path d={`M20 30 L4 20 Q8 30 4 40 Z`} fill={a.fin} />
+          </g>
           <ellipse cx="54" cy="30" rx="34" ry="18" fill={`url(#${grad})`} />
           {a.pattern === "mottle" &&
             [...Array(9)].map((_, i) => <ellipse key={i} cx={30 + (i % 5) * 11} cy={22 + Math.floor(i / 5) * 14 + (i % 2) * 3} rx="3.4" ry="2.4" fill={a.pc} opacity="0.45" />)}
@@ -229,13 +237,17 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
     case "puffer":
       art = (
         <g>
-          <path d={tailPath("trunc", 8, 4, 26)} {...fin} />
+          <g className="fs-tail" style={{ transformOrigin: "27px 30px" }}>
+            <path d={tailPath("trunc", 8, 4, 26)} {...fin} />
+          </g>
           <path d="M26 30 C26 16 44 9 62 10 C80 11 92 20 92 30 C92 40 80 48 62 49 C44 50 26 44 26 30 Z" fill={`url(#${grad})`} />
           {[...Array(16)].map((_, i) => <circle key={i} cx={36 + (i % 6) * 8} cy={16 + Math.floor(i / 6) * 7 + (i % 2) * 2} r="1.6" fill={a.pc} opacity="0.75" />)}
           <ellipse cx="58" cy="34" rx="6" ry="4" fill={a.back} opacity="0.55" />
           <path d="M54 12 C58 6 64 6 66 11 Z" {...fin} />
           <path d="M54 48 C58 54 64 54 66 49 Z" {...fin} />
-          <path d="M70 30 C66 25 66 35 70 32 Z" fill={a.fin} opacity="0.8" />
+          <g className="fs-pec" style={{ transformOrigin: "70px 31px" }}>
+            <path d="M70 30 C66 25 66 35 70 32 Z" fill={a.fin} opacity="0.8" />
+          </g>
           <path d="M91 31 Q93 32 91 33" stroke="#2b2a1f" strokeWidth="1" fill="none" />
           <Eye x={80} y={23} r={3.2} iris="#5fb0a0" />
         </g>
@@ -347,11 +359,13 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
       }
 
       art = (
-        <g>
+        <g className="fs-bend" style={{ transformOrigin: `${snout}px 30px` }}>
           <clipPath id={clip}>
             <path d={body} />
           </clipPath>
-          <path d={tailPath(tail, h, p)} {...fin} />
+          <g className="fs-tail" style={{ transformOrigin: "23px 30px" }}>
+            <path d={tailPath(tail, h, p)} {...fin} />
+          </g>
           {dorsal}
           {anal}
           {pelvic}
@@ -367,7 +381,7 @@ export default function FishSprite({ species, width = 120, gray = false }: { spe
             {/* えらぶた */}
             <path d={`M${headX + 1} ${CY - h * 0.7} C${headX - 4} ${CY - h * 0.2} ${headX - 4} ${CY + h * 0.3} ${headX + 2} ${CY + h * 0.8}`} stroke={a.back} strokeWidth="0.9" fill="none" opacity="0.55" />
           </g>
-          {pectoral}
+          <g className="fs-pec" style={{ transformOrigin: `${headX - 1}px 32px` }}>{pectoral}</g>
           {/* 口 */}
           <path d={`M${snout} ${CY + 1} L${snout - (B === "rock" ? 7 : B === "bass" ? 6 : 4)} ${CY + 1.8}`} stroke="#2c2c2c" strokeWidth="0.7" opacity="0.7" />
           {B === "rock" && [...Array(4)].map((_, i) => <path key={i} d={`M${headX + 2 + i * 3} ${eyeY - 3.4} l0.8 -2.2`} stroke={a.back} strokeWidth="0.8" />)}

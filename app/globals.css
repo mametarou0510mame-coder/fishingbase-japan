@@ -358,3 +358,25 @@ iframe.guide-video { border: 0; }
 .news-list { list-style: none; padding: 0; }
 .news-list li { border-bottom: 1px solid var(--line); padding: 8px 0; }
 .news-list .tag { display: inline-block; font-size: 0.75rem; border: 1px solid var(--sea); color: var(--sea); border-radius: 999px; padding: 0 8px; }
+
+/* 水槽の魚（Tank.tsx が位置と向きを毎フレーム動かす） */
+.swimmer2 { position: absolute; left: 0; top: 0; border: 0; background: none; padding: 0; cursor: pointer; will-change: transform; }
+.swimmer2 .orient { display: block; will-change: transform; }
+.swimmer2:focus-visible { outline: 2px solid var(--glow); border-radius: 8px; }
+.fs-swim { display: block; --beat: 0.8s; }
+.fs-swim svg { display: block; overflow: visible; }
+.fs-swim .fs-tail, .fs-swim .fs-bend, .fs-swim .fs-pec, .fs-swim .fs-sfin, .fs-swim .fs-arms { transform-box: view-box; }
+.fs-swim .fs-tail { animation: fs-tail var(--beat) ease-in-out infinite alternate; }
+.fs-swim .fs-bend { animation: fs-bend var(--beat) ease-in-out infinite alternate; animation-delay: calc(var(--beat) * -0.5); }
+.fs-swim .fs-bend.long { animation-name: fs-bend-long; }
+.fs-swim .fs-pec { animation: fs-pec calc(var(--beat) * 0.7) ease-in-out infinite alternate; }
+.fs-swim .fs-sfin { animation: fs-sfin 0.5s ease-in-out infinite alternate; }
+.fs-swim .fs-arms { animation: fs-arms 1.6s ease-in-out infinite alternate; }
+.fs-swim .fs-arms.oct { animation-duration: 2.4s; }
+@keyframes fs-tail { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+@keyframes fs-bend { from { transform: skewY(-3deg); } to { transform: skewY(3deg); } }
+@keyframes fs-bend-long { from { transform: skewY(-5deg); } to { transform: skewY(5deg); } }
+@keyframes fs-pec { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
+@keyframes fs-sfin { from { transform: scaleY(0.8); } to { transform: scaleY(1.08); } }
+@keyframes fs-arms { from { transform: skewY(-5deg) scaleX(0.96); } to { transform: skewY(5deg) scaleX(1.03); } }
+@media (prefers-reduced-motion: reduce) { .fs-swim * { animation: none !important; } }
