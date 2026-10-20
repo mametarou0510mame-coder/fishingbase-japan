@@ -2,6 +2,10 @@ name: E2E cutout
 
 on:
   workflow_dispatch:
+    inputs:
+      script:
+        description: "scripts/test のどれを動かすか"
+        default: e2e_cutout.py
 
 permissions:
   contents: read
@@ -14,4 +18,4 @@ jobs:
       - run: |
           pip install --quiet playwright
           python -m playwright install --with-deps chromium > /dev/null
-          python scripts/test/e2e_cutout.py
+          python scripts/test/${{ github.event.inputs.script || 'e2e_cutout.py' }}
