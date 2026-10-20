@@ -1,6 +1,6 @@
 # Instagram の画像投稿（カルーセル＝スワイプで見る複数枚）。1日2回。
 #   6:00  今アツい釣り場（最近の釣果が多い釣り場と、今日のねらい目）
-#   23:00 釣り方（ガイド）と 釣りの豆知識 を1日おきに
+#   23:00 釣り方（ガイド）・釣りの豆知識・サイトの機能紹介 を順番に
 # 使い方:
 #   python scripts/sns/ig_images.py make <morning|night> <outdir>   … 画像とキャプションを作る
 #   python scripts/sns/ig_images.py publish <outdir> <画像のURLの頭>  … Instagram に投稿する
@@ -278,6 +278,120 @@ def make_trivia(out, log):
     return ["1.jpg", "2.jpg", "3.jpg"], "\n".join(cap), f"trivia-{t['id']}"
 
 
+def image_card(path, no, heading, img_path, note=""):
+    """見本の画像（サイトの画面など）を大きく見せるカード"""
+    def body(d, y):
+        im = Image.open(img_path).convert("RGB")
+        im.thumbnail((W - 120, H - y - (230 if note else 140)))
+        d._image.paste(im, ((W - im.width) // 2, y))
+        yy = y + im.height + 30
+        f = F(FONT_BOLD, 40)
+        for ln in wrap(d, note, f, W - 140)[:3]:
+            d.text((70, yy), ln, font=f, fill=INK)
+            yy += 58
+    card(path, no, heading, body)
+
+
+# サイトの機能紹介（23時の枠で、釣り方・豆知識と順番に）
+FEATURES = [
+    {
+        "key": "feature-overview", "tag": "ツレドキ関西でできること", "title": "釣りがもっと楽しくなる6つの機能",
+        "sub": "関西の釣り人のために作った、無料で使える機能をまとめました",
+        "cards": [
+            ("rows", "6つの機能", [
+                ("今日・週末のねらい目ランキング", "潮・まずめ・営業時間・風から、釣れそうな時間を計算"),
+                ("最近の釣果を毎日まとめて表示", "施設・渡船・釣具店が公開した釣果を自動で集計"),
+                ("デジタル魚拓", "釣った魚の写真から、墨・写真の魚拓を作れる"),
+                ("マイ水族館", "釣った魚が、あなたの水族館で泳ぎ出す"),
+                ("地図から釣り場を探す", "関西の海釣り施設・沖堤防・海上釣り堀"),
+                ("はじめての1回プラン", "場所・道具・時間・持ち物を1ページで"),
+            ]),
+            ("image", "デジタル魚拓", "content/promo/gyotaku-ink.jpg", "写真を取り込むだけで、和紙に写したような魚拓に。全長の目盛りと日付入り。"),
+            ("image", "マイ水族館", "content/promo/aquarium.jpg", "釣った魚がリアルに泳ぐ、自分だけの水族館。"),
+        ],
+        "ask": ("いちばん使ってみたい機能は？", ["ねらい目ランキング", "デジタル魚拓", "マイ水族館", "地図・はじめてプラン"]),
+        "caption": ["【ツレドキ関西でできること】", "", "関西の釣り人のための無料サイトです。",
+                    "・今日・週末のねらい目ランキング（潮・まずめ・営業時間・風から計算）", "・最近の釣果を毎日まとめて表示",
+                    "・デジタル魚拓（写真から墨・写真の魚拓）", "・マイ水族館（釣った魚が泳ぐ）", "・地図から釣り場を探す", "・はじめての1回プラン"],
+        "path": "/",
+    },
+    {
+        "key": "feature-gyotaku", "tag": "新機能", "title": "スマホで作れるデジタル魚拓",
+        "sub": "釣った魚の写真をタップするだけ。墨の魚拓と写真の魚拓の2種類",
+        "cards": [
+            ("image", "① 写真の魚をタップ", "content/promo/cutout.jpg", "魚の体をタップすると、自動で魚だけを選びます（手などは「除く」でタップ）。"),
+            ("image", "② 墨の魚拓", "content/promo/gyotaku-ink.jpg", "うろこやひれの凹凸を墨の濃淡に。頭が左の、昔ながらの魚拓です。"),
+            ("image", "③ 写真の魚拓", "content/promo/gyotaku-photo.jpg", "全長の目盛り・日付・釣り場・名前入り。画像で保存してSNSに共有できます。"),
+        ],
+        "ask": ("魚拓、どっちが好き？", ["墨の魚拓", "写真の魚拓", "両方ほしい"]),
+        "caption": ["【新機能】スマホで作れるデジタル魚拓", "", "釣った魚の写真を取り込んで、魚をタップするだけ。",
+                    "・墨の魚拓：うろこやひれの凹凸を墨の濃淡で", "・写真の魚拓：全長の目盛り・日付・釣り場入り",
+                    "写真はスマホの中だけで処理し、どこにも送信しません。"],
+        "path": "/aquarium/",
+    },
+    {
+        "key": "feature-aquarium", "tag": "新機能", "title": "釣った魚が泳ぐ「マイ水族館」",
+        "sub": "釣果を登録すると、あなたの水族館に魚が増えていく",
+        "cards": [
+            ("image", "釣った魚が泳ぎ出す", "content/promo/aquarium.jpg", "アジは群れで、カレイは底で、タチウオは立ち泳ぎ。魚ごとに泳ぎ方が違います。"),
+            ("rows", "できること", [
+                ("写真の魚をそのまま泳がせる", "タップで切り抜いた本物の魚が泳ぎます"),
+                ("リリース（海に返す）", "記録は図鑑に残ります"),
+                ("図鑑とバッジ", "釣った種類を集めよう"),
+                ("アバター", "自分だけの釣り人に着せ替え"),
+            ]),
+        ],
+        "ask": ("水族館で最初に泳がせたい魚は？", ["アジ", "チヌ・マダイ", "青物", "イカ・タコ"]),
+        "caption": ["【新機能】釣った魚が泳ぐ「マイ水族館」", "", "釣果を登録すると、あなただけの水族館に魚が増えていきます。",
+                    "・写真の魚をタップで切り抜いて、そのまま泳がせる", "・リリースで海に返す（記録は図鑑に残る）", "・図鑑・バッジ・アバター"],
+        "path": "/aquarium/",
+    },
+    {
+        "key": "feature-ranking", "tag": "ツレドキ関西の使い方", "title": "今日・週末どこが釣れる？ねらい目ランキング",
+        "sub": "関西の釣り場の「釣れそうな時間」を、毎日自動で計算",
+        "cards": [
+            ("rows", "ねらい目の計算に使っているもの", [
+                ("潮の動き", "気象庁の潮位表から、潮がよく動く時間"),
+                ("朝夕のまずめ", "日の出・日の入りの前後"),
+                ("営業時間", "施設が開いている時間だけ"),
+                ("風の予報", "気象庁の予報で、強風の時間は下げる"),
+            ]),
+            ("rows", "こんな時に", [
+                ("今日行くならどこ？", "トップページのランキングで比べる"),
+                ("週末の計画", "「この週末」タブで土日を確認"),
+                ("お気に入りの釣り場", "★を押すとランキングの上に表示"),
+            ]),
+        ],
+        "ask": ("釣りに行く時、いちばん気にするのは？", ["潮", "天気・風", "最近の釣果", "混み具合"]),
+        "caption": ["【使い方】今日・週末のねらい目ランキング", "", "潮の動き・朝夕のまずめ・営業時間・風の予報から、関西の釣り場の釣れそうな時間を毎日計算しています。",
+                    "トップページで、今日・明日・あさって・この週末を切り替えて比べられます。"],
+        "path": "/",
+    },
+]
+
+
+def make_feature(out, log):
+    done = {p["key"] for p in log["posts"]}
+    ft = next((x for x in FEATURES if x["key"] not in done), None)
+    if not ft:
+        return None
+    cover(f"{out}/1.jpg", ft["tag"], ft["title"], ft["sub"])
+    files = ["1.jpg"]
+    for i, c in enumerate(ft["cards"], 1):
+        path = f"{out}/{i + 1}.jpg"
+        if c[0] == "rows":
+            card(path, i, c[1], rows_body(c[2], 42, 30) if len(c[2]) <= 5 else rows_body(c[2], 36, 26))
+        else:
+            image_card(path, i, c[1], c[2], c[3])
+        files.append(f"{i + 1}.jpg")
+    ask_card(f"{out}/{len(files) + 1}.jpg", ft["ask"])
+    files.append(f"{len(files) + 1}.jpg")
+    cap = list(ft["caption"])
+    cap += site_lead(ft["path"], "ツレドキ関西")
+    cap += discuss.caption(ft["ask"]) + ["", TAGS + " #釣りアプリ #魚拓"]
+    return files, "\n".join(cap), ft["key"]
+
+
 def urllib_get(url):
     import urllib.request
     return urllib.request.urlopen(url, timeout=60)
@@ -293,8 +407,12 @@ def make(slot, out):
     if slot == "morning":
         files, cap, key = make_hot(out, ds)
     else:
-        # 23時：釣り方と豆知識を1日おきに
-        files, cap, key = (make_guide(out, log) if day.toordinal() % 2 == 0 else make_trivia(out, log))
+                # 3日ごとに「機能紹介」を入れる（紹介し終わったら、釣り方と豆知識を1日おきに）
+        k = day.toordinal() % 3
+        res = make_feature(out, log) if k == 2 else None
+        if not res:
+            res = make_guide(out, log) if k == 0 or (k == 2 and day.toordinal() % 2 == 0) else make_trivia(out, log)
+        files, cap, key = res
     stamp = f"{slot}-{ds}"
     json.dump({"key": key, "stamp": stamp, "files": files, "caption": cap}, open(f"{out}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(cap)
