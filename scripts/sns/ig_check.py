@@ -22,6 +22,12 @@ days = None
 try:
     d = http("GET", f"{API}/debug_token?input_token={urllib.parse.quote(tok)}&access_token={urllib.parse.quote(tok)}")["data"]
     exp = d.get("expires_at") or 0
+    scopes = d.get("scopes") or []
+    lack = [x for x in ("instagram_basic", "instagram_content_publish") if x not in scopes]
+    print(f"::notice::トークンの種類：{d.get('type')}・権限：{', '.join(scopes)}")
+    if lack:
+        print(f"::error::投稿に必要な権限が足りません：{', '.join(lack)}")
+        me = None
     if exp:
         days = (exp - time.time()) / 86400
         print(f"::notice::トークンの有効期限：{time.strftime('%Y-%m-%d', time.gmtime(exp + 9 * 3600))}（あと {days:.0f} 日）")
