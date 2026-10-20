@@ -8,7 +8,22 @@ from video_post import SITE, clean, http  # noqa: E402
 CREDIT = "音声合成：VOICEVOX:ずんだもん"
 
 
+ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "long-light-game", "long-ika-tako", "long-chinu", "long-big-game", "long-gomoku", "long-basics"]
+REC = "data/sns/long-posts.json"
+
+
+def posted():
+    try:
+        return json.load(open(REC, encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+
+
 def main():
+    if sys.argv[1] == "next":  # まだ投稿していない次の動画の slug を出す
+        done = posted()
+        print(next((s for s in ORDER if s not in done), ""))
+        return
     slug, mp4, thumb, chap = sys.argv[1:5]
     publish = "--publish" in sys.argv
     src = json.load(open(f"content/long/{slug}.json", encoding="utf-8"))
@@ -33,8 +48,14 @@ def main():
     size = os.path.getsize(mp4)
     r = http("POST", "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", json.dumps(meta).encode(),
              {"Authorization": f"Bearer {tok}", "Content-Type": "application/json; charset=UTF-8", "X-Upload-Content-Type": "video/mp4", "X-Upload-Content-Length": str(size)}, raw=True)
-    with open(mp4, "rb") as f:
+    try:
+        f = open(mp4, "rb")
         vid = http("PUT", r.headers["Location"], f.read(), {"Authorization": f"Bearer {tok}", "Content-Type": "video/mp4"})["id"]
+    except RuntimeError as e:
+        if "uploadLimitExceeded" in str(e):
+            print("::warning::YouTube の1日の投稿上限に達したため、次の回に投稿します")
+            return
+        raise
     print(f"::notice::youtube ok {vid}")
     try:  # サムネイルは電話番号の確認が済んだチャンネルだけ設定できる
         with open(thumb, "rb") as f:
@@ -42,13 +63,10 @@ def main():
         print("::notice::thumbnail ok")
     except Exception as e:
         print(f"::warning::サムネイルを設定できませんでした（電話番号の確認が必要な場合があります）: {e}")
-    rec_path = "data/sns/long-posts.json"
-    try:
-        rec = json.load(open(rec_path, encoding="utf-8"))
-    except FileNotFoundError:
-        rec = {}
+    rec = posted()
     rec[slug] = {"youtube": vid}
-    json.dump(rec, open(rec_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    os.makedirs(os.path.dirname(REC), exist_ok=True)
+    json.dump(rec, open(REC, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,38 @@
+name: Long video upload
+
+# long-media ブランチに保存した長尺動画を、1時間に1本ずつ YouTube に投稿する。
+# 全部投稿し終わったら何もしない。上限に達した時は次の回にもう一度試す。
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: long-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload next
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          S=$(python scripts/sns/yt_long.py next)
+          [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
+          git fetch -q --depth 1 origin long-media
+          mkdir -p out
+          for f in "$S.mp4" "$S.jpg" "$S-chapters.txt"; do git show "origin/long-media:$f" > "out/$f"; done
+          python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns/long-posts.json 2>/dev/null && git commit -qm "長尺動画の投稿記録: $S" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
