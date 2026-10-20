@@ -340,3 +340,18 @@ iframe.guide-video { border: 0; }
 .post-form textarea { font: inherit; font-weight: 400; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
 .post-form .check { display: flex; font-weight: 400; }
 .aq-promo { margin: 16px 0; border-left: 5px solid var(--glow); }
+
+/* 地図 */
+.spot-map { width: 100%; max-width: 680px; height: auto; display: block; margin: 8px 0; border-radius: 12px; border: 1px solid var(--line); }
+.spot-map .sea { fill: #d6e9f8; }
+.spot-map .land { fill: #efe9dc; stroke: #9aa3ab; stroke-width: 1; }
+.spot-map .pin { cursor: pointer; }
+.spot-map .pin:focus { outline: none; }
+.spot-map .pin:focus circle { stroke: #000; }
+.map-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 8px; }
+.map-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.map-card h3 { margin: 0 0 4px; }
+@media (prefers-color-scheme: dark) {
+  .spot-map .sea { fill: #16324a; }
+  .spot-map .land { fill: #2c2f33; stroke: #555; }
+}

@@ -55,6 +55,7 @@ export default function Home() {
       <ul className="quick-links">
         <li><Link href="/kansai/area/">エリア別：最近釣れている魚</Link></li>
         <li><Link href="/kansai/">条件で釣り場を探す</Link></li>
+        <li><Link href="/map/">地図から釣り場を探す</Link></li>
         <li><ThisMonthLink /></li>
         <li><Link href="/species/">魚種から探す</Link></li>
         <li><Link href="/safety/fish/">危険な魚ガイド</Link></li>

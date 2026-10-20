@@ -36,7 +36,7 @@ export default function KansaiIndex() {
       </p>
       <SpotFinder spots={spots} />
       <p className="small">
-        掲載する釣り場は順次追加します。<Link href="/kansai/area/">エリア別の釣果まとめ</Link>もご覧ください。
+        <Link href="/map/">地図から探す</Link>こともできます。掲載する釣り場は順次追加します。<Link href="/kansai/area/">エリア別の釣果まとめ</Link>もご覧ください。
       </p>
     </>
   );
