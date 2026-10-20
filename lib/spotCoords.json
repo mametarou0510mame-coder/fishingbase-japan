@@ -35,11 +35,12 @@
   "rough": false
  },
  "minami-ashiyahama-minami-gogan": {
-  "lat": 34.727,
-  "lon": 135.3041,
+  "lat": 34.716,
+  "lon": 135.3,
   "address": "兵庫県芦屋市（南芦屋浜の南護岸。南緑地東駐車場から入場）",
   "matched": "兵庫県芦屋市",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "amagasaki-uotsuri-koen": {
   "lat": 34.6826,
@@ -105,46 +106,52 @@
   "rough": false
  },
  "mukogawa-ichimonji": {
-  "lat": 35.2526,
-  "lon": 133.484,
+  "lat": 34.68,
+  "lon": 135.375,
   "address": "武庫川河口の沖（武庫川渡船で渡ります）",
   "matched": "鳥取県江府町武庫",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "kishiwada-ichimonji": {
-  "lat": 34.4606,
-  "lon": 135.3709,
+  "lat": 34.465,
+  "lon": 135.35,
   "address": "岸和田市沖（岸和田渡船で渡ります。乗り場：大阪府泉北郡忠岡町新浜1丁目8-11）",
   "matched": "大阪府岸和田市",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "kaizuka-jinkoto": {
-  "lat": 34.4374,
-  "lon": 135.3581,
+  "lat": 34.448,
+  "lon": 135.335,
   "address": "大阪府貝塚市（二色の浜公園の対岸の人工島）",
   "matched": "大阪府貝塚市",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "yumemai-ohashi-shita": {
-  "lat": 34.6831,
-  "lon": 135.4522,
+  "lat": 34.66,
+  "lon": 135.405,
   "address": "大阪府大阪市此花区（舞洲側の夢舞大橋のたもと）",
   "matched": "大阪府大阪市此花区",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "maishima-seaside-promenade": {
-  "lat": 34.6831,
-  "lon": 135.4522,
+  "lat": 34.665,
+  "lon": 135.392,
   "address": "大阪府大阪市此花区（舞洲緑地内）",
   "matched": "大阪府大阪市此花区",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "shiomi-futo": {
-  "lat": 34.5044,
-  "lon": 135.4103,
+  "lat": 34.508,
+  "lon": 135.393,
   "address": "大阪府泉大津市（汐見埠頭）",
   "matched": "大阪府泉大津市",
-  "rough": false
+  "rough": true,
+  "manual": true
  },
  "tadaoka-suigintou": {
   "lat": 34.498,
@@ -196,10 +203,11 @@
   "rough": false
  },
  "yumeshima-hato-yazawa": {
-  "lat": 35.196,
-  "lon": 138.3465,
+  "lat": 34.643,
+  "lon": 135.395,
   "address": "渡船乗り場：大阪市港区八幡屋1丁目（ヤザワ渡船）",
   "matched": "静岡県静岡市葵区渡",
-  "rough": false
+  "rough": true,
+  "manual": true
  }
 }
