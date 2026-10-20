@@ -1,0 +1,205 @@
+{
+ "amino-asamogawa-ko": {
+  "lat": 35.6854,
+  "lon": 135.016,
+  "address": "京都府京丹後市網野町浅茂川",
+  "matched": "京都府京丹後市網野町浅茂川",
+  "rough": false
+ },
+ "taiza-ko": {
+  "lat": 35.729,
+  "lon": 135.094,
+  "address": "京都府京丹後市丹後町間人",
+  "matched": "京都府京丹後市丹後町間人",
+  "rough": false
+ },
+ "minamiawaji-megafloat": {
+  "lat": 34.2271,
+  "lon": 134.7037,
+  "address": "兵庫県南あわじ市阿万吹上町1432番地2",
+  "matched": "兵庫県南あわじ市阿万吹上町１４３２番地",
+  "rough": false
+ },
+ "azur-maiko-shinsui-gogan": {
+  "lat": 34.6272,
+  "lon": 135.0455,
+  "address": "兵庫県神戸市垂水区海岸通（アジュール舞子）",
+  "matched": "兵庫県神戸市垂水区海岸通",
+  "rough": false
+ },
+ "kobe-airport-shinsui-gogan": {
+  "lat": 34.6377,
+  "lon": 135.2248,
+  "address": "兵庫県神戸市中央区神戸空港（神戸空港島 西緑地）",
+  "matched": "兵庫県神戸市中央区神戸空港",
+  "rough": false
+ },
+ "minami-ashiyahama-minami-gogan": {
+  "lat": 34.727,
+  "lon": 135.3041,
+  "address": "兵庫県芦屋市（南芦屋浜の南護岸。南緑地東駐車場から入場）",
+  "matched": "兵庫県芦屋市",
+  "rough": false
+ },
+ "amagasaki-uotsuri-koen": {
+  "lat": 34.6826,
+  "lon": 135.3715,
+  "address": "兵庫県尼崎市平左衛門町66",
+  "matched": "兵庫県尼崎市平左衛門町６６番地",
+  "rough": false
+ },
+ "hiraiso-umizuri-koen": {
+  "lat": 34.6283,
+  "lon": 135.0665,
+  "address": "兵庫県神戸市垂水区平磯1丁目1番66号",
+  "matched": "兵庫県神戸市垂水区平磯一丁目１番",
+  "rough": false
+ },
+ "marina-city-tsuri-koen": {
+  "lat": 34.1653,
+  "lon": 135.1871,
+  "address": "和歌山県和歌山市毛見（和歌山マリーナシティ内）",
+  "matched": "和歌山県和歌山市毛見",
+  "rough": false
+ },
+ "suma-umizuri-koen": {
+  "lat": 34.6375,
+  "lon": 135.1012,
+  "address": "兵庫県神戸市須磨区一ノ谷町5丁目地先",
+  "matched": "兵庫県神戸市須磨区一ノ谷町五丁目",
+  "rough": false
+ },
+ "maizuru-shinkai-koen": {
+  "lat": 35.5141,
+  "lon": 135.3442,
+  "address": "京都府舞鶴市字千歳897-1",
+  "matched": "京都府舞鶴市千歳８９７番地",
+  "rough": false
+ },
+ "sakai-umizuri-terrace": {
+  "lat": 34.6007,
+  "lon": 135.429,
+  "address": "大阪府堺市堺区匠町6番1（海とのふれあい広場内）",
+  "matched": "大阪府堺市堺区匠町６番地",
+  "rough": false
+ },
+ "totto-park-kojima": {
+  "lat": 34.3131,
+  "lon": 135.1004,
+  "address": "大阪府泉南郡岬町多奈川小島455-1",
+  "matched": "大阪府岬町多奈川小島４５５番地",
+  "rough": false
+ },
+ "nanko-uotsuri-en": {
+  "lat": 34.6146,
+  "lon": 135.4034,
+  "address": "大阪府大阪市住之江区南港南6-9-3",
+  "matched": "大阪府大阪市住之江区南港南六丁目９番３号",
+  "rough": false
+ },
+ "naruohama-umizuri-hiroba": {
+  "lat": 34.6996,
+  "lon": 135.3636,
+  "address": "兵庫県西宮市鳴尾浜（鳴尾浜臨海公園 南地区内）",
+  "matched": "兵庫県西宮市鳴尾浜",
+  "rough": false
+ },
+ "mukogawa-ichimonji": {
+  "lat": 35.2526,
+  "lon": 133.484,
+  "address": "武庫川河口の沖（武庫川渡船で渡ります）",
+  "matched": "鳥取県江府町武庫",
+  "rough": false
+ },
+ "kishiwada-ichimonji": {
+  "lat": 34.4606,
+  "lon": 135.3709,
+  "address": "岸和田市沖（岸和田渡船で渡ります。乗り場：大阪府泉北郡忠岡町新浜1丁目8-11）",
+  "matched": "大阪府岸和田市",
+  "rough": false
+ },
+ "kaizuka-jinkoto": {
+  "lat": 34.4374,
+  "lon": 135.3581,
+  "address": "大阪府貝塚市（二色の浜公園の対岸の人工島）",
+  "matched": "大阪府貝塚市",
+  "rough": false
+ },
+ "yumemai-ohashi-shita": {
+  "lat": 34.6831,
+  "lon": 135.4522,
+  "address": "大阪府大阪市此花区（舞洲側の夢舞大橋のたもと）",
+  "matched": "大阪府大阪市此花区",
+  "rough": false
+ },
+ "maishima-seaside-promenade": {
+  "lat": 34.6831,
+  "lon": 135.4522,
+  "address": "大阪府大阪市此花区（舞洲緑地内）",
+  "matched": "大阪府大阪市此花区",
+  "rough": false
+ },
+ "shiomi-futo": {
+  "lat": 34.5044,
+  "lon": 135.4103,
+  "address": "大阪府泉大津市（汐見埠頭）",
+  "matched": "大阪府泉大津市",
+  "rough": false
+ },
+ "tadaoka-suigintou": {
+  "lat": 34.498,
+  "lon": 135.3825,
+  "address": "大阪府泉北郡忠岡町新浜（大津川河口の波止の先端）",
+  "matched": "大阪府忠岡町新浜",
+  "rough": false
+ },
+ "yura-umizuri-koen": {
+  "lat": 33.9598,
+  "lon": 135.0841,
+  "address": "和歌山県日高郡由良町神谷465-1",
+  "matched": "和歌山県由良町神谷",
+  "rough": false
+ },
+ "sennan-fishing-park-sazan": {
+  "lat": 34.3782,
+  "lon": 135.256,
+  "address": "大阪府泉南市りんくう南浜2-202（樽井漁港内）",
+  "matched": "大阪府泉南市りんくう南浜２番地",
+  "rough": false
+ },
+ "kaijo-tsuribori-opa": {
+  "lat": 34.3162,
+  "lon": 135.1237,
+  "address": "大阪府泉南郡岬町多奈川谷川3821",
+  "matched": "大阪府岬町多奈川谷川",
+  "rough": false
+ },
+ "shimotsu-pialand": {
+  "lat": 34.1377,
+  "lon": 135.151,
+  "address": "和歌山県海南市下津町丸田1204-20",
+  "matched": "和歌山県海南市下津町丸田１２０４番地",
+  "rough": false
+ },
+ "okura-kaigan-higashi": {
+  "lat": 34.6434,
+  "lon": 135.0144,
+  "address": "兵庫県明石市大蔵海岸通1丁目140付近",
+  "matched": "兵庫県明石市大蔵海岸通一丁目１４０番地",
+  "rough": false
+ },
+ "nakasaki-veranda-gogan": {
+  "lat": 34.6432,
+  "lon": 134.9987,
+  "address": "兵庫県明石市中崎1丁目（明石市役所の南側）",
+  "matched": "兵庫県明石市中崎一丁目",
+  "rough": false
+ },
+ "yumeshima-hato-yazawa": {
+  "lat": 35.196,
+  "lon": 138.3465,
+  "address": "渡船乗り場：大阪市港区八幡屋1丁目（ヤザワ渡船）",
+  "matched": "静岡県静岡市葵区渡",
+  "rough": false
+ }
+}
