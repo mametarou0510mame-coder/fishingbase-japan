@@ -139,7 +139,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
           <br />
           この釣り場は、当サイトで最新のルールまで確認できていないため、概要のみ掲載しています。
           お出かけ前に
-          <a href={spot.officialUrl} rel="noopener">{spot.type === "一般の釣り場" ? "参照ページ" : "施設のサイト"}</a>
+          <a href={spot.officialUrl} rel="noopener">{spot.type === "一般の釣り場" || spot.officialUrl.includes("mlit.go.jp") ? "参照ページ" : "施設のサイト"}</a>
           {spot.sourceUrls.map((u) => (
             <span key={u}>
               、<a href={u} rel="noopener">案内ページ（{new URL(u).hostname}）</a>
