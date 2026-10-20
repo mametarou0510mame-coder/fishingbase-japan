@@ -1,0 +1,22 @@
+name: Instagram check
+
+# Instagram の連携（トークン）を毎日確かめ、切れそうな時は Issue で知らせる。
+on:
+  schedule:
+    - cron: "10 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/sns/ig_check.py
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
