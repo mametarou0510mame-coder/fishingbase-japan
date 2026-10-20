@@ -614,6 +614,37 @@ def scene_points(d, t, dur, s, meta):
             y += 130
 
 
+def scene_ask(d, t, dur, s, meta):
+    """コメント欄への質問（例：「アミエビ派？トリック派？」と番号の選択肢）"""
+    heading(d, s.get("heading", "コメントで教えて！"))
+    a = ease(t / 0.5)
+    # 吹き出し
+    fq = F(FONT_BLACK, 54)
+    lines = wrap(d, s["question"], fq, PW - 160)
+    bh = 60 + 70 * len(lines)
+    d.rounded_rectangle([40, 160, PW - 40, 160 + bh], radius=36, fill=alpha(NAVY, a))
+    d.polygon([(120, 160 + bh), (180, 160 + bh), (110, 160 + bh + 50)], fill=alpha(NAVY, a))
+    for j, ln in enumerate(lines):
+        center_text(d, PW / 2, 190 + j * 70, ln, fq, alpha(WHITE, a))
+    # 選択肢
+    y = 160 + bh + 90
+    fo = F(FONT_BOLD, 48)
+    opts = s.get("options", [])
+    for i, o in enumerate(opts):
+        b = ease((t - appear_at(s, i, 0.6 + i * 0.35)) / 0.4)
+        if b <= 0:
+            y += 120
+            continue
+        d.rounded_rectangle([60, y, PW - 60, y + 96], radius=48, fill=alpha(WHITE, b), outline=alpha(SEA_DEEP, b), width=4)
+        d.ellipse([78, y + 12, 150, y + 84], fill=alpha(RED, b))
+        center_text(d, 114, y + 18, str(i + 1), F(FONT_BLACK, 46), alpha(WHITE, b))
+        d.text((176, y + 20), o, font=fo, fill=alpha(INK, b))
+        y += 120
+    c = ease((t - 0.8 - len(opts) * 0.35) / 0.5)
+    if c > 0:
+        center_text(d, PW / 2, min(PH - 90, y + 20), "番号＋ひとことでコメントしてね", F(FONT_BOLD, 42), alpha(RED, c))
+
+
 def scene_end(d, t, dur, s, meta):
     d.rounded_rectangle([0, 0, PW, PH], radius=36, fill=NAVY2)
     pts = [(x, 820 + 16 * math.sin(x / 140 + t * 2)) for x in range(0, PW + 1, 8)]
@@ -1383,6 +1414,7 @@ SCENES = {
     "pattern": scene_pattern,
     "points": scene_points,
     "end": scene_end,
+    "ask": scene_ask,
 }
 
 

@@ -7,6 +7,9 @@
 #   Instagram: IG_USER_ID, IG_TOKEN
 #   YouTube  : YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
 import argparse, glob, json, os, sys, time, urllib.error, urllib.parse, urllib.request
+
+sys.path.insert(0, os.path.dirname(__file__))
+import discuss  # noqa: E402
 from datetime import datetime, timedelta, timezone
 
 SITE = os.environ.get("SITE_URL", "https://tsuredoki-kansai.mametarou0510mame.workers.dev")
@@ -78,6 +81,8 @@ def caption_instagram(g):
     lines += ["", "▼その日のパターン"]
     lines += [f"・{r['when']} → {r['do']}" for r in g["patterns"]["rows"][:3]]
     lines += site_lead(f"/guide/{g['slug']}/", "道具リスト（初級・中級・上級）・向いている関西の釣り場・今日の釣れる時間")
+    if g["slug"] in discuss.GUIDE:
+        lines += discuss.caption(discuss.GUIDE[g["slug"]]) + [""]
     lines += [CREDIT, "", " ".join("#" + w for w in tag_words(g))]
     return "\n".join(lines)
 
@@ -91,7 +96,7 @@ def youtube_meta(g):
     desc += ["", "▼その日のパターン"]
     desc += [f"・{r['when']} → {r['do']}" for r in g["patterns"]["rows"][:4]]
     desc += ["", "道具リスト（初級・中級・上級）・向いている関西の釣り場はこちら", f"{SITE}/guide/{g['slug']}/", "",
-             "関西の釣果・潮・釣れる時間（ねらい目）をまとめてチェック", f"{SITE}/", "", CREDIT, "", " ".join("#" + w for w in tag_words(g)[:10])]
+             "関西の釣果・潮・釣れる時間（ねらい目）をまとめてチェック", f"{SITE}/"] + (discuss.caption(discuss.GUIDE[g["slug"]]) if g["slug"] in discuss.GUIDE else []) + ["", CREDIT, "", " ".join("#" + w for w in tag_words(g)[:10])]
     return {
         "snippet": {"title": title, "description": "\n".join(desc), "tags": tag_words(g), "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},

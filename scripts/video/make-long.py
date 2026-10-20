@@ -1,6 +1,9 @@
 # YouTube 長尺動画（約10分）の台本を、釣り方ガイド（content/guides）から組み立てる。
 #   python3 scripts/video/make-long.py   → content/long/<slug>.json
-import json, os
+import json, os, sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "sns"))
+import discuss  # noqa: E402
 
 OUT = "content/long"
 G = {os.path.basename(p)[:-5]: json.load(open(f"content/guides/{p}", encoding="utf-8")) for p in os.listdir("content/guides") if p.endswith(".json") and not p.startswith("_")}
@@ -96,6 +99,10 @@ def main():
             chapters.append(g["title"])
             scenes += chapter_scenes(g, len(chapters) - 1)
         chapters.append("まとめ")
+        ask = discuss.scene(discuss.LONG[p["slug"]]) if p["slug"] in discuss.LONG else None
+        if ask:
+            ask["chapter"] = len(chapters) - 1
+            scenes.append(ask)
         scenes.append({"type": "end", "lines": p["outro"], "chapter": len(chapters) - 1})
         doc = {"slug": p["slug"], "title": p["title"], "sub": "", "tag": "釣り方ガイド 完全版", "thumb": p["thumb"], "thumb_sub": p["thumb_sub"], "guides": p["guides"], "chapters": chapters, "video": {"scenes": scenes}}
         json.dump(doc, open(f"{OUT}/{p['slug']}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)

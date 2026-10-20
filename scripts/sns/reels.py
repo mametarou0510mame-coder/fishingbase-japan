@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(__file__))
 from video_post import SITE, clean, http, site_lead  # noqa: E402
+import discuss  # noqa: E402
 
 JST = timezone(timedelta(hours=9))
 WEEK = "月火水木金土日"
@@ -103,6 +104,8 @@ def make_spots(day):
     caution = [f"{windy}か所で風速10m以上の予報" if windy else "風の予報は各釣り場のページで", "ライフジャケットを着る", "釣り場のルールを確認"]
     scenes.append({"type": "points", "heading": "③ 出かける前に", "items": caution,
                    "lines": [f"今日は、{windy}か所で強い風の予報です。無理はしないでください。" if windy else "出かける前に、風の予報と釣り場のルールを確認しましょう。"]})
+    q = discuss.spots([short_spot(x["name"]) for x in top])
+    scenes.append(discuss.scene(q))
     scenes.append(END)
     guide = {"title": "今日の釣れる時間", "sub": f"{md(date)}・{tide}", "tag": "今日の釣り情報", "video": {"scenes": scenes}}
 
@@ -116,6 +119,7 @@ def make_spots(day):
         cap += ["", f"⚠ {windy}か所で風速10m以上の予報。無理な釣行は控えましょう"]
     cap += ["", "潮の動き・朝夕のまずめ・営業時間・風の予報（気象庁）から計算した目安です。釣果は各施設・釣具店の発表より。"]
     cap += site_lead("/", "釣り場ごとのタイドグラフ・天気・最近の釣果")
+    cap += discuss.caption(q) + [""]
     cap += [CREDIT, "", TAGS + " #釣り情報"]
     return guide, "\n".join(cap)
 
@@ -149,10 +153,13 @@ def make_weekend(day):
         cap.append("")
     scenes.append({"type": "points", "heading": "週末に出かける前に", "items": ["前日に風と波の予報を確認", "ライフジャケットを着る", "混雑時は周りと譲り合う"],
                    "lines": ["前の日に、風と波の予報をもう一度確認してから出かけましょう。"]})
+    q = discuss.weekend()
+    scenes.append(discuss.scene(q))
     scenes.append(END)
     g = {"title": "週末の釣れる時間", "sub": "・".join(md(x) for x in wk), "tag": "週末の釣り情報", "video": {"scenes": scenes}}
     cap += ["潮の動き・朝夕のまずめ・営業時間・風の予報（気象庁）から計算した目安です。予報は変わることがあるので、前日にもう一度確認しましょう。"]
     cap += site_lead("/", "釣り場ごとのタイドグラフ・天気・最近の釣果")
+    cap += discuss.caption(q) + [""]
     cap += [CREDIT, "", TAGS + " #週末釣り #釣り情報"]
     return g, "\n".join(cap)
 
@@ -189,8 +196,9 @@ def make_deals(day):
         {"type": "tackle", "heading": f"① {head}", "items": rows, "lines": lines},
         {"type": "points", "heading": "② 買う前に", "items": ["価格・在庫は変わることがあります", "釣り場のルールに合うか確認", "くわしくはサイトのセールページへ"],
          "lines": ["価格や在庫は変わることがあります。くわしくは、ツレドキ関西のセールページを見てください。"]},
-        END,
     ]
+    q = discuss.deals([short_item(it["name"]) for it in items])
+    scenes += [discuss.scene(q), END]
     guide = {"title": "今日のお得な釣り道具", "sub": "楽天市場【PR】", "tag": "PR・お得情報", "video": {"scenes": scenes}}
     cap = [f"【PR】今日のお得な釣り道具｜{head}", ""]
     for it in items:
@@ -198,6 +206,7 @@ def make_deals(day):
         cap.append(f"・{short_item(it['name'])}　{it['price']:,}円{rv}")
     cap += ["", f"楽天市場の情報（{d.get('updatedOn', '')}時点）です。価格・在庫・ポイントは変わることがあります。"]
     cap += site_lead("/gear/sale/", "商品へのリンクと、ほかのセール情報")
+    cap += discuss.caption(q) + [""]
     cap += ["この投稿は広告（アフィリエイト）を含みます。", "", CREDIT, "", "#PR " + TAGS + " #釣り具 #釣具セール"]
     return guide, "\n".join(cap)
 
@@ -210,11 +219,13 @@ def make_trivia(day, log):
     scenes = [
         {"type": "title", "lines": [t["title"]]},
         {"type": "points", "heading": "答え", "items": t["points"], "lines": t["lines"]},
-        END,
     ]
+    q = discuss.trivia(t)
+    scenes += [discuss.scene(q), END]
     guide = {"title": t["title"], "sub": "釣りの豆知識", "tag": f"釣りの豆知識 No.{t['no']}", "video": {"scenes": scenes}, "key": f"trivia-{t['id']}"}
     cap = [f"【釣りの豆知識】{t['title']}", ""] + t["lines"] + [""] + [f"・{p}" for p in t["points"]]
     cap += site_lead(t.get("link", "/"), "関連する釣り方ガイド・今日の釣れる時間")
+    cap += discuss.caption(q) + [""]
     cap += [CREDIT, "", TAGS + " #釣りの豆知識 #釣り雑学"]
     return guide, "\n".join(cap)
 
