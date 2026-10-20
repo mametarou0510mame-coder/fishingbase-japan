@@ -26,12 +26,14 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
         run: |
+          set -o pipefail
+          trap 'echo "::error::失敗した行: $BASH_COMMAND"' ERR
           S=$(python scripts/sns/yt_long.py next)
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
           mkdir -p out
           for f in "$S.mp4" "$S.jpg" "$S-chapters.txt"; do git show "origin/long-media:$f" > "out/$f"; done
-          python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish
+          python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish 2>&1 | tee /tmp/up.log || { echo "::error::$(tail -c 600 /tmp/up.log | tr '\n' ' ')"; exit 1; }
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           git add data/sns/long-posts.json 2>/dev/null && git commit -qm "長尺動画の投稿記録: $S" || exit 0
