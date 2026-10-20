@@ -90,9 +90,19 @@ def build(p):
     gs = [G[k] for k in p["guides"]]
     chapters = ["はじめに"] + [g["title"] for g in gs]
     trouble, seen_rows, seen_scene, seen_safety = [], set(), set(), set()
+    prev = {}
     body = []
     for ci, g in enumerate(gs, 1):
-        sc = [{"type": "chapter", "no": ci, "title": g["title"], "items": [f"釣れる魚：{'、'.join(g['targets'][:4])}", f"季節：{g['season'].split('、')[0][:24]}"],
+        items = []
+        tg = "、".join(g["targets"][:4])
+        if tg != prev.get("targets"):
+            items.append(f"釣れる魚：{tg}")
+        ss = g["season"].split("、")[0][:24]
+        if ss != prev.get("season"):
+            items.append(f"季節：{ss}")
+        items += [f"ポイント：{x['title']}" for x in g["steps"][1:3]]
+        prev = {"targets": tg, "season": ss}
+        sc = [{"type": "chapter", "no": ci, "title": g["title"], "items": items[:4],
                "lines": [("まずは、" if ci == 1 else "次は、" if ci < len(gs) else "最後は、") + f"{g['title']}です。" + first_sentence(g["summary"])]}]
         # 図解（前の章と同じ図は出さない）
         for s in g["video"]["scenes"]:
@@ -144,7 +154,7 @@ def build(p):
                      "lines": [f"道具をまとめます。はじめての人は、{t0['budget'].replace('目安 ', 'およそ')}から始められます。" if k == 0 else "続けて紹介します。"] + [f"{it['name']}は、{it['spec']}。" for it in part]})
     up = [t for t in gs[0]["tackle"][1:]]
     if up:
-        tail.append({"type": "points", "heading": "慣れてきたら", "items": [f"{t['tier']}：{'、'.join(i['name'] for i in t['items'][:3])}" for t in up][:4], "chapter": len(chapters) - 1,
+        tail.append({"type": "points", "heading": "慣れてきたら", "items": [f"{t['tier']}：" + "／".join(f"{i['name']} {i['spec'].split('（')[0][:16]}" for i in t["items"][:2]) for t in up][:4], "chapter": len(chapters) - 1,
                      "lines": [f"慣れてきたら、ステップアップ。{up[0]['tier']}の道具は、{up[0]['who'].rstrip('。')}の道具です。" + (f"{up[0]['budget'].replace('目安 ', 'およそ')}が目安です。" if up[0].get('budget') else ""), "この動画で紹介した道具は、概要欄のリンクから見られます。"]})
     # 場所と安全も最後に1回（釣りの基本の回は「安全とマナー」だけ）
     basic = all(g["category"] == "基本" for g in gs)
