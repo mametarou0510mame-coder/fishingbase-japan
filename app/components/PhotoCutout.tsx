@@ -25,7 +25,7 @@ async function loadSegmenter(): Promise<MP> {
       const mod = await import(/* webpackIgnore: true */ `${MP_URL}/vision_bundle.mjs`);
       const fileset = await mod.FilesetResolver.forVisionTasks(`${MP_URL}/wasm`);
       const seg = await mod.InteractiveSegmenter.createFromModelPath(fileset, MODEL);
-      return { seg, POS: mod.BrushMode?.POSITIVE ?? "POSITIVE", NEG: mod.BrushMode?.NEGATIVE ?? "NEGATIVE" };
+      return { seg, POS: mod.BrushMode?.POSITIVE ?? 1, NEG: mod.BrushMode?.NEGATIVE ?? 2 /* 1.0.1 では列挙が公開されていないので数値で指定 */ };
     })();
     mpPromise.catch(() => (mpPromise = null));
   }
