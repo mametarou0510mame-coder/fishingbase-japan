@@ -1,5 +1,6 @@
 # 1日4回のリール動画（Instagram／YouTube）を作って投稿する。
 #   06:00 spots   … 今日の釣れる時間（ねらい目）と最近の釣果
+#   20:00 tomorrow … 明日の釣れる時間（金曜は weekend）
 #   12:00 guide   … 釣り方ガイド（作成済みの動画を順番に）
 #   18:00 deals   … 釣り道具のお得情報（楽天市場・PR）
 #   00:00 trivia  … 釣りの豆知識
@@ -56,7 +57,8 @@ def short_spot(name):
 
 
 # ---------- 06:00 今日の釣れる時間 ----------
-def make_spots(day):
+def make_spots(day, when="今日"):
+    """when=「今日」は朝6時、「明日」は前の日の20時に出す"""
     data = get_json(f"{SITE}/sns/today.json")
     date = day if day in [d["date"] for d in data["dates"]] else data["dates"][0]["date"]
     tide = next((d["tideName"] for d in data["dates"] if d["date"] == date), "")
@@ -87,29 +89,29 @@ def make_spots(day):
             val = f"{cnt}匹" if cnt >= 10 else (f"{size:g}cm" if size else (f"{cnt}匹" if cnt else ""))
             crow.append([short_spot(it["name"]), f"{it['species'].split('（')[0]} {val}".strip()])
 
-    lines1 = [f"{md(date)}は{tide}。今日の釣れる時間をお知らせします。"]
+    lines1 = [f"{md(date)}は{tide}。{when}の釣れる時間をお知らせします。"]
     if top:
         s0 = top[0]
         lines2 = [f"一番のねらい目は、{short_spot(s0['name'])}の、{best(s0)['from']}:00から{best(s0)['to']}:00です。",
                   "潮の動きと、朝夕のまずめから計算しています。"]
     else:
-        lines2 = ["今日は、営業時間内に目立つねらい目が少ない日です。"]
+        lines2 = [f"{when}は、営業時間内に目立つねらい目が少ない日です。"]
     scenes = [{"type": "title", "lines": lines1}]
     if top:
-        scenes.append({"type": "pattern", "heading": "① 今日のねらい目", "rows": rows, "lines": lines2})
+        scenes.append({"type": "pattern", "heading": f"① {when}のねらい目", "rows": rows, "lines": lines2})
     if crow:
         c0 = crow[0]
         scenes.append({"type": "pattern", "heading": f"② 最近の釣果（{md(cdays[0])}）", "rows": crow,
                        "lines": [f"最近の釣果では、{c0[0]}で、{c0[1].replace('匹', 'ひき')}が上がっています。"]})
     caution = [f"{windy}か所で風速10m以上の予報" if windy else "風の予報は各釣り場のページで", "ライフジャケットを着る", "釣り場のルールを確認"]
     scenes.append({"type": "points", "heading": "③ 出かける前に", "items": caution,
-                   "lines": [f"今日は、{windy}か所で強い風の予報です。無理はしないでください。" if windy else "出かける前に、風の予報と釣り場のルールを確認しましょう。"]})
+                   "lines": [f"{when}は、{windy}か所で強い風の予報です。無理はしないでください。" if windy else "出かける前に、風の予報と釣り場のルールを確認しましょう。"]})
     q = discuss.spots([short_spot(x["name"]) for x in top])
     scenes.append(discuss.scene(q))
     scenes.append(END)
-    guide = {"title": "今日の釣れる時間", "sub": f"{md(date)}・{tide}", "tag": "今日の釣り情報", "video": {"scenes": scenes}}
+    guide = {"title": f"{when}の釣れる時間", "sub": f"{md(date)}・{tide}", "tag": f"{when}の釣り情報", "video": {"scenes": scenes}}
 
-    cap = [f"【今日の釣れる時間】{md(date)} {tide}", ""]
+    cap = [f"【{when}の釣れる時間】{md(date)} {tide}", ""] + (["前の日のうちに、明日の釣行計画にどうぞ。", ""] if when == "明日" else [])
     for i, s in enumerate(top, 1):
         w = best(s)
         cap.append(f"{'①②③'[i - 1]} {s['name']}　{w['grade']}{w['from']}〜{w['to']}時（{'・'.join(w['reasons']) or '総合'}）")
@@ -240,6 +242,9 @@ def make(slot, outdir):
     log = load_log()
     if slot == "spots":
         g, cap = make_spots(day)
+    elif slot == "tomorrow":
+        day = (now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        g, cap = make_spots(day, "明日")
     elif slot == "weekend":
         g, cap = make_weekend(day)
     elif slot == "deals":
