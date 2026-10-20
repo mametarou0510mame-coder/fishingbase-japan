@@ -1,5 +1,6 @@
 # 公開中のサイトで「写真から魚を自動で切り抜く」が動くか確かめる（GitHub Actions で実行）
-import sys
+import os, sys
+os.makedirs("shots", exist_ok=True)
 from playwright.sync_api import sync_playwright
 
 SITE = "https://tsuredoki-kansai.mametarou0510mame.workers.dev"
@@ -32,6 +33,18 @@ with sync_playwright() as p:
     print(f"::notice::cyan coverage: {cov:.3f}")
     for l in logs[-8:]:
         print(f"::notice::log {l[:300]}")
-    pg.screenshot(path="cutout-e2e.png")
+    pg.locator(".cutout-canvas").screenshot(path="shots/1-select.png")
+    if cov > 0.05:
+        pg.get_by_role("button", name="次へ").click()
+        pg.wait_for_timeout(1000)
+        pg.get_by_role("button", name="これで決定").click()
+        pg.wait_for_timeout(4000)
+        g = pg.locator(".gyotaku-svg")
+        g.screenshot(path="shots/2-photo.png")
+        pg.get_by_text("墨の魚拓").click()
+        pg.wait_for_timeout(1500)
+        g.screenshot(path="shots/3-ink.png")
+        pg.wait_for_timeout(1000)
+        pg.locator(".tank").screenshot(path="shots/4-tank.png")
     b.close()
     sys.exit(0 if cov > 0.05 else 1)

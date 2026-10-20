@@ -8,7 +8,7 @@ on:
         default: e2e_cutout.py
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
@@ -19,3 +19,11 @@ jobs:
           pip install --quiet playwright
           python -m playwright install --with-deps chromium > /dev/null
           python scripts/test/${{ github.event.inputs.script || 'e2e_cutout.py' }}
+      - name: Save screenshots
+        if: always()
+        run: |
+          [ -d shots ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git worktree add --detach /tmp/shots && cd /tmp/shots && git checkout --orphan e2e-shots && git rm -rf . -q || true
+          cp $GITHUB_WORKSPACE/shots/* /tmp/shots/ && git add -A && git commit -qm "e2e shots" && git push -f origin e2e-shots
