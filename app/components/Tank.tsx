@@ -47,9 +47,15 @@ const wOf = (f: TankFish, z: number) => Math.max(44, Math.min(f.photo ? 200 : 17
 type State = {
   x: number; y: number; vx: number; vy: number; tx: number; ty: number;
   want: number; timer: number; face: number; dir: number; beat: number; resting: boolean; back: boolean;
+  leaving?: number; gone?: boolean; // リリースで出ていく向き（-1 左 / 1 右）
 };
 
-export default function Tank({ fish, onPick, children }: { fish: TankFish[]; onPick: (id: string) => void; children?: React.ReactNode }) {
+// release に魚の id を渡すと、その魚は水槽の外へ泳いで出ていき、出きったら onReleased を呼ぶ（リリース）
+export default function Tank({ fish, onPick, release = null, onReleased, children }: { fish: TankFish[]; onPick: (id: string) => void; release?: string | null; onReleased?: (id: string) => void; children?: React.ReactNode }) {
+  const releaseRef = useRef<string | null>(release);
+  const onReleasedRef = useRef(onReleased);
+  releaseRef.current = release;
+  onReleasedRef.current = onReleased;
   const box = useRef<HTMLDivElement>(null);
   const els = useRef(new Map<string, { outer: HTMLElement; orient: HTMLElement; sprite: HTMLElement }>());
   const states = useRef(new Map<string, State>());
@@ -115,6 +121,7 @@ export default function Tank({ fish, onPick, children }: { fish: TankFish[]; onP
 
     if (reduce) {
       for (const f of fish) draw(f, states.current.get(f.id)!, kindOf(f.species));
+      if (releaseRef.current) onReleasedRef.current?.(releaseRef.current);
       return () => ro.disconnect();
     }
 
@@ -129,11 +136,21 @@ export default function Tank({ fish, onPick, children }: { fish: TankFish[]; onP
         const P = PROFILE[k];
         const { w } = size(f);
         s.timer -= dt;
+        if (releaseRef.current === f.id && !s.leaving) {
+          // 近い方の端から、少し上へ向かって勢いよく出ていく
+          s.leaving = s.x < W / 2 ? -1 : 1;
+          s.tx = s.leaving > 0 ? W + w + 60 : -w - 60;
+          s.ty = clamp(s.y - H * 0.25, 30, H * 0.5);
+          s.want = 170;
+          s.resting = false;
+          s.back = false;
+          s.timer = 99;
+        }
         const dx = s.tx - s.x, dy = s.ty - s.y;
         const dist = Math.hypot(dx, dy);
-        if (s.timer <= 0 || (!s.resting && dist < 12)) pickTarget(f, s, k);
+        if (!s.leaving && (s.timer <= 0 || (!s.resting && dist < 12))) pickTarget(f, s, k);
         // 目的地に近づくと減速
-        const speed = s.want * clamp(dist / 60, 0.15, 1);
+        const speed = s.leaving ? s.want : s.want * clamp(dist / 60, 0.15, 1);
         let ux = dist > 0.1 ? dx / dist : 0, uy = dist > 0.1 ? dy / dist : 0;
         if (k === "school") {
           // 同じ種類の仲間と向きをそろえ、少しまとまる
@@ -150,13 +167,17 @@ export default function Tank({ fish, onPick, children }: { fish: TankFish[]; onP
             uy = uy * 0.6 + (ay / m) * 0.3 + ((cy / n - s.y) / 160) * 0.1;
           }
         }
-        if (k === "bottom" || k === "crawl") uy *= 0.2; // 底の魚はあまり浮かない
+        if ((k === "bottom" || k === "crawl") && !s.leaving) uy *= 0.2; // 底の魚はあまり浮かない
         const a = Math.min(1, dt * P.accel);
         s.vx += (ux * speed - s.vx) * a;
         s.vy += (uy * speed * 0.6 - s.vy) * a;
         // ゆらぎ（ホバリング中の小さな動き）
         s.vy += Math.sin(now / 700 + seed(f.id, 7) * 6) * (k === "bottom" || k === "crawl" ? 0 : 0.6) * dt * 10;
-        s.x = clamp(s.x + s.vx * dt, w / 2 + 2, W - w / 2 - 2);
+        s.x = s.leaving ? s.x + s.vx * dt : clamp(s.x + s.vx * dt, w / 2 + 2, W - w / 2 - 2);
+        if (s.leaving && !s.gone && (s.x > W + w / 2 + 10 || s.x < -w / 2 - 10)) {
+          s.gone = true;
+          onReleasedRef.current?.(f.id);
+        }
         s.y = clamp(s.y + s.vy * dt, 18, H - 28);
         // 向き：一定以上の速さで横に進んだ時だけ変える（イカの後ろ向き移動は向きを変えない）
         if (Math.abs(s.vx) > 6 && !s.back) s.dir = Math.sign(s.vx);

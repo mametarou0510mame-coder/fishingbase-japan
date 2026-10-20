@@ -9,7 +9,7 @@ import Gyotaku from "@/app/components/Gyotaku";
 import PhotoCutout from "@/app/components/PhotoCutout";
 import { blobToDataUrl, deletePhoto, getAllPhotos, putPhoto } from "@/lib/photoStore";
 
-type Catch = { id: string; date: string; spot: string; species: string; sizeCm: number | null; count: number; method: string; memo: string; shared?: boolean; photo?: boolean };
+type Catch = { id: string; date: string; spot: string; species: string; sizeCm: number | null; count: number; method: string; memo: string; shared?: boolean; photo?: boolean; released?: boolean /* リリースした（水槽からは出したが記録は残す） */ };
 type Store = { v: 1; nickname: string; avatar: AvatarConf; fish: Catch[] };
 type Options = { spots: { slug: string; name: string }[]; species: string[]; methods: string[] };
 type TurnstileApi = { render: (el: HTMLElement, o: Record<string, unknown>) => string; reset: (id?: string) => void };
@@ -52,6 +52,8 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const [opt, setOpt] = useState<Options | null>(null);
   const [pick, setPick] = useState<Catch | null>(null);
   const [gyo, setGyo] = useState<Catch | null>(null);
+  const [releasing, setReleasing] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
   const [gyoPhoto, setGyoPhoto] = useState<string | undefined>(undefined);
   const [cut, setCut] = useState<{ id: string; file: File } | null>(null);
   const [photos, setPhotos] = useState<Record<string, { url: string; aspect: number }>>({});
@@ -111,7 +113,7 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const total = st.fish.reduce((n, f) => n + (f.count || 1), 0);
   const biggest = st.fish.reduce<Catch | null>((b, f) => ((f.sizeCm ?? 0) > (b?.sizeCm ?? 0) ? f : b), null);
   const swimmers = useMemo(
-    () => [...st.fish].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 24).map((f) => ({ id: f.id, species: f.species, sizeCm: f.sizeCm, photo: photos[f.id] })),
+    () => [...st.fish].filter((f) => !f.released).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 24).map((f) => ({ id: f.id, species: f.species, sizeCm: f.sizeCm, photo: photos[f.id] })),
     [st.fish, photos],
   );
 
@@ -146,7 +148,17 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
 
       {tab === "tank" && (
         <>
-          <Tank fish={swimmers} onPick={(id) => setPick(st.fish.find((x) => x.id === id) ?? null)}>
+          <Tank
+            fish={swimmers}
+            onPick={(id) => id !== releasing && setPick(st.fish.find((x) => x.id === id) ?? null)}
+            release={releasing}
+            onReleased={(id) => {
+              const f = st.fish.find((x) => x.id === id);
+              update((s) => ({ ...s, fish: s.fish.map((x) => (x.id === id ? { ...x, released: true } : x)) }));
+              setReleasing(null);
+              setNotice(`${f?.species.replace(/（.*）/, "") ?? "魚"}を海に返しました。記録は図鑑に残っています。`);
+            }}
+          >
             <div className="tank-light" />
             {[12, 30, 61, 84].map((x, i) => (
               <svg key={i} className="weed" style={{ left: `${x}%`, animationDelay: `${i * 0.7}s` }} viewBox="0 0 30 100" width="30" height={90 + (i % 2) * 30}>
@@ -184,17 +196,20 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
                 <button className="linklike small" onClick={() => fileRef.current?.click()}>
                   {photos[pick.id] ? "写真を変える" : "写真を取り込む"}
                 </button>
+                <button className="linklike small" onClick={() => { setReleasing(pick.id); setPick(null); setNotice(""); }}>
+                  リリースする
+                </button>
                 <button
                   className="linklike small"
                   onClick={() => {
-                    if (confirm("この魚を水族館から外しますか？")) {
+                    if (confirm("この魚の記録と写真を削除します。元に戻せません。よろしいですか？")) {
                       update((s) => ({ ...s, fish: s.fish.filter((x) => x.id !== pick.id) }));
                       deletePhoto(pick.id).then(loadPhotos).catch(() => undefined);
                       setPick(null);
                     }
                   }}
                 >
-                  外す
+                  記録を削除
                 </button>
                 <button className="linklike small" onClick={() => setPick(null)}>
                   閉じる
@@ -221,7 +236,8 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
               onClose={() => setGyo(null)}
             />
           )}
-          <p className="small">魚をタップすると、釣った日と場所が見られ、「魚拓にする」で全長の目盛りつきのデジタル魚拓を作れます。最近の24匹が泳いでいます。</p>
+          {notice && <p className="aq-notice" aria-live="polite">{notice}</p>}
+          <p className="small">魚をタップすると、釣った日と場所が見られ、「リリースする」で海に返せます（記録は図鑑に残ります）。「魚拓にする」で全長の目盛りつきのデジタル魚拓を作れます。最近の24匹が泳いでいます。</p>
         </>
       )}
 
@@ -239,6 +255,24 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
 
       {tab === "zukan" && (
         <>
+          {st.fish.some((f) => f.released) && (
+            <>
+              <h3>リリースした魚</h3>
+              <ul className="released">
+                {st.fish.filter((f) => f.released).map((f) => (
+                  <li key={f.id}>
+                    {f.species.replace(/（.*）/, "")} {f.sizeCm ? `${f.sizeCm}cm` : ""} <span className="small">{f.date}・{spotName(f.spot)}</span>{" "}
+                    <button className="linklike small" onClick={() => update((s) => ({ ...s, fish: s.fish.map((x) => (x.id === f.id ? { ...x, released: false } : x)) }))}>
+                      水槽に戻す
+                    </button>{" "}
+                    <button className="linklike small" onClick={() => openGyotaku(f).then(() => setTab("tank"))}>
+                      魚拓
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           <h3>バッジ</h3>
           <ul className="badges">
             {BADGES.map((b) => {

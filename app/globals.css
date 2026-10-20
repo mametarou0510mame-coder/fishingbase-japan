@@ -396,3 +396,5 @@ iframe.guide-video { border: 0; }
 .cutout-canvas { display: block; width: auto; height: auto; max-width: 100%; max-height: 70vh; margin: 8px auto; border-radius: 8px; background: #222; }
 .cutout-preview { background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 20px 20px; border-radius: 8px; padding: 8px; margin: 8px 0; }
 .cutout-preview canvas { width: 100%; height: auto; display: block; }
+.aq-notice { background: var(--card); border-left: 4px solid var(--sea); padding: 6px 10px; border-radius: 6px; }
+.released { padding-left: 1.2em; }
