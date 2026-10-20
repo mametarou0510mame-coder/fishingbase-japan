@@ -1,0 +1,25 @@
+name: YouTube thumbnail
+
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: "動画のID"
+        required: true
+      image:
+        description: "リポジトリ内のJPEG"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  set:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/sns/yt_thumb.py "${{ github.event.inputs.video }}" "${{ github.event.inputs.image }}"
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
