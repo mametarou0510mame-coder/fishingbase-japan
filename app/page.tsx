@@ -117,6 +117,26 @@ export default function Home() {
         </div>
       </div>
 
+      <h2>ツレドキ関西だけの機能</h2>
+      <div className="cards">
+        <Link href="/aquarium/" className="card card-link">
+          <h3>デジタル魚拓</h3>
+          <p>釣った魚の写真から、和紙に写したような魚拓を作れます。墨・写真の2種類、全長の目盛りと日付・釣り場入り。画像で保存・共有できます。</p>
+        </Link>
+        <Link href="/aquarium/" className="card card-link">
+          <h3>マイ水族館</h3>
+          <p>釣った魚を登録すると、あなたの水族館で泳ぎ出します。写真の魚をタップで切り抜いてそのまま泳がせたり、海に返す（リリース）ことも。図鑑とバッジも集められます。</p>
+        </Link>
+        <Link href="/" className="card card-link">
+          <h3>今日・週末のねらい目ランキング</h3>
+          <p>潮の動き・朝夕のまずめ・営業時間・風の予報から、関西の釣り場の釣れそうな時間を計算して比べられます。</p>
+        </Link>
+        <Link href="/map/" className="card card-link">
+          <h3>地図・はじめての1回プラン</h3>
+          <p>地図から釣り場を探したり、はじめての人向けに場所・道具・時間・持ち物を1ページで確認できます。</p>
+        </Link>
+      </div>
+
       <div className="notice">
         当サイトは立入禁止区域や、管理者が釣りを認めていない場所は紹介しません。
         詳しくは<Link href="/disclaimer/">免責事項・安全について</Link>をご覧ください。
