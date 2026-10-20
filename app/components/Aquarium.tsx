@@ -330,7 +330,7 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
         </div>
       )}
 
-      {tab === "backup" && <Backup st={st} onLoad={(s) => update(() => s)} />}
+      {tab === "backup" && <Backup st={st} onLoad={(s) => update(() => s)} onPhotos={loadPhotos} />}
 
       <p className="small">
         水族館の記録は、この端末のブラウザの中だけに保存されます（サーバーには送りません）。機種変更の前は「バックアップ」で保存しておきましょう。
@@ -485,15 +485,23 @@ function AddForm({ opt, siteKey, onAdd }: { opt: Options | null; siteKey: string
   );
 }
 
-function Backup({ st, onLoad }: { st: Store; onLoad: (s: Store) => void }) {
+function Backup({ st, onLoad, onPhotos }: { st: Store; onLoad: (s: Store) => void; onPhotos: () => void }) {
   const [msg, setMsg] = useState("");
-  const download = () => {
-    const blob = new Blob([JSON.stringify(st, null, 1)], { type: "application/json" });
+  const [withPhotos, setWithPhotos] = useState(true);
+  const download = async () => {
+    // 写真も入れる時は、端末に保存した切り抜き写真を文字（data URL）にしてファイルに含める
+    const photos: Record<string, string> = {};
+    if (withPhotos) {
+      const all = await getAllPhotos();
+      for (const [id, b] of Object.entries(all)) if (st.fish.some((f) => f.id === id)) photos[id] = await blobToDataUrl(b);
+    }
+    const blob = new Blob([JSON.stringify({ ...st, photos }, null, 1)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `tsuredoki-aquarium-${today()}.json`;
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    setMsg(`保存しました（記録${st.fish.length}件・写真${Object.keys(photos).length}枚）。`);
   };
   const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -501,8 +509,20 @@ function Backup({ st, onLoad }: { st: Store; onLoad: (s: Store) => void }) {
     try {
       const s = JSON.parse(await file.text());
       if (s?.v !== 1 || !Array.isArray(s.fish)) throw new Error();
+      let n = 0;
+      for (const [id, url] of Object.entries((s.photos ?? {}) as Record<string, string>)) {
+        if (typeof url !== "string" || !url.startsWith("data:image/")) continue;
+        const [head, b64] = url.split(",");
+        const bin = atob(b64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        await putPhoto(id, new Blob([arr], { type: head.slice(5).split(";")[0] }));
+        n++;
+      }
+      delete s.photos;
       onLoad({ ...EMPTY, ...s });
-      setMsg(`読み込みました（${s.fish.length}件）。`);
+      onPhotos();
+      setMsg(`読み込みました（記録${s.fish.length}件・写真${n}枚）。`);
     } catch {
       setMsg("このファイルは読み込めませんでした。");
     }
@@ -510,6 +530,9 @@ function Backup({ st, onLoad }: { st: Store; onLoad: (s: Store) => void }) {
   return (
     <div>
       <p>水族館の記録をファイルに保存したり、保存したファイルから戻したりできます。</p>
+      <label className="check">
+        <input type="checkbox" checked={withPhotos} onChange={(e) => setWithPhotos(e.target.checked)} /> 写真も入れる（ファイルが大きくなります）
+      </label>
       <button className="submit" onClick={download}>
         バックアップを保存
       </button>
