@@ -209,5 +209,33 @@
   "matched": "静岡県静岡市葵区渡",
   "rough": true,
   "manual": true
+ },
+ "wakayama-hokko-umizuri-koen": {
+  "lat": 34.2369,
+  "lon": 135.1501,
+  "address": "和歌山県和歌山市湊1850番地",
+  "matched": "和歌山県和歌山市湊１８５０番地",
+  "rough": false
+ },
+ "rokko-marine-park-umigo": {
+  "lat": 34.6812,
+  "lon": 135.2685,
+  "address": "兵庫県神戸市東灘区向洋町中9丁目（マリンパーク内）",
+  "matched": "兵庫県神戸市東灘区向洋町中九丁目",
+  "rough": false
+ },
+ "awaji-janohire-fishing-park": {
+  "lat": 34.2381,
+  "lon": 134.7133,
+  "address": "兵庫県南あわじ市阿万塩屋町2660",
+  "matched": "兵庫県南あわじ市阿万塩屋町２６６０番地",
+  "rough": false
+ },
+ "saikazaki-seapark": {
+  "lat": 34.1887,
+  "lon": 135.145,
+  "address": "和歌山県和歌山市田野101-3",
+  "matched": "和歌山県和歌山市田野１０１番地",
+  "rough": false
  }
 }
