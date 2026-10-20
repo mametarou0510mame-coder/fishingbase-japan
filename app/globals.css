@@ -398,3 +398,6 @@ iframe.guide-video { border: 0; }
 .cutout-preview canvas { width: 100%; height: auto; display: block; }
 .aq-notice { background: var(--card); border-left: 4px solid var(--sea); padding: 6px 10px; border-radius: 6px; }
 .released { padding-left: 1.2em; }
+.hot-notes { border: 2px solid var(--float, #e3412b); border-radius: 14px; padding: 4px 16px 10px; margin: 12px 0; background: var(--card); }
+.hot-notes h2 { margin-top: 10px; }
+.hot-notes ul { padding-left: 1.2em; }

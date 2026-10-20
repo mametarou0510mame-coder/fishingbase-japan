@@ -2,6 +2,7 @@ import Link from "next/link";
 import JiaiRanking from "@/app/components/JiaiRanking";
 import ThisMonthLink from "@/app/components/ThisMonthLink";
 import { buildJiai } from "@/lib/jiaiBuild";
+import HOT from "@/content/hot-notes.json";
 import { AREAS } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 import SocialFollow from "@/app/components/SocialFollow";
@@ -49,6 +50,29 @@ export default function Home() {
         </p>
       </section>
 
+      {HOT.until >= jiai.dates[0] && (
+        <section className="hot-notes">
+          <h2>🔥 {HOT.title}</h2>
+          <p>{HOT.sub}</p>
+          <ul>
+            {HOT.spots.map((x) => (
+              <li key={x.name}>
+                <b>{x.name}</b>（{x.area}）<span className="small">　{x.note}</span>
+              </li>
+            ))}
+          </ul>
+          <ul>
+            {HOT.methods.map((m) => (
+              <li key={m.title}>
+                <b>{m.title}</b>：{m.body}
+              </li>
+            ))}
+          </ul>
+          <p className="small">
+            運営の現場情報（{HOT.updated.replace(/^\d+-0?(\d+)-0?(\d+)$/, "$1月$2日")}更新）です。釣り禁止・立入禁止の場所には入らず、現地の表示に従ってください。<Link href={HOT.guide}>ショアジギングのやり方 →</Link>
+          </p>
+        </section>
+      )}
       <JiaiRanking dates={jiai.dates} spots={jiai.spots} />
 
       <h2>探す</h2>

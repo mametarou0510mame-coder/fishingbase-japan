@@ -182,7 +182,7 @@ def load_log():
         return {"posts": []}
 
 
-def make_hot(out, day):
+def make_hot(out, day, notes=None):
     data = json.load(open(os.environ["TODAY_JSON"])) if os.environ.get("TODAY_JSON") else json.load(urllib_get(f"{SITE}/sns/today.json"))
     catches = data.get("catches", {})
     score = {}
@@ -223,6 +223,10 @@ def make_hot(out, day):
 
         card(f"{out}/{i + 1}.jpg", i, s["name"], body)
         files.append(f"{i + 1}.jpg")
+    if notes:  # 運営の現場情報も1枚入れる
+        card(f"{out}/{len(files) + 1}.jpg", len(files), f"運営の現場情報：{'・'.join(notes['species'])}", rows_body(
+            [(f"{x['name']}", x["note"]) for x in notes["spots"]] + [(notes["methods"][0]["title"], "")], 38, 28))
+        files.append(f"{len(files) + 1}.jpg")
     q = discuss.spots([s["name"] for _, s in top])
     ask_card(f"{out}/{len(files) + 1}.jpg", q)
     files.append(f"{len(files) + 1}.jpg")
@@ -231,9 +235,50 @@ def make_hot(out, day):
         fish = "・".join(k for k, _ in sorted(s["fish"].items(), key=lambda kv: -kv[1]["n"])[:4])
         cap.append(f"{'①②③④'[i - 1]} {s['name']}：{fish}" + (f"（ねらい目 {win(slug)}）" if win(slug) else ""))
     cap += ["", "各施設・渡船・釣具店が公開した最近の釣果から、件数の多い釣り場を選びました。ねらい目は潮・まずめ・営業時間・風の予報から計算した目安です。"]
+    if notes:
+        cap += ["", f"▼運営の現場情報：{'・'.join(notes['species'])}が{'・'.join(x['name'] for x in notes['spots'])}で好調。{notes['methods'][0]['title']}。"]
     cap += site_lead("/", "釣り場ごとの最近の釣果・タイドグラフ・天気")
     cap += discuss.caption(q) + ["", TAGS + " #釣果情報 #大阪湾"]
     return files, "\n".join(cap), f"hot-{date}"
+
+
+def load_notes(day):
+    try:
+        n = json.load(open("content/hot-notes.json", encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    return n if n.get("until", "") >= day else None
+
+
+def notes_cards(out, n, start_no):
+    """運営の現場情報のカード（釣れている場所・釣り方）"""
+    card(f"{out}/n1.jpg", start_no, "釣れている場所（運営の現場情報）", rows_body([(f"{x['name']}（{x['area']}）", x["note"]) for x in n["spots"]], 40, 28))
+    card(f"{out}/n2.jpg", start_no + 1, "釣れている釣り方", rows_body([(m["title"], m["body"]) for m in n["methods"]], 40, 30))
+    return ["n1.jpg", "n2.jpg"]
+
+
+def make_notes_feature(out, n, day):
+    """運営の現場情報の特集（初回だけ）"""
+    cover(f"{out}/1.jpg", f"今アツい・{md(day)}", n["title"], n["sub"])
+    files = ["1.jpg"] + notes_cards(out, n, 1)
+    card(f"{out}/t.jpg", 3, "道具の目安", rows_body([(a, b) for a, b in n["tackle"]], 42, 30))
+    card(f"{out}/s.jpg", 4, "安全とマナー", text_body([
+        "ライフジャケットを必ず着る。渡船は桜マーク・CSマーク付き。",
+        "投げる前に、後ろと左右の人を確認。混雑時は投げる方向をそろえる。",
+        "釣り禁止・立入禁止の場所には入らない。現地の表示と管理者の指示に従う。",
+        "ゴミ・釣り糸・針は持ち帰る。",
+    ], 40))
+    files += ["t.jpg", "s.jpg"]
+    q = (n["ask"][0], n["ask"][1])
+    ask_card(f"{out}/q.jpg", q)
+    files.append("q.jpg")
+    cap = [f"【{n['title']}】{'・'.join(n['species'])}", "", n["sub"], "", "▼釣れている場所"]
+    cap += [f"・{x['name']}（{x['area']}）" for x in n["spots"]]
+    cap += ["", "▼釣り方"] + [f"・{m['title']}：{m['body']}" for m in n["methods"]]
+    cap += ["", "▼注意", "ライフジャケットを必ず着用し、投げる前に周りを確認しましょう。釣り禁止・立入禁止の場所には入らず、現地の表示に従ってください。"]
+    cap += site_lead(n.get("guide", "/"), "ショアジギングのやり方・道具リスト・釣り場の潮と天気")
+    cap += discuss.caption(q) + ["", TAGS + " #ショアジギング #サゴシ #サワラ #青物 #ブリ #ハマチ"]
+    return files, "\n".join(cap), n["key"]
 
 
 def make_guide(out, log):
@@ -405,7 +450,11 @@ def make(slot, out):
         day = day + timedelta(days=1)
     ds = day.strftime("%Y-%m-%d")
     if slot == "morning":
-        files, cap, key = make_hot(out, ds)
+        notes = load_notes(ds)
+        if notes and notes["key"] not in {p["key"] for p in log["posts"]}:
+            files, cap, key = make_notes_feature(out, notes, ds)  # 運営の現場情報の特集（初回）
+        else:
+            files, cap, key = make_hot(out, ds, notes)
     else:
                 # 3日ごとに「機能紹介」を入れる（紹介し終わったら、釣り方と豆知識を1日おきに）
         k = day.toordinal() % 3
