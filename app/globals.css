@@ -401,3 +401,9 @@ iframe.guide-video { border: 0; }
 .hot-notes { border: 2px solid var(--float, #e3412b); border-radius: 14px; padding: 4px 16px 10px; margin: 12px 0; background: var(--card); }
 .hot-notes h2 { margin-top: 10px; }
 .hot-notes ul { padding-left: 1.2em; }
+/* プロフィールのリンク用ページ */
+.links-page { max-width: 560px; margin: 0 auto; }
+.link-list { display: grid; gap: 10px; margin: 12px 0; }
+.link-btn { display: block; text-align: center; padding: 14px 12px; border-radius: 999px; background: var(--card); border: 2px solid var(--sea); font-weight: 700; text-decoration: none; }
+.gear-links { list-style: none; padding: 0; display: grid; gap: 8px; }
+.gear-links a { display: flex; flex-direction: column; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; background: var(--card); }
