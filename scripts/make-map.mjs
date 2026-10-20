@@ -81,4 +81,5 @@ writeFileSync("lib/kansaiMap.json", JSON.stringify({
   credit: "海岸線：Natural Earth",
   kansai: view(134.15, 136.15, 33.35, 35.85, 320),
   bay: view(134.95, 135.5, 34.15, 34.75, 1300),
+  wide: view(134.6, 135.55, 34.05, 34.8, 1000), // 淡路島・和歌山まで入る大阪湾（動画用）
 }) + "\n");

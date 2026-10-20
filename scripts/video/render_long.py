@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, os.path.dirname(__file__))
 import render as R  # noqa: E402
+import long_scenes as LS  # noqa: E402
 from render import F, FONT_BLACK, FONT_BOLD, FONT_REG, GLOW, INK, MUTED, NAVY, NAVY2, PANEL, RED, WHITE, alpha, center_text, ease, fit_font, label, logo, wrap  # noqa: E402
 
 W, H, FPS = 1920, 1080, 24
@@ -131,6 +132,8 @@ def base_frame(meta):
 def render_frame(meta, timeline, idx, tg, base):
     item = timeline[idx]
     s = item["scene"]
+    if s["type"] in LS.FULL:
+        return LS.render(meta, item, tg, timeline[-1]["end"])
     t = tg - item["start"]
     dur = item["end"] - item["start"]
     img = base.copy()
@@ -177,6 +180,32 @@ def render_frame(meta, timeline, idx, tg, base):
     return img
 
 
+def add_ambient(path):
+    """ナレーションの下に、ごく小さく波の音（作った音）を重ねる"""
+    import wave
+
+    import numpy as np
+
+    with wave.open(path) as w:
+        sr = w.getframerate()
+        voice = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768
+    n = len(voice)
+    rng = np.random.default_rng(3)
+    noise = np.cumsum(rng.standard_normal(n).astype(np.float32))  # ブラウンノイズ
+    noise -= np.convolve(noise, np.ones(4001, dtype=np.float32) / 4001, mode="same")
+    noise /= (np.abs(noise).max() or 1)
+    tt = np.arange(n) / sr
+    swell = 0.55 + 0.45 * np.sin(2 * np.pi * tt / 7.5) * np.sin(2 * np.pi * tt / 19 + 1)
+    amb = noise * swell * 0.05
+    fade = np.minimum(1, np.minimum(tt / 2, (tt[-1] - tt) / 3 + 1e-6))
+    out = np.clip(voice + amb * fade, -1, 1)
+    with wave.open(path, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((out * 32767).astype(np.int16).tobytes())
+
+
 def fmt(sec):
     sec = int(sec)
     return f"{sec // 60}:{sec % 60:02d}"
@@ -214,6 +243,10 @@ def main():
         if len(chapters) <= ci:
             chapters.append({"title": src["chapters"][ci], "time": fmt(item["start"]), "sec": item["start"]})
     meta = {"title": tl["title"], "tag": src.get("tag"), "voice": tl.get("voice"), "chapters": chapters, "thumb": src.get("thumb", tl["title"]), "thumb_sub": src.get("thumb_sub", "")}
+    try:
+        meta["sprites"] = json.load(open("content/long-facts.json", encoding="utf-8")).get(slug, {}).get("sprites")
+    except FileNotFoundError:
+        pass
     base = base_frame(meta)
     os.makedirs(outdir, exist_ok=True)
     print(f"{slug}: {len(timeline)} scenes, {total / 60:.1f}min")
@@ -231,6 +264,7 @@ def main():
     has_audio = any(ln.get("wav") for s in tl["scenes"] for ln in s["lines"])
     if has_audio:
         R.mix_audio(timeline, total, audio)
+        add_ambient(audio)
     out = f"{outdir}/{slug}.mp4"
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-"]
     if has_audio:
@@ -238,11 +272,20 @@ def main():
     cmd += ["-c:v", "libx264", "-preset", "veryfast", "-tune", "animation", "-crf", "28", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-shortest" if has_audio else "-an", out]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     idx = 0
+    last = None
+    prev_last = None
+    XF = 0.4  # シーンの切り替えを0.4秒かけて重ねる
     for fi in range(int(total * FPS)):
         tg = fi / FPS
         while idx < len(timeline) - 1 and tg >= timeline[idx]["end"]:
             idx += 1
-        proc.stdin.write(render_frame(meta, timeline, idx, tg, base).tobytes())
+            prev_last = last
+        frame = render_frame(meta, timeline, idx, tg, base)
+        dt = tg - timeline[idx]["start"]
+        if prev_last is not None and idx > 0 and dt < XF:
+            frame = Image.blend(prev_last, frame, ease(dt / XF))
+        last = frame
+        proc.stdin.write(frame.tobytes())
     proc.stdin.close()
     proc.wait()
     print(f"wrote {out} ({os.path.getsize(out) / 1e6:.1f}MB, {total / 60:.1f}min)")

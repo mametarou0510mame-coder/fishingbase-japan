@@ -5,6 +5,11 @@ import json, os, re, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "sns"))
 import discuss  # noqa: E402
 
+sys.path.insert(0, os.path.dirname(__file__))
+import long_data  # noqa: E402
+
+FACTS = json.load(open("content/long-facts.json", encoding="utf-8"))
+
 OUT = "content/long"
 G = {os.path.basename(p)[:-5]: json.load(open(f"content/guides/{p}", encoding="utf-8")) for p in os.listdir("content/guides") if p.endswith(".json") and not p.startswith("_")}
 
@@ -88,7 +93,37 @@ def first_sentence(t):
 def build(p):
     """1本を通して見られる構成にする：つかみ → 目次 → 釣り方ごとの章 → 困った時 → 道具 → 場所と安全 → まとめ"""
     gs = [G[k] for k in p["guides"]]
-    chapters = ["はじめに"] + [g["title"] for g in gs]
+    fx = FACTS.get(p["slug"], {})
+    pre = []  # はじめに の次に入れる章（知っておきたいこと・データで見る）
+    pre_titles = []
+    if fx.get("facts"):
+        pre_titles.append("知っておきたいこと")
+        ci0 = len(pre_titles)
+        for k, f in enumerate(fx["facts"]):
+            pre.append({"type": "fact", "no": k + 1, "title": f["title"], "text": f["text"], "sprite": f.get("sprite"), "chapter": ci0,
+                        "lines": ([f"まずは、知っておきたいことを{len(fx['facts'])}つ。"] if k == 0 else []) + [f"{f['title']}。{f['text']}"]})
+    if fx.get("species"):
+        pre_titles.append("データで見る")
+        ci0 = len(pre_titles)
+        se = long_data.season(fx["species"])
+        labels = fx.get("label") or [g[0] for g in fx["species"]]
+        lines = [f"ここからは、データで見てみます。{se['source']}が公開している、{se['years'].replace('〜', '年から')}のおよそ{se['days']:,}日分の釣果記録を集計しました。".replace(",", "")]
+        for lab, r in list(zip(labels, se["rates"]))[:3]:
+            ph, best = long_data.month_phrase(r)
+            if ph:
+                lines.append(f"{lab}がよく釣れているのは、{ph}。いちばん多いのは{best}月です。")
+        pre.append({"type": "season", "labels": labels, "rates": se["rates"], "note": f"{se['source']}の公開釣果（{se['years']}・約{se['days']}日分）で、その魚が報告された日の割合", "chapter": ci0, "lines": lines})
+        td = long_data.tide(fx["species"][:1])
+        if td and max(td.values()) - min(td.values()) >= 0.08:
+            best_t = max(td, key=td.get)
+            pre.append({"type": "tide", "label": labels[0], "lifts": td, "chapter": ci0,
+                        "lines": [f"潮の大きさでも比べてみました。{labels[0]}は、{best_t}潮の日に、平均より{(td[best_t] - 1) * 100:.0f}パーセントほど多く報告されています。", "ただし、潮だけで決まるわけではないので、目安として使ってください。"]})
+        sp = long_data.spots(fx["species"])
+        if sp:
+            pre.append({"type": "map", "label": labels[0] if len(labels) == 1 else "・".join(labels[:2]), "spots": sp, "chapter": ci0,
+                        "lines": [f"最近の釣果で、{labels[0]}が報告されている関西の釣り場はこちら。", f"いちばん多いのは、{sp[0]['name']}です。" + (f"続いて、{sp[1]['name']}。" if len(sp) > 1 else ""), "最新の釣果は、ツレドキ関西の各釣り場のページで確認できます。"]})
+    chapters = ["はじめに"] + pre_titles + [g["title"] for g in gs]
+    npre = len(pre_titles)
     trouble, seen_rows, seen_scene, seen_safety = [], set(), set(), set()
     prev = {}
     body = []
@@ -97,7 +132,8 @@ def build(p):
         tg = "、".join(g["targets"][:4])
         if tg != prev.get("targets"):
             items.append(f"釣れる魚：{tg}")
-        ss = g["season"].split("、")[0][:24]
+        ss = g["season"].split("。")[0].split("、")[0]
+        ss = ss if len(ss) <= 22 else ss[:21] + "…"
         if ss != prev.get("season"):
             items.append(f"季節：{ss}")
         items += [f"ポイント：{x['title']}" for x in g["steps"][1:3]]
@@ -129,7 +165,7 @@ def build(p):
             sc.append({"type": "pattern", "heading": f"{g['title']}：状況別のコツ" if k == 0 else f"{g['title']}：状況別のコツ（続き）", "rows": [[r["when"], r["do"]] for r in part], "sync": True, "sync_offset": 1,
                        "lines": [PAT_INTRO[(ci - 1) % len(PAT_INTRO)] if k == 0 else "まだあります。"] + [f"{r['when']}なら、{r['do']}。{r['why']}" for r in part]})
         for s in sc:
-            s["chapter"] = ci
+            s["chapter"] = ci + npre
         body += sc
 
     tail_ci = len(chapters)
@@ -181,11 +217,11 @@ def build(p):
     tail.append({"type": "end", "lines": p["outro"], "chapter": len(chapters) - 1})
 
     head = [
-        {"type": "title", "lines": HOOKS.get(p["slug"], p["intro"]), "chapter": 0},
+        {"type": "hook", "lines": HOOKS.get(p["slug"], p["intro"]), "chapter": 0},
         {"type": "points", "heading": "この動画でわかること", "items": [c for c in chapters[1:-1]][:5], "chapter": 0,
          "lines": ["この動画の流れです。気になる所から見たい人は、概要欄の目次から飛べます。"]},
     ]
-    return head + body + tail, chapters
+    return head + pre + body + tail, chapters
 
 
 def main():
