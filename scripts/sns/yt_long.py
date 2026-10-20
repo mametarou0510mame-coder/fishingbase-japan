@@ -29,7 +29,7 @@ def main():
     src = json.load(open(f"content/long/{slug}.json", encoding="utf-8"))
     gs = [json.load(open(f"content/guides/{g}.json", encoding="utf-8")) for g in src["guides"]]
     chapters = open(chap, encoding="utf-8").read().strip()
-    desc = [src["video"]["scenes"][0]["lines"][0], "", "▼目次", chapters, "", "▼くわしい解説・道具リスト（初級・中級・上級）"]
+    desc = [src["video"]["scenes"][0]["lines"][0].replace("10分で", ""), "", "▼目次", chapters, "", "▼くわしい解説・道具リスト（初級・中級・上級）"]
     desc += [f"・{g['title']}：{SITE}/guide/{g['slug']}/" for g in gs]
     desc += ["", "▼関西の釣果・潮・今日の釣れる時間（ねらい目）", f"{SITE}/", "", CREDIT, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]]

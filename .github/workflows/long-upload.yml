@@ -28,7 +28,7 @@ jobs:
         run: |
           S=$(python scripts/sns/yt_long.py next)
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
-          git fetch -q --depth 1 origin long-media
+          git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
           mkdir -p out
           for f in "$S.mp4" "$S.jpg" "$S-chapters.txt"; do git show "origin/long-media:$f" > "out/$f"; done
           python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish
