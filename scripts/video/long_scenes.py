@@ -92,13 +92,18 @@ def caption(img, text, t_in):
         return
     d = ImageDraw.Draw(img, "RGBA")
     f = F(FONT_BOLD, 50)
-    ls = wrap(d, text, f, W - 360)[:2]
-    h = 40 + 70 * len(ls)
+    ls = wrap(d, text, f, W - 360)
+    lh = 70
+    if len(ls) > 2:  # 長い文は少し小さくして3行まで
+        f = F(FONT_BOLD, 44)
+        ls = wrap(d, text, f, W - 340)[:3]
+        lh = 62
+    h = 40 + lh * len(ls)
     y = H - 60 - h
     d.rounded_rectangle([160, y, W - 160, y + h], radius=28, fill=(6, 22, 42, 215))
     for i, ln in enumerate(ls):
         tw = d.textlength(ln, font=f)
-        d.text(((W - tw) / 2, y + 20 + i * 70), ln, font=f, fill=WHITE)
+        d.text(((W - tw) / 2, y + 20 + i * lh), ln, font=f, fill=WHITE)
 
 
 def header(img, meta, ci, progress):
@@ -168,9 +173,9 @@ def scene_fact(img, t, dur, s, meta):
 
 def chart_panel(img, title, note):
     d = ImageDraw.Draw(img, "RGBA")
-    d.rounded_rectangle([140, 110, W - 140, 810], radius=40, fill=(255, 255, 255, 245))
+    d.rounded_rectangle([140, 110, W - 140, 770], radius=40, fill=(255, 255, 255, 245))
     d.text((200, 140), title, font=F(FONT_BLACK, 56), fill=NAVY)
-    d.text((200, 768), note, font=F(FONT_REG, 26), fill=(110, 125, 140))
+    d.text((200, 728), note, font=F(FONT_REG, 26), fill=(110, 125, 140))
     return d
 
 
@@ -181,7 +186,7 @@ def scene_season(img, t, dur, s, meta):
         r = rates[0]
         mx = max(r) or 1
         best = [m for m in range(12) if r[m] >= mx * 0.55]
-        x0, y0, bw, gap, hmax = 230, 700, 100, 22, 430
+        x0, y0, bw, gap, hmax = 230, 660, 100, 22, 400
         for m in range(12):
             k = ease((t - 0.4 - m * 0.08) / 0.6)
             h = hmax * r[m] / mx * k
@@ -193,7 +198,7 @@ def scene_season(img, t, dur, s, meta):
                 d.text((x + bw / 2, y0 - h - 54), "いちばん", font=F(FONT_BLACK, 32), fill=RED, anchor="ma")
     else:
         d = chart_panel(img, "魚ごとの釣れる時期カレンダー", s["note"])
-        x0, y0, cw, ch = 470, 260, 100, min(64, 480 // len(labels))
+        x0, y0, cw, ch = 470, 260, 100, min(60, 440 // len(labels))
         for m in range(12):
             d.text((x0 + m * cw + cw / 2, y0 - 46), f"{m + 1}月", font=F(FONT_BOLD, 28), fill=NAVY, anchor="ma")
         for i, (lab, r) in enumerate(zip(labels, rates)):
@@ -217,14 +222,14 @@ def scene_tide(img, t, dur, s, meta):
     for i, k in enumerate(keys):
         e = ease((t - 0.4 - i * 0.2) / 0.6)
         x = 420 + i * 400
-        h = 380 * (vals[i] / (mx * 1.1)) * e
+        h = 360 * (vals[i] / (mx * 1.1)) * e
         col = GLOW if vals[i] == mx else TEAL
-        d.rounded_rectangle([x, 700 - h, x + 220, 700], radius=18, fill=col)
-        d.text((x + 110, 708), f"{k}潮", font=F(FONT_BLACK, 40), fill=NAVY, anchor="ma")
+        d.rounded_rectangle([x, 660 - h, x + 220, 660], radius=18, fill=col)
+        d.text((x + 110, 668), f"{k}潮", font=F(FONT_BLACK, 40), fill=NAVY, anchor="ma")
         if e > 0.9:
-            d.text((x + 110, 700 - h - 60), f"{vals[i]:.2f}倍", font=F(FONT_BLACK, 40), fill=RED if vals[i] == mx else NAVY, anchor="ma")
-    d.line([(380, 700 - 380 / 1.1 / mx), (1600, 700 - 380 / 1.1 / mx)], fill=(200, 80, 60), width=3)
-    d.text((1610, 700 - 380 / 1.1 / mx), "平均", font=F(FONT_BOLD, 26), fill=(200, 80, 60), anchor="lm")
+            d.text((x + 110, 660 - h - 60), f"{vals[i]:.2f}倍", font=F(FONT_BLACK, 40), fill=RED if vals[i] == mx else NAVY, anchor="ma")
+    d.line([(380, 660 - 360 / 1.1 / mx), (1600, 660 - 360 / 1.1 / mx)], fill=(200, 80, 60), width=3)
+    d.text((1610, 660 - 360 / 1.1 / mx), "平均", font=F(FONT_BOLD, 26), fill=(200, 80, 60), anchor="lm")
 
 
 def _load_map():
@@ -244,7 +249,7 @@ def scene_map(img, t, dur, s, meta):
 
     def inbay(p):
         return inside(p, view)
-    box_h = 720
+    box_h = 680
     k = box_h / view["h"]
     bw = view["w"] * k
     ox, oy = 120, 100
