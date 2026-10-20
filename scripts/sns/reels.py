@@ -309,7 +309,15 @@ def yt_short(path, title, caption):
     r = http("POST", "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", json.dumps(meta).encode(),
              {"Authorization": f"Bearer {tok}", "Content-Type": "application/json; charset=UTF-8", "X-Upload-Content-Type": "video/mp4", "X-Upload-Content-Length": str(size)}, raw=True)
     with open(path, "rb") as f:
-        return http("PUT", r.headers["Location"], f.read(), {"Authorization": f"Bearer {tok}", "Content-Type": "video/mp4"}).get("id")
+        vid = http("PUT", r.headers["Location"], f.read(), {"Authorization": f"Bearer {tok}", "Content-Type": "video/mp4"}).get("id")
+    thumb = path[:-4] + ".jpg"  # リールの表紙をサムネイルにも使う
+    if vid and os.path.exists(thumb):
+        try:
+            with open(thumb, "rb") as f:
+                http("POST", f"https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId={vid}", f.read(), {"Authorization": f"Bearer {tok}", "Content-Type": "image/jpeg"})
+        except Exception as e:
+            print(f"::warning::サムネイルを設定できませんでした: {str(e)[:200]}")
+    return vid
 
 
 def publish(outdir):

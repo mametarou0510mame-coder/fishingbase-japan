@@ -157,6 +157,13 @@ def post_youtube(g):
     loc = r.headers["Location"]
     with open(path, "rb") as f:
         res = http("PUT", loc, f.read(), {"Authorization": f"Bearer {tok}", "Content-Type": "video/mp4"})
+    thumb = f"public/videos/{g['slug']}.jpg"
+    if res.get("id") and os.path.exists(thumb):
+        try:
+            with open(thumb, "rb") as f:
+                http("POST", f"https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId={res['id']}", f.read(), {"Authorization": f"Bearer {tok}", "Content-Type": "image/jpeg"})
+        except Exception as e:
+            print(f"::warning::サムネイルを設定できませんでした: {str(e)[:200]}")
     return res.get("id"), "ok"
 
 
