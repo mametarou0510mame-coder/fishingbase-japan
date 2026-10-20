@@ -13,11 +13,13 @@ async () => {
   out.push("methods: " + Object.getOwnPropertyNames(Object.getPrototypeOf(seg)).join(","));
   const img = new Image(); img.src = "/og/guide-sabiki.png"; await img.decode();
   const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext("2d").drawImage(img, 0, 0);
+  out.push("statics: " + Object.getOwnPropertyNames(mod.InteractiveSegmenter).join(","));
+  out.push("allexports: " + Object.keys(mod).join(","));
+  const mk = (bm) => () => [{ brushMode: bm, point: [{ x: 0.5, y: 0.5 }], isCompleted: true }];
   const tries = [
-    ["canvas+pos", c, () => [{ brushMode: mod.BrushMode.POSITIVE, point: [{ x: 0.5, y: 0.5 }], isCompleted: true }]],
-    ["img+pos", img, () => [{ brushMode: mod.BrushMode.POSITIVE, point: [{ x: 0.5, y: 0.5 }], isCompleted: true }]],
-    ["canvas+2pts", c, () => [{ brushMode: mod.BrushMode.POSITIVE, point: [{ x: 0.5, y: 0.5 }, { x: 0.52, y: 0.5 }], isCompleted: true }]],
-    ["imagedata", c.getContext("2d").getImageData(0,0,c.width,c.height), () => [{ brushMode: mod.BrushMode.POSITIVE, point: [{ x: 0.5, y: 0.5 }], isCompleted: true }]],
+    ["num0", c, mk(0)], ["num1", c, mk(1)], ["str", c, mk("POSITIVE")],
+    ["static", c, mk((mod.InteractiveSegmenter.BrushMode || {}).POSITIVE)],
+    ["nomode", c, () => [{ point: [{ x: 0.5, y: 0.5 }], isCompleted: true }]],
   ];
   for (const [name, im, st] of tries) {
     try {
@@ -27,7 +29,7 @@ async () => {
       let stat = "";
       if (m && m.getAsFloat32Array) { const a = m.getAsFloat32Array(); let n = 0; for (const v of a) if (v > 0.5) n++; stat = `w=${m.width} h=${m.height} fg=${(n/a.length).toFixed(3)}`; }
       out.push(`${name}: ok ${stat} [${desc}]`);
-    } catch (e) { out.push(`${name}: ERR ${String(e && e.message || e).slice(0, 400)}`); }
+    } catch (e) { out.push(`${name}: ERR ${String(e && e.message || e).replace(/\n/g," | ").slice(0, 600)}`); }
   }
   return out;
 }
