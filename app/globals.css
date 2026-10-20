@@ -355,3 +355,6 @@ iframe.guide-video { border: 0; }
   .spot-map .sea { fill: #16324a; }
   .spot-map .land { fill: #2c2f33; stroke: #555; }
 }
+.news-list { list-style: none; padding: 0; }
+.news-list li { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.news-list .tag { display: inline-block; font-size: 0.75rem; border: 1px solid var(--sea); color: var(--sea); border-radius: 999px; padding: 0 8px; }
