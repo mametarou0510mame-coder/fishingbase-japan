@@ -245,5 +245,12 @@
   "matched": "和歌山県西牟婁郡白浜町堅田",
   "rough": true,
   "manual": true
+ },
+ "shirahama-katata-tsuribori": {
+  "lat": 33.6767,
+  "lon": 135.3822,
+  "address": "和歌山県西牟婁郡白浜町堅田藤島2217-2",
+  "matched": "和歌山県白浜町堅田",
+  "rough": false
  }
 }
