@@ -330,7 +330,7 @@ def publish(outdir):
     rec = {"slot": p["slot"], "key": p["key"], "id": vid, "at": now().isoformat(timespec="minutes")}
     failed = False
     try:
-        ig = ig_reel(url, f"{SITE}/sns/{vid}.jpg", p["caption"])
+        ig = ig_reel(url, f"{SITE}/sns/{vid}.jpg", discuss.with_yt(p["caption"]))
         if ig:
             rec["instagram"] = ig
             print(f"::notice::instagram ok {ig}")

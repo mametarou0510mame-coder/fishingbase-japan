@@ -480,7 +480,7 @@ def publish(out, base):
     for f in p["files"]:
         c = http("POST", f"{api}/{uid}/media", {"image_url": f"{base}/{p['stamp']}-{f}", "is_carousel_item": "true", "access_token": tok})
         kids.append(c["id"])
-    parent = http("POST", f"{api}/{uid}/media", {"media_type": "CAROUSEL", "children": ",".join(kids), "caption": p["caption"], "access_token": tok})
+    parent = http("POST", f"{api}/{uid}/media", {"media_type": "CAROUSEL", "children": ",".join(kids), "caption": discuss.with_yt(p["caption"]), "access_token": tok})
     for _ in range(30):
         st = http("GET", f"{api}/{parent['id']}?fields=status_code&access_token={tok}")
         if st.get("status_code") == "FINISHED":

@@ -4,6 +4,8 @@ import HOT from "@/content/hot-notes.json";
 import { rakutenSearchUrl } from "@/lib/affiliate";
 import { findGuide } from "@/lib/guides";
 import { SITE } from "@/lib/site";
+import fs from "node:fs";
+import path from "node:path";
 
 // Instagram・YouTube のプロフィールのリンク用ページ。投稿文のリンクは押せないため、ここにまとめる。
 export const metadata: Metadata = {
@@ -14,7 +16,24 @@ export const metadata: Metadata = {
 
 const JST_TODAY = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
 
+// YouTube に投稿済みの長尺動画（新しい順）。投稿のたびにサイトが作り直されるので、ここも自動で増える
+function longVideos() {
+  try {
+    const posts = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data/sns/long-posts.json"), "utf-8")) as Record<string, { youtube?: string }>;
+    return Object.entries(posts)
+      .filter(([, v]) => v.youtube)
+      .map(([slug, v]) => {
+        const src = JSON.parse(fs.readFileSync(path.join(process.cwd(), `content/long/${slug}.json`), "utf-8")) as { title: string };
+        return { id: v.youtube as string, title: src.title.replace("【完全版】", "") };
+      })
+      .reverse();
+  } catch {
+    return [];
+  }
+}
+
 export default function LinksPage() {
+  const videos = longVideos();
   const hotOn = HOT.until >= JST_TODAY();
   const hotGuide = findGuide(HOT.guide.replace(/^\/guide\/|\/$/g, ""));
   const gear = hotGuide?.tackle[0];
@@ -22,6 +41,17 @@ export default function LinksPage() {
     <div className="links-page">
       <h1>ツレドキ関西</h1>
       <p className="lead">関西の釣り場の、今日の釣れる時間・最近の釣果・釣り方をまとめた無料サイトです。</p>
+
+      <section className="yt-block">
+        <h2>▶ YouTube：釣り方の完全ガイド（約10分）</h2>
+        <p className="small">Instagram のリールの続きはこちら。道具・仕掛け・釣り方・釣れる時期をまとめています。</p>
+        <div className="link-list">
+          {videos.slice(0, 4).map((v) => (
+            <a key={v.id} className="link-btn yt" href={`https://youtu.be/${v.id}`} rel="noopener" target="_blank">{v.title}</a>
+          ))}
+          <a className="link-btn" href={SITE.youtube} rel="noopener" target="_blank">チャンネルの動画をすべて見る</a>
+        </div>
+      </section>
 
       {hotOn && (
         <section className="hot-notes">

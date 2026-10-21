@@ -82,3 +82,18 @@ def caption(q):
     out += [f"{'①②③④⑤'[i]} {o}" for i, o in enumerate(options)]
     out += ["番号＋ひとことでどうぞ（釣った場所や時期も書いてもらえるとうれしいです）"]
     return out
+
+
+YT_LINE = ["", "▶ 釣り方の完全ガイド（約10分）はYouTubeで公開中", "プロフィールのリンク →「YouTube」から見られます"]
+
+
+def with_yt(caption):
+    """Instagram の投稿文に、YouTube（長尺の完全ガイド）への案内を入れる（最後のハッシュタグ行の前）"""
+    lines = caption.split("\n") if isinstance(caption, str) else list(caption)
+    if any("YouTubeで公開中" in x for x in lines):
+        return caption
+    i = len(lines)
+    while i > 0 and (lines[i - 1].startswith("#") or not lines[i - 1].strip()):
+        i -= 1
+    lines = lines[:i] + YT_LINE + lines[i:]
+    return "\n".join(lines) if isinstance(caption, str) else lines

@@ -1,0 +1,71 @@
+name: Instagram YouTube promo
+
+# YouTube に投稿した長尺動画（完全ガイド）を、Instagram のリール（約35秒の予告編）で紹介する。
+# 毎日 21:30 に1本。まだ紹介していない動画がなければ何もしない。
+on:
+  schedule:
+    - cron: "7 12 * * *" # 21:07 JST に作り始め、21:30 に投稿
+  workflow_dispatch:
+    inputs:
+      wait:
+        description: "true で 21:30 まで待ってから投稿する"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ig-yt-promo
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet pillow
+      - name: Make
+        id: make
+        run: |
+          git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
+          rm -f public/sns/yt-*
+          ID=$(python scripts/sns/ig_yt_promo.py make /tmp/promo | tail -1)
+          [ -f /tmp/promo/post.json ] && echo "id=$ID" >> $GITHUB_OUTPUT || echo "::notice::紹介する長尺動画はありません"
+      - name: Put video on the site
+        if: steps.make.outputs.id != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A public/sns
+          git commit -qm "YouTube 紹介リール: ${{ steps.make.outputs.id }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+      - name: Wait until 21:30
+        if: steps.make.outputs.id != '' && (github.event_name == 'schedule' || github.event.inputs.wait == 'true')
+        run: |
+          python - <<'PY'
+          import time
+          from datetime import datetime, timedelta, timezone
+          now = datetime.now(timezone(timedelta(hours=9)))
+          t = now.replace(hour=21, minute=30, second=0, microsecond=0)
+          s = (t - now).total_seconds()
+          if 0 < s < 3600: print(f"wait {s:.0f}s"); time.sleep(s)
+          PY
+      - name: Publish
+        if: steps.make.outputs.id != ''
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python scripts/sns/ig_yt_promo.py publish /tmp/promo
+      - name: Save log
+        if: steps.make.outputs.id != ''
+        run: |
+          git add data/sns/ig-yt-promo.json
+          git diff --cached --quiet && exit 0
+          git commit -qm "YouTube 紹介リールの記録"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done

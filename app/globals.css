@@ -407,3 +407,7 @@ iframe.guide-video { border: 0; }
 .link-btn { display: block; text-align: center; padding: 14px 12px; border-radius: 999px; background: var(--card); border: 2px solid var(--sea); font-weight: 700; text-decoration: none; }
 .gear-links { list-style: none; padding: 0; display: grid; gap: 8px; }
 .gear-links a { display: flex; flex-direction: column; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; background: var(--card); }
+
+.yt-block { border: 2px solid #e31e24; border-radius: 16px; padding: 12px 14px; margin: 16px 0; }
+.yt-block h2 { color: #e31e24; margin-top: 4px; }
+.link-btn.yt { border-color: #e31e24; }
