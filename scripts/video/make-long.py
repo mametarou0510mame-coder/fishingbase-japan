@@ -90,135 +90,172 @@ def first_sentence(t):
     return t[: i + 1] if i > 0 else t
 
 
+def grams(t):
+    t = re.sub(r"[、。・「」（）\s]", "", t)
+    return {t[i : i + 2] for i in range(len(t) - 1)}
+
+
+def sim(a, b):
+    ga, gb = grams(a), grams(b)
+    return len(ga & gb) / min(len(ga), len(gb)) if ga and gb else 0
+
+
+HOT = json.load(open("content/hot-notes.json", encoding="utf-8"))
+
+
 def build(p):
-    """1本を通して見られる構成にする：つかみ → 目次 → 釣り方ごとの章 → 困った時 → 道具 → 場所と安全 → まとめ"""
+    """1本を通して見られる構成（v4）。同じ説明が二度出ないよう、図解は手順の中で見せ、似た文は省く。
+    つかみ → 目次 → クイズ → 知っておきたいこと → データで見る →（現場情報）→ 釣り方の章（手順1つずつ＋図解・状況別のコツ）
+    → 困った時 → 道具 → 場所・安全 → まとめ"""
     gs = [G[k] for k in p["guides"]]
     fx = FACTS.get(p["slug"], {})
-    pre = []  # はじめに の次に入れる章（知っておきたいこと・データで見る）
-    pre_titles = []
-    if fx.get("facts"):
+    said = []  # すでに読み上げた文（重複チェック用）
+
+    def fresh(text, th=0.6):
+        return all(sim(text, x) < th for x in said)
+
+    def say(lines):
+        said.extend(lines)
+        return lines
+
+    pre, pre_titles = [], []
+    # クイズ（豆知識の前に、答えを考えてもらう）
+    if fx.get("quiz"):
+        q = fx["quiz"]
         pre_titles.append("知っておきたいこと")
         ci0 = len(pre_titles)
-        for k, f in enumerate(fx["facts"]):
+        pre.append({"type": "quiz", "q": q["q"], "options": q["options"], "answer": q["answer"], "chapter": ci0,
+                    "lines": say([f"ここでクイズです。{q['q']}" + "".join(f"{i + 1}、{n}。" for i, n in enumerate(q["options"])), "さあ、どれでしょう？", q["explain"]])})
+    if fx.get("facts"):
+        if "知っておきたいこと" not in pre_titles:
+            pre_titles.append("知っておきたいこと")
+        ci0 = len(pre_titles)
+        facts = [f for f in fx["facts"] if fresh(f["text"], 0.5)]
+        for k, f in enumerate(facts):
             pre.append({"type": "fact", "no": k + 1, "title": f["title"], "text": f["text"], "sprite": f.get("sprite"), "chapter": ci0,
-                        "lines": ([f"まずは、知っておきたいことを{len(fx['facts'])}つ。"] if k == 0 else []) + [f"{f['title']}。{f['text']}"]})
+                        "lines": say([f"{f['title']}。{f['text']}"])})
     if fx.get("species"):
         pre_titles.append("データで見る")
         ci0 = len(pre_titles)
         se = long_data.season(fx["species"])
         labels = fx.get("label") or [g[0] for g in fx["species"]]
-        lines = [f"ここからは、データで見てみます。{se['source']}が公開している、{se['years'].replace('〜', '年から')}のおよそ{se['days']:,}日分の釣果記録を集計しました。".replace(",", "")]
+        lines = [f"ここからは、データで見てみます。{se['source']}が公開している、{se['years'].replace('〜', '年から')}のおよそ{se['days']}日分の釣果記録を集計しました。"]
         for lab, r in list(zip(labels, se["rates"]))[:3]:
             ph, best = long_data.month_phrase(r)
             if ph:
                 lines.append(f"{lab}がよく釣れているのは、{ph}。いちばん多いのは{best}月です。")
-        pre.append({"type": "season", "labels": labels, "rates": se["rates"], "note": f"{se['source']}の公開釣果（{se['years']}・約{se['days']}日分）で、その魚が報告された日の割合", "chapter": ci0, "lines": lines})
+        pre.append({"type": "season", "labels": labels, "rates": se["rates"], "note": f"{se['source']}の公開釣果（{se['years']}・約{se['days']}日分）で、その魚が報告された日の割合", "chapter": ci0, "lines": say(lines)})
         td = long_data.tide(fx["species"][:1])
         if td and max(td.values()) - min(td.values()) >= 0.08:
-            best_t = max(td, key=td.get)
+            bt = max(td, key=td.get)
             pre.append({"type": "tide", "label": labels[0], "lifts": td, "chapter": ci0,
-                        "lines": [f"潮の大きさでも比べてみました。{labels[0]}は、{best_t}潮の日に、平均より{(td[best_t] - 1) * 100:.0f}パーセントほど多く報告されています。", "ただし、潮だけで決まるわけではないので、目安として使ってください。"]})
+                        "lines": say([f"潮の大きさでも比べてみました。{labels[0]}は、{bt}潮の日に、平均より{(td[bt] - 1) * 100:.0f}パーセントほど多く報告されています。", "ただし、潮だけで決まるわけではないので、目安として使ってください。"])})
         sp = long_data.spots(fx["species"])
         if sp:
             pre.append({"type": "map", "label": labels[0] if len(labels) == 1 else "・".join(labels[:2]), "spots": sp, "chapter": ci0,
-                        "lines": [f"最近の釣果で、{labels[0]}が報告されている関西の釣り場はこちら。", f"いちばん多いのは、{sp[0]['name']}です。" + (f"続いて、{sp[1]['name']}。" if len(sp) > 1 else ""), "最新の釣果は、ツレドキ関西の各釣り場のページで確認できます。"]})
+                        "lines": say([f"最近の釣果で、{labels[0]}が報告されている関西の釣り場はこちら。", f"いちばん多いのは、{sp[0]['name']}です。" + (f"続いて、{sp[1]['name']}。" if len(sp) > 1 else ""), "最新の釣果は、ツレドキ関西の各釣り場のページで確認できます。"])})
+        if fx.get("hot") and HOT.get("until", "") >= "2026-10-21":
+            pre.append({"type": "cards", "heading": f"運営の現場情報（{int(HOT['updated'][5:7])}月）", "items": [f"{x['name']}（{x['area']}）" for x in HOT["spots"]] + [m["title"] for m in HOT["methods"]][:2],
+                        "chapter": ci0, "lines": say([f"運営が現場で聞いた、最新の情報もお伝えします。{'、'.join(x['name'] for x in HOT['spots'])}で、{'・'.join(HOT['species'])}が好調です。", "・".join(m["title"] for m in HOT["methods"]) + "。"])})
+
     chapters = ["はじめに"] + pre_titles + [g["title"] for g in gs]
     npre = len(pre_titles)
-    trouble, seen_rows, seen_scene, seen_safety = [], set(), set(), set()
-    prev = {}
+    trouble, rows_seen, when_seen = [], [], []
+    used_diag = set()  # 同じ図解は1回だけ
     body = []
     for ci, g in enumerate(gs, 1):
-        items = []
-        tg = "、".join(g["targets"][:4])
-        if tg != prev.get("targets"):
-            items.append(f"釣れる魚：{tg}")
-        ss = g["season"].split("。")[0].split("、")[0]
-        ss = ss if len(ss) <= 22 else ss[:21] + "…"
-        if ss != prev.get("season"):
-            items.append(f"季節：{ss}")
-        items += [f"ポイント：{x['title']}" for x in g["steps"][1:3]]
-        prev = {"targets": tg, "season": ss}
-        sc = [{"type": "chapter", "no": ci, "title": g["title"], "items": items[:4],
-               "lines": [("まずは、" if ci == 1 else "次は、" if ci < len(gs) else "最後は、") + f"{g['title']}です。" + first_sentence(g["summary"])]}]
-        # 図解（前の章と同じ図は出さない）
-        for s in g["video"]["scenes"]:
-            if s["type"] not in ("rig", "action", "place", "knot"):
+        cidx = ci + npre
+        intro = ("まずは、" if ci == 1 else "次は、" if ci < len(gs) else "最後は、") + f"{g['title']}です。"
+        summ = first_sentence(g["summary"])
+        steps = g["steps"]
+        if fresh(summ, 0.5) and all(sim(summ, x["body"]) < 0.5 for x in steps):
+            intro += summ
+        items = [f"ポイント：{x['title']}" for x in steps[:3]]
+        body.append({"type": "chapter", "no": ci, "title": g["title"], "items": items, "sprites": FACTS.get(p["slug"], {}).get("sprites"), "chapter": cidx, "lines": say([intro])})
+        # 図解は手順に割り当てる（同じ説明を二度しない）
+        diags = [dict(s, _lines=s["lines"], lines=[]) for s in g["video"]["scenes"] if s["type"] in ("rig", "action", "place", "knot") and "道具" not in s.get("heading", "")]
+        assign = {}
+        for dg in diags:
+            text = dg.get("heading", "")
+            best, bi = 0, None
+            for i, st in enumerate(steps):
+                r = sim(text + " " + " ".join(x for x in dg.get("_lines", [])), st["title"] + st["body"])
+                if r > best and i not in assign:
+                    best, bi = r, i
+            key = (dg["type"], dg.get("kind"), tuple(dg.get("labels", [])), tuple(dg.get("marks", [])), dg.get("name"))
+            if bi is not None and best >= 0.2 and key not in used_diag:
+                assign[bi] = dg
+                used_diag.add(key)
+        for i, st in enumerate(steps):
+            line = st["body"]
+            if not fresh(st["title"] + line, 0.55):  # 前の章と同じ手順は省く
                 continue
-            key = (s["type"], s.get("kind"), json.dumps(s.get("parts"), ensure_ascii=False))
-            if key in seen_scene:
-                continue
-            seen_scene.add(key)
-            s = dict(s)
-            if s.get("heading"):
-                s["heading"] = re.sub(r"^[①-⑳]\s*", "", s["heading"])  # ショート用の番号は外す
-            sc.append(s)
-        sc.append({"type": "steps", "heading": "手順", "steps": [x["title"] for x in g["steps"]], "sync_offset": 1,
-                   "lines": [STEP_INTRO[(ci - 1) % len(STEP_INTRO)]] + [f"{NUM[i]}、{x['title']}。{x['body']}" for i, x in enumerate(g["steps"])]})
+            dg = assign.get(i)
+            if dg is not None:
+                dg = {k: v for k, v in dg.items() if k not in ("lines", "_lines")}
+            body.append({"type": "step", "no": i + 1, "total": len(steps), "title": st["title"], "all": [x["title"] for x in steps], "diagram": dg, "chapter": cidx,
+                         "lines": say([f"ステップ{i + 1}、{st['title']}。{line}"])})
         rows = []
         for r in g["patterns"]["rows"]:
-            k = norm(r["when"])
-            if k in seen_rows:
+            key = r["when"] + r["do"]
+            if any(sim(key, x) >= 0.6 for x in rows_seen) or any(sim(r["when"], w) >= 0.7 for w in when_seen) or not fresh(r["when"] + "なら、" + r["do"], 0.55):
                 continue
-            seen_rows.add(k)
+            rows_seen.append(key)
+            when_seen.append(r["when"])
             (trouble if TROUBLE.search(r["when"]) else rows).append(r)
         for k, part in enumerate(chunks(rows, 4)):
-            sc.append({"type": "pattern", "heading": f"{g['title']}：状況別のコツ" if k == 0 else f"{g['title']}：状況別のコツ（続き）", "rows": [[r["when"], r["do"]] for r in part], "sync": True, "sync_offset": 1,
-                       "lines": [PAT_INTRO[(ci - 1) % len(PAT_INTRO)] if k == 0 else "まだあります。"] + [f"{r['when']}なら、{r['do']}。{r['why']}" for r in part]})
-        for s in sc:
-            s["chapter"] = ci + npre
-        body += sc
+            body.append({"type": "pattern2", "heading": f"{g['title']}：状況別のコツ", "rows": [[r["when"], r["do"]] for r in part], "chapter": cidx, "sync": True, "sync_offset": 1,
+                         "lines": say([PAT_INTRO[(ci - 1) % len(PAT_INTRO)] if k == 0 else "まだあります。"] + [f"{r['when']}なら、{r['do']}。{r['why']}" for r in part])})
 
-    tail_ci = len(chapters)
     tail = []
     if trouble:
         chapters.append("困った時は")
         for k, part in enumerate(chunks(trouble, 4)):
-            tail.append({"type": "pattern", "heading": "困った時の対策", "rows": [[r["when"], r["do"]] for r in part], "sync": True, "sync_offset": 1, "chapter": len(chapters) - 1,
-                         "lines": ["ここで、よくある困りごとと、その対策をまとめます。" if k == 0 else "続けて見ていきます。"] + [f"{r['when']}時は、{r['do']}。{r['why']}" for r in part]})
-    # 道具は最後にまとめて1回（初級の道具を重複なしで）
+            tail.append({"type": "pattern2", "heading": "困った時の対策", "rows": [[r["when"], r["do"]] for r in part], "sync": True, "sync_offset": 1, "chapter": len(chapters) - 1,
+                         "lines": say(["よくある困りごとと、その対策です。" if k == 0 else "続けて見ていきます。"] + [f"{r['when']}時は、{r['do']}。{r['why']}" for r in part])})
     chapters.append("道具のそろえ方")
     items, names = [], set()
     for g in gs:
         for it in g["tackle"][0]["items"]:
-            if norm(it["name"]) in names:
-                continue
-            names.add(norm(it["name"]))
-            items.append(it)
+            if norm(it["name"]) not in names:
+                names.add(norm(it["name"]))
+                items.append(it)
     t0 = gs[0]["tackle"][0]
-    for k, part in enumerate(chunks(items, 5)[:2]):
-        tail.append({"type": "tackle", "heading": "まずそろえる道具" if k == 0 else "まずそろえる道具（続き）", "items": [[it["name"], it["spec"]] for it in part], "sync": True, "sync_offset": 1, "chapter": len(chapters) - 1,
-                     "lines": [f"道具をまとめます。はじめての人は、{t0['budget'].replace('目安 ', 'およそ')}から始められます。" if k == 0 else "続けて紹介します。"] + [f"{it['name']}は、{it['spec']}。" for it in part]})
-    up = [t for t in gs[0]["tackle"][1:]]
+    items = items[:6]
+    tail.append({"type": "tackle2", "heading": "まずそろえる道具", "items": [[it["name"], it["spec"]] for it in items], "budget": t0["budget"], "chapter": len(chapters) - 1,
+                 "lines": say([f"道具をまとめます。はじめての人は、{t0['budget'].replace('目安 ', 'およそ')}から始められます。"] + [f"{it['name']}は、{it['spec']}。" for it in items if fresh(f"{it['name']}は、{it['spec']}。", 0.55)] + ["それぞれの道具は、概要欄のリンクから探せます。"])})
+    up = gs[0]["tackle"][1:]
     if up:
-        tail.append({"type": "points", "heading": "慣れてきたら", "items": [f"{t['tier']}：" + "／".join(f"{i['name']} {i['spec'].split('（')[0][:16]}" for i in t["items"][:2]) for t in up][:4], "chapter": len(chapters) - 1,
-                     "lines": [f"慣れてきたら、ステップアップ。{up[0]['tier']}の道具は、{up[0]['who'].rstrip('。')}の道具です。" + (f"{up[0]['budget'].replace('目安 ', 'およそ')}が目安です。" if up[0].get('budget') else ""), "この動画で紹介した道具は、概要欄のリンクから見られます。"]})
-    # 場所と安全も最後に1回（釣りの基本の回は「安全とマナー」だけ）
+        tail.append({"type": "cards", "heading": "慣れてきたら", "items": [f"{t['tier']}：" + "／".join(f"{i['name']} {i['spec'].split('（')[0][:16]}" for i in t["items"][:2]) for t in up][:4], "chapter": len(chapters) - 1,
+                     "lines": say([f"慣れてきたら、ステップアップ。{up[0]['tier']}の道具は、{up[0]['who'].rstrip('。')}の道具です。" + (f"{up[0]['budget'].replace('目安 ', 'およそ')}が目安です。" if up[0].get("budget") else ""), "道具は、釣りに慣れてから少しずつ買い足せば大丈夫です。"])})
     basic = all(g["category"] == "基本" for g in gs)
     chapters.append("安全とマナー" if basic else "どこで釣る？・安全")
-    places = []
-    for g in gs:
-        for x in g["places"]["points"]:
-            if norm(x) not in {norm(y) for y in places}:
-                places.append(x)
     if not basic:
-        tail.append({"type": "points", "heading": "どこで釣る？", "items": places[:4], "chapter": len(chapters) - 1, "lines": [gs[0]["places"]["text"]]})
+        places = []
+        for g in gs:
+            for x in g["places"]["points"]:
+                if all(sim(x, y) < 0.6 for y in places):
+                    places.append(x)
+        txt = gs[0]["places"]["text"]
+        tail.append({"type": "cards", "heading": "どこで釣る？", "items": places[:4], "chapter": len(chapters) - 1, "lines": say([txt] if fresh(txt) else ["釣り場選びのポイントはこちら。"])})
     safety = []
     for g in gs:
         for x in g["safety"]:
-            if norm(x)[:10] not in seen_safety:
-                seen_safety.add(norm(x)[:10])
+            if all(sim(x, y) < 0.6 for y in safety):
                 safety.append(x)
-    tail.append({"type": "points", "heading": "安全とマナー", "items": [x[:28] for x in safety[:4]], "chapter": len(chapters) - 1, "lines": safety[:3]})
+    tail.append({"type": "cards", "heading": "安全とマナー", "items": safety[:4], "chapter": len(chapters) - 1, "lines": say([x for x in safety[:3] if fresh(x)] or ["安全とマナーを守って楽しみましょう。"])})
     chapters.append("まとめ")
     ask = discuss.scene(discuss.LONG[p["slug"]]) if p["slug"] in discuss.LONG else None
     if ask:
         ask["chapter"] = len(chapters) - 1
         tail.append(ask)
-    tail.append({"type": "end", "lines": p["outro"], "chapter": len(chapters) - 1})
+    hook_lines = HOOKS.get(p["slug"], p["intro"])
+    outro = [x for x in p["outro"] if all(sim(x, h) < 0.5 for h in hook_lines)] or ["今日の内容を、ひとつずつ試してみてください。"]
+    tail.append({"type": "end", "lines": outro, "chapter": len(chapters) - 1})
 
     head = [
         {"type": "hook", "lines": HOOKS.get(p["slug"], p["intro"]), "chapter": 0},
-        {"type": "points", "heading": "この動画でわかること", "items": [c for c in chapters[1:-1]][:5], "chapter": 0,
+        {"type": "cards", "heading": "この動画でわかること", "items": [c for c in chapters[1:-1]][:6], "numbered": True, "chapter": 0,
          "lines": ["この動画の流れです。気になる所から見たい人は、概要欄の目次から飛べます。"]},
     ]
     return head + pre + body + tail, chapters
