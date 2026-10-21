@@ -4,7 +4,11 @@ import json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from video_post import clean, http  # noqa: E402
 
-tok = http("POST", "https://oauth2.googleapis.com/token", {k: clean(os.environ[v]) for k, v in (("client_id", "YT_CLIENT_ID"), ("client_secret", "YT_CLIENT_SECRET"), ("refresh_token", "YT_REFRESH_TOKEN"))} | {"grant_type": "refresh_token"})["access_token"]
+try:
+    tok = http("POST", "https://oauth2.googleapis.com/token", {k: clean(os.environ[v]) for k, v in (("client_id", "YT_CLIENT_ID"), ("client_secret", "YT_CLIENT_SECRET"), ("refresh_token", "YT_REFRESH_TOKEN"))} | {"grant_type": "refresh_token"})["access_token"]
+except Exception as e:
+    print(f"::error::token: {str(e)[:400]}")
+    raise SystemExit(0)
 H = {"Authorization": f"Bearer {tok}"}
 def get(url):
     try:
