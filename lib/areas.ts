@@ -49,8 +49,8 @@ export const AREAS: Area[] = [
   {
     slug: "wakayama",
     name: "和歌山",
-    region: "和歌山市・海南市・由良町",
-    spots: ["wakayama-hokko-umizuri-koen", "saikazaki-seapark", "marina-city-tsuri-koen", "shimotsu-pialand", "yura-umizuri-koen"],
+    region: "和歌山市・海南市・広川町・由良町",
+    spots: ["wakayama-hokko-umizuri-koen", "saikazaki-seapark", "marina-city-tsuri-koen", "shimotsu-pialand", "tsuribori-kishu", "yura-umizuri-koen"],
     intro: "紀伊水道に面したエリアです。観光施設と組み合わせて家族で出かけやすい釣り場があります。",
   },
   {
