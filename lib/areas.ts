@@ -54,6 +54,13 @@ export const AREAS: Area[] = [
     intro: "紀伊水道に面したエリアです。観光施設と組み合わせて家族で出かけやすい釣り場があります。",
   },
   {
+    slug: "nanki-shirahama",
+    name: "南紀・白浜",
+    region: "和歌山県白浜町・田辺市周辺",
+    spots: ["shirahama-katata-tsuribori", "shirahama-katata-ikada"],
+    intro: "黒潮が近い紀伊半島南西部のエリアです。温泉地の白浜を拠点に、海上釣り堀や筏釣りで大物を狙えます。",
+  },
+  {
     slug: "maizuru",
     name: "京都北部・舞鶴",
     region: "京都府舞鶴市・京丹後市",

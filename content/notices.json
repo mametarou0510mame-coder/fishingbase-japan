@@ -1,6 +1,8 @@
 {
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
+  {"date": "2026-10-21", "kind": "新規掲載", "spot": "shirahama-katata-ikada", "text": "カタタの筏釣り（白浜町）を掲載しました。予約なしで湾内の筏に渡り、マダイ・チヌ・クエなどを狙えます。", "source": "https://nankishirahama.jp/spot/detail.php?spot_id=139"},
+  {"date": "2026-10-21", "kind": "新規掲載", "spot": "shirahama-katata-tsuribori", "text": "カタタの釣堀（白浜町）を掲載しました。予約不要で、大物コースと竿・エサ付きの小物コースがあります。", "source": "https://www.nankishirahama.jp/spot/601/"},
   {"date": "2026-10-20", "kind": "新規掲載", "spot": "saikazaki-seapark", "text": "雑賀崎シーパーク（和歌山市）を掲載しました。予約制の海上釣堀と、予約なしの「ちょい釣り」があります。", "source": "https://saikazaki-seapark.com/about/"},
   {"date": "2026-10-20", "kind": "新規掲載", "spot": "awaji-janohire-fishing-park", "text": "淡路じゃのひれ フィッシングパーク（南あわじ市）を掲載しました。撒き餌・2本針・サビキ・ルアーは禁止です。", "source": "https://janohire.co.jp/play/fishing-park/"},
   {"date": "2026-10-20", "kind": "新規掲載", "spot": "rokko-marine-park-umigo", "text": "海釣りGO!! ROKKO MARINE PARK（神戸市東灘区）を掲載しました。アプリで1時間単位に予約して使います。", "source": "https://umigo.co.jp/rokko-marine-park/"},
