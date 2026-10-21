@@ -18,7 +18,7 @@ def get(url):
         return {}
 
 
-ch = get("GET", "https://www.googleapis.com/youtube/v3/channels?part=snippet,status&mine=true")
+ch = get("https://www.googleapis.com/youtube/v3/channels?part=snippet,status&mine=true")
 for c in ch.get("items", []):
     print(f"::notice::channel id={c['id']} title={c['snippet']['title']} customUrl={c['snippet'].get('customUrl')} privacy={c['status'].get('privacyStatus')}")
 ids = ",".join(v["youtube"] for v in json.load(open("data/sns/long-posts.json")).values() if v.get("youtube"))
