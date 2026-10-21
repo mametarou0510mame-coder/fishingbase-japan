@@ -252,5 +252,12 @@
   "address": "和歌山県西牟婁郡白浜町堅田藤島2217-2",
   "matched": "和歌山県白浜町堅田",
   "rough": false
+ },
+ "tsuribori-kishu": {
+  "lat": 33.9986,
+  "lon": 135.1499,
+  "address": "和歌山県有田郡広川町唐尾1147-5",
+  "matched": "和歌山県広川町唐尾",
+  "rough": false
  }
 }
