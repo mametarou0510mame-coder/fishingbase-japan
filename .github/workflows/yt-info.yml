@@ -1,0 +1,16 @@
+name: YouTube info
+# チャンネルの URL と、投稿した動画の公開状態を確認する（手動）
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python scripts/sns/yt_info.py
