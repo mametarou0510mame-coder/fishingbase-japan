@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import GearList from "@/app/components/GearList";
-import { rakutenSearchUrl } from "@/lib/affiliate";
+import ShopLinks from "@/app/components/ShopLinks";
+import { AFF_SHOPS } from "@/lib/affiliate";
 import { GEAR_INFO, type GearKey } from "@/lib/gear";
 import { SPECIES } from "@/lib/species";
 
@@ -28,7 +29,7 @@ export default function GearPage() {
         商品は「使う場所のルールに合うか」と「初めてでも扱いやすいか」で選んでいます。
       </p>
       <p className="aff-label">
-        <span className="pr">PR</span> 楽天市場の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
+        <span className="pr">PR</span> {AFF_SHOPS}の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
         今どの道具が安いかは<Link href="/gear/sale/">セール・お得情報</Link>をご覧ください。
       </p>
 
@@ -41,9 +42,7 @@ export default function GearPage() {
               <br />
               <span className="small">{g.why}</span>
             </div>
-            <a href={rakutenSearchUrl(GEAR_INFO[g.key].keyword)} rel="sponsored nofollow noopener" target="_blank">
-              楽天市場で探す
-            </a>
+            <ShopLinks keyword={GEAR_INFO[g.key].keyword} />
           </li>
         ))}
       </ul>

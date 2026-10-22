@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { rakutenSearchUrl } from "@/lib/affiliate";
+import ShopLinks from "@/app/components/ShopLinks";
+import { AFF_SHOPS } from "@/lib/affiliate";
 import { summarize } from "@/lib/catches";
 import { GEAR_INFO, SAFETY_NOTE, allowed } from "@/lib/gear";
 import { SPECIES, speciesFromCatchName, speciesInMonth, type Species } from "@/lib/species";
@@ -42,7 +43,7 @@ export default function SpotGear({ spot }: { spot: Spot }) {
       <h2>この釣り場で使える道具</h2>
       <div className="aff">
         <p className="aff-label">
-          <span className="pr">PR</span> 楽天市場の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
+          <span className="pr">PR</span> {AFF_SHOPS}の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
           この釣り場のルールで使えない道具にはリンクを付けていません。
           {spot.level === "basic" && "ただし、この釣り場は詳しいルールを確認できていないため、撒き餌などが使えるかは施設でご確認ください。"}
         </p>
@@ -50,9 +51,7 @@ export default function SpotGear({ spot }: { spot: Spot }) {
           <p className="aff-name">ライフジャケット（桜マーク付き）</p>
           <p className="small">{lifeNote}</p>
           <p className="aff-links">
-            <a href={rakutenSearchUrl(GEAR_INFO.lifejacket.keyword)} rel="sponsored nofollow noopener" target="_blank">
-              楽天市場で探す
-            </a>
+            <ShopLinks keyword={GEAR_INFO.lifejacket.keyword} />
           </p>
         </div>
         {species.map((s) => (
@@ -71,9 +70,7 @@ export default function SpotGear({ spot }: { spot: Spot }) {
                     {!ok && blocked ? (
                       <span className="small">（この釣り場は{BLOCK_LABEL[blocked]}のため使えません）</span>
                     ) : info ? (
-                      <a href={rakutenSearchUrl(info.keyword)} rel="sponsored nofollow noopener" target="_blank">
-                        楽天市場で探す
-                      </a>
+                      <ShopLinks keyword={info.keyword} />
                     ) : (
                       <span className="small">（{g.note}）</span>
                     )}

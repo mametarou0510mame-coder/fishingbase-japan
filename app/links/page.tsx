@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import HOT from "@/content/hot-notes.json";
-import { rakutenSearchUrl } from "@/lib/affiliate";
+import { AFF_SHOPS, amazonSearchUrl, rakutenSearchUrl } from "@/lib/affiliate";
 import { findGuide } from "@/lib/guides";
 import { SITE } from "@/lib/site";
 import fs from "node:fs";
@@ -76,7 +76,7 @@ export default function LinksPage() {
         <section>
           <h2>動画で紹介した道具：{hotGuide.title}</h2>
           <p className="aff-label">
-            <span className="pr">PR</span> 楽天市場の広告リンクです（<Link href="/pr-policy/">選定方針</Link>）。価格・在庫はリンク先でご確認ください。
+            <span className="pr">PR</span> {AFF_SHOPS}の広告リンクです（<Link href="/pr-policy/">選定方針</Link>）。価格・在庫はリンク先でご確認ください。
           </p>
           <ul className="gear-links">
             {gear.items.map((it) => (
@@ -85,6 +85,11 @@ export default function LinksPage() {
                   <b>{it.name}</b>
                   <span className="small">{it.spec}</span>
                 </a>
+                {amazonSearchUrl(it.keyword) && (
+                  <a className="small" href={amazonSearchUrl(it.keyword) as string} rel="sponsored nofollow noopener" target="_blank">
+                    Amazonで探す
+                  </a>
+                )}
               </li>
             ))}
           </ul>

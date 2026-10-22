@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: ["/og.png"] },
   // Google Search Console の所有権確認（2026-10-18）
   verification: { google: "xl39BeDzXRGuaDiKHYFv_lAgbz0TiauLuLAuxvbsagw" },
+  // AdSense の審査・自動広告（ID を設定した時だけ）
+  ...(SITE.adsenseClient ? { other: { "google-adsense-account": SITE.adsenseClient } } : {}),
 };
 
 export const viewport: Viewport = {
@@ -35,6 +37,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" className={display.variable}>
+      {SITE.adsenseClient && (
+        <head>
+          <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${SITE.adsenseClient}`} crossOrigin="anonymous" />
+        </head>
+      )}
       <body>
         <header className="site-header">
           <div className="wrap header-inner">

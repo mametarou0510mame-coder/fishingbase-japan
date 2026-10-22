@@ -22,7 +22,18 @@ def tackle_lines(guides, limit=6):
             if it["name"] in seen or not it.get("keyword"):
                 continue
             seen.add(it["name"])
-            out.append(f"・{it['name']}（{it['spec']}）\n{rakuten_search_url(it['keyword'])}")
+            amz = amazon_search_url(it["keyword"])
+            out.append(f"・{it['name']}（{it['spec']}）\n楽天 {rakuten_search_url(it['keyword'])}" + (f"\nAmazon {amz}" if amz else ""))
             if len(out) >= limit:
                 return out
     return out
+
+
+# Amazonアソシエイト（lib/affiliate.ts の AMAZON_TAG と同じ値。空の間は Amazon のリンクを出さない）
+AMAZON_TAG = ""
+
+
+def amazon_search_url(keyword):
+    if not AMAZON_TAG:
+        return None
+    return f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}&tag={AMAZON_TAG}"

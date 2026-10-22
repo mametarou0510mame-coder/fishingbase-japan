@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TackleTabs from "@/app/components/TackleTabs";
-import { rakutenSearchUrl } from "@/lib/affiliate";
+import { AFF_SHOPS, amazonSearchUrl, rakutenSearchUrl } from "@/lib/affiliate";
 import { findGuide, guides, guideVideo, guideYoutubeId, recentSpotsForGuide, spotsForGuide } from "@/lib/guides";
 import SocialFollow from "@/app/components/SocialFollow";
 import { SITE } from "@/lib/site";
@@ -151,11 +151,11 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
 
       <h2>タックルリスト（初級・中級・上級）</h2>
       <p className="aff-label">
-        <span className="pr">PR</span> 楽天市場の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
+        <span className="pr">PR</span> {AFF_SHOPS}の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
         リンク先は条件に合う商品の検索結果です。金額は目安です。
       </p>
       <TackleTabs
-        tiers={g.tackle.map((t) => ({ ...t, items: t.items.map((it) => ({ name: it.name, spec: it.spec, href: rakutenSearchUrl(it.keyword) })) }))}
+        tiers={g.tackle.map((t) => ({ ...t, items: t.items.map((it) => ({ name: it.name, spec: it.spec, href: rakutenSearchUrl(it.keyword), amazon: amazonSearchUrl(it.keyword) })) }))}
       />
 
       <h2>どんな場所で釣るか</h2>

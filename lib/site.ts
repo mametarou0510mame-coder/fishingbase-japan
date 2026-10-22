@@ -12,7 +12,9 @@ export const SITE = {
   contactEmail: "mametarou0510mame@gmail.com",
   // 検索エンジンへの登録（2026-10-18 解除）。true にすると全ページ noindex。
   noindex: false,
-  policyUpdated: "2026年10月18日",
+  policyUpdated: "2026年10月22日",
   // 釣果投稿（Cloudflare Turnstile のサイトキー。公開してよい値）。空のあいだは投稿フォームを「準備中」にする
   turnstileSiteKey: "",
+  // Google AdSense のサイト運営者ID（例: "ca-pub-1234567890123456"。公開してよい値）。空のあいだは広告コードを出さない
+  adsenseClient: "",
 } as const;

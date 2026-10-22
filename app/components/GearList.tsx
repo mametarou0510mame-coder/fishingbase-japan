@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { rakutenSearchUrl } from "@/lib/affiliate";
+import ShopLinks from "@/app/components/ShopLinks";
+import { AFF_SHOPS } from "@/lib/affiliate";
 import { GEAR_INFO } from "@/lib/gear";
 import type { Gear } from "@/lib/species";
 
@@ -10,7 +11,7 @@ export default function GearList({ gear }: { gear: Gear[] }) {
     <>
       {hasLinks && (
         <p className="aff-label">
-          <span className="pr">PR</span> 楽天市場の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
+          <span className="pr">PR</span> {AFF_SHOPS}の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
           撒き餌やルアーなど、釣り場によっては使えない道具があります。各釣り場のルールをご確認ください。
         </p>
       )}
@@ -21,9 +22,7 @@ export default function GearList({ gear }: { gear: Gear[] }) {
             {g.key && (
               <>
                 {" "}
-                <a href={rakutenSearchUrl(GEAR_INFO[g.key].keyword)} rel="sponsored nofollow noopener" target="_blank" className="small">
-                  楽天市場で探す
-                </a>
+                <ShopLinks keyword={GEAR_INFO[g.key].keyword} className="small" />
               </>
             )}
             <br />

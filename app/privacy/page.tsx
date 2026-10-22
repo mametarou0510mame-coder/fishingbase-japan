@@ -77,7 +77,7 @@ export default function Privacy() {
           <tr><th>ホスティング</th><td>Cloudflare, Inc.（Cloudflare Pages）</td></tr>
           <tr><th>データベース</th><td>Supabase, Inc.（導入予定）</td></tr>
           <tr><th>アクセス解析</th><td>Google アナリティクス（導入予定）。Cookie を用いて匿名のトラフィックデータを収集します。ブラウザ設定で Cookie を無効にすることで収集を拒否できます。</td></tr>
-          <tr><th>広告配信</th><td>Google AdSense（導入予定）。Cookie を用いて利用者の興味に応じた広告を表示することがあります。<a href="https://www.google.com/settings/ads" rel="noopener">広告設定</a>でパーソナライズ広告を無効にできます。</td></tr>
+          <tr><th>広告配信</th><td>Google AdSense（導入予定）。Google などの第三者配信事業者が Cookie を使用して、当サイトや他のサイトへの過去のアクセス情報に基づいて広告を配信します。Google が広告 Cookie を使用することにより、Google やそのパートナーは当サイトや他のサイトへのアクセス情報に基づいて、適切な広告を表示できます。<a href="https://www.google.com/settings/ads" rel="noopener">広告設定</a>でパーソナライズ広告を無効にできます（<a href="https://policies.google.com/technologies/ads?hl=ja" rel="noopener">Google の広告に関するポリシー</a>）。</td></tr>
           <tr><th>アフィリエイト</th><td>もしもアフィリエイト、楽天アフィリエイト、Amazonアソシエイト等（導入予定）。商品リンク経由の購入時に、成果計測のため Cookie が使用されます。</td></tr>
           <tr><th>SNS</th><td>Instagram、Threads（Meta Platforms, Inc.）の公式API</td></tr>
         </tbody>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AMAZON_TAG } from "@/lib/affiliate";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function PrPolicy() {
         {SITE.name}は、Amazonアソシエイト・楽天アフィリエイト・もしもアフィリエイトなどのアフィリエイトプログラムに参加しています（参加予定のものを含みます）。
         紹介した商品が購入されると、当サイトが販売店から紹介料を受け取ることがあります。お客様の購入金額は変わりません。
       </p>
+      {AMAZON_TAG && <p>Amazonのアソシエイトとして、{SITE.name}は適格販売により収入を得ています。</p>}
 
       <h2>表示のしかた</h2>
       <ul>

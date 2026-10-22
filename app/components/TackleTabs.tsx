@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-type Item = { name: string; spec: string; href: string };
+type Item = { name: string; spec: string; href: string; amazon?: string | null };
 type Tier = { tier: string; who: string; budget: string; items: Item[] };
 
 // タックルリスト（初級・中級・上級）の切り替え
@@ -30,6 +30,14 @@ export default function TackleTabs({ tiers }: { tiers: Tier[] }) {
                 <a href={it.href} rel="sponsored nofollow noopener" target="_blank">
                   楽天で探す
                 </a>
+                {it.amazon && (
+                  <>
+                    <br />
+                    <a href={it.amazon} rel="sponsored nofollow noopener" target="_blank">
+                      Amazonで探す
+                    </a>
+                  </>
+                )}
               </td>
             </tr>
           ))}
