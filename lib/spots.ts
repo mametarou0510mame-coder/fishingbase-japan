@@ -1304,6 +1304,68 @@ export const SPOTS: Spot[] = [
     intro:
       "和歌山県広川町の唐尾港から船で渡る海上釣り堀です。マダイ・シマアジ・青物を狙え、竿やタモの貸し出しもあるので初めてでも利用しやすい施設です。",
   },
+  {
+    slug: "kada-ohato",
+    pref: "wakayama",
+    name: "加太大波止",
+    area: "和歌山市加太",
+    address: "和歌山県和歌山市加太",
+    type: "一般の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-22",
+    officialUrl: "https://wakayamakanko.jp/ja/spot/detail/917",
+    sourceUrls: ["https://wakayamakanko.jp/ja/spot/detail/917"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "漁港の防波堤です。漁業者の作業・船の出入りを優先し、作業場所や係留中の船の近くでは釣りをしない",
+      "立入禁止・釣り禁止の表示がある場所、柵の外側やテトラポッドの上には入らない",
+      "ゴミ・釣り糸・釣り針は持ち帰る",
+    ],
+    rulesSource: "report",
+    notes: [
+      "南海加太線の加太駅から歩いて約15分です。問い合わせ先は加太観光協会（073-459-0003）です。",
+      "和歌山県観光連盟の「釣り」のページにもとづいています。投げ釣りなど一部の釣り方に規制があると伝えられているため、現地の掲示を必ず確認してください。",
+    ],
+    tideStation: { code: "WY", name: "和歌山" },
+    intro:
+      "和歌山市の北の端、加太港の大きな防波堤です。和歌山県観光連盟が釣り場として紹介しており、チヌ・アジ・グレ・サバ・イワシなどが狙えます。",
+  },
+  {
+    slug: "tomogashima",
+    pref: "wakayama",
+    name: "友ヶ島",
+    area: "和歌山市加太（友ヶ島）",
+    address: "和歌山県和歌山市加太（友ヶ島）",
+    type: "一般の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-22",
+    officialUrl: "https://wakayamakanko.jp/ja/spot/detail/917",
+    sourceUrls: ["https://wakayamakanko.jp/ja/spot/detail/917"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "島へは加太港から友ヶ島汽船で渡ります。帰りの船の時刻を必ず確認する",
+      "立入禁止の表示がある場所（砲台跡などの一部）や、釣り禁止の表示がある桟橋では釣りをしない",
+      "島にはゴミ箱がありません。ゴミ・釣り糸・釣り針はすべて持ち帰る",
+    ],
+    rulesSource: "report",
+    notes: [
+      "加太駅から歩いて約15分の加太港から、友ヶ島汽船で約20分です。問い合わせ先は友ヶ島案内センター（073-459-0314）です。",
+      "和歌山県観光連盟の「釣り」のページにもとづいています。現地の掲示を優先してください。",
+    ],
+    tideStation: { code: "WY", name: "和歌山" },
+    intro:
+      "紀淡海峡に浮かぶ無人島で、和歌山県観光連盟が釣り場として紹介しています。潮通しが良く、ガシラ・アジ・メバル・ハマチ・グレなどが狙えます。",
+  },
 ];
 
 export const publishedSpots = () => SPOTS.filter((s) => s.published);

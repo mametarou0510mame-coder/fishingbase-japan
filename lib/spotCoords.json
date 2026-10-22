@@ -259,5 +259,21 @@
   "address": "和歌山県有田郡広川町唐尾1147-5",
   "matched": "和歌山県広川町唐尾",
   "rough": false
+ },
+ "kada-ohato": {
+  "lat": 34.2745,
+  "lon": 135.068,
+  "address": "和歌山県和歌山市加太",
+  "matched": "和歌山県和歌山市加太",
+  "rough": true,
+  "manual": true
+ },
+ "tomogashima": {
+  "lat": 34.281,
+  "lon": 135.005,
+  "address": "和歌山県和歌山市加太（友ヶ島）",
+  "matched": "和歌山県和歌山市加太",
+  "rough": true,
+  "manual": true
  }
 }

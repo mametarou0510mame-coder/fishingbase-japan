@@ -1,6 +1,8 @@
 {
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
+  {"date": "2026-10-22", "kind": "新規掲載", "spot": "tomogashima", "text": "友ヶ島（和歌山市）を掲載しました。加太港から友ヶ島汽船で渡る無人島で、島にはゴミ箱がないため持ち帰りが必要です。", "source": "https://wakayamakanko.jp/ja/spot/detail/917"},
+  {"date": "2026-10-22", "kind": "新規掲載", "spot": "kada-ohato", "text": "加太大波止（和歌山市）を掲載しました。加太駅から歩いて行ける防波堤で、チヌ・アジ・グレなどが狙えます。", "source": "https://wakayamakanko.jp/ja/spot/detail/917"},
   {"date": "2026-10-21", "kind": "新規掲載", "spot": "tsuribori-kishu", "text": "釣堀紀州（広川町）を掲載しました。唐尾港から船で渡る予約制の海上釣り堀です。2026年12月1日から貸し竿の料金が上がります。", "source": "https://www.tsuribori-kishu.com/fee/"},
   {"date": "2026-10-21", "kind": "新規掲載", "spot": "shirahama-katata-ikada", "text": "カタタの筏釣り（白浜町）を掲載しました。予約なしで湾内の筏に渡り、マダイ・チヌ・クエなどを狙えます。", "source": "https://nankishirahama.jp/spot/detail.php?spot_id=139"},
   {"date": "2026-10-21", "kind": "新規掲載", "spot": "shirahama-katata-tsuribori", "text": "カタタの釣堀（白浜町）を掲載しました。予約不要で、大物コースと竿・エサ付きの小物コースがあります。", "source": "https://www.nankishirahama.jp/spot/601/"},
