@@ -182,6 +182,28 @@ def scene_title(d, t, dur, s, meta):
         fs = F(FONT_BOLD, 60)
         a = ease((t - 0.5) / 0.5)
         center_text(d, PW / 2, y + 20, meta["sub"], fs, alpha(RED, a))
+    if s.get("image"):
+        # 冒頭に画面写真（例：タイドグラフ）を大きく見せる
+        layer = meta["_layer"]
+        path = s["image"]
+        if path not in _shots:
+            _shots[path] = Image.open(path).convert("RGB")
+        src = _shots[path]
+        bw = PW - 60
+        key = (path, bw)
+        if key not in _shots:
+            _shots[key] = src.resize((bw, int(src.height * bw / src.width)), Image.LANCZOS)
+        img = _shots[key]
+        top = max(int(y + 110), PH - img.height - 40)
+        b = ease((t - 0.3) / 0.6)
+        yy = top + int((1 - b) * 60)
+        if b > 0:
+            d.rounded_rectangle([28, yy + 6, 32 + bw, yy + img.height + 8], radius=26, fill=(16, 40, 63, int(40 * b)))
+            mask = Image.new("L", img.size, 0)
+            ImageDraw.Draw(mask).rounded_rectangle([0, 0, img.width, img.height], radius=24, fill=int(255 * b))
+            layer.paste(img, (30, yy), mask)
+            d.rounded_rectangle([30, yy, 30 + bw, yy + img.height], radius=24, outline=(200, 214, 222, int(255 * b)), width=3)
+        return
     # 海とウキ
     sea_y = 760
     pts = [(x, sea_y + 14 * math.sin(x / 140 + t * 2.2)) for x in range(0, PW + 1, 8)]

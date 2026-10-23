@@ -272,7 +272,7 @@ def make_hot(day):
 def make_update(day):
     img = "assets/sns/update-shio"
     scenes = [
-        {"type": "title", "lines": ["ツレドキ関西に、新しく「潮・海況」のページができました。"]},
+        {"type": "title", "image": f"{img}/0-tide.png", "lines": ["ツレドキ関西に、新しく「潮・海況」のページができました。"]},
         {"type": "shot", "heading": "① いまの海がひと目で", "badge": "NEW", "image": f"{img}/1-now.png",
          "lines": ["釣り場ごとに、いまの潮位と、上げ潮か下げ潮か、次の満潮まであと何分かが、すぐわかります。"]},
         {"type": "shot", "heading": "② 潮・風・波を1枚に", "image": f"{img}/2-timeline.png",
