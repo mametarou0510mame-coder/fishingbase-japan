@@ -275,5 +275,12 @@
   "matched": "和歌山県和歌山市加太",
   "rough": true,
   "manual": true
+ },
+ "takasago-kaihin-koen": {
+  "lat": 34.74,
+  "lon": 134.8066,
+  "address": "兵庫県高砂市高砂町向島町",
+  "matched": "兵庫県高砂市高砂町向島町",
+  "rough": false
  }
 }
