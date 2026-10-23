@@ -3,6 +3,7 @@ import Link from "next/link";
 import SocialFollow from "@/app/components/SocialFollow";
 import { Dela_Gothic_One } from "next/font/google";
 import Logo from "@/app/components/Logo";
+import PwaRegister from "@/app/components/PwaRegister";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -11,6 +12,8 @@ const display = Dela_Gothic_One({ weight: "400", preload: false, display: "swap"
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
+  // ホーム画面に追加したときの名前・表示（iPhone）
+  appleWebApp: { capable: true, title: "ツレドキ", statusBarStyle: "default" },
   title: { default: `${SITE.name}｜${SITE.tagline}`, template: `%s｜${SITE.name}` },
   description:
     "関西の海釣り施設・釣り場の釣果、潮汐、ルールをまとめ、今日どこへ行くかを決められる釣り情報サイト。",
@@ -43,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </head>
       )}
       <body>
+        <PwaRegister />
         <header className="site-header">
           <div className="wrap header-inner">
             <Link href="/" className="logo" aria-label={`${SITE.name} トップへ`}>

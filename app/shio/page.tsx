@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import InstallHint from "@/app/components/InstallHint";
 import ShioList, { type ListArea } from "@/app/components/ShioList";
 import { AREAS } from "@/lib/areas";
 import { buildBoard } from "@/lib/shioData";
@@ -56,6 +57,7 @@ export default function ShioIndex() {
         <b style={{ color: "var(--sea-2)" }}>△いまひとつ</b>・<b style={{ color: "var(--float)" }}>×見合わせ推奨</b>。数字の下の線は安全の目安です。
         釣り場名を押すと、時間ごとのタイドグラフ・風・波が見られます。<Link href="/map/">地図から探す</Link>
       </p>
+      <InstallHint />
       <ShioList areas={areas} />
       <p className="small">
         出典：潮位・天気は気象庁、波は ECMWF Open Data（CC BY 4.0）。指数と安全の目安は当サイト独自の目安で、釣果や安全を保証するものではありません。

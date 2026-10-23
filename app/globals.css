@@ -525,3 +525,11 @@ iframe.guide-video { border: 0; }
 .shio-mine { border-radius: 16px; padding: 4px 12px 12px; background: var(--sand); margin-bottom: 8px; }
 .shio-mine h2 { margin-top: 10px; }
 @media (max-width: 480px) { .shio-table tbody th { min-width: 104px; font-size: 0.8rem; } }
+
+/* ホーム画面に追加の案内 */
+.install-hint { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 12px 0 16px; background: var(--sand); }
+.install-hint svg { flex: 0 0 auto; }
+.install-hint b { color: var(--sea); }
+.install-hint p { margin: 4px 0 0; font-size: 0.88rem; }
+.install-hint button { font: inherit; font-weight: 700; border: 0; border-radius: 999px; padding: 6px 16px; background: var(--sea); color: #fff; cursor: pointer; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .install-hint button { background: #1f6a99; } }

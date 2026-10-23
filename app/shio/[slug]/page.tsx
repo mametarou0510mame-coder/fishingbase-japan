@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import InstallHint from "@/app/components/InstallHint";
 import ShioBoard, { type SpeciesTip } from "@/app/components/ShioBoard";
 import { areaOfSpot } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
@@ -86,6 +87,8 @@ export default async function ShioSpotPage({ params }: { params: Promise<Params>
         recentFrom={summary.from}
         recentTo={summary.to}
       />
+
+      <InstallHint />
 
       <h2>このページのデータについて</h2>
       <ul className="small">
