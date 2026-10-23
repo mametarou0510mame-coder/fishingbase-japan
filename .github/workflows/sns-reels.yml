@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       slot:
-        description: "spots / tomorrow / guide / deals / trivia / weekend"
+        description: "spots / tomorrow / guide / deals / trivia / weekend / hot（臨時の現場情報）"
         required: true
         default: spots
       publish:

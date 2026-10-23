@@ -232,6 +232,42 @@ def make_trivia(day, log):
     return guide, "\n".join(cap)
 
 
+# ---------- 臨時：運営の現場情報（ムコイチの青物） ----------
+def make_hot(day):
+    hot = json.load(open("content/hot-notes.json", encoding="utf-8"))
+    sawara = next(x for x in hot["methods"] if x["title"].startswith("サワラ"))
+    buri = next(x for x in hot["methods"] if x["title"].startswith("ブリ"))
+    scenes = [
+        {"type": "title", "lines": ["ムコイチこと武庫川一文字で、ブリ、サゴシ、サワラがよく釣れています。運営の現場情報です。"]},
+        {"type": "pattern", "heading": "① 今アツい魚", "rows": [["ブリ（ハマチ・メジロ）", "ショアジギング"], ["サゴシ・サワラ", "ショアジギング"], ["ジグの重さ", "40g前後が基本"]],
+         "lines": ["狙い方はショアジギング。メタルジグは40グラム前後が基本です。"]},
+        {"type": "action", "kind": "fast", "heading": "② サゴシ・サワラ", "name": "早巻き＋ときどき緩急", "sub": "速いただ巻きに変化をつける",
+         "lines": [sawara["body"]]},
+        {"type": "action", "kind": "onepitch", "heading": "③ ブリ", "name": "底→ワンピッチ→フォール", "sub": "沈める間に食わせる",
+         "lines": [buri["body"]]},
+        {"type": "points", "heading": "④ 行く前に", "items": ["渡船で渡る沖堤防", "救命具は桜マーク・CSマーク付き", "長めのタモ網を持っていく"],
+         "lines": ["ムコイチは渡船で渡る沖堤防です。救命具は桜マークかCSマーク付きのものを用意しましょう。", "大物に備えて、長めのタモ網があると安心です。"]},
+    ]
+    q = ("ムコイチの青物、何を狙う？", ["ブリ", "サゴシ・サワラ", "両方ねらう"])
+    scenes += [discuss.scene(q), END]
+    guide = {"title": "ムコイチで青物が好調", "sub": "ブリ・サゴシ・サワラ", "tag": "運営の現場情報", "video": {"scenes": scenes}, "key": f"hot-mukoichi-{day}"}
+    tk = "\n".join(f"・{a}：{b}" for a, b in hot["tackle"])
+    cap = ["【今アツい】ムコイチ（武庫川一文字）でブリ・サゴシ・サワラが好調！", "",
+           "運営の現場情報です。武庫川一文字で、青物がよく釣れています。", "",
+           "▼釣り方（ショアジギング・ジグは40g前後）",
+           f"・サゴシ・サワラ：{sawara['body']}",
+           f"・ブリ：{buri['body']}", "",
+           "▼タックルの目安", tk, "",
+           "▼行く前に",
+           "・渡船で渡る沖堤防です。渡船の営業・ルールは事前に確認を",
+           "・救命具は桜マーク・CSマーク付きのもの",
+           "・投げる前に周りを確認。混雑時は隣と同じ方向へ"]
+    cap += site_lead(hot["guide"], "ショアジギングの釣り方・道具")
+    cap += discuss.caption(q) + [""]
+    cap += [CREDIT, "", TAGS + " #武庫川一文字 #ムコイチ #ショアジギング #青物 #ブリ #サゴシ #サワラ"]
+    return guide, "\n".join(cap)
+
+
 def make(slot, outdir):
     os.makedirs(outdir, exist_ok=True)
     day = now().strftime("%Y-%m-%d")
@@ -251,6 +287,8 @@ def make(slot, outdir):
         g, cap = make_deals(day)
     elif slot == "trivia":
         g, cap = make_trivia(day, log)
+    elif slot == "hot":
+        g, cap = make_hot(day)
     else:
         raise SystemExit(f"unknown slot {slot}")
     vid = f"{slot}-{day}"
