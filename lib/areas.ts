@@ -61,6 +61,13 @@ export const AREAS: Area[] = [
     intro: "黒潮が近い紀伊半島南西部のエリアです。温泉地の白浜を拠点に、海上釣り堀や筏釣りで大物を狙えます。",
   },
   {
+    slug: "harima",
+    name: "播磨",
+    region: "兵庫県高砂市・姫路市・加古川市周辺",
+    spots: ["takasago-kaihin-koen"],
+    intro: "播磨灘に面したエリアです。遠浅の砂浜がある海浜公園など、家族で出かけやすい場所があります。",
+  },
+  {
     slug: "maizuru",
     name: "京都北部・舞鶴",
     region: "京都府舞鶴市・京丹後市",

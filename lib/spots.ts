@@ -1366,6 +1366,38 @@ export const SPOTS: Spot[] = [
     intro:
       "紀淡海峡に浮かぶ無人島で、和歌山県観光連盟が釣り場として紹介しています。潮通しが良く、ガシラ・アジ・メバル・ハマチ・グレなどが狙えます。",
   },
+  {
+    slug: "takasago-kaihin-koen",
+    pref: "hyogo",
+    name: "高砂海浜公園（向島公園）",
+    area: "高砂市高砂町",
+    address: "兵庫県高砂市高砂町向島町",
+    type: "公園の釣り場",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-23",
+    officialUrl: "https://www.mlit.go.jp/tagengo-db/R5-00233.html",
+    sourceUrls: ["https://www.mlit.go.jp/tagengo-db/R5-00233.html"],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "公園の利用ルールと現地の掲示に従う",
+      "海水浴・水遊びの人の近くでは仕掛けを投げない",
+      "立入禁止・釣り禁止の表示がある場所には入らない",
+      "ゴミ・釣り糸・釣り針は持ち帰る",
+    ],
+    rulesSource: "report",
+    notes: [
+      "トイレ・シャワーがあります。バーベキューとSUPは公式サイトからの予約制です。",
+      "観光庁の多言語解説文データベース（2023年度）にもとづいています。釣りができる場所・時間は現地の掲示を優先してください。",
+    ],
+    tideStation: { code: "K1", name: "姫路" },
+    intro:
+      "高砂市の播磨灘に面した海浜公園で、白い砂浜と松並木が「日本の白砂青松100選」に選ばれています。観光庁の解説文で、水遊びや釣りを楽しめるレクリエーションゾーンとして紹介されています。",
+  },
 ];
 
 export const publishedSpots = () => SPOTS.filter((s) => s.published);
