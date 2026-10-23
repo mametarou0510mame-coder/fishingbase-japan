@@ -51,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-label="メイン">
               <Link href="/kansai/area/">エリア</Link>
               <Link href="/kansai/">釣り場</Link>
+              <Link href="/shio/">潮・海況</Link>
               <Link href="/species/">魚種</Link>
               <Link href="/kansai/month/">月別</Link>
               <Link href="/guide/">釣り方</Link>

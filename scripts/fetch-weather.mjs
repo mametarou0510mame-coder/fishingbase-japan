@@ -50,6 +50,21 @@ for (const t of TARGETS) {
       })),
       pops: (ts1?.timeDefines ?? []).map((d, i) => ({ time: d, pop: a1?.pops?.[i] ?? null })),
     };
+    // 週間天気予報（7日分の天気コード・降水確率・最低/最高気温）。予報区がなければ府県の最初の区域を使う
+    const wk = json[1];
+    if (wk?.timeSeries?.length) {
+      const pickArea = (ts) => ts?.areas?.find((a) => a.area.code === t.area) ?? ts?.areas?.[0];
+      const w0 = wk.timeSeries[0];
+      const wa = pickArea(w0);
+      const wt = pickArea(wk.timeSeries[1]);
+      out.areas[t.area].week = (w0.timeDefines ?? []).map((d, i) => ({
+        date: d.slice(0, 10),
+        code: wa?.weatherCodes?.[i] ?? "",
+        pop: wa?.pops?.[i] ?? "",
+        tmin: wt?.tempsMin?.[i] ?? "",
+        tmax: wt?.tempsMax?.[i] ?? "",
+      }));
+    }
     console.log(`[weather] ${t.area} OK`);
   } catch (e) {
     console.warn(`[weather] ${t.area}: ${e.message}`);

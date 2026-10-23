@@ -1,9 +1,10 @@
 # 釣り場ごとの波の予報（3時間ごと・約5日先まで）を作り、public/data/marine.json に保存する。
 #
-# 出典: ECMWF Open Data（IFS 波浪モデル 0.1度格子、CC BY 4.0。商用利用可・出典の表示が必要）
+# 出典: ECMWF Open Data（IFS 波浪モデル・大気モデル 0.1度格子、CC BY 4.0。商用利用可・出典の表示が必要）
 #   https://www.ecmwf.int/en/forecasts/datasets/open-data
 # ファイル全体ではなく、索引(.index)を見て必要な要素（有義波高 swh・平均波向 mwd・平均周期 mwp）だけを
 # HTTP Range で取得する。陸の格子は値がないため、釣り場から一番近い「海の格子」の値を使う。
+# 風（高さ10mの東西・南北成分 10u/10v）も同じ海の格子の位置で取り、気象庁の3時間ごとの予報がない日の目安にする。
 #
 # 必要なもの: python3-eccodes, python3-numpy（GitHub Actions では apt で入れる）
 import json
@@ -18,6 +19,7 @@ import eccodes
 
 BASE = "https://data.ecmwf.int/forecasts"
 PARAMS = ["swh", "mwd", "mwp"]
+WIND = ["10u", "10v"]
 STEPS = list(range(0, 121, 3))  # 0〜120時間、3時間ごと
 UA = {"User-Agent": "TsuredokiKansai/0.1 (+https://tsuredoki-kansai.mametarou0510mame.workers.dev/about/)"}
 SEARCH_DEG = 0.35  # 海の格子を探す範囲（度）
@@ -50,13 +52,13 @@ def run_candidates():
     return out
 
 
-def file_url(run, step, res):
+def file_url(run, step, res, stream="wave"):
     d = run.strftime("%Y%m%d")
     hh = run.strftime("%H")
-    stem = f"{d}{hh}0000-{step}h-wave-fc"
+    stem = f"{d}{hh}0000-{step}h-{stream}-fc"
     if res == "0p1":
-        return f"{BASE}/{d}/{hh}z/ifs/0p1/wave/{stem}-sfc"
-    return f"{BASE}/{d}/{hh}z/ifs/0p25/wave/{stem}"
+        return f"{BASE}/{d}/{hh}z/ifs/0p1/{stream}/{stem}-sfc"
+    return f"{BASE}/{d}/{hh}z/ifs/0p25/{stream}/{stem}"
 
 
 def read_index(url):
@@ -122,7 +124,7 @@ def main():
     run, res = pick_run()
     print(f"[marine] run {run.isoformat()} res {res}")
     grid = {}  # slug -> (j, i, dkm, glat, glon)
-    series = {slug: {p: [] for p in PARAMS} for slug in coords}
+    series = {slug: {p: [] for p in PARAMS + ["ws", "wd"]} for slug in coords}
     for step in STEPS:
         url = file_url(run, step, res)
         idx = read_index(url)
@@ -145,6 +147,31 @@ def main():
                     series[slug][p].append(round(float(v), 1))
                 else:
                     series[slug][p].append(int(round(float(v))) % 360)
+        # 風：波と同じ海の格子の位置の値
+        wurl = file_url(run, step, res, "oper")
+        try:
+            widx = read_index(wurl)
+            u = decode(get(wurl + ".grib2", widx["10u"]))
+            v = decode(get(wurl + ".grib2", widx["10v"]))
+        except Exception as e:  # noqa: BLE001
+            print(f"[marine] wind {step}h: {e}", file=sys.stderr)
+            u = v = None
+        for slug in coords:
+            g = grid.get(slug)
+            if u is None or g is None:
+                series[slug]["ws"].append(None)
+                series[slug]["wd"].append(None)
+                continue
+            j = int(round((u["lat1"] - g[3]) / u["dlat"]))
+            i = int(round(((g[4] - u["lon1"]) % 360) / u["dlon"])) % u["ni"]
+            uu, vv = float(u["vals"][j, i]), float(v["vals"][j, i])
+            if math.isnan(uu) or math.isnan(vv):
+                series[slug]["ws"].append(None)
+                series[slug]["wd"].append(None)
+                continue
+            series[slug]["ws"].append(round(math.hypot(uu, vv), 1))
+            # 風の吹いてくる向き（北=0、時計回り）
+            series[slug]["wd"].append(int(round(math.degrees(math.atan2(-uu, -vv)))) % 360)
         print(f"[marine] step {step}h ok")
 
     points = {}
@@ -155,7 +182,7 @@ def main():
         points[slug] = {"lat": round(g[3], 3), "lon": round(g[4], 3), "distKm": round(g[2], 1), **series[slug]}
     out = {
         "fetchedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "source": "ECMWF Open Data（IFS 波浪モデル）CC BY 4.0",
+        "source": "ECMWF Open Data（IFS 波浪モデル・大気モデル）CC BY 4.0",
         "sourceUrl": "https://www.ecmwf.int/en/forecasts/datasets/open-data",
         "resolution": "0.1度" if res == "0p1" else "0.25度",
         "run": run.strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -98,6 +98,9 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       <p className="lead">{spot.intro}</p>
 
       <h2>タイドグラフ・天気・風・波</h2>
+      <p className="small">
+        <Link href={`/shio/${spot.slug}/`}>7日先までの潮・風・波と「釣りどき指数」「安全の目安」を見る →</Link>
+      </p>
       <TideWidget
         code={spot.tideStation.code}
         stationName={spot.tideStation.name}

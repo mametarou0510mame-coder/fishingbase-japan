@@ -411,3 +411,73 @@ iframe.guide-video { border: 0; }
 .yt-block { border: 2px solid #e31e24; border-radius: 16px; padding: 12px 14px; margin: 16px 0; }
 .yt-block h2 { color: #e31e24; margin-top: 4px; }
 .link-btn.yt { border-color: #e31e24; }
+
+/* ---- 潮・海況ボード（/shio/） ---- */
+.shio { margin: 12px 0 8px; }
+.shio-k { font-size: 0.75rem; color: var(--muted); }
+.shio-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; }
+.shio-days { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
+.shio-days button { font: inherit; flex: 0 0 auto; min-width: 74px; display: grid; justify-items: center; gap: 2px; padding: 8px 6px 7px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); cursor: pointer; }
+.shio-days button.on { border-color: var(--sea); box-shadow: inset 0 -3px 0 var(--float); background: var(--sand); }
+.shio-days button:focus-visible { outline: 2px solid var(--sea-2); outline-offset: 2px; }
+.shio-dd { font-weight: 700; font-size: 0.9rem; }
+.shio-dd small { font-weight: 400; font-size: 0.72rem; color: var(--muted); }
+.shio-tn { font-size: 0.72rem; color: var(--sea-2); }
+.shio-sc { min-width: 34px; text-align: center; border-radius: 999px; color: #10283f; font-weight: 800; font-size: 0.85rem; padding: 1px 8px; }
+.shio-now { border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; margin: 6px 0 12px; background: linear-gradient(135deg, var(--sand), var(--card)); }
+.shio-now-tide { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.shio-now-tide strong { font-size: 2.1rem; line-height: 1; color: var(--sea); }
+.shio-now-tide strong small { font-size: 0.9rem; margin-left: 2px; }
+.shio-up { color: var(--tide); font-weight: 700; }
+.shio-down { color: var(--sea-2); font-weight: 700; }
+.shio-now-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px 12px; margin-top: 10px; }
+.shio-now-grid div { display: grid; }
+.shio-now-grid b { font-size: 0.95rem; }
+.shio-safe { margin: 10px 0 0; padding: 6px 10px; border-left: 4px solid; background: var(--card); border-radius: 0 8px 8px 0; font-size: 0.88rem; }
+.shio-safe .shio-dot { margin-right: 6px; }
+.shio-tl { display: flex; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
+.shio-tl-labels { position: relative; flex: 0 0 auto; border-right: 1px solid var(--line); background: var(--sand); }
+.shio-tl-labels span { position: absolute; left: 0; right: 0; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; color: var(--muted); }
+.shio-tl-scroll { overflow-x: auto; flex: 1 1 auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.shio-tl-scroll svg { display: block; }
+.shio-legend { margin: 6px 0 14px; line-height: 1.9; }
+.shio-legend span { display: inline-block; width: 12px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 3px; }
+.shio-legend .hatch { background: repeating-linear-gradient(45deg, var(--line) 0 2px, transparent 2px 5px); }
+.shio-day header { display: flex; gap: 14px; align-items: center; margin: 4px 0 10px; }
+.shio-day header h3 { margin: 2px 0; font-size: 1.3rem; }
+.shio-day header p { margin: 0; }
+.shio-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.shio-card { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--card); }
+.shio-card h4 { margin: 0 0 6px; font-size: 0.9rem; color: var(--sea); }
+.shio-card p, .shio-card ul { margin: 4px 0; }
+.shio-card ul { padding-left: 1.2em; font-size: 0.88rem; }
+.shio-mini { margin: 0; font-size: 0.85rem; }
+.shio-mini th { width: 36%; padding: 4px 4px; }
+.shio-mini td { padding: 4px 4px; }
+.shio-moon { display: flex; align-items: center; gap: 6px; }
+.shio-h4 { margin: 18px 0 6px; color: var(--sea); }
+.shio-fish { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.shio-fish li { border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+.shio-fish p { margin: 2px 0 0; }
+.shio-fish-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.shio-bar { flex: 1 1 80px; max-width: 160px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.shio-bar span { display: block; height: 100%; background: var(--tide); }
+.shio-recent { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; font-size: 0.85rem; }
+.shio-recent li { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+.shio-for { text-align: right; }
+.shio-table-wrap { overflow-x: auto; }
+.shio-table { min-width: 560px; font-size: 0.85rem; }
+.shio-table caption { text-align: left; font-size: 0.78rem; color: var(--muted); padding-bottom: 4px; }
+.shio-table th { width: auto; white-space: nowrap; text-align: center; padding: 6px 4px; }
+.shio-table th small { display: block; font-weight: 400; }
+.shio-table tbody th { text-align: left; white-space: normal; min-width: 128px; }
+.shio-table tbody th .shio-k { display: block; font-weight: 400; }
+.shio-table td { text-align: center; padding: 6px 2px; }
+.shio-cell { display: inline-block; min-width: 32px; border-radius: 8px; color: #10283f; font-weight: 800; padding: 2px 4px; }
+.shio-cell-sub { display: flex; justify-content: center; align-items: center; gap: 3px; font-size: 0.75rem; margin-top: 2px; }
+.shio-cell-sub i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.shio-mine { border: 1px solid var(--line); border-radius: 14px; padding: 4px 12px 8px; background: var(--sand); }
+.shio-mine h2 { margin-top: 10px; }
+.shio-table tbody th, .shio-table thead th:first-child { position: sticky; left: 0; background: var(--bg); z-index: 1; }
+.shio-mine .shio-table tbody th, .shio-mine .shio-table thead th:first-child { background: var(--sand); }
+@media (max-width: 480px) { .shio-table tbody th { min-width: 108px; font-size: 0.8rem; } }

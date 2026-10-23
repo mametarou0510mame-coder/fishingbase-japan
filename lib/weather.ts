@@ -12,6 +12,7 @@ export type WeatherArea = {
   hourly?: { time: string; weather: string; windDir: string; windMin: number | null; windMax: number | null; temp: number | null }[];
   hourlyReport?: string;
   hourlyPoint?: string;
+  week?: { date: string; code: string; pop: string; tmin: string; tmax: string }[];
 };
 
 // 釣り場の府県 → 気象庁の予報区
