@@ -465,7 +465,7 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
       <p className="shio-legend small">
         <span style={{ background: "var(--glow)" }} /> まずめ・指数70以上　<span style={{ background: "var(--tide)" }} /> 釣りどき指数（濃いほど高い）
         <span className="hatch" /> 営業時間外　●の色：<b style={{ color: "var(--tide)" }}>安全</b>・<b style={{ color: "var(--glow)" }}>注意</b>・
-        <b style={{ color: "var(--float)" }}>見合わせ</b>　「≧」「約」は府県予報の文からの見積もり
+        <b style={{ color: "var(--float)" }}>見合わせ</b>　「≧」「約」は府県予報の文や数値モデルからの見積もり、「－」はまだ予報がない時間
       </p>
 
       <section className="shio-day">
@@ -480,7 +480,9 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
               {d.partial && <small className="shio-k">（風・波の予報前。潮と時間帯だけの目安）</small>}
             </h3>
             <p className="small">
-              {d.windows.length
+              {d.grade.tone === "stop"
+                ? "風・波・雨などで危ない時間が多いため、この日は釣行をおすすめしません。"
+                : d.windows.length
                 ? "ねらい目：" + d.windows.map((x) => `${x.from}〜${x.to}時（${x.reasons.join("・") || "潮・時間帯"}）`).join("、")
                 : "目立つねらい目はありません"}
             </p>
