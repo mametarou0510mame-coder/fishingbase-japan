@@ -1,0 +1,46 @@
+name: Update marine forecast
+
+# 釣り場ごとの波の予報（ECMWF Open Data の波浪モデル、CC BY 4.0）を取得して public/data/marine.json を更新する。
+# 00z・12z の実行が公開されたあと（約8時間後）に動く。
+on:
+  schedule:
+    - cron: "35 8 * * *" # 17:35 JST（00z の実行）
+    - cron: "35 20 * * *" # 05:35 JST（12z の実行）
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/fetch-marine.py"
+      - ".github/workflows/update-marine.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install eccodes
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libeccodes-dev > /dev/null
+          pip install --quiet eccodes numpy
+      - run: python3 scripts/fetch-marine.py
+      - name: Commit if changed
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/marine.json
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update marine forecast"
+            for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+            exit 1
+          fi
