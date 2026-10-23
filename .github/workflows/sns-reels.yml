@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       slot:
-        description: "spots / tomorrow / guide / deals / trivia / weekend / hot（臨時の現場情報）"
+        description: "spots / tomorrow / guide / deals / trivia / weekend / hot（臨時の現場情報）/ update（サイトのアップデート）"
         required: true
         default: spots
       publish:
@@ -66,7 +66,7 @@ jobs:
             PUB=$(python3 -c "import json;print('true' if json.load(open('data/sns/video-posts.json')).get('enabled') else 'false')")
             WAIT=true
           fi
-          case "$SLOT" in spots) H=6 ;; guide) H=12 ;; deals) H=18 ;; trivia) H=0 ;; weekend|tomorrow) H=20 ;; esac
+          case "$SLOT" in spots) H=6 ;; guide) H=12 ;; deals) H=18 ;; trivia) H=0 ;; weekend|tomorrow) H=20 ;; *) H=$(TZ=Asia/Tokyo date +%-H) ;; esac
           echo "slot=$SLOT" >> $GITHUB_OUTPUT; echo "publish=$PUB" >> $GITHUB_OUTPUT; echo "wait=$WAIT" >> $GITHUB_OUTPUT; echo "hour=$H" >> $GITHUB_OUTPUT
           echo "::notice::slot=$SLOT publish=$PUB"
       - name: Install fonts, ffmpeg, Python packages

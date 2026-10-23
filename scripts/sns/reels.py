@@ -268,6 +268,42 @@ def make_hot(day):
     return guide, "\n".join(cap)
 
 
+# ---------- 臨時：サイトのアップデートのお知らせ ----------
+def make_update(day):
+    img = "assets/sns/update-shio"
+    scenes = [
+        {"type": "title", "lines": ["ツレドキ関西に、新しく「潮・海況」のページができました。"]},
+        {"type": "shot", "heading": "① いまの海がひと目で", "badge": "NEW", "image": f"{img}/1-now.png",
+         "lines": ["釣り場ごとに、いまの潮位と、上げ潮か下げ潮か、次の満潮まであと何分かが、すぐわかります。"]},
+        {"type": "shot", "heading": "② 潮・風・波を1枚に", "image": f"{img}/2-timeline.png",
+         "lines": ["潮位と天気、風、波を、7日先まで一枚のグラフに並べました。", "日付をまたいでつながっているので、夜釣りの計画にも使えます。"]},
+        {"type": "shot", "heading": "③ 釣りどき指数と安全の目安", "image": f"{img}/3-day.png",
+         "lines": ["潮の動きと朝夕のまずめ、過去の釣果から、釣りどき指数を出しています。", "風や波が強い日は、見合わせをおすすめします。"]},
+        {"type": "shot", "heading": "④ 狙える魚と釣り方", "image": f"{img}/4-fish.png",
+         "lines": ["その日に狙える魚と、最近の釣果で多い釣り方も、あわせて見られます。"]},
+        {"type": "shot", "heading": "⑤ 釣り場を7日分くらべる", "image": f"{img}/5-list.png",
+         "lines": ["一覧では、関西の釣り場を7日分くらべられます。お気に入りに入れた釣り場だけを並べることもできます。"]},
+    ]
+    q = ("潮見表で、いちばんよく見るのは？", ["潮の満ち引き", "風", "波"])
+    scenes += [discuss.scene(q), END]
+    guide = {"title": "潮見表がパワーアップ", "sub": "潮・風・波・釣りどき指数", "tag": "アップデート", "video": {"scenes": scenes}, "key": "update-shio"}
+    n = len(json.load(open("lib/spotCoords.json", encoding="utf-8")))
+    cap = ["【アップデート】潮見表がパワーアップ！「潮・海況」ページができました", "",
+           f"関西の釣り場{n}か所ごとに、潮・天気・風・波を7日先まで一枚で見られます。", "",
+           "▼できること",
+           "① いまの潮位・上げ下げ・次の満潮/干潮まであと何分",
+           "② 潮位・天気・風・波を7日分つなげたグラフ（夜釣りの計画にも）",
+           "③ 釣りどき指数（潮の動き・まずめ・過去の釣果・天気から計算）",
+           "④ 安全の目安（風・波・雨・雷から。沖堤防はきびしめ）",
+           "⑤ その日に狙える魚と、最近の釣果で多い釣り方",
+           "⑥ お気に入りの釣り場を7日分くらべるマイポイント", "",
+           "潮位・天気は気象庁、波は ECMWF Open Data（CC BY 4.0）をもとにしています。指数と安全の目安は当サイト独自の目安です。出かける前は注意報・警報と現地の状況を必ず確認してください。"]
+    cap += site_lead("/shio/", "釣り場ごとの潮・風・波")
+    cap += discuss.caption(q) + [""]
+    cap += [CREDIT, "", TAGS + " #潮見表 #タイドグラフ #釣り天気 #波予報"]
+    return guide, "\n".join(cap)
+
+
 def make(slot, outdir):
     os.makedirs(outdir, exist_ok=True)
     day = now().strftime("%Y-%m-%d")
@@ -289,6 +325,8 @@ def make(slot, outdir):
         g, cap = make_trivia(day, log)
     elif slot == "hot":
         g, cap = make_hot(day)
+    elif slot == "update":
+        g, cap = make_update(day)
     else:
         raise SystemExit(f"unknown slot {slot}")
     vid = f"{slot}-{day}"

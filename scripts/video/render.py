@@ -1404,6 +1404,44 @@ def minnow_plug(d, x, y, L, a=0.0, t=0.0, lip=True, back=(40, 120, 90)):
     _treble(d, x, y, a, L * 0.3, H * 0.7, L * 0.2, t + 1)
 
 
+_shots = {}
+
+
+def scene_shot(d, t, dur, s, meta):
+    """サイトの画面写真を見せる（縦に長いときは、時間に合わせてゆっくり下へ動かす）"""
+    layer = meta["_layer"]
+    heading(d, s.get("heading", ""))
+    if s.get("badge"):
+        fb = F(FONT_BLACK, 34)
+        tw = d.textlength(s["badge"], font=fb)
+        d.rounded_rectangle([PW - 44 - tw - 36, 44, PW - 44, 104], radius=30, fill=RED)
+        d.text((PW - 44 - tw - 18, 50), s["badge"], font=fb, fill=WHITE)
+    path = s["image"]
+    if path not in _shots:
+        _shots[path] = Image.open(path).convert("RGB")
+    src = _shots[path]
+    bw, top, bottom = PW - 60, 140, PH - 24
+    bh_max = bottom - top
+    sc = bw / src.width
+    full_h = int(src.height * sc)
+    img = src.resize((bw, full_h), Image.LANCZOS) if (path, bw) not in _shots else _shots[(path, bw)]
+    _shots[(path, bw)] = img
+    if full_h > bh_max:
+        k = ease((t - 0.8) / max(0.5, dur - 1.6))
+        off = int((full_h - bh_max) * k)
+        crop = img.crop((0, off, bw, off + bh_max))
+        y = top
+    else:
+        crop = img
+        y = top + (bh_max - full_h) // 2
+    # 影と角丸
+    d.rounded_rectangle([30 - 2, y - 2 + 6, 30 + bw + 2, y + crop.height + 2 + 6], radius=26, fill=(16, 40, 63, 40))
+    mask = Image.new("L", crop.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, crop.width, crop.height], radius=24, fill=255)
+    layer.paste(crop, (30, y), mask)
+    d.rounded_rectangle([30, y, 30 + bw, y + crop.height], radius=24, outline=(200, 214, 222), width=3)
+
+
 SCENES = {
     "title": scene_title,
     "tackle": scene_tackle,
@@ -1415,6 +1453,7 @@ SCENES = {
     "points": scene_points,
     "end": scene_end,
     "ask": scene_ask,
+    "shot": scene_shot,
 }
 
 
@@ -1489,6 +1528,7 @@ def render_frame(meta, timeline, idx, t_global, bases):
     # RGB の画像に RGBA で描くと半透明の色が正しく重なる（RGBA の画像だと上書きになる）
     layer = Image.new("RGB", (PW, PH), PANEL)
     ld = ImageDraw.Draw(layer, "RGBA")
+    meta["_layer"] = layer
     SCENES[s["type"]](ld, t, dur, s, meta)
     # 角を丸く切り抜く
     mask = Image.new("L", (PW, PH), 0)
