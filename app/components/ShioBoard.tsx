@@ -21,16 +21,18 @@ type Props = {
 };
 
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
-const PX = 14; // 1時間の横幅
+const PX = 15; // 1時間の横幅
 const DAYW = PX * 24;
-const LABELW = 50;
-const ROWS = { date: 20, tide: 132, index: 16, weather: 28, temp: 18, pop: 18, wind: 34, wave: 34, safe: 18 };
+const LABELW = 46;
+const ROWS = { date: 26, tide: 136, axis: 16, index: 20, weather: 30, temp: 18, pop: 18, wind: 40, wave: 40, safe: 16 };
 
 const jstNow = () => new Date(Date.now() + 9 * 3600e3);
 const md = (date: string) => {
   const [y, m, d] = date.split("-").map(Number);
-  return { m, d, w: WEEK[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] };
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return { m, d, w: WEEK[wd], wd };
 };
+const weekendColor = (wd: number) => (wd === 0 ? "var(--float)" : wd === 6 ? "var(--sea-2)" : undefined);
 const hm = (h: number) => {
   const t = Math.round(h * 60);
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
@@ -39,16 +41,15 @@ const toneColor = (tone: DayResult["grade"]["tone"]) =>
   tone === "best" ? "var(--glow)" : tone === "good" ? "var(--tide)" : tone === "fair" ? "var(--sea-2)" : tone === "stop" ? "var(--float)" : "var(--muted)";
 const safeColor = (lv: number) => (lv === 2 ? "var(--float)" : lv === 1 ? "var(--glow)" : "var(--tide)");
 const safeWord = (lv: number) => (lv === 2 ? "見合わせ推奨" : lv === 1 ? "注意して" : "おおむね安全");
+const windColor = (v: number | null) => (v == null ? "var(--muted)" : v >= 10 ? "var(--float)" : v >= 7 ? "var(--glow)" : "var(--sea-2)");
+const waveColor = (v: number | null) => (v == null ? "var(--muted)" : v >= 1.5 ? "var(--float)" : v >= 1.0 ? "var(--glow)" : "var(--tide)");
+// 指数を5段階の濃さに
+const idxOpacity = (v: number) => (v >= 60 ? 0.95 : v >= 45 ? 0.7 : v >= 30 ? 0.48 : v >= 15 ? 0.28 : 0.12);
 
 function WeatherIcon({ w, x, y, s = 18 }: { w: string | null; x: number; y: number; s?: number }) {
   const k = s / 18;
   const cloud = (
-    <path
-      d="M4 13.5a3.5 3.5 0 0 1 .9-6.9 4.6 4.6 0 0 1 8.7 1.3 2.8 2.8 0 0 1-.3 5.6Z"
-      fill="var(--card)"
-      stroke="var(--muted)"
-      strokeWidth={1.4}
-    />
+    <path d="M4 13.5a3.5 3.5 0 0 1 .9-6.9 4.6 4.6 0 0 1 8.7 1.3 2.8 2.8 0 0 1-.3 5.6Z" fill="var(--card)" stroke="var(--muted)" strokeWidth={1.4} />
   );
   let body: React.ReactNode;
   if (w === "晴れ")
@@ -83,21 +84,28 @@ function WeatherIcon({ w, x, y, s = 18 }: { w: string | null; x: number; y: numb
         </g>
       </g>
     );
-  else return w ? <text x={x + s / 2} y={y + s * 0.7} textAnchor="middle" fontSize={9} fill="var(--muted)">{w.slice(0, 2)}</text> : null;
+  else return null;
   return <g transform={`translate(${x} ${y}) scale(${k})`}>{body}</g>;
 }
 
-// 向きの矢印（deg は「吹いてくる・来る」向き。矢印は進む向きに描く）
-function Arrow({ deg, x, y, color }: { deg: number; x: number; y: number; color: string }) {
+function Icon({ w, size = 20 }: { w: string | null; size?: number }) {
   return (
-    <g transform={`translate(${x} ${y}) rotate(${deg + 180})`}>
+    <svg width={size} height={size} viewBox="0 0 18 18" aria-hidden>
+      <WeatherIcon w={w} x={0} y={0} />
+    </svg>
+  );
+}
+
+// 向きの矢印（deg は「吹いてくる・来る」向き。矢印は進む向きに描く）
+function Arrow({ deg, x, y, color, s = 1 }: { deg: number; x: number; y: number; color: string; s?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${deg + 180}) scale(${s})`}>
       <path d="M0 -7 L4.5 3 L0 0.8 L-4.5 3 Z" fill={color} />
     </g>
   );
 }
 
 function MoonIcon({ age, size = 30 }: { age: number; size?: number }) {
-  // 月齢から光っている側の形を描く（簡易）
   const p = (age % 29.53) / 29.53;
   const r = size / 2 - 1;
   const c = size / 2;
@@ -113,12 +121,12 @@ function MoonIcon({ age, size = 30 }: { age: number; size?: number }) {
   );
 }
 
-function ScoreRing({ score, color, size = 76 }: { score: number | null; color: string; size?: number }) {
+function ScoreRing({ score, color, size = 76, label }: { score: number | null; color: string; size?: number; label?: string }) {
   const r = size / 2 - 6;
   const len = 2 * Math.PI * r;
   const v = score ?? 0;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`釣りどき指数 ${score ?? "なし"}`}>
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={7} />
       <circle
         cx={size / 2}
@@ -131,9 +139,14 @@ function ScoreRing({ score, color, size = 76 }: { score: number | null; color: s
         strokeDasharray={`${(len * v) / 100} ${len}`}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
       />
-      <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle" fontSize={size * 0.3} fontWeight={700} fill="var(--ink)">
+      <text x="50%" y={label ? "47%" : "54%"} textAnchor="middle" dominantBaseline="middle" fontSize={size * 0.3} fontWeight={800} fill="var(--ink)">
         {score ?? "－"}
       </text>
+      {label && (
+        <text x="50%" y="70%" textAnchor="middle" fontSize={size * 0.12} fill="var(--muted)">
+          {label}
+        </text>
+      )}
     </svg>
   );
 }
@@ -143,19 +156,20 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
   const all = days.flatMap((d) => d.tide.filter((v): v is number => v != null));
   const vMin = Math.min(...all);
   const vMax = Math.max(...all);
-  const pad = (vMax - vMin) * 0.18 + 5;
+  const pad = (vMax - vMin) * 0.2 + 5;
   const lo = vMin - pad;
   const hi = vMax + pad;
   const top = ROWS.date;
-  const y = (cm: number) => top + 8 + (1 - (cm - lo) / (hi - lo)) * (ROWS.tide - 16);
-  const yIdx = top + ROWS.tide;
+  const y = (cm: number) => top + 10 + (1 - (cm - lo) / (hi - lo)) * (ROWS.tide - 20);
+  const yAxis = top + ROWS.tide;
+  const yIdx = yAxis + ROWS.axis;
   const yW = yIdx + ROWS.index;
   const yT = yW + ROWS.weather;
   const yP = yT + ROWS.temp;
   const yWind = yP + ROWS.pop;
   const yWave = yWind + ROWS.wind;
   const ySafe = yWave + ROWS.wave;
-  const H = ySafe + ROWS.safe;
+  const H = ySafe + ROWS.safe + 6;
 
   const pts: string[] = [];
   days.forEach((d, di) => {
@@ -164,7 +178,7 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
       pts.push(`${(di * DAYW + h * PX).toFixed(1)},${y(v).toFixed(1)}`);
     });
   });
-  const area = `M0,${top + ROWS.tide} L${pts.join(" L")} L${W},${top + ROWS.tide} Z`;
+  const area = `M0,${yAxis} L${pts.join(" L")} L${W},${yAxis} Z`;
   const toH = (t: string) => {
     const [a, b] = t.split(":").map(Number);
     return a + b / 60;
@@ -172,6 +186,7 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
 
   const labels: [string, number, number][] = [
     ["潮位", top, ROWS.tide],
+    ["時刻", yAxis, ROWS.axis],
     ["指数", yIdx, ROWS.index],
     ["天気", yW, ROWS.weather],
     ["気温", yT, ROWS.temp],
@@ -189,6 +204,9 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
             {t}
           </span>
         ))}
+        <span style={{ top: yWind + 26, height: 12 }} className="shio-unit">
+          m/s
+        </span>
       </div>
       <div className="shio-tl-scroll" ref={scroller}>
         <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="潮位と天気・風・波の時間ごとの推移">
@@ -197,73 +215,88 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
               <line x1={0} y1={0} x2={0} y2={6} stroke="var(--line)" strokeWidth={2} />
             </pattern>
             <linearGradient id="shio-water" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="var(--sea-2)" stopOpacity={0.35} />
-              <stop offset="1" stopColor="var(--sea-2)" stopOpacity={0.04} />
+              <stop offset="0" stopColor="var(--sea-2)" stopOpacity={0.4} />
+              <stop offset="1" stopColor="var(--sea-2)" stopOpacity={0.05} />
             </linearGradient>
           </defs>
 
           {days.map((d, di) => {
             const x0 = di * DAYW;
-            const { m, d: dd, w } = md(d.date);
+            const p = md(d.date);
+            const best = d.hours.reduce((a, b) => (b.open && b.index > a.index ? b : a), { h: -1, index: -1, open: false });
             return (
               <g key={d.date}>
+                {/* 日付の帯 */}
+                <rect x={x0} y={0} width={DAYW} height={top} fill="var(--sand)" />
+                <text x={x0 + 8} y={17} fontSize={12.5} fontWeight={800} fill={weekendColor(p.wd) ?? "var(--ink)"}>
+                  {p.m}/{p.d}（{p.w}）
+                </text>
+                <text x={x0 + 84} y={17} fontSize={11} fill="var(--sea-2)" fontWeight={700}>
+                  {d.tideName}
+                </text>
+                <g transform={`translate(${x0 + 112} 5)`}>
+                  <rect width={34} height={16} rx={8} fill={toneColor(d.grade.tone)} />
+                  <text x={17} y={12} fontSize={10.5} fontWeight={800} textAnchor="middle" fill="#10283f">
+                    {d.score ?? "－"}
+                  </text>
+                </g>
+
                 {/* 夜の帯・まずめ */}
                 {d.sun && (
                   <>
-                    <rect x={x0} y={top} width={d.sun.rise * PX} height={ROWS.tide} fill="var(--sea)" opacity={0.07} />
-                    <rect x={x0 + d.sun.set * PX} y={top} width={(24 - d.sun.set) * PX} height={ROWS.tide} fill="var(--sea)" opacity={0.07} />
-                    <rect x={x0 + (d.sun.rise - 1.5) * PX} y={top} width={3 * PX} height={ROWS.tide} fill="var(--glow)" opacity={0.13} />
-                    <rect x={x0 + (d.sun.set - 1.5) * PX} y={top} width={3 * PX} height={ROWS.tide} fill="var(--glow)" opacity={0.13} />
+                    <rect x={x0} y={top} width={d.sun.rise * PX} height={ROWS.tide} fill="var(--sea)" opacity={0.08} />
+                    <rect x={x0 + d.sun.set * PX} y={top} width={(24 - d.sun.set) * PX} height={ROWS.tide} fill="var(--sea)" opacity={0.08} />
+                    <rect x={x0 + (d.sun.rise - 1.5) * PX} y={top} width={3 * PX} height={ROWS.tide} fill="var(--glow)" opacity={0.16} />
+                    <rect x={x0 + (d.sun.set - 1.5) * PX} y={top} width={3 * PX} height={ROWS.tide} fill="var(--glow)" opacity={0.16} />
                   </>
                 )}
-                {/* 営業時間外 */}
                 {d.hours.map((h) =>
                   h.open ? null : <rect key={h.h} x={x0 + h.h * PX} y={top} width={PX} height={ROWS.tide} fill="url(#shio-hatch)" opacity={0.7} />,
                 )}
-                {/* 日付 */}
-                <line x1={x0} y1={0} x2={x0} y2={H} stroke="var(--line)" strokeWidth={di ? 1.5 : 0} />
-                <text x={x0 + 6} y={14} fontSize={11.5} fontWeight={700} fill="var(--ink)">
-                  {m}/{dd}({w})
-                </text>
-                <text x={x0 + 62} y={14} fontSize={10.5} fill="var(--muted)">
-                  {d.tideName}
-                </text>
+                {di > 0 && <line x1={x0} y1={0} x2={x0} y2={H} stroke="var(--sea)" strokeOpacity={0.35} strokeWidth={1.5} />}
                 {[6, 12, 18].map((h) => (
-                  <g key={h}>
-                    <line x1={x0 + h * PX} y1={top} x2={x0 + h * PX} y2={top + ROWS.tide} stroke="var(--line)" strokeDasharray="2 3" />
-                    {h > 6 && <text x={x0 + h * PX} y={14} fontSize={9.5} fill="var(--muted)" textAnchor="middle">
-                      {h}時
-                    </text>}
-                  </g>
+                  <line key={h} x1={x0 + h * PX} y1={top} x2={x0 + h * PX} y2={yAxis} stroke="var(--line)" strokeDasharray="2 3" />
+                ))}
+                {/* 時刻の目盛り */}
+                <rect x={x0} y={yAxis} width={DAYW} height={ROWS.axis} fill="var(--card)" />
+                {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
+                  <text key={h} x={x0 + h * PX + (h ? 0 : 8)} y={yAxis + 12} fontSize={10} fill="var(--muted)" textAnchor="middle">
+                    {h}
+                  </text>
                 ))}
                 {/* 指数リボン */}
                 {d.hours.map((h) => (
                   <rect
                     key={h.h}
                     x={x0 + h.h * PX + 0.5}
-                    y={yIdx + 2}
+                    y={yIdx + 3}
                     width={PX - 1}
-                    height={ROWS.index - 4}
-                    rx={2}
+                    height={ROWS.index - 6}
+                    rx={2.5}
                     fill={h.open ? (h.index >= 70 ? "var(--glow)" : "var(--tide)") : "url(#shio-hatch)"}
-                    opacity={h.open ? (h.index >= 70 ? 1 : 0.12 + (0.85 * h.index) / 100) : 1}
+                    opacity={h.open ? (h.index >= 70 ? 1 : idxOpacity(h.index)) : 1}
                   >
-                    <title>{`${md(d.date).m}/${md(d.date).d} ${h.h}時 釣りどき指数 ${h.open ? h.index : "営業時間外"}`}</title>
+                    <title>{`${p.m}/${p.d} ${h.h}時 釣りどき指数 ${h.open ? h.index : "営業時間外"}`}</title>
                   </rect>
                 ))}
+                {best.h >= 0 && best.index >= 45 && (
+                  <g transform={`translate(${x0 + best.h * PX + PX / 2} ${yIdx + 2})`}>
+                    <path d="M-4 -6 L4 -6 L0 -1 Z" fill="var(--ink)" />
+                  </g>
+                )}
                 {/* 満潮・干潮 */}
                 {d.high.map((e) => (
                   <g key={"h" + e.time}>
-                    <circle cx={x0 + toH(e.time) * PX} cy={y(e.cm)} r={3} fill="var(--sea)" />
-                    <text x={x0 + toH(e.time) * PX} y={y(e.cm) - 7} fontSize={10} textAnchor="middle" fill="var(--sea)" fontWeight={700}>
+                    <circle cx={x0 + toH(e.time) * PX} cy={y(e.cm)} r={3.2} fill="var(--card)" stroke="var(--sea)" strokeWidth={2} />
+                    <text x={x0 + toH(e.time) * PX} y={y(e.cm) - 8} fontSize={10.5} textAnchor="middle" fill="var(--sea)" fontWeight={800}>
                       満 {e.time}
                     </text>
                   </g>
                 ))}
                 {d.low.map((e) => (
                   <g key={"l" + e.time}>
-                    <circle cx={x0 + toH(e.time) * PX} cy={y(e.cm)} r={3} fill="var(--sea-2)" />
-                    <text x={x0 + toH(e.time) * PX} y={y(e.cm) + 15} fontSize={10} textAnchor="middle" fill="var(--sea-2)">
+                    <circle cx={x0 + toH(e.time) * PX} cy={y(e.cm)} r={3.2} fill="var(--card)" stroke="var(--sea-2)" strokeWidth={2} />
+                    <text x={x0 + toH(e.time) * PX} y={y(e.cm) + 16} fontSize={10.5} textAnchor="middle" fill="var(--sea-2)" fontWeight={700}>
                       干 {e.time}
                     </text>
                   </g>
@@ -272,29 +305,35 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
                 {d.slots.map((s: Slot, k) => {
                   const cx = x0 + (s.hour + 1.5) * PX;
                   const sf = d.slotSafety[k];
-                  const windCol = s.windMax == null ? "var(--muted)" : s.windMax >= 10 ? "var(--float)" : s.windMax >= 7 ? "var(--glow)" : "var(--sea-2)";
+                  const wc = windColor(s.windMax);
+                  const vc = waveColor(s.swh);
                   const wd = dirDeg(s.windDir);
                   return (
                     <g key={k}>
-                      <line x1={x0 + s.hour * PX} y1={yW} x2={x0 + s.hour * PX} y2={H} stroke="var(--line)" strokeWidth={0.6} />
-                      <WeatherIcon w={s.weather} x={cx - 9} y={yW + 5} />
-                      <text x={cx} y={yT + 13} fontSize={11} textAnchor="middle" fill="var(--ink)">
+                      {k > 0 && <line x1={x0 + s.hour * PX} y1={yW + 4} x2={x0 + s.hour * PX} y2={ySafe} stroke="var(--line)" strokeWidth={0.7} />}
+                      <WeatherIcon w={s.weather} x={cx - 10} y={yW + 5} s={20} />
+                      <text x={cx} y={yT + 13} fontSize={11.5} textAnchor="middle" fill="var(--ink)">
                         {s.temp != null ? `${s.temp}°` : ""}
                       </text>
-                      <text x={cx} y={yP + 13} fontSize={10.5} textAnchor="middle" fill={s.pop != null && s.pop >= 50 ? "var(--sea-2)" : "var(--muted)"}>
+                      <text x={cx} y={yP + 13} fontSize={11} textAnchor="middle" fill={s.pop != null && s.pop >= 50 ? "var(--sea-2)" : "var(--muted)"} fontWeight={s.pop != null && s.pop >= 50 ? 700 : 400}>
                         {s.pop != null ? `${s.pop}%` : ""}
                       </text>
-                      {wd != null && <Arrow deg={wd} x={cx} y={yWind + 11} color={windCol} />}
-                      <text x={cx} y={yWind + 29} fontSize={10.5} textAnchor="middle" fill={windCol} fontWeight={s.windMax != null && s.windMax >= 7 ? 700 : 400}>
-                        {s.windMax != null ? `${s.windEst ? "≧" : ""}${s.windMax}m` : "－"}
+                      {/* 風 */}
+                      {s.windMax != null && <rect x={cx - 19} y={yWind + 3} width={38} height={34} rx={8} fill={wc} fillOpacity={0.12} />}
+                      {wd != null && <Arrow deg={wd} x={cx} y={yWind + 13} color={wc} />}
+                      <text x={cx} y={yWind + 32} fontSize={11.5} textAnchor="middle" fill={wc} fontWeight={700}>
+                        {s.windMax != null ? `${s.windEst ? "≧" : ""}${s.windMax}` : "－"}
                       </text>
-                      {s.mwd != null && <Arrow deg={s.mwd} x={cx} y={yWave + 11} color="var(--tide)" />}
-                      <text x={cx} y={yWave + 29} fontSize={10.5} textAnchor="middle" fill="var(--ink)" fontStyle={s.waveEst ? "italic" : "normal"}>
-                        {s.swh != null ? `${s.waveEst ? "約" : ""}${s.swh.toFixed(1)}m` : "－"}
+                      {/* 波 */}
+                      {s.swh != null && <rect x={cx - 19} y={yWave + 3} width={38} height={34} rx={8} fill={vc} fillOpacity={0.12} />}
+                      {s.mwd != null && <Arrow deg={s.mwd} x={cx} y={yWave + 13} color={vc} />}
+                      <text x={cx} y={yWave + 32} fontSize={11.5} textAnchor="middle" fill={s.swh != null ? "var(--ink)" : "var(--muted)"} fontWeight={700} fontStyle={s.waveEst ? "italic" : "normal"}>
+                        {s.swh != null ? `${s.waveEst ? "約" : ""}${s.swh.toFixed(1)}` : "－"}
                       </text>
-                      <circle cx={cx} cy={ySafe + 9} r={5} fill={safeColor(sf.level)}>
-                        <title>{`${safeWord(sf.level)}${sf.reasons.length ? "：" + sf.reasons.join("、") : ""}`}</title>
-                      </circle>
+                      {/* 安全 */}
+                      <rect x={x0 + s.hour * PX + 3} y={ySafe + 3} width={3 * PX - 6} height={9} rx={4.5} fill={safeColor(sf.level)} opacity={0.9}>
+                        <title>{`${s.hour}〜${s.hour + 3}時 ${safeWord(sf.level)}${sf.reasons.length ? "：" + sf.reasons.join("、") : ""}`}</title>
+                      </rect>
                     </g>
                   );
                 })}
@@ -303,12 +342,12 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
           })}
 
           <path d={area} fill="url(#shio-water)" />
-          <polyline points={pts.join(" ")} fill="none" stroke="var(--sea-2)" strokeWidth={2.4} strokeLinejoin="round" />
+          <polyline points={pts.join(" ")} fill="none" stroke="var(--sea-2)" strokeWidth={2.6} strokeLinejoin="round" strokeLinecap="round" />
           {nowX != null && (
             <g>
-              <line x1={nowX} y1={top} x2={nowX} y2={H} stroke="var(--float)" strokeWidth={1.5} />
-              <rect x={nowX - 14} y={top} width={28} height={13} rx={6} fill="var(--float)" />
-              <text x={nowX} y={top + 10} fontSize={9.5} textAnchor="middle" fill="#fff" fontWeight={700}>
+              <line x1={nowX} y1={top} x2={nowX} y2={H} stroke="var(--float)" strokeWidth={1.6} />
+              <rect x={nowX - 16} y={top + 2} width={32} height={15} rx={7.5} fill="var(--float)" />
+              <text x={nowX} y={top + 13} fontSize={10} textAnchor="middle" fill="#fff" fontWeight={800}>
                 いま
               </text>
             </g>
@@ -318,6 +357,105 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
     </div>
   );
 }
+
+// いまの潮位・次の満干・いまの海
+function NowPanel({ t0, t1, nowH }: { t0: DayResult; t1: DayResult | undefined; nowH: number }) {
+  const h = Math.floor(nowH);
+  const a = t0.tide[h];
+  const b = t0.tide[h + 1];
+  if (a == null || b == null) return null;
+  const level = Math.round(a + (b - a) * (nowH - h));
+  const rate = b - a;
+  const evs = [
+    ...t0.high.map((e) => ({ ...e, kind: "満潮", day: 0 })),
+    ...t0.low.map((e) => ({ ...e, kind: "干潮", day: 0 })),
+    ...(t1 ? [...t1.high.map((e) => ({ ...e, kind: "満潮", day: 1 })), ...t1.low.map((e) => ({ ...e, kind: "干潮", day: 1 }))] : []),
+  ]
+    .map((e) => {
+      const [hh, mm] = e.time.split(":").map(Number);
+      return { ...e, at: e.day * 24 + hh + mm / 60 };
+    })
+    .sort((x, y) => x.at - y.at);
+  const next = evs.find((e) => e.at > nowH);
+  const prev = [...evs].reverse().find((e) => e.at <= nowH);
+  const progress = next && prev ? Math.min(1, Math.max(0, (nowH - prev.at) / (next.at - prev.at))) : null;
+  const k = Math.min(7, Math.floor(nowH / 3));
+  const slot = t0.slots[k];
+  const sf = t0.slotSafety[k];
+  const cur = t0.hours[h];
+  return (
+    <section className="shio-now" aria-label="いまの海">
+      <div className="shio-now-head">
+        <div className="shio-now-tide">
+          <span className="shio-k">いまの潮位</span>
+          <strong>
+            {level}
+            <small>cm</small>
+          </strong>
+          <span className={rate >= 0 ? "shio-up" : "shio-down"}>
+            {rate >= 0 ? "▲ 上げ潮" : "▼ 下げ潮"}
+            <small> {Math.abs(rate)}cm/時</small>
+          </span>
+        </div>
+        <ScoreRing score={cur?.open ? cur.index : null} color={cur && cur.index >= 70 ? "var(--glow)" : "var(--tide)"} size={64} label="いまの指数" />
+      </div>
+      {next && (
+        <div className="shio-next">
+          <span>
+            {prev ? `${prev.kind} ${prev.time}` : ""}
+          </span>
+          <span className="shio-next-bar">
+            <i style={{ width: `${(progress ?? 0) * 100}%` }} />
+          </span>
+          <span>
+            <b>
+              {next.kind} {next.day ? "明日" : ""}
+              {next.time}
+            </b>{" "}
+            あと{hm(next.at - nowH)}
+          </span>
+        </div>
+      )}
+      <div className="shio-tiles">
+        <div>
+          <Icon w={slot?.weather ?? null} size={22} />
+          <span className="shio-k">天気</span>
+          <b>
+            {slot?.weather ?? "－"}
+            {slot?.temp != null ? ` ${slot.temp}°` : ""}
+          </b>
+        </div>
+        <div>
+          <svg width={22} height={22} viewBox="-11 -11 22 22" aria-hidden>
+            {dirDeg(slot?.windDir ?? null) != null && <Arrow deg={dirDeg(slot!.windDir)!} x={0} y={0} color={windColor(slot?.windMax ?? null)} s={1.3} />}
+          </svg>
+          <span className="shio-k">風</span>
+          <b style={{ color: windColor(slot?.windMax ?? null) }}>
+            {slot?.windMax != null ? `${slot.windDir ?? ""} ${slot.windMin != null ? `${slot.windMin}〜` : ""}${slot.windMax}m/s` : "－"}
+          </b>
+        </div>
+        <div>
+          <svg width={22} height={22} viewBox="-11 -11 22 22" aria-hidden>
+            {slot?.mwd != null && <Arrow deg={slot.mwd} x={0} y={0} color={waveColor(slot.swh)} s={1.3} />}
+          </svg>
+          <span className="shio-k">波</span>
+          <b>
+            {slot?.swh != null ? `${slot.swh.toFixed(1)}m` : "－"}
+            {slot?.mwp != null ? <small> {Math.round(slot.mwp)}秒{slot.mwd != null ? `・${dirName(slot.mwd)}から` : ""}</small> : null}
+          </b>
+        </div>
+        <div style={{ borderColor: safeColor(sf?.level ?? 0) }} className="shio-tile-safe">
+          <span className="shio-dot" style={{ background: safeColor(sf?.level ?? 0), width: 14, height: 14 }} />
+          <span className="shio-k">安全</span>
+          <b style={{ color: safeColor(sf?.level ?? 0) }}>{sf ? safeWord(sf.level) : "－"}</b>
+        </div>
+      </div>
+      {sf && sf.reasons.length > 0 && <p className="small shio-now-why">{sf.reasons.join("、")}</p>}
+    </section>
+  );
+}
+
+const stageColor = (s: string) => (s === "最盛期" ? "var(--glow)" : s === "シーズン中" ? "var(--tide)" : "var(--line)");
 
 export default function ShioBoard({ spotName, spotType, days: allDays, tips, recent, recentFrom, recentTo }: Props) {
   const [now, setNow] = useState<Date | null>(null);
@@ -335,11 +473,12 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
   const scroller = useRef<HTMLDivElement | null>(null);
   const isToday = days[0]?.date === today;
   const nowH = now ? now.getUTCHours() + now.getUTCMinutes() / 60 : null;
+  const startX = (h: number) => Math.max(0, (h - 5) * PX);
 
   // 最初は「いま」の少し前が見えるように
   useEffect(() => {
     if (!scroller.current || nowH === null || !isToday) return;
-    scroller.current.scrollLeft = Math.max(0, (nowH - 3) * PX);
+    scroller.current.scrollLeft = startX(nowH);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isToday, now === null]);
 
@@ -347,153 +486,100 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
 
   const pick = (i: number) => {
     setSel(i);
-    scroller.current?.scrollTo({ left: i === 0 && isToday && nowH !== null ? Math.max(0, (nowH - 3) * PX) : i * DAYW, behavior: "smooth" });
+    scroller.current?.scrollTo({ left: i === 0 && isToday && nowH !== null ? startX(nowH) : i * DAYW, behavior: "smooth" });
   };
 
   const d = days[Math.min(sel, days.length - 1)];
   const { m, d: dd, w } = md(d.date);
-
-  // いまの潮位
-  let nowCard: React.ReactNode = null;
-  if (isToday && nowH !== null) {
-    const t0 = days[0];
-    const h = Math.floor(nowH);
-    const a = t0.tide[h];
-    const b = t0.tide[h + 1];
-    if (a != null && b != null) {
-      const level = Math.round(a + (b - a) * (nowH - h));
-      const rate = b - a;
-      const evs = [
-        ...t0.high.map((e) => ({ ...e, kind: "満潮", day: 0 })),
-        ...t0.low.map((e) => ({ ...e, kind: "干潮", day: 0 })),
-        ...(days[1] ? [...days[1].high.map((e) => ({ ...e, kind: "満潮", day: 1 })), ...days[1].low.map((e) => ({ ...e, kind: "干潮", day: 1 }))] : []),
-      ]
-        .map((e) => {
-          const [hh, mm] = e.time.split(":").map(Number);
-          return { ...e, at: e.day * 24 + hh + mm / 60 };
-        })
-        .filter((e) => e.at > nowH)
-        .sort((x, y) => x.at - y.at);
-      const next = evs[0];
-      const slot = t0.slots[Math.floor(nowH / 3)];
-      const sf = t0.slotSafety[Math.floor(nowH / 3)];
-      const curIdx = t0.hours[h];
-      nowCard = (
-        <section className="shio-now" aria-label="いまの海">
-          <div className="shio-now-tide">
-            <span className="shio-k">いまの潮位</span>
-            <strong>
-              {level}
-              <small>cm</small>
-            </strong>
-            <span className={rate >= 0 ? "shio-up" : "shio-down"}>
-              {rate >= 0 ? "▲ 上げ" : "▼ 下げ"} {Math.abs(rate)}cm/時
-            </span>
-            {next && (
-              <span className="shio-k">
-                次の{next.kind} {next.day ? "明日 " : ""}
-                {next.time}（あと{hm(next.at - nowH)}）
-              </span>
-            )}
-          </div>
-          <div className="shio-now-grid">
-            <div>
-              <span className="shio-k">天気</span>
-              <b>
-                {slot?.weather ?? "－"}
-                {slot?.temp != null ? ` ${slot.temp}°C` : ""}
-              </b>
-            </div>
-            <div>
-              <span className="shio-k">風</span>
-              <b>{slot?.windMax != null ? `${slot.windDir ?? ""} ${slot.windMin ?? ""}${slot.windMax ? "〜" + slot.windMax : ""}m/s` : "－"}</b>
-            </div>
-            <div>
-              <span className="shio-k">波</span>
-              <b>
-                {slot?.swh != null ? `${slot.swh.toFixed(1)}m` : "－"}
-                {slot?.mwp != null ? ` / ${Math.round(slot.mwp)}秒` : ""}
-                {slot?.mwd != null ? ` ${dirName(slot.mwd)}から` : ""}
-              </b>
-            </div>
-            <div>
-              <span className="shio-k">釣りどき指数</span>
-              <b>{curIdx?.open ? curIdx.index : "営業時間外"}</b>
-            </div>
-          </div>
-          {sf && (
-            <p className="shio-safe" style={{ borderColor: safeColor(sf.level) }}>
-              <span className="shio-dot" style={{ background: safeColor(sf.level) }} />
-              <b>{safeWord(sf.level)}</b>
-              {sf.reasons.length ? `：${sf.reasons.join("、")}` : ""}
-            </p>
-          )}
-        </section>
-      );
-    }
-  }
 
   return (
     <div className="shio">
       <nav className="shio-days" aria-label="日付を選ぶ">
         {days.slice(0, 8).map((x, i) => {
           const p = md(x.date);
-          const daySlot = x.slots[4];
           return (
             <button key={x.date} type="button" className={i === sel ? "on" : ""} onClick={() => pick(i)} aria-pressed={i === sel}>
-              <span className="shio-dd">
+              <span className="shio-dd" style={{ color: weekendColor(p.wd) }}>
                 {i === 0 && isToday ? "今日" : `${p.m}/${p.d}`}
-                <small>({p.w})</small>
+                <small>{p.w}</small>
               </span>
               <span className="shio-tn">{x.tideName}</span>
-              <svg width={22} height={20} aria-hidden>
-                <WeatherIcon w={daySlot?.weather ?? null} x={2} y={1} />
-              </svg>
-              <span className="shio-sc" style={{ background: toneColor(x.grade.tone) }}>
+              <Icon w={x.slots[4]?.weather ?? null} size={22} />
+              <span className="shio-sc" style={{ color: toneColor(x.grade.tone), borderColor: toneColor(x.grade.tone) }}>
                 {x.score ?? "－"}
               </span>
-              {x.partial && <span className="shio-k">予報前</span>}
-              <span className="shio-dot" style={{ background: safeColor(x.safety.level) }} title={safeWord(x.safety.level)} />
+              <span className="shio-tag">{x.partial ? "予報前" : "\u00a0"}</span>
+              <span className="shio-safebar" style={{ background: safeColor(x.safety.level) }} title={safeWord(x.safety.level)} />
             </button>
           );
         })}
       </nav>
 
-      {nowCard}
+      {isToday && nowH !== null && sel === 0 && <NowPanel t0={days[0]} t1={days[1]} nowH={nowH} />}
 
       <Timeline days={days} nowX={isToday && nowH !== null ? nowH * PX : null} scroller={scroller} />
-      <p className="shio-legend small">
-        <span style={{ background: "var(--glow)" }} /> まずめ・指数70以上　<span style={{ background: "var(--tide)" }} /> 釣りどき指数（濃いほど高い）
-        <span className="hatch" /> 営業時間外　●の色：<b style={{ color: "var(--tide)" }}>安全</b>・<b style={{ color: "var(--glow)" }}>注意</b>・
-        <b style={{ color: "var(--float)" }}>見合わせ</b>　「≧」「約」は府県予報の文や数値モデルからの見積もり、「－」はまだ予報がない時間
-      </p>
+      <ul className="shio-legend">
+        <li>
+          <i style={{ background: "var(--glow)", opacity: 0.6 }} />
+          まずめ
+        </li>
+        <li>
+          <i style={{ background: "var(--tide)" }} />
+          指数（濃いほど高い・▼は一番の時間）
+        </li>
+        <li>
+          <i className="hatch" />
+          営業時間外
+        </li>
+        <li>
+          <i style={{ background: "var(--tide)", borderRadius: 4 }} />
+          安全
+          <i style={{ background: "var(--glow)", borderRadius: 4, marginLeft: 6 }} />
+          注意
+          <i style={{ background: "var(--float)", borderRadius: 4, marginLeft: 6 }} />
+          見合わせ
+        </li>
+        <li>風はm/s・波はm。「≧」「約」は見積もり、「－」は予報前</li>
+      </ul>
 
-      <section className="shio-day">
-        <header>
-          <ScoreRing score={d.score} color={toneColor(d.grade.tone)} />
+      <section className="shio-day" aria-label={`${m}月${dd}日の詳しい情報`}>
+        <header style={{ borderLeftColor: toneColor(d.grade.tone) }}>
+          <ScoreRing score={d.score} color={toneColor(d.grade.tone)} label="釣りどき" />
           <div>
             <p className="shio-k">
-              {m}月{dd}日（{w}）・{d.tideName}・月齢{d.moonAge.toFixed(1)}
+              <span style={{ color: weekendColor(md(d.date).wd) }}>
+                {m}月{dd}日（{w}）
+              </span>
+              ・{d.tideName}・月齢{d.moonAge.toFixed(1)}
             </p>
             <h3>
               <span style={{ color: toneColor(d.grade.tone) }}>{d.grade.mark}</span> {d.grade.label}
               {d.partial && <small className="shio-k">（風・波の予報前。潮と時間帯だけの目安）</small>}
             </h3>
-            <p className="small">
-              {d.grade.tone === "stop"
-                ? "風・波・雨などで危ない時間が多いため、この日は釣行をおすすめしません。"
-                : d.windows.length
-                ? "ねらい目：" + d.windows.map((x) => `${x.from}〜${x.to}時（${x.reasons.join("・") || "潮・時間帯"}）`).join("、")
-                : "目立つねらい目はありません"}
-            </p>
+            {d.grade.tone === "stop" ? (
+              <p className="small">風・波・雨などで危ない時間が多いため、この日は釣行をおすすめしません。</p>
+            ) : d.windows.length ? (
+              <ul className="shio-windows">
+                {d.windows.map((x) => (
+                  <li key={x.from}>
+                    <b>
+                      {x.from}〜{x.to}時
+                    </b>
+                    <span>{x.reasons.join("・") || "潮・時間帯"}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="small">目立つねらい目はありません</p>
+            )}
           </div>
         </header>
 
         <div className="shio-cards">
-          <div className="shio-card">
+          <div className="shio-card" style={{ borderTopColor: safeColor(d.safety.level) }}>
             <h4>安全の目安</h4>
-            <p>
-              <span className="shio-dot" style={{ background: safeColor(d.safety.level) }} /> <b>{safeWord(d.safety.level)}</b>
+            <p className="shio-big" style={{ color: safeColor(d.safety.level) }}>
+              {safeWord(d.safety.level)}
             </p>
             {d.safety.reasons.length > 0 && (
               <ul>
@@ -513,40 +599,64 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
 
           <div className="shio-card">
             <h4>潮と日・月</h4>
-            <table className="shio-mini">
-              <tbody>
-                <tr>
-                  <th>満潮</th>
-                  <td>{d.high.map((e) => `${e.time}（${e.cm}cm）`).join("　") || "－"}</td>
-                </tr>
-                <tr>
-                  <th>干潮</th>
-                  <td>{d.low.map((e) => `${e.time}（${e.cm}cm）`).join("　") || "－"}</td>
-                </tr>
-                <tr>
-                  <th>日の出・入り</th>
-                  <td>{d.sun ? `${hm(d.sun.rise)}／${hm(d.sun.set)}` : "－"}</td>
-                </tr>
-                <tr>
-                  <th>月</th>
-                  <td className="shio-moon">
-                    <MoonIcon age={d.moonAge} size={22} /> 月齢{d.moonAge.toFixed(1)}・{d.tideName}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <dl className="shio-dl">
+              <dt>満潮</dt>
+              <dd>
+                {d.high.length
+                  ? d.high.map((e) => (
+                      <span key={e.time}>
+                        <b>{e.time}</b>
+                        <small>{e.cm}cm</small>
+                      </span>
+                    ))
+                  : "－"}
+              </dd>
+              <dt>干潮</dt>
+              <dd>
+                {d.low.length
+                  ? d.low.map((e) => (
+                      <span key={e.time}>
+                        <b>{e.time}</b>
+                        <small>{e.cm}cm</small>
+                      </span>
+                    ))
+                  : "－"}
+              </dd>
+              <dt>日の出・入り</dt>
+              <dd>
+                {d.sun ? (
+                  <>
+                    <span>
+                      <b>{hm(d.sun.rise)}</b>
+                      <small>日の出</small>
+                    </span>
+                    <span>
+                      <b>{hm(d.sun.set)}</b>
+                      <small>日の入り</small>
+                    </span>
+                  </>
+                ) : (
+                  "－"
+                )}
+              </dd>
+              <dt>月</dt>
+              <dd className="shio-moon">
+                <MoonIcon age={d.moonAge} size={22} /> 月齢{d.moonAge.toFixed(1)}・{d.tideName}
+              </dd>
+            </dl>
           </div>
 
           {d.jma && (
             <div className="shio-card">
               <h4>気象庁の予報</h4>
-              <p className="small">
-                天気：{d.jma.weather}
-                <br />
-                風：{d.jma.wind}
-                <br />
-                波：{d.jma.wave || "－"}
-              </p>
+              <dl className="shio-dl shio-dl-text">
+                <dt>天気</dt>
+                <dd>{d.jma.weather}</dd>
+                <dt>風</dt>
+                <dd>{d.jma.wind}</dd>
+                <dt>波</dt>
+                <dd>{d.jma.wave || "－"}</dd>
+              </dl>
             </div>
           )}
         </div>
@@ -560,25 +670,36 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
                 <li key={s.species}>
                   <div className="shio-fish-top">
                     <b>{s.species}</b>
-                    <span className="shio-k">{s.stage}</span>
+                    <span className="shio-stage" style={{ borderColor: stageColor(s.stage), color: s.stage === "シーズン外" ? "var(--muted)" : "var(--ink)" }}>
+                      {s.stage}
+                    </span>
                     <span className="shio-bar">
                       <span style={{ width: `${s.index}%` }} />
                     </span>
                     <span className="shio-k">{s.index}</span>
                   </div>
                   <p className="small">
-                    {tip?.methods.length
-                      ? `最近の釣果では ${tip.methods
-                          .slice(0, 3)
-                          .map((x) => `${x.name}（${x.count}件）`)
-                          .join("・")}`
-                      : tip?.guide
-                        ? `定番は ${tip.guide.method}`
-                        : "釣り方の情報はまだありません"}
+                    {tip?.methods.length ? (
+                      <>
+                        最近の釣果：
+                        {tip.methods.slice(0, 3).map((x) => (
+                          <span key={x.name} className="shio-method">
+                            {x.name}
+                            <small>{x.count}件</small>
+                          </span>
+                        ))}
+                      </>
+                    ) : tip?.guide ? (
+                      <>
+                        定番：<span className="shio-method">{tip.guide.method}</span>
+                      </>
+                    ) : (
+                      "釣り方の情報はまだありません"
+                    )}
                     {tip?.guide && (
                       <>
                         {" "}
-                        → <Link href={`/species/${tip.guide.slug}/`}>{tip.guide.name}の釣り方</Link>
+                        <Link href={`/species/${tip.guide.slug}/`}>{tip.guide.name}の釣り方 →</Link>
                       </>
                     )}
                   </p>
@@ -592,7 +713,12 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
 
         {recent.length > 0 && (
           <>
-            <h4 className="shio-h4">最近の釣果（施設の公式情報{recentFrom && recentTo ? `、${recentFrom.slice(5).replace("-", "/")}〜${recentTo.slice(5).replace("-", "/")}` : ""}）</h4>
+            <h4 className="shio-h4">
+              最近の釣果
+              <small className="shio-k">
+                （施設の公式情報{recentFrom && recentTo ? `、${recentFrom.slice(5).replace("-", "/")}〜${recentTo.slice(5).replace("-", "/")}` : ""}）
+              </small>
+            </h4>
             <ul className="shio-recent">
               {recent.slice(0, 6).map((r) => (
                 <li key={r.species}>

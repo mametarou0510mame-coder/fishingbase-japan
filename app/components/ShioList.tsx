@@ -15,7 +15,8 @@ const safe = (l: number) => (l === 2 ? "var(--float)" : l === 1 ? "var(--glow)" 
 const wIcon = (w: string | null) => (w === "晴れ" ? "☀" : w === "くもり" ? "☁" : w === "雨" ? "☂" : w === "雪" ? "❄" : "");
 const head = (date: string) => {
   const [y, m, d] = date.split("-").map(Number);
-  return { m, d, w: WEEK[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] };
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return { m, d, w: WEEK[wd], c: wd === 0 ? "var(--float)" : wd === 6 ? "var(--sea-2)" : undefined };
 };
 
 function Row({ s, from, n }: { s: ListSpot; from: string; n: number }) {
@@ -27,9 +28,9 @@ function Row({ s, from, n }: { s: ListSpot; from: string; n: number }) {
         <Link href={`/shio/${s.slug}/`}>{s.name}</Link>
         <span className="shio-k">{s.type}</span>
       </th>
-      {days.map((d) => (
-        <td key={d.date} title={`${d.tideName}・釣りどき指数${d.score ?? "－"}${d.swh != null ? `・波${d.swh.toFixed(1)}m` : ""}${d.wind != null ? `・風${d.wind}m/s` : ""}`}>
-          <span className="shio-cell" style={{ background: tone(d.tone) }}>
+      {days.map((d, k) => (
+        <td key={d.date} className={k === 0 ? "today" : undefined} title={`${d.tideName}・釣りどき指数${d.score ?? "－"}${d.swh != null ? `・波${d.swh.toFixed(1)}m` : ""}${d.wind != null ? `・風${d.wind}m/s` : ""}`}>
+          <span className="shio-cell" style={{ color: tone(d.tone), borderColor: tone(d.tone) }}>
             {d.score ?? "－"}
           </span>
           <span className="shio-cell-sub">
@@ -55,7 +56,7 @@ function Table({ spots, from, n, caption }: { spots: ListSpot[]; from: string; n
             {dates.slice(i, i + n).map((d, k) => {
               const h = head(d);
               return (
-                <th key={d}>
+                <th key={d} className={k === 0 ? "today" : undefined} style={{ color: h.c }}>
                   {k === 0 ? "今日" : `${h.m}/${h.d}`}
                   <small>({h.w})</small>
                   <small className="shio-k">{spots[0].days.find((x) => x.date === d)?.tideName}</small>
@@ -99,7 +100,7 @@ export default function ShioList({ areas }: { areas: ListArea[] }) {
       {areas.map((a) => (
         <section key={a.name}>
           <h2>{a.name}</h2>
-          <Table spots={a.spots} from={today} n={7} caption={`${a.name}の釣り場（数字は釣りどき指数、●は安全の目安）`} />
+          <Table spots={a.spots} from={today} n={7} caption={`${a.name}の釣り場（数字は釣りどき指数、下の線は安全の目安）`} />
         </section>
       ))}
     </div>

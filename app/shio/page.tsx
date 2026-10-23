@@ -53,7 +53,7 @@ export default function ShioIndex() {
       <p className="small">
         数字は釣りどき指数（0〜100）。色は
         <b style={{ color: "var(--glow)" }}>◎釣りどき</b>・<b style={{ color: "var(--tide)" }}>○まずまず</b>・
-        <b style={{ color: "var(--sea-2)" }}>△いまひとつ</b>・<b style={{ color: "var(--float)" }}>×見合わせ推奨</b>。小さな●は安全の目安です。
+        <b style={{ color: "var(--sea-2)" }}>△いまひとつ</b>・<b style={{ color: "var(--float)" }}>×見合わせ推奨</b>。数字の下の線は安全の目安です。
         釣り場名を押すと、時間ごとのタイドグラフ・風・波が見られます。<Link href="/map/">地図から探す</Link>
       </p>
       <ShioList areas={areas} />
