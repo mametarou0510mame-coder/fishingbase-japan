@@ -1464,6 +1464,112 @@ def scene_shot(d, t, dur, s, meta):
     d.rounded_rectangle([30, y, 30 + bw, y + crop.height], radius=24, outline=(200, 214, 222), width=3)
 
 
+def _img(path, w):
+    key = (path, w)
+    if key not in _shots:
+        src = Image.open(path).convert("RGBA")
+        _shots[key] = src.resize((w, int(src.height * w / src.width)), Image.LANCZOS)
+    return _shots[key]
+
+
+def _phone(d, x, y, w, h, a=1.0):
+    d.rounded_rectangle([x - 10, y - 10, x + w + 10, y + h + 10], radius=48, fill=alpha((20, 32, 48), a))
+    d.rounded_rectangle([x, y, x + w, y + h], radius=40, fill=alpha((248, 251, 253), a))
+    d.rounded_rectangle([x + w / 2 - 50, y + 10, x + w / 2 + 50, y + 30], radius=10, fill=alpha((20, 32, 48), a))
+
+
+def scene_homescreen(d, t, dur, s, meta):
+    """ホーム画面のアイコンから、アプリのように開く様子"""
+    layer = meta["_layer"]
+    heading(d, s.get("heading", "ホーム画面に追加"))
+    # 左：ホーム画面
+    px, py, pw, ph = 40, 150, 430, 740
+    _phone(d, px, py, pw, ph)
+    d.rounded_rectangle([px, py, px + pw, py + ph], radius=40, fill=(198, 222, 238))
+    cols, size, gap = 4, 78, 24
+    x0 = px + (pw - (cols * size + (cols - 1) * gap)) / 2
+    target = (1, 2)  # 2列目・3段目に「ツレドキ」
+    for r in range(5):
+        for c in range(cols):
+            x = x0 + c * (size + gap)
+            y = py + 70 + r * (size + 50)
+            if (c, r) == target:
+                icon = _img(s["icon"], size)
+                k = 1 + 0.08 * math.sin(t * 6) if t < 1.6 else 1.0
+                ic = icon.resize((int(size * k), int(size * k)), Image.LANCZOS) if k != 1 else icon
+                off = (ic.width - size) / 2
+                mask = Image.new("L", ic.size, 0)
+                ImageDraw.Draw(mask).rounded_rectangle([0, 0, ic.width, ic.height], radius=int(18 * k), fill=255)
+                layer.paste(ic.convert("RGB"), (int(x - off), int(y - off)), mask)
+                center_text(d, x + size / 2, y + size + 8, "ツレドキ", F(FONT_BOLD, 24), NAVY)
+                # タップの輪
+                tt = t - 1.4
+                if 0 < tt < 0.8:
+                    rr = 30 + tt * 90
+                    d.ellipse([x + size / 2 - rr, y + size / 2 - rr, x + size / 2 + rr, y + size / 2 + rr], outline=alpha(RED, 1 - tt / 0.8), width=6)
+            else:
+                d.rounded_rectangle([x, y, x + size, y + size], radius=18, fill=(236, 243, 248))
+                d.rounded_rectangle([x + 14, y + size + 14, x + size - 14, y + size + 24], radius=5, fill=(170, 190, 206))
+    # 右：開いたところ（ブラウザの枠なし）
+    b = ease((t - 1.9) / 0.6)
+    if b > 0:
+        qx, qy, qw, qh = 520, 150, 430, 740
+        qx += int((1 - b) * 120)
+        _phone(d, qx, qy, qw, qh, b)
+        shot = _img(s["image"], qw - 20)
+        crop = shot.crop((0, 0, shot.width, min(shot.height, qh - 70)))
+        mask = Image.new("L", crop.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle([0, 0, crop.width, crop.height], radius=20, fill=int(255 * b))
+        layer.paste(crop.convert("RGB"), (qx + 10, qy + 50), mask)
+        # 矢印
+        ay = py + 70 + 2 * (size + 50) + size / 2
+        d.polygon([(478, ay - 22), (510, ay), (478, ay + 22)], fill=alpha(RED, b))
+    if s.get("caption"):
+        c = ease((t - 2.6) / 0.5)
+        if c > 0:
+            fb = F(FONT_BLACK, 40)
+            center_text(d, PW / 2, PH - 90, s["caption"], fb, alpha(NAVY, c))
+
+
+def scene_expand(d, t, dur, s, meta):
+    """対応地域を広げていくお知らせ（関西＝公開中、ほか＝準備中）"""
+    heading(d, s.get("heading", "ほかの地域も追加します"))
+    regions = s["regions"]  # [[名前, 公開中か], ...]
+    fb = F(FONT_BLACK, 46)
+    fs = F(FONT_BOLD, 26)
+    cols, bw, bh, gx, gy = 2, 420, 120, 40, 30
+    x0 = (PW - (cols * bw + gx)) / 2
+    for i, (name, live) in enumerate(regions):
+        a = ease((t - 0.3 - i * 0.18) / 0.4)
+        if a <= 0:
+            continue
+        x = x0 + (i % cols) * (bw + gx)
+        y = 160 + (i // cols) * (bh + gy) + (1 - a) * 30
+        if live:
+            d.rounded_rectangle([x, y, x + bw, y + bh], radius=28, fill=alpha(NAVY, a))
+            d.text((x + 34, y + 30), name, font=fb, fill=alpha(WHITE, a))
+            tag = "公開中"
+            tw = d.textlength(tag, font=fs)
+            d.rounded_rectangle([x + bw - tw - 60, y + 38, x + bw - 24, y + 84], radius=22, fill=alpha(GLOW, a))
+            d.text((x + bw - tw - 42, y + 44), tag, font=fs, fill=alpha(NAVY, a))
+        else:
+            d.rounded_rectangle([x, y, x + bw, y + bh], radius=28, fill=alpha(WHITE, a), outline=alpha((170, 196, 214), a), width=4)
+            fn = fit_font(d, name, FONT_BLACK, [46, 40, 36, 32], bw - 160)
+            d.text((x + 30, y + 60 - fn.size * 0.68), name, font=fn, fill=alpha((120, 146, 166), a))
+            tag = "準備中"
+            tw = d.textlength(tag, font=fs)
+            d.text((x + bw - tw - 34, y + 44), tag, font=fs, fill=alpha((150, 170, 186), a))
+    # フォローのボタン
+    n = len(regions)
+    c = ease((t - 0.6 - n * 0.18) / 0.5)
+    if c > 0:
+        by = 160 + ((n + 1) // cols) * (bh + gy) + 20
+        pulse = 1 + 0.03 * math.sin(t * 5)
+        w2, h2 = 760 * pulse, 130 * pulse
+        d.rounded_rectangle([PW / 2 - w2 / 2, by, PW / 2 + w2 / 2, by + h2], radius=int(h2 / 2), fill=alpha(RED, c))
+        center_text(d, PW / 2, by + h2 / 2 - 34, s.get("button", "フォローして待っててね"), F(FONT_BLACK, 54), alpha(WHITE, c))
+
+
 SCENES = {
     "title": scene_title,
     "tackle": scene_tackle,
@@ -1476,6 +1582,8 @@ SCENES = {
     "end": scene_end,
     "ask": scene_ask,
     "shot": scene_shot,
+    "homescreen": scene_homescreen,
+    "expand": scene_expand,
 }
 
 
