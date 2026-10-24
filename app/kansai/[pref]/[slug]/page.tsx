@@ -106,7 +106,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       </p>
       {(() => {
         const c = spotLatLon(spot);
-        const st = nearestWindStation(c.lat, c.lon);
+        const st = nearestWindStation(c.lat, c.lon, spot.slug);
         return st ? <LiveWind station={st} /> : null;
       })()}
       <TideWidget
