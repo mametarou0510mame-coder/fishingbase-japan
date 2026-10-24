@@ -315,6 +315,32 @@ def make_update(day):
     return guide, "\n".join(cap)
 
 
+# ---------- 臨時：運営の釣行速報（content/hot-flash.json） ----------
+def make_flash(day):
+    f = json.load(open("content/hot-flash.json", encoding="utf-8"))
+    hot = json.load(open("content/hot-notes.json", encoding="utf-8"))
+    sawara = next(x for x in hot["methods"] if x["title"].startswith("サワラ"))
+    when = md(f["date"])
+    scenes = [
+        {"type": "title", "lines": [f"速報です。{f['spot']}で、サゴシが爆釣しています。"]},
+        {"type": "pattern", "heading": f"① 運営の釣果（{when}）", "rows": f["rows"], "lines": f["report"]},
+        {"type": "action", "kind": "fast", "heading": "② 釣り方", "name": "早巻き＋ときどき緩急", "sub": "40g前後のジグで",
+         "lines": ["釣り方は、40グラム前後のメタルジグでショアジギング。", sawara["body"]]},
+        {"type": "points", "heading": "③ 行く前に", "items": f["rules"], "lines": [f["rulesLine"]]},
+    ]
+    q = (f["ask"][0], f["ask"][1])
+    scenes += [discuss.scene(q), END]
+    guide = {"title": f["title"], "sub": f"{when} {f['sub']}", "tag": "釣果速報", "video": {"scenes": scenes}, "key": f["key"]}
+    cap = [f"【速報】{when} {f['title']}", "", f"運営の釣行速報です。{f['spotFull']}。", ""]
+    cap += [f"・{a}：{b}" for a, b in f["rows"]]
+    cap += ["", "▼釣り方", "・40g前後のメタルジグでショアジギング", f"・{sawara['body']}", "", "▼行く前に"] + [f"・{x}" for x in f["rules"]]
+    cap += ["・ライフジャケットを着用しましょう"]
+    cap += site_lead(hot["guide"], "ショアジギングの釣り方・道具")
+    cap += discuss.caption(q) + [""]
+    cap += [CREDIT, "", TAGS + " " + f["tags"]]
+    return guide, "\n".join(cap)
+
+
 def make(slot, outdir):
     os.makedirs(outdir, exist_ok=True)
     day = now().strftime("%Y-%m-%d")
@@ -336,6 +362,8 @@ def make(slot, outdir):
         g, cap = make_trivia(day, log)
     elif slot == "hot":
         g, cap = make_hot(day)
+    elif slot == "flash":
+        g, cap = make_flash(day)
     elif slot == "update":
         g, cap = make_update(day)
     else:
@@ -343,7 +371,8 @@ def make(slot, outdir):
     vid = f"{slot}-{day}"
     g.setdefault("key", vid)
     json.dump(g, open(f"{outdir}/{vid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    json.dump({"id": vid, "slot": slot, "key": g["key"], "caption": cap, "title": g["title"]}, open(f"{outdir}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    plat = json.load(open("content/hot-flash.json", encoding="utf-8")).get("platforms") if slot == "flash" else None
+    json.dump({"id": vid, "slot": slot, "key": g["key"], "caption": cap, "title": g["title"], "platforms": plat or ["instagram", "youtube"]}, open(f"{outdir}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(cap)
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
@@ -417,7 +446,7 @@ def publish(outdir):
     rec = {"slot": p["slot"], "key": p["key"], "id": vid, "at": now().isoformat(timespec="minutes")}
     failed = False
     try:
-        ig = ig_reel(url, f"{SITE}/sns/{vid}.jpg", discuss.with_yt(p["caption"]))
+        ig = ig_reel(url, f"{SITE}/sns/{vid}.jpg", discuss.with_yt(p["caption"])) if "instagram" in p.get("platforms", ["instagram"]) else None
         if ig:
             rec["instagram"] = ig
             print(f"::notice::instagram ok {ig}")
@@ -425,7 +454,7 @@ def publish(outdir):
         print(f"::error::instagram: {e}")
         failed = True
     try:
-        yt = yt_short(f"public/sns/{vid}.mp4", p["title"], p["caption"])
+        yt = yt_short(f"public/sns/{vid}.mp4", p["title"], p["caption"]) if "youtube" in p.get("platforms", ["youtube"]) else None
         if yt:
             rec["youtube"] = yt
             print(f"::notice::youtube ok {yt}")
