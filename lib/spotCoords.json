@@ -288,5 +288,19 @@
   "lon": 135.4255,
   "manual": true,
   "rough": true
+ },
+ "cosmo-square-kaihin-ryokuchi": {
+  "lat": 34.6398,
+  "lon": 135.4188,
+  "address": "大阪府大阪市住之江区南港北1丁目",
+  "matched": "大阪府大阪市住之江区南港北一丁目",
+  "rough": false
+ },
+ "katsuura-watarinoshima": {
+  "lat": 33.6256,
+  "lon": 135.9515,
+  "address": "和歌山県東牟婁郡那智勝浦町勝浦",
+  "matched": "和歌山県那智勝浦町勝浦",
+  "rough": false
  }
 }
