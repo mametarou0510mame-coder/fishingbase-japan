@@ -57,7 +57,7 @@ export default function LiveWind({ station }: { station: WindStation }) {
   if (err) return null;
   const now = obs?.[obs.length - 1];
   const hm = (k: string) => `${k.slice(8, 10)}:${k.slice(10, 12)}`;
-  const trend = obs?.filter((r) => r.time.endsWith("00")).slice(-4) ?? [];
+  const trend = obs?.filter((r) => r.time.slice(10, 12) === "00").slice(-4) ?? [];
   return (
     <div className="live-wind">
       <p>
