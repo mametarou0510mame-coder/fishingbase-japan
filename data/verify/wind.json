@@ -1,0 +1,204 @@
+{
+"pairs": {
+"kobe-airport-shinsui-gogan|2026-10-25T00": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.1
+},
+"kobe-airport-shinsui-gogan|2026-10-25T03": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.9
+},
+"kobe-airport-shinsui-gogan|2026-10-25T06": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 9.0
+},
+"kobe-airport-shinsui-gogan|2026-10-25T09": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 9.0
+},
+"kobe-airport-shinsui-gogan|2026-10-25T12": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "北東",
+"model": 8.1
+},
+"kobe-airport-shinsui-gogan|2026-10-25T15": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "北東",
+"model": 4.9
+},
+"kobe-airport-shinsui-gogan|2026-10-25T18": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "北東",
+"model": 5.3
+},
+"kobe-airport-shinsui-gogan|2026-10-25T21": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "北東",
+"model": 5.5
+},
+"sennan-fishing-park-sazan|2026-10-25T00": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "南",
+"model": 5.8
+},
+"sennan-fishing-park-sazan|2026-10-25T03": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "南",
+"model": 5.2
+},
+"sennan-fishing-park-sazan|2026-10-25T06": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "南",
+"model": 6.4
+},
+"sennan-fishing-park-sazan|2026-10-25T09": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "南",
+"model": 6.5
+},
+"sennan-fishing-park-sazan|2026-10-25T12": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北東",
+"model": 7.8
+},
+"sennan-fishing-park-sazan|2026-10-25T15": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北東",
+"model": 5.0
+},
+"sennan-fishing-park-sazan|2026-10-25T18": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北東",
+"model": 2.8
+},
+"sennan-fishing-park-sazan|2026-10-25T21": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北東",
+"model": 4.6
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T00": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.4
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T03": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.1
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T06": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.9
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T09": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.8
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T12": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 7.5
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T15": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北",
+"model": 5.9
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T18": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北",
+"model": 1.7
+},
+"wakayama-hokko-umizuri-koen|2026-10-25T21": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北",
+"model": 5.2
+},
+"tomogashima|2026-10-25T00": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 9.0
+},
+"tomogashima|2026-10-25T03": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 8.8
+},
+"tomogashima|2026-10-25T06": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 9.6
+},
+"tomogashima|2026-10-25T09": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 8.6
+},
+"tomogashima|2026-10-25T12": {
+"jmaMin": 10,
+"jmaMax": 14,
+"jmaDir": "南",
+"model": 8.5
+},
+"tomogashima|2026-10-25T15": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北",
+"model": 4.3
+},
+"tomogashima|2026-10-25T18": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北",
+"model": 5.0
+},
+"tomogashima|2026-10-25T21": {
+"jmaMin": 6,
+"jmaMax": 9,
+"jmaDir": "北",
+"model": 6.3
+}
+},
+"stats": {
+"updated": "2026-10-24T21:35+09:00",
+"n": 0,
+"jmaMidMAE": null,
+"modelMAE": null,
+"jmaInRange": null,
+"note": "誤差は m/s の平均（気象庁は幅の中央、数値予報は値そのもの）。実測は海に面したアメダスの10分平均"
+}
+}
