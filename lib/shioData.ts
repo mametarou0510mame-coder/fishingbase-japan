@@ -90,16 +90,18 @@ function buildSlots(date: string, w: WeatherArea | null, marine: MarinePoint | n
       swh = waveFromText(daily.wave);
       waveEst = swh !== null;
     }
-    // 風：気象庁の3時間ごとの予報 → なければ ECMWF の値と府県予報の文（強いほう）
+    // 風：釣り場の位置の数値予報（ECMWF。forecastFor で気象庁の3時間予報にも反映済み）→ なければ気象庁の3時間予報 → 府県予報の文
     let windMax = hourly?.windMax ?? null;
     let windDir = hourly?.windDir ?? null;
     let windEst = false;
     if (!hourly) {
-      const fromText = windFromText(daily?.wind);
-      const fromModel = ws === null ? null : Math.round(ws);
-      windMax = fromText === null ? fromModel : fromModel === null ? fromText : Math.max(fromText, fromModel);
-      windEst = windMax !== null;
-      windDir = wd === null ? null : dirName(wd);
+      if (ws !== null) {
+        windMax = Math.round(ws);
+        windDir = wd === null ? null : dirName(wd);
+      } else {
+        windMax = windFromText(daily?.wind);
+        windEst = windMax !== null;
+      }
     }
     return {
       hour,

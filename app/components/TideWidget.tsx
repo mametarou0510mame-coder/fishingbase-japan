@@ -195,7 +195,7 @@ function TideChart({
             const strong = (s.windMax ?? 0) >= 10;
             return (
               <g key={s.time}>
-                <title>{`${h}時〜${h + 3}時：${s.weather}、${s.windDir}の風 ${s.windMin ?? "?"}〜${s.windMax ?? "?"}m、${s.temp ?? "?"}℃`}</title>
+                <title>{`${h}時〜${h + 3}時：${s.weather}、${s.windDir}の風 ${s.windMin != null ? `${s.windMin}〜` : ""}${s.windMax ?? "?"}m、${s.temp ?? "?"}℃`}</title>
                 {strong && <rect x={x(h) + 0.5} y={rows.arrow - 11} width={x(h + 3) - x(h) - 1} height={rows.wind + 4 - (rows.arrow - 11)} className="warnbg" />}
                 <text x={cx} y={rows.icon} textAnchor="middle" className="wxicon">{icon(s.weather)}</text>
                 <text x={cx} y={rows.wx} textAnchor="middle" className="wxtext">{shortWeather(s.weather)}</text>
@@ -211,7 +211,7 @@ function TideChart({
                   </text>
                 )}
                 <text x={cx} y={rows.wind} textAnchor="middle" className={strong ? "wxval warn" : "wxval"}>
-                  {s.windMin !== null && s.windMax !== null ? `${s.windMin}-${s.windMax}m` : "―"}
+                  {s.windMax !== null ? (s.windMin !== null ? `${s.windMin}-${s.windMax}m` : `${s.windMax}m`) : "―"}
                 </text>
                 <text x={cx} y={rows.temp} textAnchor="middle" className="wxval">{s.temp !== null ? `${s.temp}℃` : "―"}</text>
                 <text x={cx} y={rows.pop} textAnchor="middle" className="wxval">{popFor(date, h, weather)}</text>
@@ -294,11 +294,28 @@ function WeatherNotes({ date, weather, hasSlots }: { date: string; weather: Weat
           {hasSlots && <span className="small">（風：{daily.wind}）</span>}
         </p>
       )}
-      <p className="small">
-        天気・風・気温：気象庁「地域時系列予報」{weather.hourlyPoint ? `（気温は${weather.hourlyPoint}）` : ""}、
-        波・降水確率：気象庁「府県天気予報」（{weather.name}）。風は3時間ごとの風速の予想の幅（m/s）、矢印は風が吹いていく向きです。
-        風が強い日や波が高い日は釣行を中止してください。
-      </p>
+      {(() => {
+        const day = (weather.hourly ?? []).filter((h) => toJst(h.time).toISOString().slice(0, 10) === date);
+        const model = day.some((h) => h.windSrc === "model");
+        const jma = day.filter((h) => h.jmaWindMax != null);
+        const top = jma.sort((a, b) => (b.jmaWindMax ?? 0) - (a.jmaWindMax ?? 0))[0];
+        return (
+          <p className="small">
+            天気・気温：気象庁「地域時系列予報」{weather.hourlyPoint ? `（気温は${weather.hourlyPoint}）` : ""}、
+            波・降水確率：気象庁「府県天気予報」（{weather.name}）。
+            {model ? (
+              <>
+                風：この釣り場の位置の数値予報（ECMWF Open Data・CC BY 4.0、3時間ごとの平均風速 m/s）。
+                {top && `気象庁の予報区全体の目安は最大 ${top.jmaWindDir} ${top.jmaWindMin ?? ""}〜${top.jmaWindMax}m/s です。`}
+                突風や、地形による強弱はあります。
+              </>
+            ) : (
+              <>風は3時間ごとの風速の予想の幅（m/s）。</>
+            )}
+            矢印は風が吹いていく向きです。風が強い日や波が高い日は釣行を中止してください。
+          </p>
+        );
+      })()}
     </div>
   );
 }

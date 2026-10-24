@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - "scripts/fetch-marine.py"
+      - "scripts/verify-wind.py"
       - ".github/workflows/update-marine.yml"
 
 permissions:
@@ -32,11 +33,13 @@ jobs:
           sudo apt-get install -y -qq libeccodes-dev > /dev/null
           pip install --quiet eccodes numpy
       - run: python3 scripts/fetch-marine.py
+      - name: Verify wind forecasts against observations
+        run: python3 scripts/verify-wind.py || echo "::warning::verify-wind failed"
       - name: Commit if changed
         run: |
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/marine.json
+          git add public/data/marine.json data/verify
           if git diff --cached --quiet; then
             echo "No changes"
           else

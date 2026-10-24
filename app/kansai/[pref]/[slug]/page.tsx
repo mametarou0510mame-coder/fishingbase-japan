@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CatchSummary from "@/app/components/CatchSummary";
 import TideWidget from "@/app/components/TideWidget";
+import LiveWind from "@/app/components/LiveWind";
+import { nearestWindStation } from "@/lib/liveWind";
+import { spotLatLon } from "@/lib/shioData";
 import WeatherPanel from "@/app/components/WeatherPanel";
 import FishingIndex from "@/app/components/FishingIndex";
 import SpotGear from "@/app/components/SpotGear";
@@ -101,6 +104,11 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       <p className="small">
         <Link href={`/shio/${spot.slug}/`}>7日先までの潮・風・波と「釣りどき指数」「安全の目安」を見る →</Link>
       </p>
+      {(() => {
+        const c = spotLatLon(spot);
+        const st = nearestWindStation(c.lat, c.lon);
+        return st ? <LiveWind station={st} /> : null;
+      })()}
       <TideWidget
         code={spot.tideStation.code}
         stationName={spot.tideStation.name}

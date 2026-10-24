@@ -533,3 +533,6 @@ iframe.guide-video { border: 0; }
 .install-hint p { margin: 4px 0 0; font-size: 0.88rem; }
 .install-hint button { font: inherit; font-weight: 700; border: 0; border-radius: 999px; padding: 6px 16px; background: var(--sea); color: #fff; cursor: pointer; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .install-hint button { background: #1f6a99; } }
+
+.live-wind { border: 1px solid var(--line, #d6e2ec); border-radius: 12px; padding: 8px 12px; margin: 8px 0 12px; background: var(--card, #fff); }
+.live-wind p { margin: 4px 0; }

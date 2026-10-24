@@ -4,7 +4,8 @@
 #   https://www.ecmwf.int/en/forecasts/datasets/open-data
 # ファイル全体ではなく、索引(.index)を見て必要な要素（有義波高 swh・平均波向 mwd・平均周期 mwp）だけを
 # HTTP Range で取得する。陸の格子は値がないため、釣り場から一番近い「海の格子」の値を使う。
-# 風（高さ10mの東西・南北成分 10u/10v）も同じ海の格子の位置で取り、気象庁の3時間ごとの予報がない日の目安にする。
+# 風（高さ10mの東西・南北成分 10u/10v）は、釣り場の位置そのもので取る（周りの4つの格子から内挿）。
+# 気象庁の風の予報は予報区全体の代表（10〜14m/s のような幅）なので、釣り場ごとの風はこちらを使う。
 #
 # 必要なもの: python3-eccodes, python3-numpy（GitHub Actions では apt で入れる）
 import json
@@ -96,6 +97,26 @@ def decode(buf):
     return {"vals": vals, "lat1": lat1, "lon1": lon1, "dlat": dlat if scan_neg else -dlat, "dlon": dlon, "ni": ni, "nj": nj}
 
 
+def bilinear(f, lat, lon):
+    """格子の値を、釣り場の位置へ内挿する（周りの4点。欠けていれば値のある点の平均）"""
+    y = (f["lat1"] - lat) / f["dlat"]
+    x = ((lon - f["lon1"]) % 360) / f["dlon"]
+    j0, i0 = int(math.floor(y)), int(math.floor(x))
+    fy, fx = y - j0, x - i0
+    acc = wsum = 0.0
+    for dj, wy in ((0, 1 - fy), (1, fy)):
+        for di, wx in ((0, 1 - fx), (1, fx)):
+            j, i = j0 + dj, (i0 + di) % f["ni"]
+            if not (0 <= j < f["nj"]):
+                continue
+            val = f["vals"][j, i]
+            if np.isnan(val):
+                continue
+            acc += val * wy * wx
+            wsum += wy * wx
+    return acc / wsum if wsum > 0 else float("nan")
+
+
 def nearest_sea(field, lat, lon):
     # 釣り場の周り SEARCH_DEG 度の中で、値のある格子のうち一番近いもの
     f = field
@@ -156,15 +177,12 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"[marine] wind {step}h: {e}", file=sys.stderr)
             u = v = None
-        for slug in coords:
-            g = grid.get(slug)
-            if u is None or g is None:
+        for slug, c in coords.items():
+            if u is None:
                 series[slug]["ws"].append(None)
                 series[slug]["wd"].append(None)
                 continue
-            j = int(round((u["lat1"] - g[3]) / u["dlat"]))
-            i = int(round(((g[4] - u["lon1"]) % 360) / u["dlon"])) % u["ni"]
-            uu, vv = float(u["vals"][j, i]), float(v["vals"][j, i])
+            uu, vv = bilinear(u, c["lat"], c["lon"]), bilinear(v, c["lat"], c["lon"])
             if math.isnan(uu) or math.isnan(vv):
                 series[slug]["ws"].append(None)
                 series[slug]["wd"].append(None)

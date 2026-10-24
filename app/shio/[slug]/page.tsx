@@ -96,8 +96,9 @@ export default async function ShioSpotPage({ params }: { params: Promise<Params>
           潮位：気象庁「潮位表」の{board.station.name}地点の予測値です。釣り場とは時刻や高さが少しずれることがあります。
         </li>
         <li>
-          天気・風・気温・降水確率：気象庁の予報（{board.weatherLabel}
-          {board.weatherReport ? `、${fmt(board.weatherReport)}発表` : ""}）です。3時間ごとの予報がない日は、府県予報の文から見積もっています（「≧」「約」の印）。
+          天気・気温・降水確率：気象庁の予報（{board.weatherLabel}
+          {board.weatherReport ? `、${fmt(board.weatherReport)}発表` : ""}）です。
+          風：この釣り場の位置の数値予報（ECMWF Open Data・CC BY 4.0、3時間ごとの平均風速）です。気象庁の風の予報は予報区全体の代表で幅が広いため、釣り場ごとの数値予報を使っています。数値予報がない日は府県予報の文から見積もっています（「≧」「約」の印）。突風や地形による強弱はあります。
         </li>
         <li>
           波：
