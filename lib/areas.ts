@@ -22,6 +22,8 @@ export const AREAS: Area[] = [
       "naruohama-umizuri-hiroba",
       "yumeshima-hato-yazawa",
       "minami-ashiyahama-minami-gogan",
+      "cosmo-square-kaihin-ryokuchi",
+      "yamatogawa-kita-bohatei",
     ],
     intro: "大阪湾の奥にあたるエリアです。市街地から近く、短い時間でも釣りに行きやすい施設が集まっています。",
   },
@@ -56,9 +58,9 @@ export const AREAS: Area[] = [
   {
     slug: "nanki-shirahama",
     name: "南紀・白浜",
-    region: "和歌山県白浜町・田辺市周辺",
-    spots: ["shirahama-katata-tsuribori", "shirahama-katata-ikada"],
-    intro: "黒潮が近い紀伊半島南西部のエリアです。温泉地の白浜を拠点に、海上釣り堀や筏釣りで大物を狙えます。",
+    region: "和歌山県白浜町・田辺市・那智勝浦町周辺",
+    spots: ["shirahama-katata-tsuribori", "shirahama-katata-ikada", "katsuura-watarinoshima"],
+    intro: "黒潮が近い紀伊半島南部のエリアです。温泉地の白浜の海上釣り堀や筏釣りのほか、那智勝浦の港でも釣りができます。",
   },
   {
     slug: "harima",

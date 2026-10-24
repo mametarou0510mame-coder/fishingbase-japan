@@ -282,5 +282,11 @@
   "address": "兵庫県高砂市高砂町向島町",
   "matched": "兵庫県高砂市高砂町向島町",
   "rough": false
+ },
+ "yamatogawa-kita-bohatei": {
+  "lat": 34.6005,
+  "lon": 135.4255,
+  "manual": true,
+  "rough": true
  }
 }
