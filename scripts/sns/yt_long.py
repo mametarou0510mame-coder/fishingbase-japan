@@ -26,8 +26,13 @@ def posted():
 
 
 def main():
-    if sys.argv[1] == "next":  # まだ投稿していない次の動画の slug を出す
+    if sys.argv[1] == "next":  # まだ投稿していない次の動画の slug を出す（1日1本。今日すでに出していれば空）
+        from datetime import datetime, timedelta, timezone
         done = posted()
+        today = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
+        if any(v.get("at", "").startswith(today) for v in done.values()) and "--force" not in sys.argv:
+            print("")
+            return
         print(next((s for s in ORDER if s not in done), ""))
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
@@ -82,7 +87,8 @@ def main():
     except Exception as e:
         print(f"::warning::サムネイルを設定できませんでした（電話番号の確認が必要な場合があります）: {e}")
     rec = posted()
-    rec[slug] = {"youtube": vid}
+    from datetime import datetime, timedelta, timezone
+    rec[slug] = {"youtube": vid, "at": datetime.now(timezone(timedelta(hours=9))).isoformat(timespec="minutes")}
     os.makedirs(os.path.dirname(REC), exist_ok=True)
     json.dump(rec, open(REC, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
