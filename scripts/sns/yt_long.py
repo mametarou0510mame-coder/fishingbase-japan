@@ -11,7 +11,9 @@ from affiliate import tackle_lines  # noqa: E402
 CREDIT = "音声合成：VOICEVOX:ずんだもん"
 
 
-ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "long-light-game", "long-ika-tako", "long-chinu", "long-big-game", "long-gomoku", "long-basics"]
+ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "long-light-game", "long-ika-tako", "long-chinu", "long-big-game", "long-gomoku", "long-basics",
+         # 第2弾（釣り場・データ・安全・図鑑）
+         "long-area-osakawan", "long-weather", "long-calendar", "long-area-kobe", "long-zukan", "long-tsuribori", "long-area-senshu", "long-jiai", "long-family", "long-area-wakayama"]
 REC = "data/sns/long-posts.json"
 
 
@@ -38,13 +40,16 @@ def main():
         shops = "楽天市場・Amazon" if affiliate.AMAZON_TAG else "楽天市場"
         note = "※楽天アフィリエイト・Amazonアソシエイトのリンクです。" if affiliate.AMAZON_TAG else "※楽天アフィリエイトのリンクです。"
         desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + [note + "価格・在庫はリンク先でご確認ください。", ""]
-    desc += ["▼くわしい解説・道具リスト（初級・中級・上級）"]
-    desc += [f"・{g['title']}：{SITE}/guide/{g['slug']}/" for g in gs]
+    if gs:
+        desc += ["▼くわしい解説・道具リスト（初級・中級・上級）"]
+        desc += [f"・{g['title']}：{SITE}/guide/{g['slug']}/" for g in gs]
+    if src.get("links"):
+        desc += ["▼この動画のくわしい情報（ツレドキ関西）"] + [f"{SITE}{u}" for u in src["links"]]
     desc += ["", "▼関西の釣果・潮・今日の釣れる時間（ねらい目）", f"{SITE}/"]
     if slug in discuss.LONG:
         desc += discuss.caption(discuss.LONG[slug])
     desc += ["", CREDIT, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
-    tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]]
+    tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {
         "snippet": {"title": src["title"][:100], "description": "\n".join(desc)[:4900], "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},
