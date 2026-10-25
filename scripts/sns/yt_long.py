@@ -13,7 +13,8 @@ CREDIT = "音声合成：VOICEVOX:ずんだもん"
 
 ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "long-light-game", "long-ika-tako", "long-chinu", "long-big-game", "long-gomoku", "long-basics",
          # 第2弾（釣り場・データ・安全・図鑑）
-         "long-area-osakawan", "long-weather", "long-calendar", "long-area-kobe", "long-zukan", "long-tsuribori", "long-area-senshu", "long-jiai", "long-family", "long-area-wakayama"]
+         # （エリア別の釣り場ガイド4本はオーナー判断で投稿しない）
+         "long-weather", "long-calendar", "long-zukan", "long-jiai", "long-family", "long-tsuribori"]
 REC = "data/sns/long-posts.json"
 
 
