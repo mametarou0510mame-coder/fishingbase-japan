@@ -14,7 +14,9 @@ CREDIT = "音声合成：VOICEVOX:ずんだもん"
 ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "long-light-game", "long-ika-tako", "long-chinu", "long-big-game", "long-gomoku", "long-basics",
          # 第2弾（釣り場・データ・安全・図鑑）
          # （エリア別の釣り場ガイド4本・海上釣り堀ガイドはオーナー判断で投稿しない）
-         "long-weather", "long-calendar", "long-zukan", "long-jiai", "long-family"]  # 海上釣り堀ガイドも投稿しない
+         "long-weather", "long-calendar", "long-zukan", "long-jiai", "long-family",  # 海上釣り堀ガイドも投稿しない
+         # 第3弾（2026-10-26。冬の夜釣りは11〜12月の事故シーズン前に出す）
+         "long-month-11", "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
 REC = "data/sns/long-posts.json"
 
 
