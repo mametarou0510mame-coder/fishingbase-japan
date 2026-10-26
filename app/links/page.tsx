@@ -63,6 +63,7 @@ export default function LinksPage() {
       )}
 
       <nav className="link-list" aria-label="よく見られているページ">
+        <Link className="link-btn app" href="/app/">📱 アプリ：地図で釣り場を選んで、潮・天気・おすすめの釣り方</Link>
         <Link className="link-btn" href="/">今日・明日・週末のねらい目ランキング</Link>
         <Link className="link-btn" href="/kansai/area/">エリア別：最近釣れている魚</Link>
         <Link className="link-btn" href="/aquarium/">デジタル魚拓・マイ水族館</Link>

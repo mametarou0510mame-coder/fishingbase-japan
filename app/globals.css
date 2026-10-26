@@ -583,3 +583,6 @@ body.app-mode main.wrap { max-width: none; padding: 0; margin: 0; }
 .fa-shops a + a { background: #232f3e; }
 .fa-install { position: fixed; z-index: 20; left: 10px; right: 10px; top: calc(env(safe-area-inset-top) + 96px); }
 .fa-install .install-hint { box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+
+.app-cta { display: inline-block; background: #E3412B; color: #fff; font-weight: 800; padding: 12px 18px; border-radius: 999px; text-decoration: none; box-shadow: 0 3px 10px rgba(227,65,43,.3); }
+.link-btn.app { background: #E3412B; color: #fff; border-color: #E3412B; }

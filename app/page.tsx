@@ -48,6 +48,9 @@ export default function Home() {
         <p>
           関西の海釣り施設・釣り場{spotCount}か所の、最近の釣果、潮がよく動く時間、時間ごとの天気・風、料金とルールを1ページずつにまとめています。
         </p>
+        <p>
+          <Link className="app-cta" href="/app/">📱 地図で釣り場を選ぶ（アプリ版）</Link>
+        </p>
       </section>
 
       {HOT.until >= jiai.dates[0] && (
