@@ -38,6 +38,7 @@ export type DayInput = {
   low: TideEvent[];
   sun: { rise: number; set: number } | null;
   moonAge: number;
+  moonRiseSet?: { rise: number | null; set: number | null }; // 月の出・月の入り（日本時間の時。その日にないときは null）
   tideName: string;
   open: number | null;
   close: number | null;

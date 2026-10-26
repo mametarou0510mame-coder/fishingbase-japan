@@ -1,6 +1,8 @@
 {
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
+  {"date": "2026-10-26", "kind": "新規掲載", "spot": "kaijo-tsuribori-misaki", "text": "海上釣り堀 岬（岬町深日）を掲載しました。大阪府が府内の釣り堀として案内している施設で、マダイ・シマアジなどが狙えます。営業日・料金は公式サイトで確認してください。", "source": "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"},
+  {"date": "2026-10-26", "kind": "新規掲載", "spot": "kaijo-tsuribori-tajiri", "text": "海上釣り堀 海釣ぽーと田尻（田尻町）を掲載しました。大阪府が府内の釣り堀として案内している施設です。営業日・料金は公式サイトで確認してください。", "source": "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"},
   {"date": "2026-10-24", "kind": "新規掲載", "spot": "katsuura-watarinoshima", "text": "勝浦港 渡の島（那智勝浦町）を掲載しました。にぎわい市場から歩いて約5分の島で、市場で釣り具を借りられます。", "source": "https://nigiwaiichiba.com/fishing/"},
   {"date": "2026-10-24", "kind": "新規掲載", "spot": "yamatogawa-kita-bohatei", "text": "大和川北防波堤（大阪市住之江区）を掲載しました。釣り場への通路は一部が未舗装で、狭い階段があります。", "source": "https://www.city.osaka.lg.jp/port/page/0000653654.html"},
   {"date": "2026-10-24", "kind": "新規掲載", "spot": "cosmo-square-kaihin-ryokuchi", "text": "コスモスクエア海浜緑地（大阪市住之江区）を掲載しました。釣りができるのは看板・路面表示のある釣り開放区域だけです。", "source": "https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000666979.html"},

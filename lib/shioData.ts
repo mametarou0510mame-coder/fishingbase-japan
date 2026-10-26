@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { indexFor } from "@/lib/fishingIndex";
-import { moonInfo } from "@/lib/moon";
+import { moonInfo, moonTimes } from "@/lib/moon";
 import { dirName, evaluateDay, waveFromText, weatherFromCode, weatherWord, windFromText, type DayInput, type DayResult, type Slot, type SpotType } from "@/lib/shio";
 import type { Spot } from "@/lib/spots";
 import { STATION_COORDS, sunTimes } from "@/lib/sun";
@@ -156,6 +156,7 @@ export function buildBoard(spot: Spot): Board {
       low: t.low,
       sun: sunTimes(date, lat, lon),
       moonAge: moon.age,
+      moonRiseSet: moonTimes(date, lat, lon),
       tideName: moon.tideName,
       open: spot.openHourByMonth?.[month] ?? null,
       close: spot.closeHourByMonth?.[month] ?? null,

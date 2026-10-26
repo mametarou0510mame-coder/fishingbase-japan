@@ -643,6 +643,21 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
               <dd className="shio-moon">
                 <MoonIcon age={d.moonAge} size={22} /> 月齢{d.moonAge.toFixed(1)}・{d.tideName}
               </dd>
+              {d.moonRiseSet && (
+                <>
+                  <dt>月の出・入り</dt>
+                  <dd>
+                    <span>
+                      <b>{d.moonRiseSet.rise === null ? "－" : hm(d.moonRiseSet.rise)}</b>
+                      <small>月の出</small>
+                    </span>
+                    <span>
+                      <b>{d.moonRiseSet.set === null ? "－" : hm(d.moonRiseSet.set)}</b>
+                      <small>月の入り</small>
+                    </span>
+                  </dd>
+                </>
+              )}
             </dl>
           </div>
 

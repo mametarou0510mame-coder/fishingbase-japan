@@ -1493,6 +1493,76 @@ export const SPOTS: Spot[] = [
     intro:
       "那智勝浦町の勝浦港にある小さな島で、勝浦漁港にぎわい市場が釣り場として紹介しています。夏はアジ・サバ・ハマチ、春と秋はアオリイカ、ほかにチヌ・キス・カワハギなどが狙えます。",
   },
+  {
+    slug: "kaijo-tsuribori-tajiri",
+    pref: "osaka",
+    name: "海上釣り堀 海釣ぽーと田尻",
+    area: "泉南郡田尻町",
+    address: "大阪府泉南郡田尻町りんくうポート北",
+    type: "海上釣り堀",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-26",
+    officialUrl: "http://www.osaka-tajiri.com/",
+    sourceUrls: [
+      "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html",
+      "https://www.pref.osaka.lg.jp/documents/83206/5_know-how3-4.pdf",
+    ],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "営業日・料金・予約の方法は公式サイトで確認する",
+      "施設の決まり（使える仕掛け・エサ、持ち帰りの数など）は現地の案内に従う",
+      "ゴミ・釣り糸・釣り針は持ち帰る",
+    ],
+    rulesSource: "report",
+    notes: [
+      "大阪府の「釣り堀・海釣り公園」の案内（2026年9月15日更新）に載っている施設です。",
+      "季節によってマダイ・シマアジ・イサギ・メジロなどが狙えます（大阪府の資料）。",
+      "問い合わせ：072-465-0099（大阪府の資料に記載）",
+    ],
+    tideStation: { code: "KK", name: "関空島" },
+    intro:
+      "田尻町のりんくうポート北にある海上釣り堀です。大阪府が府内の「釣り堀・海釣り公園」として案内しています。営業日・料金は公式サイトで確認してください。",
+  },
+  {
+    slug: "kaijo-tsuribori-misaki",
+    pref: "osaka",
+    name: "海上釣り堀 岬",
+    area: "泉南郡岬町",
+    address: "大阪府泉南郡岬町深日2917",
+    type: "海上釣り堀",
+    published: true,
+    level: "basic",
+    verifiedOn: "2026-10-26",
+    officialUrl: "http://www.osaka-misaki.com/",
+    sourceUrls: [
+      "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html",
+      "https://www.pref.osaka.lg.jp/documents/83206/5_know-how3-4.pdf",
+    ],
+    hours: "",
+    closed: "",
+    fees: [],
+    parking: "",
+    rentals: "",
+    rules: [
+      "営業日・料金・予約の方法は公式サイトで確認する",
+      "施設の決まり（使える仕掛け・エサ、持ち帰りの数など）は現地の案内に従う",
+      "ゴミ・釣り糸・釣り針は持ち帰る",
+    ],
+    rulesSource: "report",
+    notes: [
+      "大阪府の「釣り堀・海釣り公園」の案内（2026年9月15日更新）に載っている施設です。",
+      "マダイ・シマアジ・イサギ・メジロなどが狙えます（大阪府の資料）。",
+      "問い合わせ：072-486-1211（大阪府の資料に記載）",
+    ],
+    tideStation: { code: "TN", name: "淡輪" },
+    intro:
+      "岬町深日（ふけ）にある海上釣り堀です。大阪府が府内の「釣り堀・海釣り公園」として案内しています。営業日・料金は公式サイトで確認してください。",
+  },
 ];
 
 export const publishedSpots = () => SPOTS.filter((s) => s.published);
