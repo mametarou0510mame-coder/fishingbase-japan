@@ -91,6 +91,17 @@ export default function FishingApp() {
     return () => document.body.classList.remove("app-mode");
   }, []);
 
+  // ピンを、シートの上に見えている地図（画面の上 約35%）の真ん中に持ってくる
+  const focus = (lat: number, lon: number, zoom: number) => {
+    const m = map.current;
+    if (!m) return;
+    const wide = window.innerWidth >= 900;
+    const p = m.project([lat, lon], zoom);
+    const shift = wide ? { x: 260, y: 0 } : { x: 0, y: window.innerHeight * 0.32 };
+    const c = m.unproject([p.x + shift.x, p.y + shift.y], zoom);
+    m.flyTo(c, zoom, { duration: 0.6 });
+  };
+
   const open = useCallback(async (slug: string, fly = true) => {
     setLoading(slug);
     setMi(0);
@@ -100,7 +111,7 @@ export default function FishingApp() {
       setFull(false);
       sheet.current?.scrollTo({ top: 0 });
       const s = spots.find((x) => x.slug === slug);
-      if (fly && s && map.current) map.current.flyTo([s.lat - 0.02, s.lon], Math.max(map.current.getZoom(), 12), { duration: 0.6 });
+      if (fly && s && map.current) focus(s.lat, s.lon, Math.max(map.current.getZoom(), 13));
       history.replaceState(null, "", `/app/?spot=${slug}`);
     } finally {
       setLoading(null);
@@ -164,7 +175,7 @@ export default function FishingApp() {
           📍 近くの釣り場
         </button>
       </header>
-      <div className="fa-legend">
+      <div className={`fa-legend${sel ? " hide" : ""}`}>
         {Object.entries(TYPE_COLOR).map(([k, c]) => (
           <span key={k}>
             <i style={{ background: c }} />

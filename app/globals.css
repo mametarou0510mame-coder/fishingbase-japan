@@ -586,3 +586,7 @@ body.app-mode main.wrap { max-width: none; padding: 0; margin: 0; }
 
 .app-cta { display: inline-block; background: #E3412B; color: #fff; font-weight: 800; padding: 12px 18px; border-radius: 999px; text-decoration: none; box-shadow: 0 3px 10px rgba(227,65,43,.3); }
 .link-btn.app { background: #E3412B; color: #fff; border-color: #E3412B; }
+
+/* 釣り場を選んだ後は、地図を上の約3分の1にして、情報を広く見せる */
+.fa-sheet.peek { height: 64vh; }
+.fa-legend.hide { display: none; }
