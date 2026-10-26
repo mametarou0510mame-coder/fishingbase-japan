@@ -55,7 +55,7 @@ export default function InstallHint() {
             iPhone は Safari の共有ボタン（□に↑）→「ホーム画面に追加」。Android は Chrome の右上「︙」→「ホーム画面に追加」または「アプリをインストール」。
           </p>
         )}
-        <p className="small">アイコンから開くと、潮・海況のページがすぐ出ます。電波が弱い場所でも、前に開いたページは見られます。</p>
+        <p className="small">アイコンから開くと、地図で釣り場を選べるアプリ画面がすぐ出ます。電波が弱い場所でも、前に開いたページは見られます。</p>
       </div>
     </aside>
   );

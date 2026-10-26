@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import LiveWind from "@/app/components/LiveWind";
 import ShioBoard, { type SpeciesTip } from "@/app/components/ShioBoard";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import InstallHint from "@/app/components/InstallHint";
 import type { DayResult } from "@/lib/shio";
 import type { WindStation } from "@/lib/liveWind";
 
@@ -198,6 +199,7 @@ export default function FishingApp() {
             ) : (
               <p className="fa-hint">地図のピンをタップすると、その釣り場の潮・天気・風・波と、おすすめの釣り方・道具が見られます。</p>
             )}
+            <InstallHint />
           </div>
         )}
         {sel && (

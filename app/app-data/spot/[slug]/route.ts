@@ -17,21 +17,30 @@ export function generateStaticParams() {
   return publishedSpots().map((s) => ({ slug: `${s.slug}.json` }));
 }
 
-// その釣り場の「まずはこれ」：家族向けの施設・公園はサビキ、それ以外はショアジギング（禁止事項に合わないものは外す）
+// 家族向け：海釣り施設、または竿を借りられる公園の釣り場
+function isFamily(spot: Spot) {
+  return spot.type === "海釣り施設" || (spot.type === "公園の釣り場" && /レンタル竿|貸竿|貸し竿|釣りセット/.test(spot.rentals ?? ""));
+}
+
+// その釣り場の「まずはこれ」：家族向けはサビキ、それ以外はショアジギング（禁止事項に合わないものは外す）
 function primaryGuides(spot: Spot): Guide[] {
   const ok = (slug: string) => {
     const g = findGuide(slug);
     return g && allowed(g.gearTags, spot.restrictions) ? g : null;
   };
   if (spot.type === "海上釣り堀") return [];
-  const family = spot.type === "海釣り施設" || spot.type === "公園の釣り場";
-  const order = family ? ["sabiki", "choinage", "ukizuri", "shore-jigging"] : ["shore-jigging", "sabiki", "choinage", "ukizuri"];
+  const order = isFamily(spot) ? ["sabiki", "shore-jigging", "choinage", "ukizuri"] : ["shore-jigging", "sabiki", "choinage", "ukizuri"];
+  const out: Guide[] = [];
   for (const s of order) {
     const g = ok(s);
-    if (g) return [g];
+    if (g) out.push(g);
+    if (out.length >= 2) break;
   }
-  return [];
+  return out;
 }
+
+// 同じ系統の解説（サビキの針の号数など）は重ねて出さない
+const FAMILY_OF = (slug: string) => (/sabiki/.test(slug) ? "sabiki" : /jig|one-pitch|aomono/.test(slug) ? "jig" : slug);
 
 function methodView(g: Guide, why: string) {
   const tier = g.tackle[0];
@@ -69,8 +78,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   }
   const recentSpecies = summary.list.map((s) => s.species);
   const prim = primaryGuides(spot);
-  const family = spot.type === "海釣り施設" || spot.type === "公園の釣り場";
-  const more = guidesForSpot(spot, recentSpecies, 4).filter((g) => !prim.some((p) => p.slug === g.slug)).slice(0, 2);
+  const family = isFamily(spot);
+  const seen = new Set(prim.map((g) => FAMILY_OF(g.slug)));
+  const more = guidesForSpot(spot, recentSpecies, 8).filter((g) => {
+    const f = FAMILY_OF(g.slug);
+    if (seen.has(f)) return false;
+    seen.add(f);
+    return true;
+  }).slice(0, 2);
   const c = spotLatLon(spot);
   return Response.json({
     slug: spot.slug,
@@ -89,7 +104,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     recentFrom: summary.from,
     recentTo: summary.to,
     methods: [
-      ...prim.map((g) => methodView(g, family ? "家族・初めての人向けの定番" : "この釣り場の基本の釣り方")),
+      ...prim.map((g, i) => methodView(g, i === 0 ? (family ? "家族・初めての人向けの定番" : "この釣り場の基本の釣り方（青物ねらい）") : g.slug === "shore-jigging" ? "青物をねらうなら" : "手軽に楽しむなら")),
       ...more.map((g) => methodView(g, recentSpecies.length ? "最近の釣果に合う釣り方" : "この釣り場でできる釣り方")),
     ],
   });

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import FishingApp from "./FishingApp";
-import InstallHint from "@/app/components/InstallHint";
 
 export const metadata: Metadata = {
   title: "ツレドキ関西アプリ｜地図で選ぶ釣り場の潮・天気・風・波とおすすめの釣り方",
@@ -14,9 +13,6 @@ export default function AppPage() {
   return (
     <>
       <FishingApp />
-      <div className="fa-install">
-        <InstallHint />
-      </div>
     </>
   );
 }
