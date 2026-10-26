@@ -1,5 +1,5 @@
 {
- "updatedOn": "2026-10-25",
+ "updatedOn": "2026-10-26",
  "sources": [
   {
    "spot": "marina-city-tsuri-koen",
@@ -11,25 +11,25 @@
    "spot": "hiraiso-umizuri-koen",
    "name": "平磯海づり公園 釣果情報",
    "url": "https://kobeumiduri.jp/fishresult/",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "kishiwada-ichimonji",
    "name": "岸和田渡船 釣果情報",
    "url": "https://kishiwadatosen.com/result/",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "suma-umizuri-koen",
    "name": "須磨海づり公園 釣果情報",
    "url": "https://sumasakana-park.com/fishing/",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "amagasaki-uotsuri-koen",
    "name": "尼崎市立魚つり公園 釣果情報",
    "url": "https://amagasaki-uoturikouen.com/fishing/index.html",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "naruohama-umizuri-hiroba",
@@ -41,27 +41,27 @@
    "spot": "shimotsu-pialand",
    "name": "下津ピアーランド 釣果情報",
    "url": "https://www.shimotsu-pialand.com/fishing/",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "minamiawaji-megafloat",
    "name": "南あわじ海釣り公園メガフロート 釣果情報（南あわじ市）",
    "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "okura-kaigan-higashi",
    "key": "maruha-akashi",
    "name": "まるは釣具 明石店 釣果ブログ",
    "url": "https://anglers.lekumo.biz/akashi/",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   },
   {
    "spot": "suma-umizuri-koen",
    "key": "point-kansai",
    "name": "釣具のポイント お持込釣果",
    "url": "https://www.point-i.jp/fishing_infos?area_id=94",
-   "lastSuccess": "2026-10-25"
+   "lastSuccess": "2026-10-26"
   }
  ],
  "monthly": {
@@ -105,6 +105,171 @@
   }
  },
  "reports": [
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88#0",
+   "date": "2026-10-26",
+   "species": "グレ（メジナ）",
+   "sizeCm": 33.8,
+   "count": 1,
+   "method": "ウキ釣り",
+   "time": "15:00~19:00",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88#1",
+   "date": "2026-10-26",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 45,
+   "count": 1,
+   "method": "ルアー",
+   "time": "6:00~10:00",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88#2",
+   "date": "2026-10-26",
+   "species": "グレ（メジナ）",
+   "sizeCm": 32,
+   "count": 1,
+   "method": "サビキ",
+   "time": "13:30~17:30",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88#3",
+   "date": "2026-10-26",
+   "species": "カワハギ",
+   "sizeCm": 19.5,
+   "count": 1,
+   "method": "サビキ",
+   "time": "6:00~10:00",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8826%e6%97%a5%e6%9c%88",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-26/#0",
+   "date": "2026-10-26",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 52,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-26/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-26/#1",
+   "date": "2026-10-26",
+   "species": "シオ（カンパチ）",
+   "sizeCm": 50,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-26/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-26/#2",
+   "date": "2026-10-26",
+   "species": "ウマヅラハギ",
+   "sizeCm": 32,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-26/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-26/#3",
+   "date": "2026-10-26",
+   "species": "カワハギ",
+   "sizeCm": 15,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-26/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://sumasakana-park.com/fishing/10-26/#4",
+   "date": "2026-10-26",
+   "species": "サバ",
+   "sizeCm": 30,
+   "count": 9,
+   "method": null,
+   "time": null,
+   "url": "https://sumasakana-park.com/fishing/10-26/",
+   "spot": "suma-umizuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261026.html#0",
+   "date": "2026-10-26",
+   "species": "サバ",
+   "sizeCm": 21,
+   "count": 8,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261026.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261026.html#1",
+   "date": "2026-10-26",
+   "species": "イワシ",
+   "sizeCm": 11,
+   "count": 0,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261026.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261026.html#2",
+   "date": "2026-10-26",
+   "species": "アジ",
+   "sizeCm": 12,
+   "count": 10,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261026.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261026.html#3",
+   "date": "2026-10-26",
+   "species": "サッパ",
+   "sizeCm": 15,
+   "count": 6,
+   "method": "サビキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261026.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261026.html#4",
+   "date": "2026-10-26",
+   "species": "サヨリ",
+   "sizeCm": 0,
+   "count": 0,
+   "method": "連玉ウキ",
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261026.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
+  {
+   "id": "https://amagasaki-uoturikouen.com/fishing/20261026.html#5",
+   "date": "2026-10-26",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 0,
+   "count": 0,
+   "method": null,
+   "time": null,
+   "url": "https://amagasaki-uoturikouen.com/fishing/20261026.html",
+   "spot": "amagasaki-uotsuri-koen"
+  },
   {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8825%e6%97%a5%e6%97%a5#0",
    "date": "2026-10-25",
@@ -467,6 +632,171 @@
    "time": null,
    "url": "https://www.shimotsu-pialand.com/fishing/2026/10/25/92388/",
    "spot": "shimotsu-pialand"
+  },
+  {
+   "id": "mega-2026-10-25-ヒラメ-1",
+   "date": "2026-10-25",
+   "species": "ヒラメ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-チヌ-1",
+   "date": "2026-10-25",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-メバル-1",
+   "date": "2026-10-25",
+   "species": "メバル",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-アオリイカ-1",
+   "date": "2026-10-25",
+   "species": "アオリイカ",
+   "sizeCm": null,
+   "count": 6,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-チャリコ-1",
+   "date": "2026-10-25",
+   "species": "マダイ",
+   "sizeCm": null,
+   "count": 6,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-長ハゲ-1",
+   "date": "2026-10-25",
+   "species": "ウマヅラハギ",
+   "sizeCm": null,
+   "count": 16,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-丸ハゲ-1",
+   "date": "2026-10-25",
+   "species": "カワハギ",
+   "sizeCm": null,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-サヨリ-1",
+   "date": "2026-10-25",
+   "species": "サヨリ",
+   "sizeCm": null,
+   "count": 23,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-アイゴ-1",
+   "date": "2026-10-25",
+   "species": "アイゴ",
+   "sizeCm": null,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-ガシラ-1",
+   "date": "2026-10-25",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": null,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-(小)アジ-1",
+   "date": "2026-10-25",
+   "species": "アジ",
+   "sizeCm": null,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-(中)アジ-1",
+   "date": "2026-10-25",
+   "species": "アジ",
+   "sizeCm": null,
+   "count": 13,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-(大)アジ-1",
+   "date": "2026-10-25",
+   "species": "アジ",
+   "sizeCm": null,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-グレ-1",
+   "date": "2026-10-25",
+   "species": "グレ（メジナ）",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-25-真鯛-1",
+   "date": "2026-10-25",
+   "species": "マダイ",
+   "sizeCm": 40,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
   },
   {
    "id": "https://www.marinacity.com/tsuri/post-3591/#0",
@@ -852,6 +1182,193 @@
    "time": null,
    "url": "https://www.shimotsu-pialand.com/fishing/2026/10/24/92369/",
    "spot": "shimotsu-pialand"
+  },
+  {
+   "id": "mega-2026-10-24-真鯛-1",
+   "date": "2026-10-24",
+   "species": "マダイ",
+   "sizeCm": 55,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-チヌ-1",
+   "date": "2026-10-24",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 55,
+   "count": 8,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-チャリコ-1",
+   "date": "2026-10-24",
+   "species": "マダイ",
+   "sizeCm": null,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-アコウ-1",
+   "date": "2026-10-24",
+   "species": "アコウ（キジハタ）",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-シオ-1",
+   "date": "2026-10-24",
+   "species": "シオ（カンパチ）",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-ハマチ-1",
+   "date": "2026-10-24",
+   "species": "ハマチ・ブリ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-ヒラスズキ-1",
+   "date": "2026-10-24",
+   "species": "スズキ",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-セイゴ-1",
+   "date": "2026-10-24",
+   "species": "スズキ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-グレ-1",
+   "date": "2026-10-24",
+   "species": "グレ（メジナ）",
+   "sizeCm": null,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-メバル-1",
+   "date": "2026-10-24",
+   "species": "メバル",
+   "sizeCm": null,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-ガシラ-1",
+   "date": "2026-10-24",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": null,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-サヨリ-1",
+   "date": "2026-10-24",
+   "species": "サヨリ",
+   "sizeCm": null,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-カマス-1",
+   "date": "2026-10-24",
+   "species": "カマス",
+   "sizeCm": null,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-丸ハゲ-1",
+   "date": "2026-10-24",
+   "species": "カワハギ",
+   "sizeCm": null,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-サンバソウ-1",
+   "date": "2026-10-24",
+   "species": "イシダイ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-(中)アジ-1",
+   "date": "2026-10-24",
+   "species": "アジ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-24-(小)アジ-1",
+   "date": "2026-10-24",
+   "species": "アジ",
+   "sizeCm": null,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
   },
   {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8823%e6%97%a5%e9%87%91/#0",
@@ -1369,6 +1886,138 @@
    "time": "12:00~19:00",
    "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b410%e6%9c%8823%e6%97%a5%e9%87%91",
    "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "mega-2026-10-23-チヌ-1",
+   "date": "2026-10-23",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 43,
+   "count": 4,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-丸ハゲ-1",
+   "date": "2026-10-23",
+   "species": "カワハギ",
+   "sizeCm": null,
+   "count": 8,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-長ハゲ-1",
+   "date": "2026-10-23",
+   "species": "ウマヅラハギ",
+   "sizeCm": null,
+   "count": 23,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-タイ-1",
+   "date": "2026-10-23",
+   "species": "タイ",
+   "sizeCm": 67,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-(小)アジ-1",
+   "date": "2026-10-23",
+   "species": "アジ",
+   "sizeCm": null,
+   "count": 233,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-サバ-1",
+   "date": "2026-10-23",
+   "species": "サバ",
+   "sizeCm": 30,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-サヨリ-1",
+   "date": "2026-10-23",
+   "species": "サヨリ",
+   "sizeCm": null,
+   "count": 45,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-グレ-1",
+   "date": "2026-10-23",
+   "species": "グレ（メジナ）",
+   "sizeCm": null,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-アイゴ-1",
+   "date": "2026-10-23",
+   "species": "アイゴ",
+   "sizeCm": null,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-アオリイカ-1",
+   "date": "2026-10-23",
+   "species": "アオリイカ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-ガシラ-1",
+   "date": "2026-10-23",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": 25,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-10-23-ヒラスズキ-1",
+   "date": "2026-10-23",
+   "species": "スズキ",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
   },
   {
    "id": "20261022-DSC_0421.jpg#0",
