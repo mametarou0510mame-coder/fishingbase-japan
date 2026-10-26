@@ -340,6 +340,31 @@ def image_card(path, no, heading, img_path, note=""):
 # サイトの機能紹介（23時の枠で、釣り方・豆知識と順番に）
 FEATURES = [
     {
+        "key": "feature-app", "tag": "アップデート", "title": "アプリ版ができました！地図で釣り場を選ぶだけ",
+        "sub": "潮・天気・風・波、いまの風、おすすめの釣り方と道具まで。ホーム画面に追加して無料で使えます",
+        "cards": [
+            ("image", "① 地図から釣り場を選ぶ", "content/promo/app-map.jpg", "関西の釣り場が色分けのピンで。「近くの釣り場」で今いる場所から探せます。"),
+            ("image", "② 潮・天気・風・波", "content/promo/app-spot.jpg", "いまの風（アメダスの実測）と、7日間の潮・天気・風・波・釣りどき指数。"),
+            ("image", "③ おすすめの釣り方", "content/promo/app-methods.jpg", "ショアジギング、家族向けの施設はサビキなど。禁止の釣り方は出しません。動画つき。"),
+            ("image", "④ 必要な道具も【PR】", "content/promo/app-gear.jpg", "釣り方ごとに、はじめての1セットと予算の目安。楽天市場のリンクから探せます。"),
+        ],
+        "ask": ("アプリでいちばん使いたいのは？", ["潮・天気・風・波", "おすすめの釣り方", "おすすめの道具", "近くの釣り場さがし"]),
+        "caption": ["【アップデート】ツレドキ関西のアプリ版ができました📱", "",
+                    "地図で釣り場をタップするだけで、",
+                    "・潮汐・天気・風・波（7日間）と、いまの風（実測）",
+                    "・その釣り場でおすすめの釣り方（動画つき）",
+                    "・その釣り方に必要なおすすめの道具（予算の目安つき）",
+                    "がまとめて見られます。", "",
+                    "「近くの釣り場」ボタンで、今いる場所から近い順にも探せます。",
+                    "ホーム画面に追加すれば、アプリのようにすぐ開けて、電波の弱い防波堤でも前に見た釣り場を表示できます。", "",
+                    "▼使い方",
+                    "プロフィールのリンク →「アプリ」から開いて、",
+                    "iPhone：共有ボタン →「ホーム画面に追加」",
+                    "Android：右上の「︙」→「ホーム画面に追加」", "",
+                    "※おすすめの道具は楽天市場の広告リンクを含みます【PR】"],
+        "path": "/app/",
+    },
+    {
         "key": "feature-overview", "tag": "ツレドキ関西でできること", "title": "釣りがもっと楽しくなる6つの機能",
         "sub": "関西の釣り人のために作った、無料で使える機能をまとめました",
         "cards": [
@@ -449,7 +474,14 @@ def make(slot, out):
     if day.hour >= 20:
         day = day + timedelta(days=1)
     ds = day.strftime("%Y-%m-%d")
-    if slot == "morning":
+    if slot.startswith("feature"):  # 機能紹介をすぐ出す（feature または feature:<key>）
+        want = slot.split(":", 1)[1] if ":" in slot else None
+        if want:
+            log = {"posts": [p for p in log["posts"] if p["key"] != want]}
+            global FEATURES
+            FEATURES = [f for f in FEATURES if f["key"] == want]
+        files, cap, key = make_feature(out, log)
+    elif slot == "morning":
         notes = load_notes(ds)
         if notes and notes["key"] not in {p["key"] for p in log["posts"]}:
             files, cap, key = make_notes_feature(out, notes, ds)  # 運営の現場情報の特集（初回）

@@ -1,24 +1,144 @@
 {
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
-  {"date": "2026-10-26", "kind": "新規掲載", "spot": "kaijo-tsuribori-misaki", "text": "海上釣り堀 岬（岬町深日）を掲載しました。大阪府が府内の釣り堀として案内している施設で、マダイ・シマアジなどが狙えます。営業日・料金は公式サイトで確認してください。", "source": "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"},
-  {"date": "2026-10-26", "kind": "新規掲載", "spot": "kaijo-tsuribori-tajiri", "text": "海上釣り堀 海釣ぽーと田尻（田尻町）を掲載しました。大阪府が府内の釣り堀として案内している施設です。営業日・料金は公式サイトで確認してください。", "source": "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"},
-  {"date": "2026-10-24", "kind": "新規掲載", "spot": "katsuura-watarinoshima", "text": "勝浦港 渡の島（那智勝浦町）を掲載しました。にぎわい市場から歩いて約5分の島で、市場で釣り具を借りられます。", "source": "https://nigiwaiichiba.com/fishing/"},
-  {"date": "2026-10-24", "kind": "新規掲載", "spot": "yamatogawa-kita-bohatei", "text": "大和川北防波堤（大阪市住之江区）を掲載しました。釣り場への通路は一部が未舗装で、狭い階段があります。", "source": "https://www.city.osaka.lg.jp/port/page/0000653654.html"},
-  {"date": "2026-10-24", "kind": "新規掲載", "spot": "cosmo-square-kaihin-ryokuchi", "text": "コスモスクエア海浜緑地（大阪市住之江区）を掲載しました。釣りができるのは看板・路面表示のある釣り開放区域だけです。", "source": "https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000666979.html"},
-  {"date": "2026-10-23", "kind": "新規掲載", "spot": "takasago-kaihin-koen", "text": "高砂海浜公園（向島公園、高砂市）を掲載しました。白砂青松100選の浜辺がある公園で、水遊びや釣りを楽しめます。釣りができる場所は現地の掲示を確認してください。", "source": "https://www.mlit.go.jp/tagengo-db/R5-00233.html"},
-  {"date": "2026-10-22", "kind": "新規掲載", "spot": "tomogashima", "text": "友ヶ島（和歌山市）を掲載しました。加太港から友ヶ島汽船で渡る無人島で、島にはゴミ箱がないため持ち帰りが必要です。", "source": "https://wakayamakanko.jp/ja/spot/detail/917"},
-  {"date": "2026-10-22", "kind": "新規掲載", "spot": "kada-ohato", "text": "加太大波止（和歌山市）を掲載しました。加太駅から歩いて行ける防波堤で、チヌ・アジ・グレなどが狙えます。", "source": "https://wakayamakanko.jp/ja/spot/detail/917"},
-  {"date": "2026-10-21", "kind": "新規掲載", "spot": "tsuribori-kishu", "text": "釣堀紀州（広川町）を掲載しました。唐尾港から船で渡る予約制の海上釣り堀です。2026年12月1日から貸し竿の料金が上がります。", "source": "https://www.tsuribori-kishu.com/fee/"},
-  {"date": "2026-10-21", "kind": "新規掲載", "spot": "shirahama-katata-ikada", "text": "カタタの筏釣り（白浜町）を掲載しました。予約なしで湾内の筏に渡り、マダイ・チヌ・クエなどを狙えます。", "source": "https://nankishirahama.jp/spot/detail.php?spot_id=139"},
-  {"date": "2026-10-21", "kind": "新規掲載", "spot": "shirahama-katata-tsuribori", "text": "カタタの釣堀（白浜町）を掲載しました。予約不要で、大物コースと竿・エサ付きの小物コースがあります。", "source": "https://www.nankishirahama.jp/spot/601/"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "saikazaki-seapark", "text": "雑賀崎シーパーク（和歌山市）を掲載しました。予約制の海上釣堀と、予約なしの「ちょい釣り」があります。", "source": "https://saikazaki-seapark.com/about/"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "awaji-janohire-fishing-park", "text": "淡路じゃのひれ フィッシングパーク（南あわじ市）を掲載しました。撒き餌・2本針・サビキ・ルアーは禁止です。", "source": "https://janohire.co.jp/play/fishing-park/"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "rokko-marine-park-umigo", "text": "海釣りGO!! ROKKO MARINE PARK（神戸市東灘区）を掲載しました。アプリで1時間単位に予約して使います。", "source": "https://umigo.co.jp/rokko-marine-park/"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "wakayama-hokko-umizuri-koen", "text": "和歌山北港海つり公園（和歌山市）を掲載しました。入園には誓約書の持参が必要です。", "source": "https://wakayama-fising.jp/pages/51/"},
-  {"date": "2026-10-20", "kind": "再開", "spot": "wakayama-hokko-umizuri-koen", "text": "和歌山北港海つり公園は、2018年の台風21号による休園から2026年4月1日に営業を再開しています。", "source": "https://wakayama-fising.jp/pages/50?detail=1&b_id=239&r_id=59#block239"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "kaijo-tsuribori-opa", "text": "海上釣り堀 オーパ!!（岬町）を掲載しました。料金・定休日・禁止事項は公式サイトで確認しています。", "source": "https://tsuribori-opa.com/system.html"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "sennan-fishing-park-sazan", "text": "泉南フィッシング・パーク SAZAN（泉南市）を掲載しました。撒き餌・サビキ・ルアーは禁止です。", "source": "https://www.sazanfisher.com/beginner/"},
-  {"date": "2026-10-20", "kind": "新規掲載", "spot": "yura-umizuri-koen", "text": "由良海つり公園（由良町）を掲載しました。", "source": "https://www.mlit.go.jp/tagengo-db/R5-00654.html"}
+  {
+   "date": "2026-10-26",
+   "kind": "機能追加",
+   "text": "アプリ版（/app/）を公開しました。地図で釣り場を選ぶと、潮・天気・風・波（7日間）、いまの風、その釣り場でおすすめの釣り方と道具が見られます。ホーム画面に追加して使えます。",
+   "source": "https://tsuredoki-kansai.mametarou0510mame.workers.dev/app/"
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "新規掲載",
+   "spot": "kaijo-tsuribori-misaki",
+   "text": "海上釣り堀 岬（岬町深日）を掲載しました。大阪府が府内の釣り堀として案内している施設で、マダイ・シマアジなどが狙えます。営業日・料金は公式サイトで確認してください。",
+   "source": "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"
+  },
+  {
+   "date": "2026-10-26",
+   "kind": "新規掲載",
+   "spot": "kaijo-tsuribori-tajiri",
+   "text": "海上釣り堀 海釣ぽーと田尻（田尻町）を掲載しました。大阪府が府内の釣り堀として案内している施設です。営業日・料金は公式サイトで確認してください。",
+   "source": "https://www.pref.osaka.lg.jp/o120130/suisan/tab/index.html"
+  },
+  {
+   "date": "2026-10-24",
+   "kind": "新規掲載",
+   "spot": "katsuura-watarinoshima",
+   "text": "勝浦港 渡の島（那智勝浦町）を掲載しました。にぎわい市場から歩いて約5分の島で、市場で釣り具を借りられます。",
+   "source": "https://nigiwaiichiba.com/fishing/"
+  },
+  {
+   "date": "2026-10-24",
+   "kind": "新規掲載",
+   "spot": "yamatogawa-kita-bohatei",
+   "text": "大和川北防波堤（大阪市住之江区）を掲載しました。釣り場への通路は一部が未舗装で、狭い階段があります。",
+   "source": "https://www.city.osaka.lg.jp/port/page/0000653654.html"
+  },
+  {
+   "date": "2026-10-24",
+   "kind": "新規掲載",
+   "spot": "cosmo-square-kaihin-ryokuchi",
+   "text": "コスモスクエア海浜緑地（大阪市住之江区）を掲載しました。釣りができるのは看板・路面表示のある釣り開放区域だけです。",
+   "source": "https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000666979.html"
+  },
+  {
+   "date": "2026-10-23",
+   "kind": "新規掲載",
+   "spot": "takasago-kaihin-koen",
+   "text": "高砂海浜公園（向島公園、高砂市）を掲載しました。白砂青松100選の浜辺がある公園で、水遊びや釣りを楽しめます。釣りができる場所は現地の掲示を確認してください。",
+   "source": "https://www.mlit.go.jp/tagengo-db/R5-00233.html"
+  },
+  {
+   "date": "2026-10-22",
+   "kind": "新規掲載",
+   "spot": "tomogashima",
+   "text": "友ヶ島（和歌山市）を掲載しました。加太港から友ヶ島汽船で渡る無人島で、島にはゴミ箱がないため持ち帰りが必要です。",
+   "source": "https://wakayamakanko.jp/ja/spot/detail/917"
+  },
+  {
+   "date": "2026-10-22",
+   "kind": "新規掲載",
+   "spot": "kada-ohato",
+   "text": "加太大波止（和歌山市）を掲載しました。加太駅から歩いて行ける防波堤で、チヌ・アジ・グレなどが狙えます。",
+   "source": "https://wakayamakanko.jp/ja/spot/detail/917"
+  },
+  {
+   "date": "2026-10-21",
+   "kind": "新規掲載",
+   "spot": "tsuribori-kishu",
+   "text": "釣堀紀州（広川町）を掲載しました。唐尾港から船で渡る予約制の海上釣り堀です。2026年12月1日から貸し竿の料金が上がります。",
+   "source": "https://www.tsuribori-kishu.com/fee/"
+  },
+  {
+   "date": "2026-10-21",
+   "kind": "新規掲載",
+   "spot": "shirahama-katata-ikada",
+   "text": "カタタの筏釣り（白浜町）を掲載しました。予約なしで湾内の筏に渡り、マダイ・チヌ・クエなどを狙えます。",
+   "source": "https://nankishirahama.jp/spot/detail.php?spot_id=139"
+  },
+  {
+   "date": "2026-10-21",
+   "kind": "新規掲載",
+   "spot": "shirahama-katata-tsuribori",
+   "text": "カタタの釣堀（白浜町）を掲載しました。予約不要で、大物コースと竿・エサ付きの小物コースがあります。",
+   "source": "https://www.nankishirahama.jp/spot/601/"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "saikazaki-seapark",
+   "text": "雑賀崎シーパーク（和歌山市）を掲載しました。予約制の海上釣堀と、予約なしの「ちょい釣り」があります。",
+   "source": "https://saikazaki-seapark.com/about/"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "awaji-janohire-fishing-park",
+   "text": "淡路じゃのひれ フィッシングパーク（南あわじ市）を掲載しました。撒き餌・2本針・サビキ・ルアーは禁止です。",
+   "source": "https://janohire.co.jp/play/fishing-park/"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "rokko-marine-park-umigo",
+   "text": "海釣りGO!! ROKKO MARINE PARK（神戸市東灘区）を掲載しました。アプリで1時間単位に予約して使います。",
+   "source": "https://umigo.co.jp/rokko-marine-park/"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "wakayama-hokko-umizuri-koen",
+   "text": "和歌山北港海つり公園（和歌山市）を掲載しました。入園には誓約書の持参が必要です。",
+   "source": "https://wakayama-fising.jp/pages/51/"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "再開",
+   "spot": "wakayama-hokko-umizuri-koen",
+   "text": "和歌山北港海つり公園は、2018年の台風21号による休園から2026年4月1日に営業を再開しています。",
+   "source": "https://wakayama-fising.jp/pages/50?detail=1&b_id=239&r_id=59#block239"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "kaijo-tsuribori-opa",
+   "text": "海上釣り堀 オーパ!!（岬町）を掲載しました。料金・定休日・禁止事項は公式サイトで確認しています。",
+   "source": "https://tsuribori-opa.com/system.html"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "sennan-fishing-park-sazan",
+   "text": "泉南フィッシング・パーク SAZAN（泉南市）を掲載しました。撒き餌・サビキ・ルアーは禁止です。",
+   "source": "https://www.sazanfisher.com/beginner/"
+  },
+  {
+   "date": "2026-10-20",
+   "kind": "新規掲載",
+   "spot": "yura-umizuri-koen",
+   "text": "由良海つり公園（由良町）を掲載しました。",
+   "source": "https://www.mlit.go.jp/tagengo-db/R5-00654.html"
+  }
  ]
 }
