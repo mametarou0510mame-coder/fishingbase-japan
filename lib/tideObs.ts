@@ -35,7 +35,7 @@ export function loadPrediction(code: string, year: number): Promise<TideDay[] | 
 }
 
 // 気象庁「潮位観測情報」の地点コード（潮位表の地点記号 → 観測情報の地点）
-type AreaPoint = { code: string; point: string };
+type AreaPoint = { code: string; point: string; name: string; by?: string; km?: number };
 let pointsPromise: Promise<AreaPoint[] | null> | null = null;
 export function loadPoints(): Promise<AreaPoint[] | null> {
   if (!pointsPromise)
