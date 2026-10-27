@@ -30,6 +30,7 @@ jobs:
           (cd out && python3 -m http.server 3000 > /dev/null 2>&1 &)
           sleep 2
           BASE=http://localhost:3000 python3 scripts/test/check_tide.py
+          BASE=http://localhost:3000 python3 scripts/test/check_app.py
       - name: Save screenshots
         if: always()
         run: |

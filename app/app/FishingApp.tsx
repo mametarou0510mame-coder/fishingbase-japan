@@ -92,28 +92,19 @@ export default function FishingApp() {
     return () => document.body.classList.remove("app-mode");
   }, []);
 
-  // ピンを、シートの上に見えている地図（画面の上 約35%）の真ん中に持ってくる
-  const focus = (lat: number, lon: number, zoom: number) => {
-    const m = map.current;
-    if (!m) return;
-    const wide = window.innerWidth >= 900;
-    const p = m.project([lat, lon], zoom);
-    const shift = wide ? { x: 260, y: 0 } : { x: 0, y: window.innerHeight * 0.32 };
-    const c = m.unproject([p.x + shift.x, p.y + shift.y], zoom);
-    m.flyTo(c, zoom, { duration: 0.6 });
-  };
-
   const open = useCallback(async (slug: string, fly = true) => {
     setLoading(slug);
     setMi(0);
     try {
       const d = (await (await fetch(`/app-data/spot/${slug}.json`)).json()) as SpotData;
       setSel(d);
-      setFull(false);
+      setFull(true);
       sheet.current?.scrollTo({ top: 0 });
       const s = spots.find((x) => x.slug === slug);
-      if (fly && s && map.current) focus(s.lat, s.lon, Math.max(map.current.getZoom(), 13));
-      history.replaceState(null, "", `/app/?spot=${slug}`);
+      // 閉じたときに、選んだ釣り場が地図の真ん中に来るようにしておく
+      if (fly && s && map.current) map.current.setView([s.lat, s.lon], Math.max(map.current.getZoom(), 13), { animate: false });
+      if (new URLSearchParams(location.search).get("spot")) history.replaceState({ spot: slug }, "", `/app/?spot=${slug}`);
+      else history.pushState({ spot: slug }, "", `/app/?spot=${slug}`);
     } finally {
       setLoading(null);
     }
@@ -145,6 +136,25 @@ export default function FishingApp() {
     });
   }, [spots, open]);
 
+  // 閉じる：地図に戻る（ブラウザの「戻る」でも閉じる）
+  const close = () => {
+    setSel(null);
+    setFull(false);
+    if (history.state?.spot) history.back();
+    else history.replaceState(null, "", "/app/");
+    setTimeout(() => map.current?.invalidateSize(), 50);
+  };
+  useEffect(() => {
+    const onPop = () => {
+      if (!new URLSearchParams(location.search).get("spot")) {
+        setSel(null);
+        setFull(false);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   const locate = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -170,7 +180,7 @@ export default function FishingApp() {
       <div ref={mapEl} className="fa-map" aria-label="釣り場の地図" />
       <header className="fa-top">
         <Link href="/" className="fa-brand" aria-label="ツレドキのサイトへ">
-          ツレドキ<span>関西</span>
+          ツレドキ
         </Link>
         <button type="button" className="fa-btn" onClick={locate}>
           📍 近くの釣り場
@@ -185,8 +195,8 @@ export default function FishingApp() {
         ))}
       </div>
 
-      <section ref={sheet} className={`fa-sheet${sel ? (full ? " full" : " peek") : " mini"}`} aria-live="polite">
-        <button type="button" className="fa-handle" aria-label={full ? "小さくする" : "大きくする"} onClick={() => setFull(!full)} />
+      <section ref={sheet} className={`fa-sheet${sel ? " screen" : " mini"}`} aria-live="polite">
+        {!sel && <button type="button" className="fa-handle" aria-label={full ? "小さくする" : "大きくする"} onClick={() => setFull(!full)} />}
         {!sel && (
           <div className="fa-pad">
             {loading ? (
@@ -216,6 +226,12 @@ export default function FishingApp() {
         )}
         {sel && (
           <div className="fa-pad">
+            <div className="fa-bar">
+              <button type="button" className="fa-back" onClick={close} aria-label="閉じて地図に戻る">
+                <span aria-hidden>×</span> 地図に戻る
+              </button>
+              <b className="fa-bar-name">{sel.name}</b>
+            </div>
             <div className="fa-head">
               <div>
                 <span className="fa-type" style={{ background: TYPE_COLOR[sel.type] }}>
@@ -224,9 +240,6 @@ export default function FishingApp() {
                 <h2>{sel.name}</h2>
                 <p className="small">{sel.area}</p>
               </div>
-              <button type="button" className="fa-close" aria-label="閉じる" onClick={() => { setSel(null); history.replaceState(null, "", "/app/"); }}>
-                ×
-              </button>
             </div>
             <p className="fa-actions">
               <FavoriteButton slug={sel.slug} />
@@ -239,11 +252,6 @@ export default function FishingApp() {
                 ))}
                 {sel.fee && <span>{sel.fee.slice(0, 34)}</span>}
               </p>
-            )}
-            {!full && (
-              <button type="button" className="fa-more" onClick={() => setFull(true)}>
-                潮・天気・風・波を見る ▲
-              </button>
             )}
             {sel.station && <LiveWind station={sel.station} />}
             <h3>潮・天気・風・波（7日間）</h3>

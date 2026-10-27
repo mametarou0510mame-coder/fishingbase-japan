@@ -648,3 +648,10 @@ body.app-mode main.wrap { max-width: none; padding: 0; margin: 0; }
 .tide-chart .obsline { stroke: #f08a24; stroke-width: 2; fill: none; }
 .tv-pick .btn { border: 1px solid var(--sea); background: var(--sea); color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer; }
 .tv-sub { display: block; font-size: 0.7rem !important; opacity: .85; }
+/* アプリ：釣り場を選んだら全画面で表示し、「地図に戻る」で閉じる */
+.fa-sheet.screen { top: 0; height: auto; border-radius: 0; box-shadow: none; padding-top: env(safe-area-inset-top); }
+@media (min-width: 900px) { .fa-sheet.screen { top: 12px; bottom: 12px; border-radius: 18px; box-shadow: 0 6px 24px rgba(0,0,0,.2); padding-top: 0; } }
+.fa-bar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px; margin: 0 -14px 8px; padding: 10px 14px; background: rgba(255,255,255,.96); border-bottom: 1px solid #e3e9ee; backdrop-filter: blur(6px); }
+.fa-back { display: inline-flex; align-items: center; gap: 6px; border: 0; background: #10345a; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.fa-back span { font-size: 1.1rem; line-height: 1; }
+.fa-bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.95rem; color: #10283f; }

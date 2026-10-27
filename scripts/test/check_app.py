@@ -2,7 +2,7 @@
 import os
 from playwright.sync_api import sync_playwright
 
-BASE = "https://tsuredoki-kansai.mametarou0510mame.workers.dev"
+BASE = os.environ.get("BASE", "https://tsuredoki-kansai.mametarou0510mame.workers.dev")
 os.makedirs("shots", exist_ok=True)
 with sync_playwright() as p:
     b = p.chromium.launch()
@@ -23,7 +23,6 @@ with sync_playwright() as p:
     pg.locator(".fa-near button").first.click()
     pg.wait_for_timeout(5000)
     pg.screenshot(path="shots/app3-peek.png")
-    pg.click(".fa-more")
     pg.wait_for_timeout(2500)
     pg.screenshot(path="shots/app4-full.png")
     pg.locator(".fa-sheet").evaluate("e => e.scrollTo(0, e.scrollHeight * 0.55)")
@@ -32,5 +31,12 @@ with sync_playwright() as p:
     pg.locator(".fa-sheet").evaluate("e => e.scrollTo(0, e.scrollHeight)")
     pg.wait_for_timeout(1000)
     pg.screenshot(path="shots/app6-gear.png")
+    pg.locator(".fa-sheet").evaluate("e => e.scrollTo(0, 400)")
+    pg.wait_for_timeout(800)
+    pg.screenshot(path="shots/app7-sticky-close.png")
+    pg.click(".fa-back")
+    pg.wait_for_timeout(2000)
+    pg.screenshot(path="shots/app8-closed.png")
+    print(f"::notice::閉じたあと sheet={pg.locator('.fa-sheet').get_attribute('class')} url={pg.url}")
     print(f"::notice::errors={errs[:5]}")
     b.close()

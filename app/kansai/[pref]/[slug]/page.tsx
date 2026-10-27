@@ -148,6 +148,9 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
           <tr><th>所在地</th><td>{spot.address}</td></tr>
           {spot.hours && <tr><th>営業時間</th><td>{spot.hours}</td></tr>}
           {spot.closed && <tr><th>休業日</th><td>{spot.closed}</td></tr>}
+          {spot.type === "沖堤防（渡船）" && (
+            <tr><th>渡船料金</th><td>渡船店の<a href={spot.officialUrl} rel="noopener">公式サイト</a>でご確認ください</td></tr>
+          )}
           {spot.fees.map((f) => (
             <tr key={f.label}><th>{f.label}</th><td>{f.value}</td></tr>
           ))}
