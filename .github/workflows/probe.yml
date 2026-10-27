@@ -1,6 +1,7 @@
 name: Probe pages
 
 # 取り込み先を追加するときの下調べ用。指定したURLを取得して probe-data ブランチに保存する（手動実行のみ）。
+# index.tsv に、状態・大きさ・種類・ブラウザから読めるか（Access-Control-Allow-Origin）を記録する。
 on:
   workflow_dispatch:
     inputs:
@@ -33,10 +34,10 @@ jobs:
               for (const u of urls) {
                 i++;
                 try {
-                  const r = await fetch(u, { headers: { "User-Agent": "TsuredokiKansai/0.1 (+https://tsuredoki-kansai.mametarou0510mame.workers.dev/about/)" } });
+                  const r = await fetch(u, { headers: { "User-Agent": "TsuredokiKansai/0.1 (+https://tsuredoki-kansai.mametarou0510mame.workers.dev/about/)", Origin: "https://tsuredoki-kansai.mametarou0510mame.workers.dev" } });
                   const t = Buffer.from(await r.arrayBuffer());
                   fs.writeFileSync(`/tmp/probe/${i}.html`, t);
-                  index.push(`${i}\t${r.status}\t${t.length}\t${r.headers.get("content-type")}\t${r.url}\t${u}`);
+                  index.push(`${i}\t${r.status}\t${t.length}\t${r.headers.get("content-type")}\tACAO=${r.headers.get("access-control-allow-origin")}\t${r.url}\t${u}`);
                 } catch (e) { index.push(`${i}\tERR\t0\t${e.message}\t${u}`); }
                 await new Promise(r => setTimeout(r, 2000));
               }
