@@ -1,5 +1,5 @@
 {
- "updatedOn": "2026-10-27",
+ "updatedOn": "2026-10-28",
  "categories": [
   {
    "key": "sabiki",
@@ -23,19 +23,52 @@
   {
    "key": "lifejacket",
    "label": "ライフジャケット（桜マーク）",
-   "kind": "point",
+   "kind": "popular",
    "unverified": false,
    "items": [
     {
-     "name": "マズメ (Mazume) ライフジャケット 釣り 大人用 ベルト 腰巻 桜マーク 国土交通省認定品 自動・手動膨脹式 インフレータブルウエス",
-     "price": 23760,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ujn7o.kz1wa637.g00ujn7o.kz1wb8ba%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fworld-plus-shop%252F4571190550874%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fworld-plus-shop%252Fi%252F10013012%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ujn7o.kz1wa637.g00ujn7o.kz1wb8ba%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fworld-plus-shop%252F4571190550874%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fworld-plus-shop%252Fi%252F10013012%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/world-plus-shop/cabinet/syohin025/4571190550874.jpg?_ex=200x200",
-     "shop": "ワールドプラス1号店",
-     "pointRate": 20,
-     "pointEnd": "2026-10-26 23:59",
-     "review": 0,
-     "reviewCount": 0
+     "name": "SEAWOLF(シーウルフ) SW-J-F06 腰巻 ライフジャケット 桜マーク 自動・手動膨脹式 TYPE-A ベルトタイプ 国土交通省型",
+     "price": 13100,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00th3uo.kz1wac2c.g00th3uo.kz1wb500%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseawolf%252F20000000%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseawolf%252Fi%252F10000001%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00th3uo.kz1wac2c.g00th3uo.kz1wb500%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseawolf%252F20000000%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseawolf%252Fi%252F10000001%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/seawolf/cabinet/imgrc0123527760.jpg?_ex=200x200",
+     "shop": "SEAWOLF公式ショップ 楽天市場店",
+     "pointRate": 1,
+     "pointEnd": "",
+     "review": 4.69,
+     "reviewCount": 371
+    },
+    {
+     "name": "ビーウェーブ 桜マーク 手動膨張式 ライフジャケット タイプA ウエストベルト型 オーシャンWR-3型 国土交通省認定品 レッド ブルー ブ",
+     "price": 14590,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00po81o.kz1wad97.g00po81o.kz1wb57e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fneonet%252Fgrp-ol-wr3%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fneonet%252Fi%252F10023557%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00po81o.kz1wad97.g00po81o.kz1wb57e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fneonet%252Fgrp-ol-wr3%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fneonet%252Fi%252F10023557%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/neonet/cabinet/img024/grp-ol-wr3_1.jpg?_ex=200x200",
+     "shop": "ネオネットマリン楽天市場店",
+     "pointRate": 1,
+     "pointEnd": "",
+     "review": 4.68,
+     "reviewCount": 102
+    },
+    {
+     "name": "BASARO (バサロ) ライフジャケット 桜マーク タイプA 釣り 国土交通省型式承認品 救命胴衣 自動膨張式 大人用 腰巻き ベルトタイ",
+     "price": 14980,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s0p7o.kz1wad1f.g00s0p7o.kz1wb3ab%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-club-jseed%252Fb-lifejack-xh01%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-club-jseed%252Fi%252F10000620%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s0p7o.kz1wad1f.g00s0p7o.kz1wb3ab%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-club-jseed%252Fb-lifejack-xh01%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-club-jseed%252Fi%252F10000620%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/auc-club-jseed/cabinet/lifejac-xh/imgrc0109629690.jpg?_ex=200x200",
+     "shop": "SL inc.楽天市場店",
+     "pointRate": 1,
+     "pointEnd": "",
+     "review": 4.77,
+     "reviewCount": 71
+    },
+    {
+     "name": "ライフジャケット 桜マーク 小児用 高階救命器具 BLUESTORM ブルーストーム ヒューペ 子供用 子供 BSJ-212 イエロー / ",
+     "price": 6600,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pki7o.kz1wacc5.g00pki7o.kz1wbb01%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseibumarine%252F43497%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseibumarine%252Fi%252F10022998%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pki7o.kz1wacc5.g00pki7o.kz1wbb01%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseibumarine%252F43497%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseibumarine%252Fi%252F10022998%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/seibumarine/cabinet/life-saving/life-jacket/43497.jpg?_ex=200x200",
+     "shop": "ユニマットマリン",
+     "pointRate": 1,
+     "pointEnd": "",
+     "review": 4.69,
+     "reviewCount": 68
     }
    ]
   },
@@ -46,8 +79,8 @@
    "unverified": false,
    "items": [
     {
-     "name": "クーラーボックス 小型 保冷剤付き 5L 7L 10L 黒 ブラック UNPLUGGED CP アンプラグドキャンプ CHILL ハード 子",
-     "price": 2480,
+     "name": "最大20%OFF クーラーボックス 小型 保冷剤付き 5L 7L 10L 黒 ブラック UNPLUGGED CP アンプラグドキャンプ CH",
+     "price": 2380,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tvybo.kz1wa32f.g00tvybo.kz1wb4fd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funplugged-cp%252Fchill-pop-oya%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funplugged-cp%252Fi%252F10000468%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tvybo.kz1wa32f.g00tvybo.kz1wb4fd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funplugged-cp%252Fchill-pop-oya%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funplugged-cp%252Fi%252F10000468%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/unplugged-cp/cabinet/chill-pop/pop-main-04.jpg?_ex=200x200",
      "shop": "アンプラグドキャンプ",
@@ -68,17 +101,6 @@
      "reviewCount": 209
     },
     {
-     "name": "保冷剤 ハード Mサイズ Lサイズ XLサイズ 1個 2個セット 長時間 急速凍結 超低温 冷たさ長持ち アウトドア キャンプ バーベキュー",
-     "price": 1180,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pjh9o.kz1wa922.g00pjh9o.kz1wb58a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funidy%252F107933%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funidy%252Fi%252F11161201%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pjh9o.kz1wa922.g00pjh9o.kz1wb58a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funidy%252F107933%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funidy%252Fi%252F11161201%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/unidy/cabinet/11071608/13015942/imgrc0114404094.jpg?_ex=200x200",
-     "shop": "ゆにでのこづち",
-     "pointRate": 20,
-     "pointEnd": "2026-10-27 09:59",
-     "review": 4.35,
-     "reviewCount": 160
-    },
-    {
      "name": "JEJアステージ パークレーン クーラーボックス 5L 7L 14L サンドベージュ グレー 小型 クーラーバッグ 収納ボックス アイセル",
      "price": 1740,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r25vo.kz1wa804.g00r25vo.kz1wb44b%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkeikei%252Fgkksiautoao_40%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkeikei%252Fi%252F10033792%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r25vo.kz1wa804.g00r25vo.kz1wb44b%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkeikei%252Fgkksiautoao_40%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkeikei%252Fi%252F10033792%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
@@ -96,20 +118,31 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/logosshop/cabinet/spr/4/480917823312.jpg?_ex=200x200",
      "shop": "ロゴスショップ公式楽天市場店",
      "pointRate": 1,
-     "pointEnd": "2026-10-28 02:59",
+     "pointEnd": "2026-11-04 02:59",
      "review": 4.7,
      "reviewCount": 63
     },
     {
-     "name": "選べるセット 冷蔵庫 車載 小型 ポータブル冷蔵庫 クーラーボックス 30L アイリスオーヤマ 冷凍庫 スリム 上開き コンパクト 大容量 ",
-     "price": 29800,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pjh9o.kz1wa922.g00pjh9o.kz1wb58a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funidy%252F574548%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funidy%252Fi%252F11153901%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pjh9o.kz1wa922.g00pjh9o.kz1wb58a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funidy%252F574548%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funidy%252Fi%252F11153901%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/unidy/cabinet/11071608/13407833/103257.jpg?_ex=200x200",
-     "shop": "ゆにでのこづち",
+     "name": "保冷剤 長時間 クーラーショック アイスパック COOLER SHOCK SET Sサイズ 5個セット 繰り返し使える強力保冷パック クーラ",
+     "price": 4840,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-s%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000623%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-s%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000623%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mecu/cabinet/photo/point/new01/shockset-snew.jpg?_ex=200x200",
+     "shop": "mecu インテリア北欧雑貨店",
      "pointRate": 10,
-     "pointEnd": "2026-10-27 09:59",
-     "review": 4.33,
-     "reviewCount": 48
+     "pointEnd": "2026-11-11 01:59",
+     "review": 4.11,
+     "reviewCount": 44
+    },
+    {
+     "name": "保冷剤 長時間 クーラーショック アイスパック COOLER SHOCK SET Mサイズ 4個セット 繰り返し使える強力保冷パック クーラ",
+     "price": 5720,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-m%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000624%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00svmto.kz1wa651.g00svmto.kz1wbf20%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmecu%252Fshockset-m%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmecu%252Fi%252F10000624%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mecu/cabinet/photo/point/new01/shockset-mnew.jpg?_ex=200x200",
+     "shop": "mecu インテリア北欧雑貨店",
+     "pointRate": 10,
+     "pointEnd": "2026-11-11 01:59",
+     "review": 4.24,
+     "reviewCount": 33
     }
    ]
   },
@@ -125,8 +158,8 @@
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-60w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10000486%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-60w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10000486%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/diycenter/cabinet/07349351/08562920/imgrc0096986413.jpg?_ex=200x200",
      "shop": "Ms.LABO【ミズラボ】",
-     "pointRate": 5,
-     "pointEnd": "2026-10-26 23:59",
+     "pointRate": 1,
+     "pointEnd": "",
      "review": 4.75,
      "reviewCount": 4
     },
@@ -147,8 +180,8 @@
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-400%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10001736%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s9gno.kz1wa634.g00s9gno.kz1wb517%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fdiycenter%252Ftw-400%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fdiycenter%252Fi%252F10001736%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/diycenter/cabinet/07349351/08562920/700_400w-top.jpg?_ex=200x200",
      "shop": "Ms.LABO【ミズラボ】",
-     "pointRate": 5,
-     "pointEnd": "2026-10-26 23:59",
+     "pointRate": 1,
+     "pointEnd": "",
      "review": 3,
      "reviewCount": 2
     },
@@ -158,8 +191,8 @@
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rkbuo.kz1wa1c7.g00rkbuo.kz1wbc81%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-towajapan0615%252F600w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-towajapan0615%252Fi%252F10003113%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00rkbuo.kz1wa1c7.g00rkbuo.kz1wbc81%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-towajapan0615%252F600w%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-towajapan0615%252Fi%252F10003113%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/auc-towajapan0615/cabinet/03195649/700_600w_top.jpg?_ex=200x200",
      "shop": "東和株式会社楽天市場店",
-     "pointRate": 5,
-     "pointEnd": "2026-10-26 23:59",
+     "pointRate": 1,
+     "pointEnd": "",
      "review": 4.5,
      "reviewCount": 2
     },
