@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { areaOfSpot } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 import { computeJiai, windLookup, type JiaiWindow } from "@/lib/jiai";
-import { publishedSpots } from "@/lib/spots";
+import { publishedSpots, spotHref } from "@/lib/spots";
 import { STATION_COORDS, sunTimes } from "@/lib/sun";
 import { forecastFor } from "@/lib/weather";
 
@@ -67,7 +67,7 @@ export function buildJiai(): { dates: string[]; spots: SpotJiai[] } {
       return {
         slug: spot.slug,
         name: spot.name,
-        href: `/kansai/${spot.pref}/${spot.slug}/`,
+        href: spotHref(spot),
         area: areaOfSpot(spot.slug)?.name ?? "",
         recent: summary.slice(0, 3).map((x) => x.species.replace(/（.*?）/g, "")),
         recentReports: summary.reduce((a, b) => a + b.reports, 0),

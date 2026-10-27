@@ -98,7 +98,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     restrictions: spot.restrictions ?? [],
     rules: spot.rules.slice(0, 4),
     station: nearestWindStation(c.lat, c.lon, spot.slug),
-    board: { days: board.days, stationName: board.station.name, weatherLabel: board.weatherLabel },
+    board: { days: board.days, stationName: board.station.name, stationCode: board.station.code, weatherLabel: board.weatherLabel },
     tips,
     recent: summary.list.map((s) => ({ species: s.species, days: s.days, maxSizeCm: s.maxSizeCm })),
     recentFrom: summary.from,

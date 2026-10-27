@@ -1,4 +1,4 @@
-// ツレドキ関西のロゴ。波に浮かぶウキ（上半分が赤）をマークにしたオリジナルデザイン。
+// ツレドキのロゴ。波に浮かぶウキ（上半分が赤）をマークにしたオリジナルデザイン。
 export function FloatMark({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" className="float-mark">
@@ -19,7 +19,6 @@ export default function Logo() {
     <span className="logo-lockup">
       <FloatMark />
       <span className="logo-word">ツレドキ</span>
-      <span className="logo-tag">関西</span>
     </span>
   );
 }

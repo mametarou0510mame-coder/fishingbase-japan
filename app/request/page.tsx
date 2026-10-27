@@ -4,7 +4,7 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "要望の書き込み箱",
-  description: "ツレドキ関西への要望（載せてほしい釣り場・釣果の取り込み先・ほしい機能・情報のまちがい）をお寄せください。",
+  description: "ツレドキへの要望（載せてほしい釣り場・釣果の取り込み先・ほしい機能・情報のまちがい）をお寄せください。",
   alternates: { canonical: "/request/" },
 };
 

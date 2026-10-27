@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import GearList from "@/app/components/GearList";
 import { SPECIES, findSpecies, monthRangeLabel } from "@/lib/species";
-import { PREF_LABEL, publishedSpots } from "@/lib/spots";
+import { PREF_LABEL, publishedSpots, spotHref } from "@/lib/spots";
 
 type Params = { slug: string };
 
@@ -70,7 +70,7 @@ export default async function SpeciesPage({ params }: { params: Promise<Params> 
       <ul>
         {spots.map((sp) => (
           <li key={sp.slug}>
-            <Link href={`/kansai/${sp.pref}/${sp.slug}/`}>{sp.name}</Link>（{PREF_LABEL[sp.pref]}{sp.area}）
+            <Link href={spotHref(sp)}>{sp.name}</Link>（{PREF_LABEL[sp.pref]}{sp.area}）
           </li>
         ))}
       </ul>

@@ -3,7 +3,8 @@ import { AREAS } from "@/lib/areas";
 import { guides } from "@/lib/guides";
 import { SITE } from "@/lib/site";
 import { SPECIES } from "@/lib/species";
-import { publishedSpots } from "@/lib/spots";
+import { publishedSpots, spotHref } from "@/lib/spots";
+import { TIDE_STATIONS, stationSlug } from "@/lib/tideStations";
 
 export const dynamic = "force-static";
 
@@ -16,13 +17,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: u("/kansai/area/"), lastModified: now, changeFrequency: "daily", priority: 0.9 },
     ...AREAS.map((a) => ({ url: u(`/kansai/area/${a.slug}/`), lastModified: now, changeFrequency: "daily" as const, priority: 0.8 })),
     ...publishedSpots().map((s) => ({
-      url: u(`/kansai/${s.pref}/${s.slug}/`),
+      url: u(spotHref(s)),
       lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.8,
     })),
     { url: u("/shio/"), lastModified: now, changeFrequency: "daily", priority: 0.9 },
     ...publishedSpots().map((s) => ({ url: u(`/shio/${s.slug}/`), lastModified: now, changeFrequency: "daily" as const, priority: 0.7 })),
+    { url: u("/tide/"), lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    ...TIDE_STATIONS.map((s) => ({ url: u(`/tide/${stationSlug(s.code)}/`), lastModified: now, changeFrequency: "daily" as const, priority: 0.6 })),
     { url: u("/species/"), lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     ...SPECIES.map((s) => ({ url: u(`/species/${s.slug}/`), lastModified: now, changeFrequency: "monthly" as const, priority: 0.6 })),
     { url: u("/guide/"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },

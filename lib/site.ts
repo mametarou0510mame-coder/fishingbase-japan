@@ -1,10 +1,10 @@
 // サイト全体の設定値。
 export const SITE = {
-  // 2026-10-18 「FishingBase Japan」から改名（類似サービスとの混同回避）
-  name: "ツレドキ関西",
-  nameRomaji: "Tsuredoki Kansai",
-  tagline: "関西の釣果・潮・釣り場情報をひとつに",
-  url: "https://tsuredoki-kansai.mametarou0510mame.workers.dev",
+  // 2026-10-18 「FishingBase Japan」から改名（類似サービスとの混同回避）。2026-10-27 全国対応に合わせて「ツレドキ関西」から改名
+  name: "ツレドキ",
+  nameRomaji: "Tsuredoki",
+  tagline: "釣果・潮・釣り場情報をひとつに",
+  url: "https://tsuredoki-kansai.mametarou0510mame.workers.dev", // URL は検索・ブックマークを保つため変えない
   instagram: "https://www.instagram.com/tsuredokikansai",
   instagramHandle: "@tsuredokikansai",
   youtube: "https://www.youtube.com/@%E3%83%84%E3%83%AC%E3%83%89%E3%82%AD%E9%96%A2%E8%A5%BF",

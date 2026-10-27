@@ -590,3 +590,61 @@ body.app-mode main.wrap { max-width: none; padding: 0; margin: 0; }
 /* 釣り場を選んだ後は、地図を上の約3分の1にして、情報を広く見せる */
 .fa-sheet.peek { height: 64vh; }
 .fa-legend.hide { display: none; }
+
+/* ===== タイドグラフ（推算＋実測）といまの潮 ===== */
+.tv { margin: 8px 0 14px; }
+.tv-k { color: var(--muted); font-size: 0.8rem; }
+.tv-now { border-radius: 16px; padding: 14px 14px 10px; margin: 4px 0 12px; background: linear-gradient(140deg, #10345a 0%, #1f6a99 100%); color: #fff; }
+.tv-now .tv-k { color: rgba(255, 255, 255, .8); }
+.tv-now-main { display: grid; gap: 2px; }
+.tv-now-main strong { font-size: 2.3rem; line-height: 1.1; letter-spacing: -0.01em; }
+.tv-bar { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: 0.78rem; margin: 10px 0 8px; }
+.tv-bar-track { position: relative; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .22); }
+.tv-bar-track i { position: absolute; top: 1px; width: 1px; height: 6px; background: rgba(255, 255, 255, .45); }
+.tv-bar-track b { position: absolute; top: -4px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .3); }
+.tv-now-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0; }
+.tv-now-grid div { background: rgba(255, 255, 255, .1); border-radius: 10px; padding: 6px 8px; }
+.tv-now-grid dt { font-size: 0.7rem; color: rgba(255, 255, 255, .8); }
+.tv-now-grid dd { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.tv-now-grid small { font-size: 0.72rem; font-weight: 600; }
+.tv-dev { color: #ffd08a; }
+.tv-nav { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.tv-nav button { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; min-width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; }
+.tv-nav .tv-today { font-size: 0.85rem; padding: 0 12px; background: var(--sea); color: #fff; border-color: var(--sea); }
+.tv-date { position: relative; flex: 1; text-align: center; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--line); border-radius: 10px; height: 40px; display: grid; place-items: center; background: var(--card); cursor: pointer; }
+.tv-date small { color: var(--sea-2); font-weight: 700; margin-left: 4px; }
+.tv-date input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.tv-graph { margin: 4px 0; }
+.tv-readout { min-height: 1.4em; margin: 4px 2px; font-size: 0.85rem; }
+.tv-o { color: #e07a12; font-weight: 700; }
+.tv-svg { width: 100%; height: auto; display: block; touch-action: pan-y; user-select: none; }
+.tv-night { fill: var(--night); opacity: 0.08; }
+.tv-grid { stroke: var(--line); stroke-width: 1; }
+.tv-grid.sub { stroke-dasharray: 2 3; }
+.tv-axis { fill: var(--muted); font-size: 9.5px; }
+.tv-pred { fill: none; stroke: var(--sea-2); stroke-width: 2.4; stroke-linejoin: round; }
+.tv-obs { fill: none; stroke: #f08a24; stroke-width: 2; stroke-linejoin: round; }
+.tv-corr { fill: none; stroke: #f08a24; stroke-width: 1.6; stroke-dasharray: 4 3; opacity: .85; }
+.tv-hi { fill: var(--sea); }
+.tv-lo { fill: var(--bg); stroke: var(--sea); stroke-width: 1.5; }
+.tv-mark { fill: var(--ink); font-size: 9px; font-weight: 700; }
+.tv-now-line { stroke: var(--float); stroke-width: 1.5; }
+.tv-hover { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 2; opacity: .6; }
+.tv-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; list-style: none; padding: 0; margin: 2px 0; font-size: 0.75rem; color: var(--muted); }
+.tv-legend i { display: inline-block; width: 16px; height: 0; vertical-align: middle; margin-right: 4px; border-top: 2.5px solid; }
+.tv-l-pred { border-color: var(--sea-2); }
+.tv-l-obs { border-color: #f08a24; }
+.tv-l-corr { border-color: #f08a24; border-top-style: dashed !important; }
+.tv-l-night { border-top: 8px solid var(--night) !important; opacity: .15; }
+.tv-hl { margin: 2px 2px 6px; }
+.tv-pick { display: grid; gap: 10px; }
+.tv-pick input[type="search"] { width: 100%; height: 42px; border-radius: 10px; border: 1px solid var(--line); padding: 0 12px; font-size: 1rem; background: var(--card); color: var(--ink); }
+.tv-pick ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tv-pick li a { display: inline-block; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.85rem; text-decoration: none; background: var(--card); }
+.tv-pick li a .tv-obs-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #f08a24; margin-left: 4px; vertical-align: middle; }
+.tv-pick details { border-top: 1px solid var(--line); padding: 6px 0; }
+.tv-pick summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
+.shio-now-link { color: #fff; font-size: 0.78rem; text-decoration: underline; opacity: .9; }
+.tide-chart .obsline { stroke: #f08a24; stroke-width: 2; fill: none; }
+.tv-pick .btn { border: 1px solid var(--sea); background: var(--sea); color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer; }
+.tv-sub { display: block; font-size: 0.7rem !important; opacity: .85; }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { findGuide } from "@/lib/guides";
 import { buildJiai } from "@/lib/jiaiBuild";
-import { publishedSpots } from "@/lib/spots";
+import { publishedSpots, spotHref } from "@/lib/spots";
 
 export const metadata: Metadata = {
   title: "はじめての釣り 1回目プラン（関西）",
@@ -39,7 +39,7 @@ export default function StartPage() {
             .filter(Boolean);
           return (
             <li key={s.slug}>
-              <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link> <span className="small">{s.area}</span>
+              <Link href={spotHref(s)}>{s.name}</Link> <span className="small">{s.area}</span>
               {tips.length > 0 && <div className="small">ねらい目：{tips.join("／")}</div>}
             </li>
           );

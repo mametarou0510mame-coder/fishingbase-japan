@@ -5,7 +5,7 @@ import { areaOfSpot } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 import MAP from "@/lib/kansaiMap.json";
 import COORDS from "@/lib/spotCoords.json";
-import { publishedSpots } from "@/lib/spots";
+import { publishedSpots, spotHref } from "@/lib/spots";
 
 export const metadata: Metadata = {
   title: "地図から釣り場を探す（関西）",
@@ -22,7 +22,7 @@ export default function MapPage() {
     .map((s) => ({
       slug: s.slug,
       name: s.name,
-      href: `/kansai/${s.pref}/${s.slug}/`,
+      href: spotHref(s),
       type: s.type,
       area: areaOfSpot(s.slug)?.name ?? s.area,
       lat: coords[s.slug].lat,

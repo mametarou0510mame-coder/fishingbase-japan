@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { speciesInMonth } from "@/lib/species";
-import { publishedSpots } from "@/lib/spots";
+import { publishedSpots, spotHref } from "@/lib/spots";
 
 type Params = { month: string };
 
@@ -87,7 +87,7 @@ export default async function MonthPage({ params }: { params: Promise<Params> })
             {spotsWithReports.map((s) => (
               <li key={s.slug}>
                 <a href={s.catchReportUrl} rel="noopener">{s.name}の釣果（公式）</a>
-                　／　<Link href={`/kansai/${s.pref}/${s.slug}/`}>潮汐・料金・ルール</Link>
+                　／　<Link href={spotHref(s)}>潮汐・料金・ルール</Link>
               </li>
             ))}
           </ul>

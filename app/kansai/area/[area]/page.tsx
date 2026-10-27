@@ -6,7 +6,7 @@ import { AREAS, findArea } from "@/lib/areas";
 import { DEFAULT_DAYS, hasCatchSource, monthlyOf, sourceOf, sourcesOf, summarize } from "@/lib/catches";
 import { speciesInMonth } from "@/lib/species";
 import { indexFor } from "@/lib/fishingIndex";
-import { SPOTS } from "@/lib/spots";
+import { SPOTS, spotHref } from "@/lib/spots";
 
 type Params = { area: string };
 
@@ -60,7 +60,7 @@ export default async function AreaPage({ params }: { params: Promise<Params> }) 
           <ul>
             {indexed.map(({ spot, data }) => (
               <li key={spot.slug}>
-                <Link href={`/kansai/${spot.pref}/${spot.slug}/`}>{spot.name}</Link>：
+                <Link href={spotHref(spot)}>{spot.name}</Link>：
                 {data.days[0].top
                   .filter((t) => t.index >= 5)
                   .slice(0, 3)
@@ -94,7 +94,7 @@ export default async function AreaPage({ params }: { params: Promise<Params> }) 
         return (
           <section key={s.slug} className="card spot-catch">
             <h3>
-              <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link>
+              <Link href={spotHref(s)}>{s.name}</Link>
             </h3>
             {src ? (
               <>

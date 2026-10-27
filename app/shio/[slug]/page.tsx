@@ -10,7 +10,7 @@ import { methodsBySpecies } from "@/lib/patterns";
 import { buildBoard } from "@/lib/shioData";
 import { SITE } from "@/lib/site";
 import { speciesFromCatchName } from "@/lib/species";
-import { PREF_LABEL, publishedSpots } from "@/lib/spots";
+import { PREF_LABEL, publishedSpots, spotHref } from "@/lib/spots";
 
 type Params = { slug: string };
 
@@ -73,7 +73,7 @@ export default async function ShioSpotPage({ params }: { params: Promise<Params>
       </p>
       <p>
         <FavoriteButton slug={spot.slug} />{" "}
-        <Link href={`/kansai/${spot.pref}/${spot.slug}/`} className="small">
+        <Link href={spotHref(spot)} className="small">
           料金・ルールなど釣り場の情報へ →
         </Link>
       </p>
@@ -86,6 +86,7 @@ export default async function ShioSpotPage({ params }: { params: Promise<Params>
         recent={summary.list.map((s) => ({ species: s.species, days: s.days, maxSizeCm: s.maxSizeCm }))}
         recentFrom={summary.from}
         recentTo={summary.to}
+        tideCode={spot.tideStation.code}
       />
 
       <InstallHint />

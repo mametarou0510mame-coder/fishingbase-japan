@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LiveWind from "@/app/components/LiveWind";
+import { spotHref } from "@/lib/prefs";
 import ShioBoard, { type SpeciesTip } from "@/app/components/ShioBoard";
 import FavoriteButton from "@/app/components/FavoriteButton";
 import InstallHint from "@/app/components/InstallHint";
@@ -30,7 +31,7 @@ type SpotData = {
   restrictions: string[];
   rules: string[];
   station: WindStation | null;
-  board: { days: DayResult[]; stationName: string; weatherLabel: string };
+  board: { days: DayResult[]; stationName: string; stationCode?: string; weatherLabel: string };
   tips: Record<string, SpeciesTip>;
   recent: { species: string; days: number; maxSizeCm: number | null }[];
   recentFrom: string | null;
@@ -168,7 +169,7 @@ export default function FishingApp() {
     <div className="fa">
       <div ref={mapEl} className="fa-map" aria-label="釣り場の地図" />
       <header className="fa-top">
-        <Link href="/" className="fa-brand" aria-label="ツレドキ関西のサイトへ">
+        <Link href="/" className="fa-brand" aria-label="ツレドキのサイトへ">
           ツレドキ<span>関西</span>
         </Link>
         <button type="button" className="fa-btn" onClick={locate}>
@@ -229,7 +230,7 @@ export default function FishingApp() {
             </div>
             <p className="fa-actions">
               <FavoriteButton slug={sel.slug} />
-              <Link href={`/kansai/${sel.pref}/${sel.slug}/`}>料金・ルール →</Link>
+              <Link href={spotHref(sel)}>料金・ルール →</Link>
             </p>
             {(sel.restrictions.length > 0 || sel.fee) && (
               <p className="fa-chips">
@@ -246,7 +247,7 @@ export default function FishingApp() {
             )}
             {sel.station && <LiveWind station={sel.station} />}
             <h3>潮・天気・風・波（7日間）</h3>
-            <ShioBoard spotName={sel.name} spotType={sel.type} days={sel.board.days} tips={sel.tips} recent={sel.recent} recentFrom={sel.recentFrom} recentTo={sel.recentTo} />
+            <ShioBoard spotName={sel.name} spotType={sel.type} days={sel.board.days} tips={sel.tips} recent={sel.recent} recentFrom={sel.recentFrom} recentTo={sel.recentTo} tideCode={sel.board.stationCode} />
             <p className="small">潮位：気象庁 潮位表（{sel.board.stationName}）／天気：気象庁（{sel.board.weatherLabel}）／風・波：ECMWF Open Data（CC BY 4.0）。現地の状況・注意報を優先してください。</p>
 
             <h3>この釣り場のおすすめの釣り方</h3>

@@ -16,18 +16,22 @@ import UserPosts from "@/app/components/UserPosts";
 import { indexFor } from "@/lib/fishingIndex";
 import { forecastFor } from "@/lib/weather";
 import { STATION_COORDS } from "@/lib/sun";
+import { stationByCode } from "@/lib/tideStations";
 import { SITE } from "@/lib/site";
 import { areaOfSpot } from "@/lib/areas";
 import { DEFAULT_DAYS, monthlyOf, recentReports, sourceOf, sourcesOf, summarize } from "@/lib/catches";
-import { PREF_LABEL, publishedSpots } from "@/lib/spots";
+import { PREF_LABEL, isKansai, publishedSpots, spotHref } from "@/lib/spots";
 import { guidesForSpot } from "@/lib/guides";
 
 type Params = { pref: string; slug: string };
 
 export const dynamicParams = false;
 
+// 関西の釣り場は /kansai/、ほかの地域は /spots/（app/spots/[pref]/[slug]/page.tsx が同じページを使う）
 export function generateStaticParams(): Params[] {
-  return publishedSpots().map((s) => ({ pref: s.pref, slug: s.slug }));
+  return publishedSpots()
+    .filter((s) => isKansai(s.pref))
+    .map((s) => ({ pref: s.pref, slug: s.slug }));
 }
 
 function findSpot(p: Params) {
@@ -38,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const spot = findSpot(await params);
   if (!spot) return {};
   const recentSp = summarize([spot.slug]).list.slice(0, 3).map((x) => x.species.replace(/（.*?）/g, ""));
-  const path = `/kansai/${spot.pref}/${spot.slug}/`;
+  const path = spotHref(spot);
   const desc = `${spot.name}（${spot.area}）の今日の釣れる時間（ねらい目）、タイドグラフ、時間ごとの天気・風、${recentSp.length ? `最近の釣果（${recentSp.join("・")}など）` : "最近の釣果"}、料金・ルールをまとめています。`;
   const og = { url: `/og/spot-${spot.slug}.png`, width: 1200, height: 630, alt: `${spot.name}の釣果・タイドグラフ・天気` };
   return {
@@ -66,7 +70,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
   const forecast = forecastFor(spot);
   const fishIndex = indexFor(spot.slug);
 
-  const pageUrl = `${SITE.url}/kansai/${spot.pref}/${spot.slug}/`;
+  const pageUrl = `${SITE.url}${spotHref(spot)}`;
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -83,7 +87,9 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "関西", item: `${SITE.url}/kansai/` },
+        isKansai(spot.pref)
+          ? { "@type": "ListItem", position: 1, name: "関西", item: `${SITE.url}/kansai/` }
+          : { "@type": "ListItem", position: 1, name: PREF_LABEL[spot.pref], item: `${SITE.url}/map/` },
         ...(area ? [{ "@type": "ListItem", position: 2, name: area.name, item: `${SITE.url}/kansai/area/${area.slug}/` }] : []),
         { "@type": "ListItem", position: area ? 3 : 2, name: spot.name, item: pageUrl },
       ],
@@ -93,7 +99,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
     <article>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <p className="small">
-        <Link href="/kansai/">関西</Link> ＞{" "}
+        {isKansai(spot.pref) ? <Link href="/kansai/">関西</Link> : <Link href="/map/">釣り場</Link>} ＞{" "}
         {area ? <Link href={`/kansai/area/${area.slug}/`}>{area.name}</Link> : PREF_LABEL[spot.pref]} ＞ {spot.name}
       </p>
       <h1>{spot.name}</h1>
@@ -112,10 +118,16 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
       <TideWidget
         code={spot.tideStation.code}
         stationName={spot.tideStation.name}
-        coords={STATION_COORDS[spot.tideStation.code]}
+        coords={
+          STATION_COORDS[spot.tideStation.code] ??
+          (() => {
+            const t = stationByCode(spot.tideStation.code);
+            return t ? { lat: t.lat!, lon: t.lon! } : undefined;
+          })()
+        }
         weather={forecast.data}
         spotName={spot.name}
-        pageUrl={`${SITE.url}/kansai/${spot.pref}/${spot.slug}/`}
+        pageUrl={`${SITE.url}${spotHref(spot)}`}
         openByMonth={spot.openHourByMonth}
         closeByMonth={spot.closeHourByMonth}
       />

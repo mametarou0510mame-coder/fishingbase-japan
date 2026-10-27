@@ -3,7 +3,7 @@ import Link from "next/link";
 import SpotFinder, { type FinderSpot } from "@/app/components/SpotFinder";
 import { areaOfSpot } from "@/lib/areas";
 import { sourceOf } from "@/lib/catches";
-import { PREF_LABEL, publishedSpots } from "@/lib/spots";
+import { PREF_LABEL, publishedSpots, spotHref } from "@/lib/spots";
 
 export const metadata: Metadata = {
   title: "関西の釣り場一覧・条件で探す",
@@ -16,7 +16,7 @@ export default function KansaiIndex() {
     .sort((a, b) => ORDER.indexOf(a.pref) - ORDER.indexOf(b.pref))
     .map((s) => ({
       slug: s.slug,
-      href: `/kansai/${s.pref}/${s.slug}/`,
+      href: spotHref(s),
       name: s.name,
       pref: PREF_LABEL[s.pref],
       area: areaOfSpot(s.slug)?.name ?? s.area,

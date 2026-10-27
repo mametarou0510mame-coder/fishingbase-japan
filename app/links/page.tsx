@@ -9,7 +9,7 @@ import path from "node:path";
 
 // Instagram・YouTube のプロフィールのリンク用ページ。投稿文のリンクは押せないため、ここにまとめる。
 export const metadata: Metadata = {
-  title: "ツレドキ関西のリンク集（今アツい情報・おすすめ道具）",
+  title: "ツレドキのリンク集（今アツい情報・おすすめ道具）",
   description: "Instagram・YouTube から来た人向けのページです。今アツい釣り情報、今日・明日のねらい目、動画で紹介した道具（楽天市場）、マイ水族館・デジタル魚拓へのリンクをまとめています。",
   alternates: { canonical: "/links/" },
 };
@@ -39,7 +39,7 @@ export default function LinksPage() {
   const gear = hotGuide?.tackle[0];
   return (
     <div className="links-page">
-      <h1>ツレドキ関西</h1>
+      <h1>ツレドキ</h1>
       <p className="lead">関西の釣り場の、今日の釣れる時間・最近の釣果・釣り方をまとめた無料サイトです。</p>
 
       <section className="yt-block">

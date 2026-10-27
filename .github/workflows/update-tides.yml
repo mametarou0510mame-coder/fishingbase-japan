@@ -11,6 +11,9 @@ on:
     paths:
       - "scripts/fetch-tides.mjs"
       - "scripts/tide-parser.mjs"
+      - "scripts/fetch-tide-stations.mjs"
+      - "scripts/build-tide-points.mjs"
+      - "lib/spots.ts"
       - ".github/workflows/update-tides.yml"
 
 permissions:
@@ -28,12 +31,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: 全国の潮位表の地点と、実測潮位（潮位観測情報）の地点
+        run: |
+          node scripts/fetch-tide-stations.mjs || echo "::warning::地点一覧の更新に失敗（前回の一覧を使います）"
+          node scripts/build-tide-points.mjs || echo "::warning::観測地点の対応づけに失敗（前回の分を使います）"
       - run: node scripts/fetch-tides.mjs
       - name: Commit if changed
         run: |
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/tides
+          git add public/data/tides lib/tideStations.json public/data/tide-points.json
           if git diff --cached --quiet; then
             echo "No changes"
           else
