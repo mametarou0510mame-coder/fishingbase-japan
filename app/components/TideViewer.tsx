@@ -152,7 +152,7 @@ function NowCard({ st, days, obs, nowH }: { st: ViewerStation; days: Map<string,
           <dt>次の{stage.next.kind === "high" ? "満潮" : "干潮"}</dt>
           <dd>
             {stage.next.time}
-            <small> あと{fmtDur(stage.next.at - nowH)}</small>
+            <small className="tv-sub">あと{fmtDur(stage.next.at - nowH)}</small>
           </dd>
         </div>
       </dl>
@@ -272,7 +272,7 @@ function Graph({ st, date, days, obs, nowH }: { st: ViewerStation; date: string;
           <g key={m.kind + m.at}>
             <circle cx={x(m.at)} cy={y(m.cm)} r={3} className={m.kind === "high" ? "tv-hi" : "tv-lo"} />
             <text
-              x={Math.min(Math.max(x(m.at), L + 16), W - R - 16)}
+              x={Math.min(Math.max(x(m.at), L + 26), W - R - 26)}
               y={m.kind === "high" ? Math.max(y(m.cm) - 7, T - 4) : Math.min(y(m.cm) + 14, H - B - 2)}
               textAnchor="middle"
               className="tv-mark"
