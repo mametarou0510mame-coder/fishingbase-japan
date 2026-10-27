@@ -75,7 +75,16 @@ async function prefOf(lat, lon, prev) {
   return null;
 }
 
-const [suisanSrc, genboSrc] = process.argv.slice(2);
+const [suisanSrc, genboSrc, areaSrc] = process.argv.slice(2);
+// 気象庁「潮位観測情報」の観測地点（所在地つき、約170地点）。府県を決める手がかりにする
+let bosai = [];
+try {
+  const area = JSON.parse(await load(areaSrc ?? "https://www.jma.go.jp/bosai/tidelevel/const/tide_area.json"));
+  for (const v of Object.values(area)) for (const c of v.class30s ?? []) for (const o of c.stations ?? []) if (o.addr && o.lat) bosai.push(o);
+} catch (e) {
+  console.warn(`[stations] 観測地点の一覧を読めませんでした: ${e.message}`);
+}
+const kmBetween = (a, b) => Math.hypot((a.lat - b.lat) * 111, (a.lon - b.lon) * 111 * Math.cos((a.lat * Math.PI) / 180));
 const suisan = parseSuisan(await load(suisanSrc ?? "https://www.data.jma.go.jp/kaiyou/db/tide/suisan/station.php"));
 await sleep(1000);
 const genbo = parseGenbo(await load(genboSrc ?? "https://www.data.jma.go.jp/kaiyou/db/tide/genbo/station.php"));
@@ -99,6 +108,11 @@ for (const s of suisan) {
     pref = PREFS.find((p) => p && g.address.startsWith(p.replace(/[都府県]$/, ""))) ?? null;
     if (pref) prefBy = "address";
   }
+  if (!pref && s.lat && s.lon) {
+    const near = bosai.map((o) => ({ o, d: kmBetween(s, o) })).sort((x, y) => x.d - y.d)[0];
+    const p = near && near.d < 3 ? PREFS.find((q) => q && near.o.addr.startsWith(q)) : null;
+    if (p) [pref, prefBy] = [p, "address"];
+  }
   if (!pref && old[s.code]?.prefBy === "gsi") [pref, prefBy] = [old[s.code].pref, "gsi"];
   if (!pref && !offline && s.lat && s.lon) {
     pref = await prefOf(s.lat, s.lon, null);
@@ -114,6 +128,21 @@ for (const s of suisan) {
     tableDatum: s.tableDatum, // 潮位表基準面の標高（cm）
     obs: g && g.obsDatum !== null ? { datum: g.obsDatum } : null, // 気象庁の潮位観測地点（観測基準面の標高 cm）
   });
+}
+// 逆ジオコーダでも決まらないことがある地点（海の上の座標）は、地名から手で決めた府県を使う（2026-10-27 確認）
+const MANUAL_PREF = {
+  羅臼: "北海道", 吉岡: "北海道", 松前: "北海道", 奥尻: "北海道", 寿都: "北海道", 忍路: "北海道", 浅虫: "青森県", 大湊: "青森県", 大間: "青森県",
+  相馬: "福島県", 日立: "茨城県", 大洗: "茨城県", 木更津: "千葉県", 川崎: "神奈川県", 湘南港: "神奈川県", 伊東: "静岡県", 田子: "静岡県",
+  焼津: "静岡県", 形原: "愛知県", 鬼崎: "愛知県", 下津: "和歌山県", 海南: "和歌山県", 関空島: "大阪府", 岸和田: "大阪府", 泉大津: "大阪府",
+  尼崎: "兵庫県", 西宮: "兵庫県", 明石: "兵庫県", 江井: "兵庫県", 糸崎: "広島県", 竹原: "広島県", 三田尻: "山口県", 新居浜: "愛媛県",
+  伊予三島: "愛媛県", 橘: "徳島県", 甲浦: "高知県", 須崎: "高知県", 久礼: "高知県", 高知下田: "高知県", 片島: "高知県", 細島: "宮崎県",
+  阿久根: "鹿児島県", 西表: "沖縄県", 水俣: "熊本県", 三角: "熊本県", 大牟田: "福岡県", 仮屋: "佐賀県", 対馬: "長崎県", 萩: "山口県",
+  須佐: "山口県", 田後: "鳥取県", 宮津: "京都府", 三国: "福井県", 柏崎: "新潟県", 小木: "新潟県", 両津: "新潟県", 鼠ヶ関: "山形県",
+  飛島: "山形県", 船川港: "秋田県", 男鹿: "秋田県",
+};
+for (const s of stations) {
+  if (s.prefBy === "address" || s.prefBy === "gsi") continue;
+  if (MANUAL_PREF[s.name]) [s.pref, s.prefBy] = [MANUAL_PREF[s.name], "manual"];
 }
 // 府県がわからなかった地点は、いちばん近い地点の府県にする
 for (const s of stations) {
