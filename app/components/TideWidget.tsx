@@ -6,6 +6,7 @@ import ShareDay from "@/app/components/ShareDay";
 import { moonInfo } from "@/lib/moon";
 import { hm, sunTimes } from "@/lib/sun";
 import type { WeatherArea } from "@/lib/weather";
+import { useTodayObs, type TodayObs } from "@/app/components/useTodayObs";
 
 type TideEvent = { time: string; cm: number };
 type TideDay = { date: string; hourly: (number | null)[]; high: TideEvent[]; low: TideEvent[] };
@@ -76,7 +77,9 @@ function TideChart({
   date,
   weather,
   jiai,
+  obs,
 }: {
+  obs?: TodayObs;
   day: TideDay;
   isToday: boolean;
   sun: Sun;
@@ -173,6 +176,11 @@ function TideChart({
         <text key={v} x={L - 4} y={y(v) + 3} textAnchor="end" className="axis">{v}cm</text>
       ))}
       <polyline points={points} className="line" fill="none" />
+      {isToday && obs && obs.pts.length > 1 && (
+        <polyline points={obs.pts.map((p) => `${x(p.h).toFixed(1)},${Math.min(TOP + CH, Math.max(TOP, y(p.cm))).toFixed(1)}`).join(" ")} className="obsline" fill="none">
+          <title>実測潮位（気象庁「潮位観測情報」{obs.name}）</title>
+        </polyline>
+      )}
       {marks.map((m) => (
         <g key={m.key}>
           <circle cx={m.px} cy={m.py} r={3.5} className={m.kind} />
@@ -237,6 +245,12 @@ function TideChart({
       )}
       <rect x={L + 216} y={LEGEND - 7} width={10} height={7} rx={2} className="jiai" />
       <text x={L + 230} y={LEGEND} className="axis">ねらい目</text>
+      {isToday && obs && (
+        <>
+          <line x1={L + 268} x2={L + 278} y1={LEGEND - 3} y2={LEGEND - 3} className="obsline" />
+          <text x={L + 281} y={LEGEND} className="axis">実測</text>
+        </>
+      )}
     </svg>
   );
 }
@@ -252,7 +266,7 @@ function shareText(p: {
   slots: Slot[];
   weather: WeatherArea | null;
 }) {
-  const lines = [`【ツレドキ関西】${p.spotName}`, `${label(p.date)} ${moonInfo(p.date).tideName}`];
+  const lines = [`【ツレドキ】${p.spotName}`, `${label(p.date)} ${moonInfo(p.date).tideName}`];
   if (p.jiai) {
     lines.push(
       p.jiai.windows.length
@@ -388,6 +402,7 @@ export default function TideWidget({
   }, [code, dates]);
 
   const day = days?.find((d) => d.date === dates[offset]);
+  const obs = useTodayObs(code, days);
   const sun = coords ? sunTimes(dates[offset], coords.lat, coords.lon) : null;
   const slots = slotsFor(dates[offset], weather ?? null);
   const month = Number(dates[offset].slice(5, 7));
@@ -485,6 +500,7 @@ export default function TideWidget({
             date={dates[offset]}
             weather={weather ?? null}
             jiai={jiai!}
+            obs={obs}
           />
           <WeatherNotes date={dates[offset]} weather={weather ?? null} hasSlots={slots.length > 0} />
           {spotName && (
@@ -505,7 +521,8 @@ export default function TideWidget({
         <a href="https://www.data.jma.go.jp/kaiyou/db/tide/suisan/index.php" rel="noopener">
           気象庁ホームページ「潮位表」
         </a>
-        をもとに当サイトが加工して作成。表示の編集責任は当サイトにあります。
+        をもとに当サイトが加工して作成（実測は「潮位観測情報」の速報値）。表示の編集責任は当サイトにあります。{" "}
+        <a href={`/tide/${code.toLowerCase()}/`}>いまの潮（上げ何分）・実測潮位・過去の潮位を見る →</a>
       </p>
     </section>
   );

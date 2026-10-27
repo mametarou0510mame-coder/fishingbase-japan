@@ -1,0 +1,2539 @@
+{
+ "note": "気象庁「潮位表 掲載地点一覧」「潮汐観測地点一覧」をもとに作成。府県は国土地理院の逆ジオコーダ（失敗時は近い地点）による。",
+ "sources": [
+  "https://www.data.jma.go.jp/kaiyou/db/tide/suisan/station.php",
+  "https://www.data.jma.go.jp/kaiyou/db/tide/genbo/station.php"
+ ],
+ "stations": [
+  {
+   "code": "WN",
+   "name": "稚内",
+   "pref": "北海道",
+   "prefBy": "address",
+   "lat": 45.4,
+   "lon": 141.683,
+   "tableDatum": -21.8,
+   "obs": {
+    "datum": -187.2
+   }
+  },
+  {
+   "code": "KE",
+   "name": "枝幸",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 44.933,
+   "lon": 142.583,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "A0",
+   "name": "紋別",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 44.35,
+   "lon": 143.367,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "AS",
+   "name": "網走",
+   "pref": "北海道",
+   "prefBy": "address",
+   "lat": 44.017,
+   "lon": 144.283,
+   "tableDatum": -87,
+   "obs": {
+    "datum": -168.4
+   }
+  },
+  {
+   "code": "A6",
+   "name": "羅臼",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 44.017,
+   "lon": 145.2,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "NM",
+   "name": "根室",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 43.35,
+   "lon": 145.583,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "HN",
+   "name": "花咲",
+   "pref": "北海道",
+   "prefBy": "address",
+   "lat": 43.283,
+   "lon": 145.567,
+   "tableDatum": -109,
+   "obs": {
+    "datum": -243.9
+   }
+  },
+  {
+   "code": "KP",
+   "name": "霧多布",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 43.083,
+   "lon": 145.117,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "KR",
+   "name": "釧路",
+   "pref": "北海道",
+   "prefBy": "address",
+   "lat": 42.983,
+   "lon": 144.367,
+   "tableDatum": -112,
+   "obs": {
+    "datum": -213.7
+   }
+  },
+  {
+   "code": "B1",
+   "name": "十勝",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.3,
+   "lon": 143.317,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "A9",
+   "name": "浦河",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 42.167,
+   "lon": 142.767,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "C8",
+   "name": "苫小牧東",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.6,
+   "lon": 141.817,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TM",
+   "name": "苫小牧西",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.633,
+   "lon": 141.617,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SO",
+   "name": "白老",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.517,
+   "lon": 141.317,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "A8",
+   "name": "室蘭",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.35,
+   "lon": 140.95,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "A3",
+   "name": "森",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.117,
+   "lon": 140.6,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "HK",
+   "name": "函館",
+   "pref": "北海道",
+   "prefBy": "address",
+   "lat": 41.783,
+   "lon": 140.717,
+   "tableDatum": -72.7,
+   "obs": {
+    "datum": -155.3
+   }
+  },
+  {
+   "code": "Q0",
+   "name": "吉岡",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 41.45,
+   "lon": 140.233,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "A5",
+   "name": "松前",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 41.417,
+   "lon": 140.1,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ES",
+   "name": "江差",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 41.867,
+   "lon": 140.133,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZP",
+   "name": "奥尻",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.083,
+   "lon": 139.483,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "OR",
+   "name": "奥尻港",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.167,
+   "lon": 139.517,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SE",
+   "name": "瀬棚",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.45,
+   "lon": 139.85,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "B6",
+   "name": "寿都",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.8,
+   "lon": 140.233,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "B5",
+   "name": "岩内",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 42.983,
+   "lon": 140.5,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "Z8",
+   "name": "忍路",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 43.217,
+   "lon": 140.867,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "B3",
+   "name": "小樽",
+   "pref": "北海道",
+   "prefBy": "address",
+   "lat": 43.2,
+   "lon": 141,
+   "tableDatum": -17.9,
+   "obs": {
+    "datum": -227.5
+   }
+  },
+  {
+   "code": "IK",
+   "name": "石狩新港",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 43.217,
+   "lon": 141.3,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "B2",
+   "name": "留萌",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 43.95,
+   "lon": 141.633,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "F3",
+   "name": "沓形",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 45.183,
+   "lon": 141.133,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "Q1",
+   "name": "竜飛",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 41.25,
+   "lon": 140.383,
+   "tableDatum": -44.2,
+   "obs": null
+  },
+  {
+   "code": "AO",
+   "name": "青森",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 40.833,
+   "lon": 140.767,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZA",
+   "name": "浅虫",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 40.9,
+   "lon": 140.867,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "Q2",
+   "name": "大湊",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 41.25,
+   "lon": 141.15,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "B4",
+   "name": "大間",
+   "pref": "北海道",
+   "prefBy": "near",
+   "lat": 41.533,
+   "lon": 140.9,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SH",
+   "name": "下北",
+   "pref": "青森県",
+   "prefBy": "address",
+   "lat": 41.367,
+   "lon": 141.233,
+   "tableDatum": -93.1,
+   "obs": {
+    "datum": -281.4
+   }
+  },
+  {
+   "code": "XS",
+   "name": "むつ小川原",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 40.933,
+   "lon": 141.383,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "HG",
+   "name": "八戸港",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 40.533,
+   "lon": 141.55,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "XT",
+   "name": "久慈",
+   "pref": "岩手県",
+   "prefBy": "near",
+   "lat": 40.2,
+   "lon": 141.8,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MY",
+   "name": "宮古",
+   "pref": "岩手県",
+   "prefBy": "address",
+   "lat": 39.65,
+   "lon": 141.983,
+   "tableDatum": -95.3,
+   "obs": {
+    "datum": -134.9
+   }
+  },
+  {
+   "code": "Q6",
+   "name": "釜石",
+   "pref": "岩手県",
+   "prefBy": "near",
+   "lat": 39.267,
+   "lon": 141.883,
+   "tableDatum": -99.2,
+   "obs": null
+  },
+  {
+   "code": "OF",
+   "name": "大船渡",
+   "pref": "岩手県",
+   "prefBy": "address",
+   "lat": 39.017,
+   "lon": 141.75,
+   "tableDatum": -100,
+   "obs": {
+    "datum": -246.7
+   }
+  },
+  {
+   "code": "AY",
+   "name": "鮎川",
+   "pref": "宮城県",
+   "prefBy": "address",
+   "lat": 38.3,
+   "lon": 141.5,
+   "tableDatum": -102.4,
+   "obs": {
+    "datum": -237.9
+   }
+  },
+  {
+   "code": "E6",
+   "name": "石巻",
+   "pref": "宮城県",
+   "prefBy": "near",
+   "lat": 38.4,
+   "lon": 141.267,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SG",
+   "name": "塩釜",
+   "pref": "宮城県",
+   "prefBy": "near",
+   "lat": 38.317,
+   "lon": 141.033,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SD",
+   "name": "仙台新港",
+   "pref": "宮城県",
+   "prefBy": "near",
+   "lat": 38.267,
+   "lon": 141,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZM",
+   "name": "相馬",
+   "pref": "宮城県",
+   "prefBy": "near",
+   "lat": 37.833,
+   "lon": 140.967,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ON",
+   "name": "小名浜",
+   "pref": "福島県",
+   "prefBy": "address",
+   "lat": 36.933,
+   "lon": 140.9,
+   "tableDatum": -100,
+   "obs": {
+    "datum": -169.5
+   }
+  },
+  {
+   "code": "D1",
+   "name": "日立",
+   "pref": "福島県",
+   "prefBy": "near",
+   "lat": 36.5,
+   "lon": 140.633,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "D3",
+   "name": "大洗",
+   "pref": "福島県",
+   "prefBy": "near",
+   "lat": 36.3,
+   "lon": 140.567,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "D2",
+   "name": "鹿島",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.933,
+   "lon": 140.7,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "CS",
+   "name": "銚子漁港",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.75,
+   "lon": 140.867,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZF",
+   "name": "勝浦",
+   "pref": "千葉県",
+   "prefBy": "near",
+   "lat": 35.133,
+   "lon": 140.25,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MR",
+   "name": "布良",
+   "pref": "千葉県",
+   "prefBy": "address",
+   "lat": 34.917,
+   "lon": 139.833,
+   "tableDatum": -86.7,
+   "obs": {
+    "datum": -144.6
+   }
+  },
+  {
+   "code": "TT",
+   "name": "館山",
+   "pref": "千葉県",
+   "prefBy": "near",
+   "lat": 34.983,
+   "lon": 139.85,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "KZ",
+   "name": "木更津",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.367,
+   "lon": 139.917,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QL",
+   "name": "千葉",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.567,
+   "lon": 140.05,
+   "tableDatum": -115.4,
+   "obs": null
+  },
+  {
+   "code": "CB",
+   "name": "千葉港",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.6,
+   "lon": 140.1,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TK",
+   "name": "東京",
+   "pref": "東京都",
+   "prefBy": "address",
+   "lat": 35.65,
+   "lon": 139.767,
+   "tableDatum": -114.1,
+   "obs": {
+    "datum": -188.1
+   }
+  },
+  {
+   "code": "KW",
+   "name": "川崎",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.517,
+   "lon": 139.75,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "YK",
+   "name": "京浜港",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.467,
+   "lon": 139.633,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QS",
+   "name": "横浜",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.45,
+   "lon": 139.65,
+   "tableDatum": -115,
+   "obs": null
+  },
+  {
+   "code": "HM",
+   "name": "本牧",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.433,
+   "lon": 139.667,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QN",
+   "name": "横須賀",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 35.283,
+   "lon": 139.65,
+   "tableDatum": -106.5,
+   "obs": null
+  },
+  {
+   "code": "Z1",
+   "name": "油壺",
+   "pref": "千葉県",
+   "prefBy": "near",
+   "lat": 35.167,
+   "lon": 139.617,
+   "tableDatum": -92.6,
+   "obs": null
+  },
+  {
+   "code": "OK",
+   "name": "岡田",
+   "pref": "東京都",
+   "prefBy": "address",
+   "lat": 34.783,
+   "lon": 139.383,
+   "tableDatum": -84.8,
+   "obs": {
+    "datum": -155.1
+   }
+  },
+  {
+   "code": "QO",
+   "name": "神津島",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 34.217,
+   "lon": 139.133,
+   "tableDatum": -97,
+   "obs": null
+  },
+  {
+   "code": "MJ",
+   "name": "三宅島（坪田）",
+   "pref": "東京都",
+   "prefBy": "address",
+   "lat": 34.05,
+   "lon": 139.55,
+   "tableDatum": -63.8,
+   "obs": {
+    "datum": -412.2
+   }
+  },
+  {
+   "code": "QP",
+   "name": "三宅島（阿古）",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 34.067,
+   "lon": 139.483,
+   "tableDatum": -53.3,
+   "obs": null
+  },
+  {
+   "code": "D4",
+   "name": "八丈島（八重根）",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 33.1,
+   "lon": 139.767,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QQ",
+   "name": "八丈島（神湊）",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 33.133,
+   "lon": 139.8,
+   "tableDatum": -56.3,
+   "obs": null
+  },
+  {
+   "code": "CC",
+   "name": "父島",
+   "pref": "東京都",
+   "prefBy": "address",
+   "lat": 27.1,
+   "lon": 142.2,
+   "tableDatum": -57.7,
+   "obs": {
+    "datum": -186
+   }
+  },
+  {
+   "code": "MC",
+   "name": "南鳥島",
+   "pref": "東京都",
+   "prefBy": "address",
+   "lat": 24.283,
+   "lon": 153.983,
+   "tableDatum": -34.5,
+   "obs": {
+    "datum": -196.1
+   }
+  },
+  {
+   "code": "D8",
+   "name": "湘南港",
+   "pref": "神奈川県",
+   "prefBy": "near",
+   "lat": 35.3,
+   "lon": 139.483,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "OD",
+   "name": "小田原",
+   "pref": "神奈川県",
+   "prefBy": "address",
+   "lat": 35.233,
+   "lon": 139.15,
+   "tableDatum": -100.6,
+   "obs": {
+    "datum": -352.2
+   }
+  },
+  {
+   "code": "Z3",
+   "name": "伊東",
+   "pref": "東京都",
+   "prefBy": "near",
+   "lat": 34.9,
+   "lon": 139.133,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "D6",
+   "name": "下田",
+   "pref": "静岡県",
+   "prefBy": "near",
+   "lat": 34.683,
+   "lon": 138.967,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QK",
+   "name": "南伊豆",
+   "pref": "静岡県",
+   "prefBy": "near",
+   "lat": 34.633,
+   "lon": 138.883,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "G9",
+   "name": "石廊崎",
+   "pref": "静岡県",
+   "prefBy": "address",
+   "lat": 34.617,
+   "lon": 138.85,
+   "tableDatum": -95.7,
+   "obs": {
+    "datum": -388.9
+   }
+  },
+  {
+   "code": "Z4",
+   "name": "田子",
+   "pref": "静岡県",
+   "prefBy": "near",
+   "lat": 34.8,
+   "lon": 138.767,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "UC",
+   "name": "内浦",
+   "pref": "静岡県",
+   "prefBy": "address",
+   "lat": 35.017,
+   "lon": 138.883,
+   "tableDatum": -92.3,
+   "obs": {
+    "datum": -163.8
+   }
+  },
+  {
+   "code": "SM",
+   "name": "清水港",
+   "pref": "静岡県",
+   "prefBy": "address",
+   "lat": 35.017,
+   "lon": 138.517,
+   "tableDatum": -86.4,
+   "obs": {
+    "datum": -179.9
+   }
+  },
+  {
+   "code": "Z5",
+   "name": "焼津",
+   "pref": "静岡県",
+   "prefBy": "near",
+   "lat": 34.867,
+   "lon": 138.333,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "OM",
+   "name": "御前崎",
+   "pref": "静岡県",
+   "prefBy": "address",
+   "lat": 34.617,
+   "lon": 138.217,
+   "tableDatum": -96.5,
+   "obs": {
+    "datum": -209
+   }
+  },
+  {
+   "code": "MI",
+   "name": "舞阪",
+   "pref": "静岡県",
+   "prefBy": "address",
+   "lat": 34.683,
+   "lon": 137.617,
+   "tableDatum": -59.7,
+   "obs": {
+    "datum": -240.7
+   }
+  },
+  {
+   "code": "I4",
+   "name": "赤羽根",
+   "pref": "愛知県",
+   "prefBy": "address",
+   "lat": 34.6,
+   "lon": 137.183,
+   "tableDatum": -100.4,
+   "obs": {
+    "datum": -358.7
+   }
+  },
+  {
+   "code": "G4",
+   "name": "三河",
+   "pref": "愛知県",
+   "prefBy": "near",
+   "lat": 34.733,
+   "lon": 137.317,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "G5",
+   "name": "形原",
+   "pref": "愛知県",
+   "prefBy": "near",
+   "lat": 34.783,
+   "lon": 137.183,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "G8",
+   "name": "衣浦",
+   "pref": "愛知県",
+   "prefBy": "near",
+   "lat": 34.883,
+   "lon": 136.95,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZD",
+   "name": "鬼崎",
+   "pref": "愛知県",
+   "prefBy": "near",
+   "lat": 34.9,
+   "lon": 136.817,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "NG",
+   "name": "名古屋",
+   "pref": "愛知県",
+   "prefBy": "address",
+   "lat": 35.083,
+   "lon": 136.883,
+   "tableDatum": -126.8,
+   "obs": {
+    "datum": -200.3
+   }
+  },
+  {
+   "code": "G3",
+   "name": "四日市港",
+   "pref": "愛知県",
+   "prefBy": "near",
+   "lat": 34.967,
+   "lon": 136.633,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TB",
+   "name": "鳥羽",
+   "pref": "三重県",
+   "prefBy": "address",
+   "lat": 34.483,
+   "lon": 136.817,
+   "tableDatum": -112,
+   "obs": {
+    "datum": -281.5
+   }
+  },
+  {
+   "code": "OW",
+   "name": "尾鷲",
+   "pref": "三重県",
+   "prefBy": "address",
+   "lat": 34.083,
+   "lon": 136.2,
+   "tableDatum": -93.4,
+   "obs": {
+    "datum": -150.1
+   }
+  },
+  {
+   "code": "KN",
+   "name": "熊野",
+   "pref": "三重県",
+   "prefBy": "address",
+   "lat": 33.933,
+   "lon": 136.167,
+   "tableDatum": -93.1,
+   "obs": {
+    "datum": -247
+   }
+  },
+  {
+   "code": "UR",
+   "name": "浦神",
+   "pref": "和歌山県",
+   "prefBy": "address",
+   "lat": 33.567,
+   "lon": 135.9,
+   "tableDatum": -95.8,
+   "obs": {
+    "datum": -158.6
+   }
+  },
+  {
+   "code": "KS",
+   "name": "串本",
+   "pref": "和歌山県",
+   "prefBy": "address",
+   "lat": 33.483,
+   "lon": 135.767,
+   "tableDatum": -94.9,
+   "obs": {
+    "datum": -185.7
+   }
+  },
+  {
+   "code": "SR",
+   "name": "白浜",
+   "pref": "和歌山県",
+   "prefBy": "address",
+   "lat": 33.683,
+   "lon": 135.383,
+   "tableDatum": -102.3,
+   "obs": {
+    "datum": -324.1
+   }
+  },
+  {
+   "code": "GB",
+   "name": "御坊",
+   "pref": "和歌山県",
+   "prefBy": "address",
+   "lat": 33.85,
+   "lon": 135.167,
+   "tableDatum": -103.8,
+   "obs": {
+    "datum": -275.8
+   }
+  },
+  {
+   "code": "H1",
+   "name": "下津",
+   "pref": "和歌山県",
+   "prefBy": "near",
+   "lat": 34.117,
+   "lon": 135.133,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "Z9",
+   "name": "海南",
+   "pref": "和歌山県",
+   "prefBy": "near",
+   "lat": 34.15,
+   "lon": 135.2,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "WY",
+   "name": "和歌山",
+   "pref": "和歌山県",
+   "prefBy": "address",
+   "lat": 34.217,
+   "lon": 135.15,
+   "tableDatum": -100.4,
+   "obs": {
+    "datum": -99.7
+   }
+  },
+  {
+   "code": "TN",
+   "name": "淡輪",
+   "pref": "大阪府",
+   "prefBy": "address",
+   "lat": 34.333,
+   "lon": 135.183,
+   "tableDatum": -85.5,
+   "obs": {
+    "datum": -192
+   }
+  },
+  {
+   "code": "KK",
+   "name": "関空島",
+   "pref": "大阪府",
+   "prefBy": "near",
+   "lat": 34.433,
+   "lon": 135.2,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "J2",
+   "name": "岸和田",
+   "pref": "大阪府",
+   "prefBy": "near",
+   "lat": 34.467,
+   "lon": 135.367,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "IO",
+   "name": "泉大津",
+   "pref": "大阪府",
+   "prefBy": "near",
+   "lat": 34.517,
+   "lon": 135.4,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SI",
+   "name": "堺",
+   "pref": "大阪府",
+   "prefBy": "near",
+   "lat": 34.6,
+   "lon": 135.467,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "OS",
+   "name": "大阪",
+   "pref": "大阪府",
+   "prefBy": "address",
+   "lat": 34.65,
+   "lon": 135.433,
+   "tableDatum": -80.7,
+   "obs": {
+    "datum": -362.1
+   }
+  },
+  {
+   "code": "AM",
+   "name": "尼崎",
+   "pref": "大阪府",
+   "prefBy": "near",
+   "lat": 34.7,
+   "lon": 135.4,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "J5",
+   "name": "西宮",
+   "pref": "大阪府",
+   "prefBy": "near",
+   "lat": 34.717,
+   "lon": 135.333,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "KB",
+   "name": "神戸",
+   "pref": "兵庫県",
+   "prefBy": "address",
+   "lat": 34.683,
+   "lon": 135.183,
+   "tableDatum": -86,
+   "obs": {
+    "datum": -183.3
+   }
+  },
+  {
+   "code": "AK",
+   "name": "明石",
+   "pref": "兵庫県",
+   "prefBy": "near",
+   "lat": 34.65,
+   "lon": 134.983,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ST",
+   "name": "洲本",
+   "pref": "兵庫県",
+   "prefBy": "address",
+   "lat": 34.35,
+   "lon": 134.9,
+   "tableDatum": -90.5,
+   "obs": {
+    "datum": -204.6
+   }
+  },
+  {
+   "code": "EI",
+   "name": "江井",
+   "pref": "兵庫県",
+   "prefBy": "near",
+   "lat": 34.467,
+   "lon": 134.833,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "K1",
+   "name": "姫路（飾磨）",
+   "pref": "兵庫県",
+   "prefBy": "near",
+   "lat": 34.783,
+   "lon": 134.667,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SB",
+   "name": "三蟠",
+   "pref": "岡山県",
+   "prefBy": "near",
+   "lat": 34.6,
+   "lon": 133.983,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "UN",
+   "name": "宇野",
+   "pref": "岡山県",
+   "prefBy": "address",
+   "lat": 34.483,
+   "lon": 133.95,
+   "tableDatum": -132.6,
+   "obs": {
+    "datum": -191.7
+   }
+  },
+  {
+   "code": "MM",
+   "name": "水島",
+   "pref": "岡山県",
+   "prefBy": "near",
+   "lat": 34.533,
+   "lon": 133.733,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "LG",
+   "name": "乙島",
+   "pref": "岡山県",
+   "prefBy": "near",
+   "lat": 34.5,
+   "lon": 133.683,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "IZ",
+   "name": "糸崎",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.4,
+   "lon": 133.083,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TH",
+   "name": "竹原",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.333,
+   "lon": 132.917,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "Q9",
+   "name": "呉",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.233,
+   "lon": 132.55,
+   "tableDatum": -192.1,
+   "obs": null
+  },
+  {
+   "code": "Q8",
+   "name": "広島",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.35,
+   "lon": 132.467,
+   "tableDatum": -191.2,
+   "obs": null
+  },
+  {
+   "code": "QA",
+   "name": "徳山",
+   "pref": "島根県",
+   "prefBy": "near",
+   "lat": 34.033,
+   "lon": 131.8,
+   "tableDatum": -171.8,
+   "obs": null
+  },
+  {
+   "code": "J9",
+   "name": "三田尻",
+   "pref": "島根県",
+   "prefBy": "near",
+   "lat": 34.033,
+   "lon": 131.583,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "WH",
+   "name": "宇部",
+   "pref": "大分県",
+   "prefBy": "near",
+   "lat": 33.933,
+   "lon": 131.25,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "CF",
+   "name": "長府",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 34.017,
+   "lon": 131,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "A1",
+   "name": "弟子待",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.933,
+   "lon": 130.933,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TI",
+   "name": "田ノ首",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.917,
+   "lon": 130.917,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "OH",
+   "name": "大山の鼻",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.917,
+   "lon": 130.9,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "HR",
+   "name": "南風泊",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.95,
+   "lon": 130.883,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MT",
+   "name": "松山",
+   "pref": "愛媛県",
+   "prefBy": "address",
+   "lat": 33.867,
+   "lon": 132.717,
+   "tableDatum": -182,
+   "obs": {
+    "datum": -221.6
+   }
+  },
+  {
+   "code": "M3",
+   "name": "波止浜",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.1,
+   "lon": 132.933,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "M0",
+   "name": "今治市小島",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.133,
+   "lon": 132.983,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "M1",
+   "name": "来島航路",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.117,
+   "lon": 132.983,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "L0",
+   "name": "今治",
+   "pref": "愛媛県",
+   "prefBy": "near",
+   "lat": 34.067,
+   "lon": 133,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "NI",
+   "name": "新居浜",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 33.967,
+   "lon": 133.267,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "L8",
+   "name": "伊予三島",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 33.983,
+   "lon": 133.55,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TX",
+   "name": "多度津",
+   "pref": "岡山県",
+   "prefBy": "near",
+   "lat": 34.283,
+   "lon": 133.75,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "AX",
+   "name": "青木",
+   "pref": "岡山県",
+   "prefBy": "near",
+   "lat": 34.367,
+   "lon": 133.683,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "J8",
+   "name": "与島",
+   "pref": "岡山県",
+   "prefBy": "near",
+   "lat": 34.383,
+   "lon": 133.817,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TA",
+   "name": "高松",
+   "pref": "香川県",
+   "prefBy": "address",
+   "lat": 34.35,
+   "lon": 134.05,
+   "tableDatum": -131.5,
+   "obs": {
+    "datum": -201.2
+   }
+  },
+  {
+   "code": "KM",
+   "name": "小松島",
+   "pref": "徳島県",
+   "prefBy": "address",
+   "lat": 34.017,
+   "lon": 134.583,
+   "tableDatum": -94.2,
+   "obs": {
+    "datum": -203.6
+   }
+  },
+  {
+   "code": "J6",
+   "name": "橘",
+   "pref": "徳島県",
+   "prefBy": "near",
+   "lat": 33.867,
+   "lon": 134.633,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "AW",
+   "name": "阿波由岐",
+   "pref": "徳島県",
+   "prefBy": "address",
+   "lat": 33.767,
+   "lon": 134.6,
+   "tableDatum": -101.4,
+   "obs": {
+    "datum": -278.5
+   }
+  },
+  {
+   "code": "HW",
+   "name": "日和佐",
+   "pref": "徳島県",
+   "prefBy": "near",
+   "lat": 33.717,
+   "lon": 134.55,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "L7",
+   "name": "甲浦",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 33.55,
+   "lon": 134.3,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MU",
+   "name": "室戸岬",
+   "pref": "高知県",
+   "prefBy": "address",
+   "lat": 33.267,
+   "lon": 134.167,
+   "tableDatum": -100,
+   "obs": {
+    "datum": -317.1
+   }
+  },
+  {
+   "code": "KC",
+   "name": "高知",
+   "pref": "高知県",
+   "prefBy": "address",
+   "lat": 33.5,
+   "lon": 133.567,
+   "tableDatum": -96,
+   "obs": {
+    "datum": -97.5
+   }
+  },
+  {
+   "code": "V7",
+   "name": "須崎",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 33.383,
+   "lon": 133.3,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZH",
+   "name": "久礼",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 33.333,
+   "lon": 133.25,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "L6",
+   "name": "高知下田",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 32.933,
+   "lon": 133,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TS",
+   "name": "土佐清水",
+   "pref": "高知県",
+   "prefBy": "address",
+   "lat": 32.783,
+   "lon": 132.967,
+   "tableDatum": -98.9,
+   "obs": {
+    "datum": -171.1
+   }
+  },
+  {
+   "code": "SU",
+   "name": "片島",
+   "pref": "高知県",
+   "prefBy": "near",
+   "lat": 32.917,
+   "lon": 132.7,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "UW",
+   "name": "宇和島",
+   "pref": "愛媛県",
+   "prefBy": "address",
+   "lat": 33.233,
+   "lon": 132.55,
+   "tableDatum": -121.9,
+   "obs": {
+    "datum": -216.6
+   }
+  },
+  {
+   "code": "N1",
+   "name": "日明",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.917,
+   "lon": 130.883,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "N0",
+   "name": "砂津",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.9,
+   "lon": 130.883,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MO",
+   "name": "門司",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.95,
+   "lon": 130.95,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "AH",
+   "name": "青浜",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.95,
+   "lon": 131.017,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "O3",
+   "name": "苅田",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.8,
+   "lon": 131,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "BP",
+   "name": "別府",
+   "pref": "大分県",
+   "prefBy": "near",
+   "lat": 33.3,
+   "lon": 131.5,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QC",
+   "name": "大分",
+   "pref": "大分県",
+   "prefBy": "near",
+   "lat": 33.267,
+   "lon": 131.683,
+   "tableDatum": -120.6,
+   "obs": null
+  },
+  {
+   "code": "X5",
+   "name": "佐伯",
+   "pref": "大分県",
+   "prefBy": "address",
+   "lat": 32.95,
+   "lon": 131.967,
+   "tableDatum": -95.8,
+   "obs": {
+    "datum": -460.2
+   }
+  },
+  {
+   "code": "Z6",
+   "name": "細島",
+   "pref": "大分県",
+   "prefBy": "near",
+   "lat": 32.433,
+   "lon": 131.667,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MG",
+   "name": "宮崎",
+   "pref": "宮崎県",
+   "prefBy": "near",
+   "lat": 31.9,
+   "lon": 131.45,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "AB",
+   "name": "油津",
+   "pref": "宮崎県",
+   "prefBy": "address",
+   "lat": 31.583,
+   "lon": 131.417,
+   "tableDatum": -104.4,
+   "obs": {
+    "datum": -153.3
+   }
+  },
+  {
+   "code": "X6",
+   "name": "志布志",
+   "pref": "宮崎県",
+   "prefBy": "near",
+   "lat": 31.483,
+   "lon": 131.117,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QG",
+   "name": "大泊",
+   "pref": "鹿児島県",
+   "prefBy": "near",
+   "lat": 31.017,
+   "lon": 130.683,
+   "tableDatum": -136.6,
+   "obs": null
+  },
+  {
+   "code": "KG",
+   "name": "鹿児島",
+   "pref": "鹿児島県",
+   "prefBy": "address",
+   "lat": 31.6,
+   "lon": 130.567,
+   "tableDatum": -139.4,
+   "obs": {
+    "datum": -210.7
+   }
+  },
+  {
+   "code": "MK",
+   "name": "枕崎",
+   "pref": "鹿児島県",
+   "prefBy": "address",
+   "lat": 31.267,
+   "lon": 130.3,
+   "tableDatum": -133.2,
+   "obs": {
+    "datum": -255.6
+   }
+  },
+  {
+   "code": "ZJ",
+   "name": "阿久根",
+   "pref": "熊本県",
+   "prefBy": "near",
+   "lat": 32.017,
+   "lon": 130.183,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QH",
+   "name": "西之表",
+   "pref": "鹿児島県",
+   "prefBy": "near",
+   "lat": 30.733,
+   "lon": 131,
+   "tableDatum": -93.6,
+   "obs": null
+  },
+  {
+   "code": "TJ",
+   "name": "種子島",
+   "pref": "鹿児島県",
+   "prefBy": "address",
+   "lat": 30.467,
+   "lon": 130.967,
+   "tableDatum": -98.5,
+   "obs": {
+    "datum": -360.6
+   }
+  },
+  {
+   "code": "QI",
+   "name": "中之島",
+   "pref": "鹿児島県",
+   "prefBy": "near",
+   "lat": 29.85,
+   "lon": 129.85,
+   "tableDatum": -112.4,
+   "obs": null
+  },
+  {
+   "code": "QJ",
+   "name": "名瀬",
+   "pref": "鹿児島県",
+   "prefBy": "near",
+   "lat": 28.4,
+   "lon": 129.5,
+   "tableDatum": -103.6,
+   "obs": null
+  },
+  {
+   "code": "O9",
+   "name": "奄美",
+   "pref": "鹿児島県",
+   "prefBy": "address",
+   "lat": 28.317,
+   "lon": 129.533,
+   "tableDatum": -108,
+   "obs": {
+    "datum": -218.8
+   }
+  },
+  {
+   "code": "NK",
+   "name": "中城湾港",
+   "pref": "沖縄県",
+   "prefBy": "near",
+   "lat": 26.333,
+   "lon": 127.833,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZO",
+   "name": "沖縄",
+   "pref": "沖縄県",
+   "prefBy": "near",
+   "lat": 26.183,
+   "lon": 127.817,
+   "tableDatum": -113,
+   "obs": null
+  },
+  {
+   "code": "NH",
+   "name": "那覇",
+   "pref": "沖縄県",
+   "prefBy": "address",
+   "lat": 26.217,
+   "lon": 127.667,
+   "tableDatum": -113.5,
+   "obs": {
+    "datum": -260.8
+   }
+  },
+  {
+   "code": "DJ",
+   "name": "南大東",
+   "pref": "沖縄県",
+   "prefBy": "address",
+   "lat": 25.867,
+   "lon": 131.233,
+   "tableDatum": -66,
+   "obs": {
+    "datum": -557.6
+   }
+  },
+  {
+   "code": "R1",
+   "name": "平良",
+   "pref": "沖縄県",
+   "prefBy": "near",
+   "lat": 24.817,
+   "lon": 125.283,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "IS",
+   "name": "石垣",
+   "pref": "沖縄県",
+   "prefBy": "address",
+   "lat": 24.333,
+   "lon": 124.167,
+   "tableDatum": -90.1,
+   "obs": {
+    "datum": -172.4
+   }
+  },
+  {
+   "code": "IJ",
+   "name": "西表",
+   "pref": "沖縄県",
+   "prefBy": "near",
+   "lat": 24.35,
+   "lon": 123.75,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "YJ",
+   "name": "与那国",
+   "pref": "沖縄県",
+   "prefBy": "address",
+   "lat": 24.45,
+   "lon": 122.95,
+   "tableDatum": -94.8,
+   "obs": {
+    "datum": -374.6
+   }
+  },
+  {
+   "code": "O7",
+   "name": "水俣",
+   "pref": "熊本県",
+   "prefBy": "near",
+   "lat": 32.2,
+   "lon": 130.367,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "O5",
+   "name": "八代",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 32.517,
+   "lon": 130.567,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "HS",
+   "name": "本渡瀬戸",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 32.433,
+   "lon": 130.217,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "RH",
+   "name": "苓北",
+   "pref": "熊本県",
+   "prefBy": "address",
+   "lat": 32.467,
+   "lon": 130.033,
+   "tableDatum": -154.6,
+   "obs": {
+    "datum": -424.1
+   }
+  },
+  {
+   "code": "MS",
+   "name": "三角",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 32.617,
+   "lon": 130.45,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "KU",
+   "name": "熊本",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 32.75,
+   "lon": 130.567,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "O6",
+   "name": "大牟田",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.017,
+   "lon": 130.417,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "OU",
+   "name": "大浦",
+   "pref": "佐賀県",
+   "prefBy": "address",
+   "lat": 32.983,
+   "lon": 130.217,
+   "tableDatum": -252.2,
+   "obs": {
+    "datum": -382.9
+   }
+  },
+  {
+   "code": "KT",
+   "name": "口之津",
+   "pref": "長崎県",
+   "prefBy": "address",
+   "lat": 32.6,
+   "lon": 130.2,
+   "tableDatum": -181.2,
+   "obs": {
+    "datum": -352.2
+   }
+  },
+  {
+   "code": "NS",
+   "name": "長崎",
+   "pref": "長崎県",
+   "prefBy": "address",
+   "lat": 32.733,
+   "lon": 129.867,
+   "tableDatum": -146.1,
+   "obs": {
+    "datum": -284.4
+   }
+  },
+  {
+   "code": "KO",
+   "name": "皇后",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 32.717,
+   "lon": 129.833,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "FE",
+   "name": "福江",
+   "pref": "長崎県",
+   "prefBy": "address",
+   "lat": 32.7,
+   "lon": 128.85,
+   "tableDatum": -142.4,
+   "obs": {
+    "datum": -258.6
+   }
+  },
+  {
+   "code": "QD",
+   "name": "佐世保",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 33.15,
+   "lon": 129.717,
+   "tableDatum": -147.8,
+   "obs": null
+  },
+  {
+   "code": "X2",
+   "name": "平戸瀬戸",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 33.367,
+   "lon": 129.583,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZL",
+   "name": "仮屋",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.467,
+   "lon": 129.85,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "KA",
+   "name": "唐津",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.467,
+   "lon": 129.967,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QF",
+   "name": "博多",
+   "pref": "佐賀県",
+   "prefBy": "near",
+   "lat": 33.617,
+   "lon": 130.4,
+   "tableDatum": -93.6,
+   "obs": null
+  },
+  {
+   "code": "X3",
+   "name": "郷ノ浦",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 33.75,
+   "lon": 129.683,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "QE",
+   "name": "厳原",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 34.2,
+   "lon": 129.3,
+   "tableDatum": -91,
+   "obs": null
+  },
+  {
+   "code": "O1",
+   "name": "対馬",
+   "pref": "長崎県",
+   "prefBy": "near",
+   "lat": 34.267,
+   "lon": 129.317,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "N5",
+   "name": "対馬比田勝",
+   "pref": "長崎県",
+   "prefBy": "address",
+   "lat": 34.65,
+   "lon": 129.483,
+   "tableDatum": -55.6,
+   "obs": {
+    "datum": -202.8
+   }
+  },
+  {
+   "code": "K5",
+   "name": "萩",
+   "pref": "島根県",
+   "prefBy": "near",
+   "lat": 34.433,
+   "lon": 131.417,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZK",
+   "name": "須佐",
+   "pref": "島根県",
+   "prefBy": "near",
+   "lat": 34.633,
+   "lon": 131.6,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "HA",
+   "name": "浜田",
+   "pref": "島根県",
+   "prefBy": "address",
+   "lat": 34.9,
+   "lon": 132.067,
+   "tableDatum": -14.7,
+   "obs": {
+    "datum": -109.1
+   }
+  },
+  {
+   "code": "SK",
+   "name": "境",
+   "pref": "鳥取県",
+   "prefBy": "address",
+   "lat": 35.55,
+   "lon": 133.25,
+   "tableDatum": -4.5,
+   "obs": {
+    "datum": -136.7
+   }
+  },
+  {
+   "code": "SA",
+   "name": "西郷",
+   "pref": "島根県",
+   "prefBy": "address",
+   "lat": 36.2,
+   "lon": 133.333,
+   "tableDatum": -7.1,
+   "obs": {
+    "datum": -113
+   }
+  },
+  {
+   "code": "ZE",
+   "name": "田後",
+   "pref": "鳥取県",
+   "prefBy": "near",
+   "lat": 35.6,
+   "lon": 134.317,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "T6",
+   "name": "津居山",
+   "pref": "京都府",
+   "prefBy": "near",
+   "lat": 35.65,
+   "lon": 134.833,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "T2",
+   "name": "宮津",
+   "pref": "京都府",
+   "prefBy": "near",
+   "lat": 35.533,
+   "lon": 135.2,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "MZ",
+   "name": "舞鶴",
+   "pref": "京都府",
+   "prefBy": "address",
+   "lat": 35.483,
+   "lon": 135.383,
+   "tableDatum": -6.6,
+   "obs": {
+    "datum": -151.7
+   }
+  },
+  {
+   "code": "XM",
+   "name": "敦賀",
+   "pref": "京都府",
+   "prefBy": "near",
+   "lat": 35.667,
+   "lon": 136.067,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZG",
+   "name": "三国",
+   "pref": "京都府",
+   "prefBy": "near",
+   "lat": 36.25,
+   "lon": 136.15,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "T1",
+   "name": "金沢",
+   "pref": "富山県",
+   "prefBy": "near",
+   "lat": 36.617,
+   "lon": 136.6,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "Z7",
+   "name": "輪島",
+   "pref": "石川県",
+   "prefBy": "near",
+   "lat": 37.4,
+   "lon": 136.9,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SZ",
+   "name": "能登",
+   "pref": "石川県",
+   "prefBy": "address",
+   "lat": 37.5,
+   "lon": 137.15,
+   "tableDatum": -20,
+   "obs": {
+    "datum": -147.9
+   }
+  },
+  {
+   "code": "XO",
+   "name": "七尾",
+   "pref": "富山県",
+   "prefBy": "near",
+   "lat": 37.05,
+   "lon": 136.967,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "XQ",
+   "name": "伏木富山",
+   "pref": "富山県",
+   "prefBy": "near",
+   "lat": 36.8,
+   "lon": 137.067,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "SN",
+   "name": "新湊",
+   "pref": "富山県",
+   "prefBy": "near",
+   "lat": 36.783,
+   "lon": 137.117,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "TY",
+   "name": "富山",
+   "pref": "富山県",
+   "prefBy": "address",
+   "lat": 36.767,
+   "lon": 137.217,
+   "tableDatum": -7.7,
+   "obs": {
+    "datum": -127.9
+   }
+  },
+  {
+   "code": "I7",
+   "name": "生地",
+   "pref": "富山県",
+   "prefBy": "near",
+   "lat": 36.883,
+   "lon": 137.417,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "T3",
+   "name": "直江津",
+   "pref": "富山県",
+   "prefBy": "near",
+   "lat": 37.183,
+   "lon": 138.25,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZC",
+   "name": "柏崎",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 37.35,
+   "lon": 138.517,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "S6",
+   "name": "新潟西港",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 37.933,
+   "lon": 139.067,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "I5",
+   "name": "新潟東港",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 37.983,
+   "lon": 139.217,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZN",
+   "name": "小木",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 37.817,
+   "lon": 138.283,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "RZ",
+   "name": "両津",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 38.083,
+   "lon": 138.433,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "S0",
+   "name": "佐渡",
+   "pref": "新潟県",
+   "prefBy": "address",
+   "lat": 38.317,
+   "lon": 138.517,
+   "tableDatum": -15.9,
+   "obs": {
+    "datum": -155.6
+   }
+  },
+  {
+   "code": "QR",
+   "name": "粟島",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 38.467,
+   "lon": 139.25,
+   "tableDatum": -11.6,
+   "obs": null
+  },
+  {
+   "code": "ZB",
+   "name": "鼠ヶ関",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 38.567,
+   "lon": 139.55,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "S9",
+   "name": "酒田",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 38.917,
+   "lon": 139.817,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZQ",
+   "name": "飛島",
+   "pref": "新潟県",
+   "prefBy": "near",
+   "lat": 39.183,
+   "lon": 139.55,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "S1",
+   "name": "秋田",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 39.75,
+   "lon": 140.067,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "S2",
+   "name": "船川港",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 39.917,
+   "lon": 139.85,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "ZI",
+   "name": "男鹿",
+   "pref": "青森県",
+   "prefBy": "near",
+   "lat": 39.95,
+   "lon": 139.7,
+   "tableDatum": null,
+   "obs": null
+  },
+  {
+   "code": "FK",
+   "name": "深浦",
+   "pref": "青森県",
+   "prefBy": "address",
+   "lat": 40.65,
+   "lon": 139.933,
+   "tableDatum": -9.2,
+   "obs": {
+    "datum": -151.5
+   }
+  }
+ ]
+}

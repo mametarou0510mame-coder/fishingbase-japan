@@ -1,16 +1,9 @@
 // 気象庁の府県天気予報（天気・風・波・降水確率）を取得し public/data/weather.json に保存する。
 // 出典: 気象庁ホームページ。当サイトは独自の予報は行わず、発表内容をそのまま表示する。
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 
-// 府県予報の取得単位（office）と、使う予報区（area）
-const TARGETS = [
-  { office: "270000", area: "270000" }, // 大阪府
-  { office: "280000", area: "280010" }, // 兵庫県南部
-  { office: "300000", area: "300010" }, // 和歌山県北部
-  { office: "260000", area: "260020" }, // 京都府北部
-  { office: "280000", area: "280020" }, // 兵庫県北部（日本海側）
-  { office: "300000", area: "300020" }, // 和歌山県南部
-];
+// 府県予報の取得単位（office）と、使う予報区（area）。lib/weatherAreas.json で管理する（全国の釣り場に対応）
+const TARGETS = JSON.parse(await readFile(new URL("../lib/weatherAreas.json", import.meta.url), "utf8")).areas;
 
 // 気象庁の文は単語ごとに全角空白で区切られているので、読みやすく整える
 // 例: "北東の風　後　南の風　海上　では" → "北東の風 のち 南の風、海上では"

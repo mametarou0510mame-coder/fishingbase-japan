@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "ツレドキ", statusBarStyle: "default" },
   title: { default: `${SITE.name}｜${SITE.tagline}`, template: `%s｜${SITE.name}` },
   description:
-    "関西の海釣り施設・釣り場の釣果、潮汐、ルールをまとめ、今日どこへ行くかを決められる釣り情報サイト。",
+    "海釣り施設・釣り場の釣果、潮汐（全国のタイドグラフ・実測潮位）、ルールをまとめ、今日どこへ行くかを決められる釣り情報サイト。",
   robots: SITE.noindex ? { index: false, follow: false } : undefined,
   openGraph: {
     siteName: SITE.name,
@@ -56,12 +56,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/kansai/area/">エリア</Link>
               <Link href="/kansai/">釣り場</Link>
               <Link href="/shio/">潮・海況</Link>
+              <Link href="/tide/">タイド</Link>
               <Link href="/species/">魚種</Link>
               <Link href="/kansai/month/">月別</Link>
               <Link href="/guide/">釣り方</Link>
               <Link href="/gear/">道具</Link>
               <Link href="/gear/sale/">セール</Link>
-              <Link href="/aquarium/">水族館</Link>
             </nav>
           </div>
           <svg className="header-wave" viewBox="0 0 1200 24" preserveAspectRatio="none" aria-hidden="true">

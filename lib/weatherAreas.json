@@ -1,0 +1,11 @@
+{
+ "note": "気象庁の府県天気予報の取得先。office は予報を出す気象台（https://www.jma.go.jp/bosai/common/const/area.json の offices）、area はその中の一次細分区域（class10s）。関西以外の釣り場を載せるときは、その釣り場の area をここに足し、lib/spots.ts の weatherArea に入れる。",
+ "areas": [
+  { "office": "270000", "area": "270000", "label": "大阪府" },
+  { "office": "280000", "area": "280010", "label": "兵庫県南部" },
+  { "office": "300000", "area": "300010", "label": "和歌山県北部" },
+  { "office": "260000", "area": "260020", "label": "京都府北部" },
+  { "office": "280000", "area": "280020", "label": "兵庫県北部" },
+  { "office": "300000", "area": "300020", "label": "和歌山県南部" }
+ ]
+}

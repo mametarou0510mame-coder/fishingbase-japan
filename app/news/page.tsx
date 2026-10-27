@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import NOTICES from "@/content/notices.json";
-import { publishedSpots, type Spot } from "@/lib/spots";
+import { publishedSpots, type Spot, spotHref } from "@/lib/spots";
 
 export const metadata: Metadata = {
   title: "釣り場の更新情報（休園・再開・ルール変更）",
@@ -30,7 +30,7 @@ export default function NewsPage() {
           return (
             <li key={i}>
               <span className="small">{fmt(n.date)}</span> <span className="tag">{n.kind}</span>{" "}
-              {s ? <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link> : null}
+              {s ? <Link href={spotHref(s)}>{s.name}</Link> : null}
               <div>{n.text}</div>
               <a className="small" href={n.source} rel="noopener">出典</a>
             </li>
@@ -41,7 +41,7 @@ export default function NewsPage() {
       <ul>
         {checked.map((s) => (
           <li key={s.slug}>
-            <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link> <span className="small">{fmt(s.verifiedOn)} 確認</span>
+            <Link href={spotHref(s)}>{s.name}</Link> <span className="small">{fmt(s.verifiedOn)} 確認</span>
           </li>
         ))}
       </ul>

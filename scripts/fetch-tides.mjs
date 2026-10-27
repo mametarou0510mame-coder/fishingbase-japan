@@ -1,20 +1,19 @@
 // ビルド前に気象庁の潮位表（年1ファイル/地点）を取得し、public/data/tides/ にJSONで保存する。
 // 取得に失敗してもビルドは止めない（その地点の潮汐表示が「準備中」になるだけ）。
 // 出典: 気象庁ホームページ「潮位表」 https://www.data.jma.go.jp/kaiyou/db/tide/suisan/index.php
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { parseFile } from "./tide-parser.mjs";
 
-// 釣り場データ(lib/spots.ts)の tideStation と揃えること
-const STATIONS = [
-  "AM", "AK", "OS", "KB", "TN", "Z9", "SI", "MZ", "J5", "J2", "IO",
-  // 釣り場の拡充に向けて追加（2026-10-20）
-  "KK", "ST", "EI", "K1", "WY", "H1", "GB", "SR", "KS", "UR", "T2", "T6",
-];
+// 釣り場データ(lib/spots.ts)の tideStation の地点を自動で集める（全国の地点は lib/tideStations.json）。
+// ここで保存するのはビルド時に使う釣り場の地点だけ。タイドグラフのページはブラウザが気象庁から直接読む。
+const spotsSrc = await readFile(new URL("../lib/spots.ts", import.meta.url), "utf8");
+const STATIONS = [...new Set([...spotsSrc.matchAll(/tideStation:\s*\{\s*code:\s*"([A-Z0-9]{2})"/g)].map((m) => m[1]))];
+console.log(`[tides] 釣り場の地点 ${STATIONS.length}: ${STATIONS.join(" ")}`);
 const OUT_DIR = new URL("../public/data/tides/", import.meta.url);
 
 const now = new Date(Date.now() + 9 * 3600 * 1000); // JST
 const year = now.getUTCFullYear();
-const years = [year, year + 1];
+const years = now.getUTCMonth() === 0 ? [year - 1, year, year + 1] : [year, year + 1]; // 1月は前日の分として前年も
 
 await mkdir(OUT_DIR, { recursive: true });
 

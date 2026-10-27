@@ -1,0 +1,40 @@
+name: Branch build check
+
+# main 以外のブランチに push したとき、型チェック・ビルド・画面の確認（スクリーンショット）を行う。
+# 公開前の確認用。スクリーンショットは ci-shots ブランチに保存する。
+on:
+  push:
+    branches-ignore: [main, probe-data, e2e-shots, ci-shots, long-media]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: 型チェック
+        run: npx tsc --noEmit
+      - name: ビルド
+        run: npm run build
+      - name: 画面の確認
+        run: |
+          pip install --quiet playwright
+          python -m playwright install --with-deps chromium > /dev/null
+          (cd out && python3 -m http.server 3000 > /dev/null 2>&1 &)
+          sleep 2
+          BASE=http://localhost:3000 python3 scripts/test/check_tide.py
+      - name: Save screenshots
+        if: always()
+        run: |
+          [ -d shots ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git worktree add --detach /tmp/shots && cd /tmp/shots && git checkout --orphan ci-shots && git rm -rf . -q || true
+          cp $GITHUB_WORKSPACE/shots/* /tmp/shots/ && git add -A && git commit -qm "ci shots" && git push -f origin ci-shots

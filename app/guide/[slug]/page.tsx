@@ -6,6 +6,7 @@ import { AFF_SHOPS, amazonSearchUrl, rakutenSearchUrl } from "@/lib/affiliate";
 import { findGuide, guides, guideVideo, guideYoutubeId, recentSpotsForGuide, spotsForGuide } from "@/lib/guides";
 import SocialFollow from "@/app/components/SocialFollow";
 import { SITE } from "@/lib/site";
+import { spotHref } from "@/lib/prefs";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -171,7 +172,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           <ul>
             {recent.slice(0, 6).map((r) => (
               <li key={r.spot.slug}>
-                <Link href={`/kansai/${r.spot.pref}/${r.spot.slug}/`}>{r.spot.name}</Link>
+                <Link href={spotHref(r.spot)}>{r.spot.name}</Link>
                 <span className="small">
                   （直近2週間の釣果報告 {r.reports}件・最新 {r.latest.slice(5).replace("-", "/")}）
                 </span>
@@ -192,7 +193,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           <ul className="spot-mini">
             {spots.map((s) => (
               <li key={s.slug}>
-                <Link href={`/kansai/${s.pref}/${s.slug}/`}>{s.name}</Link> <span className="small">{s.type}</span>
+                <Link href={spotHref(s)}>{s.name}</Link> <span className="small">{s.type}</span>
               </li>
             ))}
           </ul>

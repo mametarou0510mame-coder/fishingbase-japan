@@ -121,7 +121,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
       const file = new File([b], fileName, { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
       if (nav.canShare?.({ files: [file] })) {
-        await nav.share({ files: [file], text: `${name}${size ? ` ${size}cm` : ""}を釣りました！ #ツレドキ関西 #デジタル魚拓` });
+        await nav.share({ files: [file], text: `${name}${size ? ` ${size}cm` : ""}を釣りました！ #ツレドキ #ツレドキ関西 #デジタル魚拓` });
       } else {
         await save();
       }
@@ -216,7 +216,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
           <text x="1050" y={H - 86} fontSize="20" fill="#b5291f" textAnchor="middle" fontFamily="serif" fontWeight="700">ツレ</text>
           <text x="1050" y={H - 63} fontSize="20" fill="#b5291f" textAnchor="middle" fontFamily="serif" fontWeight="700">ドキ</text>
         </g>
-        <text x={W - 30} y={H - 28} fontSize="14" fill="#8a7a5a" textAnchor="end" fontFamily="sans-serif">ツレドキ関西 マイ水族館</text>
+        <text x={W - 30} y={H - 28} fontSize="14" fill="#8a7a5a" textAnchor="end" fontFamily="sans-serif">ツレドキ マイ水族館</text>
       </svg>
       <div className="gyotaku-actions">
         <button className="submit" onClick={share} disabled={busy}>画像で保存・共有</button>

@@ -1,8 +1,11 @@
 import type { Restriction } from "@/lib/gear";
 // 釣り場データ。公式情報で確認できたものだけ published: true にする（要件定義のルール）。
+import type { PrefSlug } from "@/lib/prefs";
+export { PREF_LABEL, KANSAI_PREFS, isKansai, spotHref, type PrefSlug } from "@/lib/prefs";
+
 export type Spot = {
   slug: string;
-  pref: "osaka" | "hyogo" | "wakayama" | "kyoto";
+  pref: PrefSlug;
   name: string;
   area: string;
   address: string;
@@ -25,18 +28,12 @@ export type Spot = {
   rulesSource?: "official" | "report";
   restrictions?: Restriction[]; // 道具のおすすめに使う禁止・必須事項（rules から抜き出したもの）
   notes: string[];
-  tideStation: { code: string; name: string };
+  tideStation: { code: string; name: string }; // 気象庁「潮位表」の地点（lib/tideStations.json の code）
   weatherArea?: string; // 気象庁の予報区（未設定なら府県ごとの既定。例: 兵庫県北部 280020、和歌山県南部 300020）
   catchReportUrl?: string; // 施設公式の釣果ページ
   intro: string;
 };
 
-export const PREF_LABEL: Record<Spot["pref"], string> = {
-  osaka: "大阪府",
-  hyogo: "兵庫県",
-  wakayama: "和歌山県",
-  kyoto: "京都府",
-};
 
 export const SPOTS: Spot[] = [
   {

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dirDeg, dirName, type DayResult, type Slot } from "@/lib/shio";
+import { stageAt, type TideDay } from "@/lib/tideCalc";
+import { useTodayObs, type TodayObs } from "@/app/components/useTodayObs";
 
 export type SpeciesTip = {
   species: string; // 指数の魚種名（例「アジ・サバ・イワシ」）
@@ -18,6 +20,7 @@ type Props = {
   recent: { species: string; days: number; maxSizeCm: number | null }[];
   recentFrom: string | null;
   recentTo: string | null;
+  tideCode?: string; // 潮位表の地点（タイドグラフのページへのリンク用）
 };
 
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
@@ -151,7 +154,7 @@ function ScoreRing({ score, color, size = 76, label }: { score: number | null; c
   );
 }
 
-function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | null; scroller: React.RefObject<HTMLDivElement | null> }) {
+function Timeline({ days, nowX, scroller, obs }: { days: DayResult[]; nowX: number | null; scroller: React.RefObject<HTMLDivElement | null>; obs?: TodayObs }) {
   const W = days.length * DAYW;
   const all = days.flatMap((d) => d.tide.filter((v): v is number => v != null));
   const vMin = Math.min(...all);
@@ -343,6 +346,17 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
 
           <path d={area} fill="url(#shio-water)" />
           <polyline points={pts.join(" ")} fill="none" stroke="var(--sea-2)" strokeWidth={2.6} strokeLinejoin="round" strokeLinecap="round" />
+          {obs && nowX != null && obs.pts.length > 1 && (
+            <polyline
+              points={obs.pts.map((p) => `${(p.h * PX).toFixed(1)},${y(p.cm).toFixed(1)}`).join(" ")}
+              fill="none"
+              stroke="#f08a24"
+              strokeWidth={2}
+              strokeLinejoin="round"
+            >
+              <title>実測潮位（気象庁「潮位観測情報」{obs.name}）</title>
+            </polyline>
+          )}
           {nowX != null && (
             <g>
               <line x1={nowX} y1={top} x2={nowX} y2={H} stroke="var(--float)" strokeWidth={1.6} />
@@ -359,7 +373,8 @@ function Timeline({ days, nowX, scroller }: { days: DayResult[]; nowX: number | 
 }
 
 // いまの潮位・次の満干・いまの海
-function NowPanel({ t0, t1, nowH }: { t0: DayResult; t1: DayResult | undefined; nowH: number }) {
+function NowPanel({ t0, t1, nowH, all, tideCode }: { t0: DayResult; t1: DayResult | undefined; nowH: number; all: DayResult[]; tideCode?: string }) {
+  const stage = stageAt(new Map<string, TideDay>(all.map((d) => [d.date, { date: d.date, hourly: d.tide.slice(0, 24), high: d.high, low: d.low }])), t0.date, nowH);
   const h = Math.floor(nowH);
   const a = t0.tide[h];
   const b = t0.tide[h + 1];
@@ -393,9 +408,14 @@ function NowPanel({ t0, t1, nowH }: { t0: DayResult; t1: DayResult | undefined; 
             <small>cm</small>
           </strong>
           <span className={rate >= 0 ? "shio-up" : "shio-down"}>
-            {rate >= 0 ? "▲ 上げ潮" : "▼ 下げ潮"}
+            {stage ? stage.label : rate >= 0 ? "▲ 上げ潮" : "▼ 下げ潮"}
             <small> {Math.abs(rate)}cm/時</small>
           </span>
+          {tideCode && (
+            <a href={`/tide/${tideCode.toLowerCase()}/`} className="shio-now-link">
+              実測潮位・過去の潮 →
+            </a>
+          )}
         </div>
         <ScoreRing score={cur?.open ? cur.index : null} color={cur && cur.index >= 70 ? "var(--glow)" : "var(--tide)"} size={64} label="いまの指数" />
       </div>
@@ -457,7 +477,7 @@ function NowPanel({ t0, t1, nowH }: { t0: DayResult; t1: DayResult | undefined; 
 
 const stageColor = (s: string) => (s === "最盛期" ? "var(--glow)" : s === "シーズン中" ? "var(--tide)" : "var(--line)");
 
-export default function ShioBoard({ spotName, spotType, days: allDays, tips, recent, recentFrom, recentTo }: Props) {
+export default function ShioBoard({ spotName, spotType, days: allDays, tips, recent, recentFrom, recentTo, tideCode }: Props) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     setNow(jstNow());
@@ -470,6 +490,8 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
     return i < 0 ? allDays : allDays.slice(i);
   }, [allDays, today]);
   const [sel, setSel] = useState(0);
+  const tideDays = useMemo(() => allDays.map((d) => ({ date: d.date, hourly: d.tide, high: d.high, low: d.low })), [allDays]);
+  const obs = useTodayObs(tideCode, tideDays);
   const scroller = useRef<HTMLDivElement | null>(null);
   const isToday = days[0]?.date === today;
   const nowH = now ? now.getUTCHours() + now.getUTCMinutes() / 60 : null;
@@ -515,9 +537,9 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
         })}
       </nav>
 
-      {isToday && nowH !== null && sel === 0 && <NowPanel t0={days[0]} t1={days[1]} nowH={nowH} />}
+      {isToday && nowH !== null && sel === 0 && <NowPanel t0={days[0]} t1={days[1]} nowH={nowH} all={allDays} tideCode={tideCode} />}
 
-      <Timeline days={days} nowX={isToday && nowH !== null ? nowH * PX : null} scroller={scroller} />
+      <Timeline days={days} nowX={isToday && nowH !== null ? nowH * PX : null} scroller={scroller} obs={isToday ? obs : null} />
       <ul className="shio-legend">
         <li>
           <i style={{ background: "var(--glow)", opacity: 0.6 }} />
@@ -539,6 +561,12 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
           <i style={{ background: "var(--float)", borderRadius: 4, marginLeft: 6 }} />
           見合わせ
         </li>
+        {obs && isToday && (
+          <li>
+            <i style={{ background: "#f08a24", height: 3 }} />
+            実測潮位（今日）
+          </li>
+        )}
         <li>風はm/s・波はm。「≧」「約」は見積もり、「－」は予報前</li>
       </ul>
 

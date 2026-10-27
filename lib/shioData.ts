@@ -6,6 +6,7 @@ import { moonInfo, moonTimes } from "@/lib/moon";
 import { dirName, evaluateDay, waveFromText, weatherFromCode, weatherWord, windFromText, type DayInput, type DayResult, type Slot, type SpotType } from "@/lib/shio";
 import type { Spot } from "@/lib/spots";
 import { STATION_COORDS, sunTimes } from "@/lib/sun";
+import { stationByCode } from "@/lib/tideStations";
 import { forecastFor, type WeatherArea } from "@/lib/weather";
 import coords from "@/lib/spotCoords.json";
 
@@ -50,7 +51,8 @@ const jstParts = (iso: string) => {
 export function spotLatLon(spot: Spot): { lat: number; lon: number } {
   const c = (coords as Record<string, { lat: number; lon: number }>)[spot.slug];
   if (c) return { lat: c.lat, lon: c.lon };
-  return STATION_COORDS[spot.tideStation.code] ?? { lat: 34.6, lon: 135.2 };
+  const t = stationByCode(spot.tideStation.code);
+  return STATION_COORDS[spot.tideStation.code] ?? (t ? { lat: t.lat!, lon: t.lon! } : { lat: 34.6, lon: 135.2 });
 }
 
 function buildSlots(date: string, w: WeatherArea | null, marine: MarinePoint | null, run: string | null): Slot[] {
