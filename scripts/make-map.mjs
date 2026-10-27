@@ -7,8 +7,10 @@ import { join } from "node:path";
 import { feature } from "topojson-client";
 
 const tmp = mkdtempSync(join(tmpdir(), "spots-"));
-copyFileSync("lib/spots.ts", join(tmp, "spots.mts"));
-const { SPOTS } = await import(join(tmp, "spots.mts"));
+// spots.ts は "@/lib/prefs" を読むので、同じ場所に置いて読み込み先を書き換える
+writeFileSync(join(tmp, "spots.mts"), readFileSync("lib/spots.ts", "utf8").replace(/"@\/lib\/prefs"/g, '"./prefs.mts"'));
+copyFileSync("lib/prefs.ts", join(tmp, "prefs.mts"));
+const { SPOTS, PREF_LABEL } = await import(join(tmp, "spots.mts"));
 
 // 1) 住所 → 緯度経度
 const COORDS = "lib/spotCoords.json";
@@ -26,7 +28,9 @@ for (const s of SPOTS) {
   }
   if (!hit) { console.log(`::warning::${s.slug}: 位置が見つかりません（${s.address}）`); continue; }
   const [lon, lat] = hit.j.geometry.coordinates;
-  if (lon < 134 || lon > 136.3 || lat < 33.3 || lat > 35.9) { console.log(`::warning::${s.slug}: 関西の外の位置になりました（${hit.j.properties.title}）。lib/spotCoords.json に manual で位置を入れてください`); continue; }
+  const kansai = ["osaka", "hyogo", "kyoto", "wakayama"].includes(s.pref);
+  const out = kansai ? lon < 134 || lon > 136.3 || lat < 33.3 || lat > 35.9 : lon < 122 || lon > 154 || lat < 20 || lat > 46;
+  if (out || !String(hit.j.properties.title).startsWith(PREF_LABEL[s.pref] ?? "")) { console.log(`::warning::${s.slug}: ${PREF_LABEL[s.pref]}の外の位置になりました（${hit.j.properties.title}）。lib/spotCoords.json に manual で位置を入れてください`); continue; }
   coords[s.slug] = { lat: +lat.toFixed(4), lon: +lon.toFixed(4), address: s.address, matched: hit.j.properties.title, rough: hit.q !== tries[0] };
   console.log(`${s.slug}: ${lat},${lon} (${hit.j.properties.title})`);
   await new Promise((ok) => setTimeout(ok, 500));
