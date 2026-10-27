@@ -247,8 +247,8 @@ function TideChart({
       <text x={L + 230} y={LEGEND} className="axis">ねらい目</text>
       {isToday && obs && (
         <>
-          <line x1={L + 268} x2={L + 278} y1={LEGEND - 3} y2={LEGEND - 3} className="obsline" />
-          <text x={L + 281} y={LEGEND} className="axis">実測</text>
+          <line x1={W - R - 58} x2={W - R - 48} y1={TOP + 5} y2={TOP + 5} className="obsline" />
+          <text x={W - R - 45} y={TOP + 8} className="axis">実測潮位</text>
         </>
       )}
     </svg>
