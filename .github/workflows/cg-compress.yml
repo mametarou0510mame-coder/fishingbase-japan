@@ -1,0 +1,42 @@
+name: CG compress
+
+# CG 動画の成果物を、GitHub に置ける大きさ（95MB 以下）に圧縮して long-media ブランチの cg/ に入れる（確認用）。
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "CG video の実行 ID"
+        required: true
+      slug:
+        description: "slug"
+        required: true
+        default: cg-teibou-3d
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download and compress
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          S=${{ github.event.inputs.slug }}
+          gh run download ${{ github.event.inputs.run_id }} -n cg-$S -D /tmp/cg
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/cg/$S.mp4)
+          VB=$(python3 -c "print(int(88*8*1024/$DUR - 160))")
+          ffmpeg -y -loglevel error -i /tmp/cg/$S.mp4 -c:v libx264 -preset slow -b:v ${VB}k -pass 1 -an -f mp4 /dev/null
+          ffmpeg -y -loglevel error -i /tmp/cg/$S.mp4 -c:v libx264 -preset slow -b:v ${VB}k -pass 2 -c:a aac -b:a 160k -movflags +faststart /tmp/cg/$S-preview.mp4
+          echo "::notice::preview $(du -h /tmp/cg/$S-preview.mp4 | cut -f1) at ${VB}k"
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p cg && cp /tmp/cg/$S-preview.mp4 cg/
+          git add -A && git commit -qm "CG preview: $S" && git push origin long-media
