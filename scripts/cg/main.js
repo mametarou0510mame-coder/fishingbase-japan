@@ -553,6 +553,7 @@ function look(pos, target, fov = 50) {
 }
 const path = (a, b, k) => V(lerp(a.x, b.x, k), lerp(a.y, b.y, k), lerp(a.z, b.z, k));
 
+const extras = [];
 // ---------- ショット ----------
 // それぞれ (t: そのシーンの経過秒, d: 長さ, s: シーンの設定, k: いま何行目のナレーションか) を受け取る
 function base(night = 0) {
@@ -564,6 +565,7 @@ function base(night = 0) {
   foam.material.uniforms.show.value = 0;
   bands.children.forEach((b) => (b.material.opacity = 0));
   lamp.visible = night > 0.01;
+  extras.forEach((x) => (x.visible = false));
 }
 function hide(...xs) { xs.forEach((x) => (x.visible = false)); }
 function show(...xs) { xs.forEach((x) => (x.visible = true)); }
@@ -773,6 +775,345 @@ const SHOTS = {
     html += `<div class="big" style="top:300px;opacity:${a}"><div style="font-size:110px">ツレドキ<span style="font-size:50px;border:4px solid #fff;border-radius:12px;padding:0 12px;margin-left:12px;vertical-align:20px">関西</span></div><div style="font-size:52px;margin-top:20px">釣れる時間・釣り場・釣果をまとめてチェック</div><div style="margin-top:40px"><span style="background:#f2b630;color:#10345a;font-size:56px;padding:14px 46px;border-radius:999px">「ツレドキ関西」で検索</span></div></div>`;
   },
 };
+
+
+// =====================================================================
+// 食物連鎖（cg-shokumotsu）：プランクトン→イワシ→青物→ナブラ・鳥山
+// =====================================================================
+// プランクトン（拡大して見せる）：0=植物プランクトン（緑の輪）、1=動物プランクトン（オレンジの小さなエビ形）
+const macro = (() => {
+  const n = 900, pos = new Float32Array(n * 3), kind = new Float32Array(n), ph = new Float32Array(n);
+  const r = rng(77);
+  for (let i = 0; i < n; i++) {
+    pos[i * 3] = (r() - 0.5) * 26; pos[i * 3 + 1] = (r() - 0.5) * 8; pos[i * 3 + 2] = (r() - 0.5) * 22;
+    kind[i] = r() < 0.62 ? 0 : 1; ph[i] = r() * 100;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("kind", new THREE.BufferAttribute(kind, 1));
+  g.setAttribute("ph", new THREE.BufferAttribute(ph, 1));
+  const m = new THREE.ShaderMaterial({
+    uniforms: { ...U, showA: { value: 1 }, showB: { value: 1 }, size: { value: 0.55 } },
+    transparent: true, depthWrite: false,
+    vertexShader: `uniform float time; uniform float size; attribute float kind; attribute float ph; varying float vK; varying float vA; varying float vR;
+      void main(){ vec3 p = position; p.x += sin(time*0.25+ph)*0.8; p.y += sin(time*0.4+ph*1.3)*0.5; p.z += cos(time*0.2+ph)*0.8;
+        if (kind > 0.5) { p += vec3(sin(time*1.7+ph), sin(time*2.3+ph*2.0), cos(time*1.9+ph))*0.25; }
+        vK = kind; vR = ph;
+        vec4 mv = modelViewMatrix*vec4(p,1.); gl_PointSize = size * (kind > 0.5 ? 1.3 : 1.0) * 600.0 / -mv.z;
+        vA = clamp(1.0 - (-mv.z)/45.0, 0.0, 1.0); gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `uniform float showA; uniform float showB; uniform float time; varying float vK; varying float vA; varying float vR;
+      void main(){ vec2 q = gl_PointCoord - 0.5; float a = 0.0; vec3 c;
+        if (vK < 0.5) { // けい藻のような輪
+          float r = length(q); float ring = smoothstep(0.42,0.38,r)*smoothstep(0.28,0.32,r);
+          float ang = atan(q.y,q.x); float spokes = smoothstep(0.85,1.0,abs(sin(ang*6.0+vR)))*smoothstep(0.3,0.1,r)*smoothstep(0.02,0.08,r);
+          a = max(ring, max(spokes*0.7, smoothstep(0.32,0.2,r)*0.25)); c = vec3(0.45,1.0,0.55); a *= showA;
+        } else { // 動物プランクトン（からだ＋触角）
+          float ca = cos(vR), sa = sin(vR); q = vec2(ca*q.x - sa*q.y, sa*q.x + ca*q.y);
+          float body = smoothstep(1.0,0.8,length(vec2(q.x/0.13,(q.y+0.05)/0.26)));
+          float tail = smoothstep(1.0,0.7,length(vec2(q.x/0.04,(q.y+0.33)/0.12)));
+          float ant = smoothstep(0.03,0.0,abs(q.y - 0.22 + 0.6*q.x*q.x)) * step(abs(q.x),0.45);
+          float eye = smoothstep(0.05,0.03,length(q-vec2(0.0,0.14)));
+          a = max(max(body,tail),ant*0.9); c = mix(vec3(1.0,0.62,0.25), vec3(0.15,0.05,0.0), eye); a *= showB;
+        }
+        if (a < 0.02) discard; gl_FragColor = vec4(c, a*vA*0.95); }`,
+  });
+  const pts = new THREE.Points(g, m);
+  pts.frustumCulled = false;
+  return pts;
+})();
+world.add(macro);
+extras.push(macro);
+
+// 水しぶき（ナブラ）
+const splash = (() => {
+  const n = 2600, pos = new Float32Array(n * 3), ph = new Float32Array(n), vel = new Float32Array(n * 3);
+  const r = rng(88);
+  for (let i = 0; i < n; i++) {
+    const a = r() * 6.28, rad = Math.sqrt(r()) * 5;
+    pos[i * 3] = Math.cos(a) * rad; pos[i * 3 + 1] = 0; pos[i * 3 + 2] = Math.sin(a) * rad;
+    const sp = 0.6 + r() * 1.6;
+    vel[i * 3] = (r() - 0.5) * 1.6; vel[i * 3 + 1] = 3 + r() * 5 * sp; vel[i * 3 + 2] = (r() - 0.5) * 1.6;
+    ph[i] = r();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("vel", new THREE.BufferAttribute(vel, 3));
+  g.setAttribute("ph", new THREE.BufferAttribute(ph, 1));
+  const m = new THREE.ShaderMaterial({
+    uniforms: { ...U, power: { value: 1 } }, transparent: true, depthWrite: false,
+    vertexShader: `uniform float time; uniform float power; attribute vec3 vel; attribute float ph; varying float vA;
+      void main(){ float per = 0.9 + ph*0.6; float u = fract(time/per + ph*7.0); float tt = u*per;
+        // 塊ごとに「はねる」時間がずれる
+        float burst = step(0.35, fract(sin(floor(time/per + ph*7.0)*12.9898 + ph*78.0)*43758.5));
+        vec3 p = position + vec3(vel.x*tt, vel.y*tt*power - 4.9*tt*tt, vel.z*tt);
+        vA = burst * step(0.0, p.y) * (1.0 - u);
+        vec4 mv = modelViewMatrix*vec4(p,1.); gl_PointSize = (0.22 + ph*0.3) * 600.0 / -mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying float vA; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.15,d)*vA; if (a < 0.02) discard; gl_FragColor = vec4(vec3(1.0), a*0.9); }`,
+  });
+  const pts = new THREE.Points(g, m);
+  pts.frustumCulled = false;
+  return pts;
+})();
+world.add(splash);
+extras.push(splash);
+// 海面の白い泡（ナブラの下）
+const boil = new THREE.Mesh(
+  new THREE.CircleGeometry(6, 48).rotateX(-Math.PI / 2),
+  new THREE.ShaderMaterial({
+    uniforms: { ...U }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec2 vP; float h(vec2 p){ return fract(sin(dot(p,vec2(12.9,78.2)))*43758.5); }
+      void main(){ float r = length(vP)/6.0; float n = h(floor(vP*3.0 + vec2(time*2.0, -time*1.3)));
+        float a = smoothstep(1.0,0.2,r) * (0.35 + 0.65*smoothstep(0.4,0.8,n)) * 0.85; gl_FragColor = vec4(vec3(1.0), a); }`,
+  }),
+);
+world.add(boil);
+extras.push(boil);
+
+// 海鳥（鳥山）
+const birds = new THREE.Group();
+{
+  const r = rng(99);
+  const wingG = new THREE.BufferGeometry();
+  wingG.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0, 0, -0.18, 0, 0, 0.22, 0.95, 0, 0.02]), 3));
+  wingG.computeVertexNormals();
+  const mat = new THREE.MeshBasicMaterial({ color: 0x2a2f36, side: THREE.DoubleSide });
+  const bodyG = new THREE.CylinderGeometry(0.06, 0.1, 0.6, 6).rotateX(Math.PI / 2);
+  for (let i = 0; i < 26; i++) {
+    const b = new THREE.Group();
+    const L = new THREE.Mesh(wingG, mat), R = new THREE.Mesh(wingG, mat);
+    R.scale.x = -1;
+    b.add(L, R, new THREE.Mesh(bodyG, mat));
+    b.userData = { L, R, rad: 3 + r() * 9, h: 5 + r() * 8, sp: (0.35 + r() * 0.5) * (r() < 0.5 ? 1 : -1), ph: r() * 6.28, f: 5 + r() * 3, dive: r() };
+    b.scale.setScalar(0.75 + r() * 0.35);
+    birds.add(b);
+  }
+}
+world.add(birds);
+extras.push(birds);
+function updateBirds(T, c) {
+  birds.visible = true;
+  birds.children.forEach((b) => {
+    const u = b.userData;
+    const a = T * u.sp + u.ph;
+    // ときどき海面に向かって急降下する鳥
+    const dv = Math.max(0, Math.sin(T * 0.6 + u.dive * 20)) ** 8;
+    b.position.set(c.x + Math.cos(a) * u.rad, u.h * (1 - 0.8 * dv) + Math.sin(T + u.ph) * 0.4, c.z + Math.sin(a) * u.rad);
+    b.rotation.set(dv * 0.9, -a - (u.sp > 0 ? 0 : Math.PI), Math.sin(T * 0.8 + u.ph) * 0.25);
+    const fl = Math.sin(T * u.f + u.ph) * 0.7 * (1 - dv);
+    u.L.rotation.z = fl;
+    u.R.rotation.z = -fl;
+  });
+}
+
+// ベイトボール：小魚が球になって回る。捕食者の近くは穴があく
+const ballFish = school("イワシ", 220, 0.55, 61, { freq: 18, amp: 0.06 });
+world.add(ballFish);
+extras.push(ballFish);
+const _e = new THREE.Euler();
+function updateBall(T, c, R, tight, preds = [], speed = 1) {
+  ballFish.visible = true;
+  const { off } = ballFish.userData;
+  const tmp = new THREE.Vector3();
+  for (let i = 0; i < off.length; i++) {
+    const o = off[i];
+    const lat = (o.y * 0.5) * Math.PI * 0.9; // 緯度
+    const ang = T * speed * (0.7 + o.w * 0.3) + o.p * 3;
+    const rr = R * (0.45 + 0.55 * Math.abs(o.x)) * lerp(2.2, 1, tight);
+    tmp.set(Math.cos(ang) * Math.cos(lat) * rr, Math.sin(lat) * rr * lerp(0.5, 0.85, tight), Math.sin(ang) * Math.cos(lat) * rr);
+    if (tight < 1) tmp.x += (o.z * 6) * (1 - tight); // ばらけた群れ
+    tmp.add(c);
+    for (const p of preds) {
+      const dx = tmp.x - p.x, dy = tmp.y - p.y, dz = tmp.z - p.z;
+      const dd = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dd < 3.2 && dd > 0.01) {
+        const k = (3.2 - dd) / dd * 0.9;
+        tmp.x += dx * k; tmp.y += dy * k; tmp.z += dz * k;
+      }
+    }
+    _q.setFromEuler(_e.set(0, -ang - Math.PI / 2, Math.sin(T * 3 + o.p) * 0.1));
+    _s.setScalar(o.s);
+    _m.compose(tmp, _q, _s);
+    ballFish.setMatrixAt(i, _m);
+  }
+  ballFish.instanceMatrix.needsUpdate = true;
+}
+// 突っ込む青物（サゴシ・ハマチ）：ボールの中を直線で通り抜ける
+const raiders = school("サゴシ", 7, 2.4, 62, { freq: 12 });
+const raiders2 = school("ハマチ", 5, 2.8, 63, { freq: 10 });
+world.add(raiders, raiders2);
+extras.push(raiders, raiders2);
+function updateRaiders(mesh, T, c, period, spread, seed) {
+  mesh.visible = true;
+  const { off } = mesh.userData;
+  const out = [];
+  for (let i = 0; i < off.length; i++) {
+    const o = off[i];
+    const u = ((T / period + i / off.length + seed) % 1 + 1) % 1;
+    const a = o.p * 2 + Math.floor(T / period + i / off.length + seed) * 2.1; // 毎回ちがう向きから
+    const dir = V(Math.cos(a), (o.y) * 0.25, Math.sin(a)).normalize();
+    const along = lerp(-16, 16, u);
+    const p = V(c.x + dir.x * along + o.z * spread, Math.min(-0.7, c.y + dir.y * along + o.x * 0.4), c.z + dir.z * along + o.x * spread);
+    out.push(p);
+    _q.setFromEuler(_e.set(0, -Math.atan2(dir.z, dir.x), 0));
+    _s.setScalar(o.s);
+    _m.compose(p, _q, _s);
+    mesh.setMatrixAt(i, _m);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  return out;
+}
+
+const NC = V(8, -1.6, 40); // ナブラの場所（沖）
+function arrowCard(items, t, opts = {}) {
+  // 横に並ぶ食物連鎖の図
+  const n = items.length, w = 270, gap = 30;
+  const x0 = (W - (n * w + (n - 1) * gap)) / 2, y = opts.y ?? 300;
+  items.forEach(([name, sub, col], i) => {
+    const a = clamp01((t - (opts.t0 ?? 0.3) - i * (opts.step ?? 0.45)) / 0.35);
+    const x = x0 + i * (w + gap);
+    html += `<div class="card" style="left:${x}px;top:${y}px;width:${w - 30}px;padding:22px 15px;text-align:center;opacity:${a};transform:translateY(${(1 - a) * 30}px)">
+      <div style="height:12px;border-radius:6px;background:${col};margin-bottom:14px"></div><div style="font-size:${name.length > 6 ? 28 : 44}px;font-weight:900;line-height:1.2">${name}</div><div style="font-size:26px;color:#3a5a78;margin-top:8px">${sub}</div></div>`;
+    if (i < n - 1) html += `<div style="position:absolute;left:${x + w - 6}px;top:${y + 70}px;color:#ffd166;font-size:52px;font-weight:900;opacity:${clamp01((t - (opts.t0 ?? 0.3) - (i + 1) * (opts.step ?? 0.45)) / 0.35)};text-shadow:0 2px 8px rgba(0,0,0,.6)">▶</div>`;
+  });
+}
+
+Object.assign(SHOTS, {
+  fc_hook(t, d, s) {
+    base(0);
+    sky.visible = true;
+    const T = t;
+    show(boil); boil.position.set(NC.x, 0.06, NC.z);
+    show(splash); splash.position.set(NC.x, 0.05, NC.z); splash.material.uniforms.power.value = 1;
+    updateBirds(T, NC);
+    const dive = ease((t - d * 0.5) / (d * 0.16));
+    const k = ease(t / d);
+    const pos = V(lerp(NC.x - 22, NC.x - 14, k), lerp(2.2, -2.2, dive) + Math.sin(t * 1.4) * 0.15 * (1 - dive), lerp(NC.z + 26, NC.z + 13, k));
+    look(pos, V(NC.x, lerp(1.2, -1.6, dive), NC.z), lerp(42, 58, dive));
+    U.under.value = pos.y < 0 ? 1 : 0;
+    const preds = [...updateRaiders(raiders, T * 0.8, NC, 2.6, 0.8, 0), ...updateRaiders(raiders2, T * 0.8, NC, 3.4, 1, 0.4)];
+    updateBall(T, NC, 2.3, 1, preds, 1.4);
+    const flash = Math.max(0, 1 - Math.abs(t - d * 0.58) / 0.3);
+    if (flash > 0) html += `<div class="flash" style="opacity:${flash * 0.85}"></div>`;
+    const a = clamp01(t / 0.6) * clamp01((d * 0.5 - t) / 0.4);
+    html += `<div class="big" style="top:150px;font-size:92px;opacity:${a}">海面がわき立つ…<br><span style="color:#ffd166">この下で何が起きている？</span></div>`;
+    const b = clamp01((t - d * 0.68) / 0.5);
+    html += `<div class="big" style="top:110px;font-size:58px;opacity:${b}">プランクトンから青物まで<br>海の中の「食べる・食べられる」を3Dで</div>`;
+  },
+  fc_title(t, d) {
+    base(0);
+    const c = V(NC.x, -3.5, NC.z);
+    const ang = t * 0.12;
+    look(V(c.x + Math.sin(ang) * 16, -3.8, c.z + Math.cos(ang) * 16), c, 55);
+    updateBall(t, c, 2.4, 1, [], 1);
+    updateRaiders(raiders, t * 0.35, c, 6, 2, 0);
+    const a = clamp01(t / 0.7);
+    html += `<div class="big" style="top:290px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:124px;margin-top:26px;transform:translateY(${(1 - a) * 30}px)">海の中の食物連鎖</div><div style="font-size:60px;color:#ffd166">プランクトン → イワシ → 青物 → ナブラ</div></div>`;
+  },
+  fc_plankton(t, d, s, k) {
+    base(0);
+    show(macro);
+    macro.position.set(NC.x - 6, -3, NC.z - 4);
+    macro.material.uniforms.showA.value = k >= 1 ? 1 : 0.15;
+    macro.material.uniforms.showB.value = k >= 2 ? clamp01(1) : 0;
+    const up = k === 0 ? 1 - ease((t - 0) / 3) * 0 : 0;
+    const lookT = k === 0 ? V(NC.x - 6, 6, NC.z - 10) : V(NC.x - 6, -3, NC.z - 4);
+    const drift = ease(t / d);
+    const camP = k === 0 ? V(NC.x - 6, -6, NC.z + 6) : V(NC.x - 6 + drift * 3, -3, NC.z + 2.5 - drift * 2);
+    look(camP, lookT, k === 0 ? 70 : 50);
+    if (k === 0) label(V(NC.x - 6, 0, NC.z - 10), "太陽の光", "海の中に差しこむ", 1, "gold", 0, 160);
+    if (k >= 1) html += `<div class="lab" style="left:${k >= 2 ? 560 : 960}px;top:220px;border-color:#6dff8a">植物プランクトン<small>光で育つ（光合成）</small></div>`;
+    if (k >= 2) html += `<div class="lab gold" style="left:1360px;top:220px">動物プランクトン<small>植物プランクトンを食べる</small></div>`;
+    void up;
+  },
+  fc_iwashi(t, d, s, k) {
+    base(0);
+    show(macro, sardines);
+    macro.position.set(NC.x - 6, -3, NC.z - 4);
+    macro.material.uniforms.showA.value = 0.8;
+    macro.material.uniforms.showB.value = 1;
+    const c = V(NC.x - 16 + t * 1.6, -3, NC.z - 4);
+    updateSchool(sardines, t, c, V(4, 1, 2.5), 1);
+    look(V(c.x + 4, -2.6, c.z + 9), V(c.x + 1, -3, c.z), 52);
+    label(V(c.x, -1.8, c.z), "イワシの群れ", "プランクトンを食べる", 1, "", 0, -90);
+    if (k >= 1) label(V(c.x + 4, -3, c.z), "口を開けて泳ぐ", "水といっしょにこし取る", 1, "gold", 220, -40);
+    if (k >= 2) html += `<div class="card" style="left:120px;top:170px;width:560px"><b style="font-size:40px">群れで泳ぐ理由</b><div style="font-size:30px;margin-top:8px">1匹だけより狙われにくい、と言われます</div></div>`;
+  },
+  fc_ball(t, d, s, k) {
+    base(0);
+    const c = V(NC.x, -4, NC.z);
+    const tight = k >= 1 ? ease((t - (s._k1 ?? 0)) / 3 + 0.4) : 0.15;
+    const appear = k >= 0 ? 1 : 0;
+    const preds = updateRaiders(raiders, t * 0.3, c, 7, 3, 0.2);
+    updateBall(t, c, 2.4, tight, [], 1.1);
+    const ang = 0.6 + t * 0.06;
+    look(V(c.x + Math.sin(ang) * 9.5, -3.4, c.z + Math.cos(ang) * 9.5), c, 55);
+    label(preds[0], "サゴシ", "まわりをぐるぐる", appear, "gold", -80, -80);
+    if (k >= 1) label(V(c.x, c.y + 2.6, c.z), "ベイトボール", "小魚がボールのように固まる", 1, "", 0, -100);
+  },
+  fc_attack(t, d, s, k) {
+    base(0);
+    const c = V(NC.x, -3.6, NC.z);
+    const TT = t * 0.55; // スロー
+    const preds = [...updateRaiders(raiders, TT, c, 2.4, 0.6, 0.1), ...updateRaiders(raiders2, TT, c, 3, 0.8, 0.55)];
+    updateBall(TT, c, 2.3, 1, preds, 1.3);
+    const shake = Math.sin(t * 23) * 0.05;
+    const ang = -0.4 + t * 0.05;
+    look(V(c.x + Math.sin(ang) * 9 + shake, -3.2 + shake, c.z + Math.cos(ang) * 9), c, 56);
+    html += `<div style="position:absolute;right:60px;top:120px;font-size:34px;font-weight:900;color:#fff;background:#e3412b;padding:6px 20px;border-radius:12px;opacity:${0.6 + 0.4 * Math.sin(t * 4)}">スロー再生</div>`;
+    if (k >= 1) label(preds[0], "サゴシ・サワラ", "鋭い歯で一気に", 1, "gold", 120, -60);
+    if (k >= 2) label(preds[7] || preds[1], "ハマチ（青物）", "群れで追いこむ", 1, "red", -140, 90);
+  },
+  fc_nabura(t, d, s, k) {
+    base(0);
+    const c = V(NC.x, -1.2, NC.z);
+    const above = k >= 1;
+    show(boil, splash);
+    boil.position.set(NC.x, 0.06, NC.z);
+    splash.position.set(NC.x, 0.05, NC.z);
+    const preds = [...updateRaiders(raiders, t * 0.7, c, 2.4, 0.5, 0.1), ...updateRaiders(raiders2, t * 0.7, V(c.x, -2, c.z), 3, 0.8, 0.55)];
+    updateBall(t, c, 2.0, 1, preds, 1.5);
+    if (above) {
+      sky.visible = true;
+      U.under.value = 0;
+      updateBirds(t, NC);
+      const kk = ease((t - (s._k1 ?? 0)) / (d - (s._k1 ?? 0)));
+      look(V(NC.x - 20 + kk * 4, 3 + kk * 2, NC.z + 22 - kk * 4), V(NC.x, 3 + kk * 2.5, NC.z), 46);
+      label(V(NC.x, 0.4, NC.z), "ナブラ", "小魚が追われて海面がざわつく", 1, "gold", -260, 40);
+      if (k >= 2) label(V(NC.x + 2, 10, NC.z), "鳥山", "海鳥が小魚を狙って集まる", 1, "", 240, -20);
+    } else {
+      look(V(c.x - 9, -4.8, c.z + 7), V(c.x, 0, c.z), 62);
+      label(V(c.x, 0, c.z), "海面へ追いつめられる", "逃げ場がなくなる", 1, "red", 0, -40);
+    }
+  },
+  fc_tips(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(boil, splash);
+    boil.position.set(NC.x, 0.06, NC.z);
+    splash.position.set(NC.x, 0.05, NC.z);
+    updateBirds(t, NC);
+    updateBall(t, V(NC.x, -1.2, NC.z), 2, 1, [], 1.5);
+    look(V(-6, 4.6, 1.5), V(NC.x, 1.2, NC.z), 44);
+    const tips = [["ナブラの「進む先」に投げる", "真ん中に直接投げると群れが散ることがある、と言われます"], ["鳥山は遠くても目印になる", "鳥が海面に突っこむ所の下に小魚がいます"], ["追いかけて危ない場所に入らない", "立入禁止の場所・テトラの上には行かない"]];
+    tips.forEach(([h, sub], i) => {
+      if (k < i) return;
+      const a = clamp01((t - (s["_k" + i] ?? 0)) / 0.4);
+      html += `<div class="card" style="left:110px;top:${150 + i * 175}px;width:900px;padding:20px 30px;opacity:${a};border-left:16px solid ${i === 2 ? "#e3412b" : "#f2b630"}"><b style="font-size:44px">${i + 1}. ${h}</b><div style="font-size:28px;color:#3a5a78;margin-top:6px">${sub}</div></div>`;
+    });
+  },
+  fc_chain(t, d, s, k) {
+    base(0);
+    const c = V(NC.x, -3.6, NC.z);
+    const ang = t * 0.05;
+    updateBall(t, c, 2.4, 1, [], 1);
+    look(V(c.x + Math.sin(ang) * 18, -3.6, c.z + Math.cos(ang) * 18), c, 55);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.5 * clamp01(t / 0.6)})"></div>`;
+    html += `<div class="big" style="top:150px;font-size:64px;opacity:${clamp01(t / 0.5)}">海の中の食物連鎖</div>`;
+    arrowCard([["太陽", "光", "#ffd166"], ["植物プランクトン", "光で育つ", "#6dff8a"], ["動物プランクトン", "植物プランクトンを食べる", "#ffb066"], ["イワシ", "プランクトンを食べる", "#5fc3c9"], ["青物", "サゴシ・ハマチ", "#e3412b"], ["釣り人", "ナブラ・鳥山がサイン", "#9ab0ff"]], t, { y: 330, step: 0.5 });
+  },
+});
 
 // ---------- 1フレーム描く ----------
 let lastShot = null;

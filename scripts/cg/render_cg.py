@@ -64,6 +64,8 @@ def frame_args(timeline, total, tg, T_offset=0.0):
     if idx == len(timeline) - 1:
         dim = max(dim, 1 - (d - t) / 1.0)
     extra = {k2: v for k2, v in s.items() if k2 not in ("lines",)}
+    for i, (c0, _, _) in enumerate(it["cues"]):
+        extra[f"_k{i}"] = c0 - it["start"]  # 各セリフが始まる時刻（シーンの中の秒）
     return {
         "shot": s["type"], "t": t, "d": d, "s": extra, "k": k, "T": tg + T_offset, "cap": cap,
         "chapter": s.get("chapter") if s["type"] not in ("summary",) else "まとめ",
