@@ -979,6 +979,14 @@ function arrowCard(items, t, opts = {}) {
 }
 
 Object.assign(SHOTS, {
+  fc_thumb(t, d, s) {
+    base(0);
+    const c = V(NC.x, -3.4, NC.z);
+    const preds = [...updateRaiders(raiders, 1.1, c, 2.4, 0.6, 0.1), ...updateRaiders(raiders2, 1.9, c, 3, 0.8, 0.55)];
+    updateBall(1.1, c, 2.3, 1, preds, 1.3);
+    look(V(c.x - 1, -4.6, c.z + 9), V(c.x - 5.5, -3.2, c.z), 55);
+    html += `<div style="position:absolute;left:70px;top:230px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag || "3D再現"}</span><div style="font-size:140px;line-height:1.12;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
   fc_hook(t, d, s) {
     base(0);
     sky.visible = true;

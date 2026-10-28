@@ -111,7 +111,9 @@ def main():
     if "--thumb" in args:
         with sync_playwright() as pw:
             b, p = open_page(pw)
-            p.evaluate("o => window.frame(o)", {"shot": "thumb", "t": 0, "d": 1, "T": 12, "progress": 0})
+            src = json.load(open(f"content/cg/{slug}.json", encoding="utf-8"))
+            th = src.get("thumb_shot", {"shot": "thumb"})
+            p.evaluate("o => window.frame(o)", {"shot": th["shot"], "t": 0, "d": 1, "T": 12, "progress": 0, "s": th})
             p.evaluate("document.querySelector('.logo').style.fontSize='54px'")
             p.screenshot(path=f"{d}/thumb-full.jpg", type="jpeg", quality=95)
             b.close()
