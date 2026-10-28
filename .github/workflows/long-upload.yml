@@ -7,6 +7,11 @@ on:
     - cron: "17 9 * * *" # 18:17 JST
     - cron: "17 12 * * *" # 21:17 JST（18時に出せなかった日だけ）
   workflow_dispatch:
+    inputs:
+      force:
+        description: "今日すでに投稿していても、もう1本出す（true）"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -29,7 +34,8 @@ jobs:
         run: |
           set -o pipefail
           trap 'echo "::error::失敗した行: $BASH_COMMAND"' ERR
-          S=$(python scripts/sns/yt_long.py next)
+          F=""; [ "${{ github.event.inputs.force }}" = "true" ] && F="--force"
+          S=$(python scripts/sns/yt_long.py next $F)
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
           mkdir -p out
