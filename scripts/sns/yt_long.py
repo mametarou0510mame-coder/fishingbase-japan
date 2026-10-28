@@ -16,7 +16,10 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          # （エリア別の釣り場ガイド4本・海上釣り堀ガイドはオーナー判断で投稿しない）
          "long-weather", "long-calendar", "long-zukan", "long-jiai", "long-family",  # 海上釣り堀ガイドも投稿しない
          # 第3弾（2026-10-26。冬の夜釣りは11〜12月の事故シーズン前に出す）
-         "long-month-11", "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
+         "long-month-11",
+         # 3DCG（2026-10-28 オーナー Go）
+         "cg-teibou-3d",
+         "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
 REC = "data/sns/long-posts.json"
 
 
@@ -39,8 +42,11 @@ def main():
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
     publish = "--publish" in sys.argv
-    src = json.load(open(f"content/long/{slug}.json", encoding="utf-8"))
-    gs = [json.load(open(f"content/guides/{g}.json", encoding="utf-8")) for g in src["guides"]]
+    path = f"content/long/{slug}.json"
+    if not os.path.exists(path):
+        path = f"content/cg/{slug}.json"  # 3DCG 動画
+    src = json.load(open(path, encoding="utf-8"))
+    gs = [json.load(open(f"content/guides/{g}.json", encoding="utf-8")) for g in src.get("guides", [])]
     chapters = open(chap, encoding="utf-8").read().strip()
     desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
     gear = tackle_lines(gs)

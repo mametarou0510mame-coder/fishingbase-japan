@@ -39,4 +39,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
           mkdir -p cg && cp /tmp/cg/$S-preview.mp4 cg/
-          git add -A && git commit -qm "CG preview: $S" && git push origin long-media
+          # 投稿用：元の画質の動画を 90MB ずつに分けて、長尺動画と同じ場所（ブランチの直下）に置く
+          rm -f $S.mp4.part-*
+          split -b 90M -d -a 2 /tmp/cg/$S.mp4 $S.mp4.part-
+          cp /tmp/cg/$S.jpg $S.jpg
+          cp /tmp/cg/$S-chapters.txt $S-chapters.txt
+          git add -A && git commit -qm "CG video for upload: $S" && git push origin long-media

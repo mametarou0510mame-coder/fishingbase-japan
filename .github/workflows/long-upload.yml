@@ -33,7 +33,15 @@ jobs:
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
           mkdir -p out
-          for f in "$S.mp4" "$S.jpg" "$S-chapters.txt"; do git show "origin/long-media:$f" > "out/$f"; done
+          for f in "$S.jpg" "$S-chapters.txt"; do git show "origin/long-media:$f" > "out/$f"; done
+          # 100MB を超える動画は分割して保存してある（$S.mp4.part-00, -01 …）
+          if git cat-file -e "origin/long-media:$S.mp4" 2>/dev/null; then
+            git show "origin/long-media:$S.mp4" > "out/$S.mp4"
+          else
+            : > "out/$S.mp4"
+            for p in $(git ls-tree --name-only origin/long-media | grep "^$S.mp4.part-" | sort); do git show "origin/long-media:$p" >> "out/$S.mp4"; done
+          fi
+          [ -s "out/$S.mp4" ] || { echo "::error::動画がありません: $S"; exit 1; }
           python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish 2>&1 | tee /tmp/up.log || { echo "::error::$(tail -c 600 /tmp/up.log | tr '\n' ' ')"; exit 1; }
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
