@@ -1,0 +1,118 @@
+name: CG video
+
+# 3DCG の長尺動画を作る（three.js をヘッドレス Chromium で描く）。投稿はしない。
+# できた動画は long-media ブランチの cg/ に保存し、Actions の成果物にも残す。
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "content/cg の slug"
+        required: true
+        default: cg-teibou-3d
+      chunks:
+        description: "何分割して並列で描くか"
+        required: true
+        default: "8"
+
+permissions:
+  contents: write
+
+jobs:
+  narrate:
+    runs-on: ubuntu-latest
+    outputs:
+      idx: ${{ steps.i.outputs.json }}
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+      - name: Narrate
+        run: |
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version >/dev/null && break; sleep 5; done
+          python scripts/video/narrate.py content/cg/${{ github.event.inputs.slug }}.json
+      - id: i
+        run: echo "json=$(python3 -c "import json;print(json.dumps(list(range(int('${{ github.event.inputs.chunks }}')))))")" >> $GITHUB_OUTPUT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: narration
+          path: build/video/${{ github.event.inputs.slug }}/
+          retention-days: 3
+
+  render:
+    needs: narrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJson(needs.narrate.outputs.idx) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: narration
+          path: build/video/${{ github.event.inputs.slug }}/
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet playwright numpy pillow
+          python -m playwright install --with-deps chromium > /dev/null
+      - name: Render chunk
+        run: python scripts/cg/render_cg.py ${{ github.event.inputs.slug }} --chunk ${{ matrix.chunk }}/${{ github.event.inputs.chunks }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seg-${{ matrix.chunk }}
+          path: build/video/${{ github.event.inputs.slug }}/seg-*.mp4
+          retention-days: 3
+
+  finish:
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: narration
+          path: build/video/${{ github.event.inputs.slug }}/
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: seg-*
+          path: build/video/${{ github.event.inputs.slug }}/
+          merge-multiple: true
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet playwright numpy pillow
+          python -m playwright install --with-deps chromium > /dev/null
+      - name: Join, audio, thumbnail, stills
+        run: |
+          S=${{ github.event.inputs.slug }}
+          python scripts/cg/render_cg.py $S --finish
+          python scripts/cg/render_cg.py $S --thumb
+          python scripts/cg/render_cg.py $S --stills
+          mkdir -p out/stills
+          cp build/long/$S.mp4 build/long/$S-chapters.txt build/long/$S.meta.json out/
+          cp build/video/$S/thumb.jpg out/$S.jpg
+          cp build/video/$S/stills/*b-*.jpg out/stills/
+          echo "::notice::$S: $(du -h out/$S.mp4 | cut -f1), $(python3 -c "import json;print(json.load(open('out/$S.meta.json'))['duration'])")s"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cg-${{ github.event.inputs.slug }}
+          path: out/
+          retention-days: 14
+      - name: Save to long-media branch
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p cg && cp -r $GITHUB_WORKSPACE/out/* cg/
+          # GitHub は1ファイル100MBまで。大きい動画はブランチに入れず、成果物（artifact）だけに残す
+          find cg -name "*.mp4" -size +95M -print -delete
+          git add -A && git commit -qm "CG video: ${{ github.event.inputs.slug }}" && git push origin long-media

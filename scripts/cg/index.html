@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ツレドキCG</title>
+<style>
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: "Noto Sans CJK JP", "Noto Sans JP", sans-serif; }
+  #gl { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+  #ui { position: absolute; inset: 0; pointer-events: none; }
+  svg#lines { position: absolute; inset: 0; }
+  .lab { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; color: #fff; font-weight: 800; font-size: 34px;
+         padding: 8px 18px; border-radius: 999px; background: rgba(6, 22, 42, .78); border: 3px solid rgba(95, 195, 201, .9);
+         text-shadow: 0 2px 6px rgba(0,0,0,.5); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  .lab small { display: block; font-size: 22px; font-weight: 700; color: #bfe6ea; text-align: center; }
+  .lab.gold { border-color: #f2b630; } .lab.red { border-color: #ff5a4a; background: rgba(70, 10, 10, .82); }
+  .cap { position: absolute; left: 160px; right: 160px; bottom: 54px; text-align: center; color: #fff; font-weight: 700; font-size: 46px; line-height: 1.45;
+         padding: 20px 34px; border-radius: 26px; background: rgba(6, 22, 42, .78); backdrop-filter: blur(2px); }
+  .chapter { position: absolute; left: 70px; top: 54px; display: flex; align-items: center; gap: 14px; }
+  .chapter b { background: #e3412b; color: #fff; font-size: 30px; padding: 6px 18px; border-radius: 999px; }
+  .chapter span { color: #fff; font-size: 40px; font-weight: 900; text-shadow: 0 3px 10px rgba(0,0,0,.6); }
+  .logo { position: absolute; right: 54px; top: 50px; color: #fff; font-weight: 900; font-size: 34px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+  .logo i { font-style: normal; font-size: 20px; border: 2px solid #fff; border-radius: 6px; padding: 0 6px; margin-left: 6px; vertical-align: 4px; }
+  .big { position: absolute; left: 0; right: 0; text-align: center; color: #fff; font-weight: 900; text-shadow: 0 6px 30px rgba(0,0,0,.6), 0 0 2px #000; }
+  .tag { display: inline-block; background: #e3412b; color: #fff; font-size: 38px; padding: 8px 28px; border-radius: 999px; }
+  .ruler { position: absolute; left: 60px; top: 160px; width: 120px; }
+  .card { position: absolute; background: rgba(255,255,255,.95); color: #10345a; border-radius: 28px; padding: 26px 34px; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
+  .pin { position: absolute; transform: translate(-50%, -50%); width: 64px; height: 64px; border-radius: 50%; background: #e3412b; color: #fff; font-weight: 900; font-size: 34px;
+         display: flex; align-items: center; justify-content: center; border: 5px solid #fff; box-shadow: 0 0 0 10px rgba(227,65,43,.3); }
+  .flash { position: absolute; inset: 0; background: #fff; }
+  .vign { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,10,25,.55) 100%); }
+  .opt { display: flex; align-items: center; gap: 20px; background: #fff; border-radius: 26px; padding: 20px 30px; font-size: 44px; font-weight: 900; color: #10345a; margin-top: 22px; }
+  .opt i { font-style: normal; width: 64px; height: 64px; border-radius: 50%; background: #e3412b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 34px; }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+<canvas id="gl" width="1920" height="1080"></canvas>
+<div id="ui"><svg id="lines" width="1920" height="1080"></svg><div class="vign"></div><div id="layer"></div></div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
