@@ -1782,7 +1782,7 @@ bladeWire.position.x = -0.75;
 const bladeSpin = new THREE.Group();
 bladeSpin.position.x = -1.15;
 const bladeLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.45, 20, 10, 0, Math.PI * 2, 0, 0.6).scale(1, 0.35, 0.62), metalMat(0xffd166, 0xffd166, { holo: 0.2 }));
-bladeLeaf.rotation.z = Math.PI / 2;
+bladeLeaf.rotation.x = 0.5;
 bladeLeaf.position.set(0, 0.12, 0);
 bladeSpin.add(bladeLeaf);
 bladeGrp.add(bladeBody, bladeWire, bladeSpin);
@@ -1906,8 +1906,8 @@ Object.assign(SHOTS, {
     placeLure(jigPivot, { p: V(0, 0, 0), pitch: 0.15, roll: Math.sin(t * 0.5) * 0.6 }, LO);
     const ang = t * 0.25;
     look(V(LO.x + Math.sin(ang) * 3.2, LO.y + 0.6, LO.z + Math.cos(ang) * 3.2), LO, 48);
-    label(V(LO.x - 0.4, LO.y, LO.z), "メタルジグ", "金属のおもり（重くて遠くへ飛ぶ）", k >= 0 ? 1 : 0, "gold", -200, -120);
-    label(V(LO.x + 1.35, LO.y + 0.1, LO.z), "アシストフック", "頭側についた針", k >= 1 ? 1 : 0, "", 200, -100);
+    label(V(LO.x - 0.4, LO.y, LO.z), "メタルジグ", "金属のおもり（重くて遠くへ飛ぶ）", k >= 0 ? 1 : 0, "gold", 260, -150);
+    label(V(LO.x + 1.35, LO.y + 0.1, LO.z), "アシストフック", "頭側についた針", k >= 1 ? 1 : 0, "", -120, -110);
     if (k >= 2) label(V(LO.x, LO.y - 0.25, LO.z), "光を反射して光る", "小魚のうろこのよう", 1, "", 120, 120);
   },
   lr_jerk(t, d, s, k) {
