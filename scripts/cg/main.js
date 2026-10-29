@@ -1684,6 +1684,337 @@ Object.assign(SHOTS, {
   },
 });
 
+
+// =====================================================================
+// ルアーの動き（cg-lure）：メタルジグ・ワーム・ブレード
+// =====================================================================
+// 金属っぽい光り方（空の明るさを映す）＋背中の色
+function metalMat(back, belly, opts = {}) {
+  return new THREE.ShaderMaterial({
+    uniforms: { ...U, back: { value: new THREE.Color(back) }, belly: { value: new THREE.Color(belly) }, holo: { value: opts.holo ?? 1 } },
+    side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vW; varying vec3 vN; varying vec3 vL; void main(){ vL = position; vec4 w = modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform vec3 back; uniform vec3 belly; uniform float holo; uniform float time; ${FOG_GLSL} varying vec3 vW; varying vec3 vN; varying vec3 vL;
+      void main(){ vec3 N = normalize(vN); vec3 V = normalize(cameraPosition - vW); vec3 R = reflect(-V, N);
+        vec3 env = mix(vec3(0.05,0.18,0.28), vec3(0.85,0.97,1.0), smoothstep(-0.3, 0.8, R.y));
+        float stripe = 0.5 + 0.5*sin(vL.y*40.0 + vL.x*25.0);
+        vec3 holoC = 0.5 + 0.5*cos(6.28*(vec3(0.0,0.33,0.67) + dot(R, vec3(1.0,0.6,0.3))*1.5));
+        vec3 base = mix(belly, back, smoothstep(-0.02, 0.06, vL.x));
+        vec3 c = base*0.35 + env*0.75 + holoC*0.25*holo*stripe*smoothstep(0.06,-0.02,vL.x);
+        c += vec3(1.0)*pow(max(dot(R, normalize(vec3(0.0,1.0,0.2))),0.0), 30.0)*1.2;
+        gl_FragColor = vec4(underwater(c, vW, distance(cameraPosition, vW)), 1.0); }`,
+  });
+}
+// メタルジグ：長さ1.6、y方向が頭→尾。頭は+y
+const jig = new THREE.Group();
+{
+  const prof = [];
+  for (let i = 0; i <= 24; i++) {
+    const f = i / 24; // 0=尾 1=頭
+    const r = 0.04 + 0.2 * Math.sin(Math.PI * Math.pow(f, 0.8)) * (0.75 + 0.25 * f);
+    prof.push(new THREE.Vector2(Math.max(0.005, r), (f - 0.5) * 1.6));
+  }
+  const g = new THREE.LatheGeometry(prof, 24);
+  g.scale(1, 1, 0.42); // 平たく
+  const body = new THREE.Mesh(g, metalMat(0x1a4fd0, 0xd8dde4));
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+  eye.position.set(0.0, 0.6, 0.068);
+  const eye2 = eye.clone(); eye2.position.z = -0.068;
+  // アシストフック（頭側）
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.012, 6, 16, Math.PI * 1.3), shadedMat(0x777777, { rough: 0.05 }));
+  hook.position.set(0.04, 0.9, 0); hook.rotation.z = -1.0;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 14), shadedMat(0x999999, { rough: 0.05 }));
+  ring.position.set(0, 0.84, 0); ring.rotation.y = Math.PI / 2;
+  jig.add(body, eye, eye2, hook, ring);
+  jig.rotation.z = -Math.PI / 2; // 頭を +x に向ける
+}
+const jigPivot = new THREE.Group(); // 向きをまとめて回すための親
+jigPivot.add(jig);
+world.add(jigPivot);
+extras.push(jigPivot);
+
+// ジグヘッド＋ワーム（しっぽが揺れる）
+const wormGrp = new THREE.Group();
+const wormHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), shadedMat(0xd02a2a, { rough: 0.05 }));
+const wormEye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffee55 }));
+wormEye.position.set(0.08, 0.04, 0.1);
+const wormMat = new THREE.ShaderMaterial({
+  uniforms: { ...U },
+  side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vW; varying vec3 vN; varying vec2 vUv; void main(){ vUv = uv; vec4 w = modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `${FOG_GLSL} varying vec3 vW; varying vec3 vN; varying vec2 vUv; float h(vec2 p){ return fract(sin(dot(p,vec2(12.9,78.2)))*43758.5); }
+    void main(){ vec3 c = mix(vec3(0.75,0.95,0.25), vec3(0.95,0.9,0.75), 0.25); float diff = clamp(dot(normalize(vN), normalize(vec3(0.2,1.,0.3))),0.,1.);
+      c *= 0.45 + 0.65*diff; c += vec3(1.0,0.9,0.5) * step(0.985, h(floor(vUv*vec2(120.,10.)))) * 0.8; // ラメ
+      gl_FragColor = vec4(underwater(c, vW, distance(cameraPosition, vW)), 1.0); }`,
+});
+let wormMesh = new THREE.Mesh(new THREE.BufferGeometry(), wormMat);
+wormGrp.add(wormHead, wormEye, wormMesh);
+world.add(wormGrp);
+extras.push(wormGrp);
+function updateWorm(T, amp) {
+  const pts = [];
+  for (let i = 0; i <= 20; i++) {
+    const f = i / 20;
+    const x = -0.12 - f * 1.2;
+    const wig = Math.sin(T * 9 - f * 6) * amp * Math.pow(f, 2.2);
+    pts.push(V(x, wig * 0.6 + (f > 0.8 ? (f - 0.8) * 0.3 : 0), wig));
+  }
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const g = new THREE.TubeGeometry(curve, 40, 0.05, 8, false);
+  // 尾に向かって細く
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const seg = Math.floor(i / 9) / 40;
+    const c = curve.getPointAt(Math.min(1, seg));
+    const r = seg < 0.75 ? 1 - seg * 0.4 : 0.7 + (seg - 0.75) * 1.2; // 先はカーリーテールで少し太く
+    p.setXYZ(i, c.x + (p.getX(i) - c.x) * r, c.y + (p.getY(i) - c.y) * r, c.z + (p.getZ(i) - c.z) * r * (seg > 0.75 ? 0.35 : 1));
+  }
+  g.computeVertexNormals();
+  wormMesh.geometry.dispose();
+  wormMesh.geometry = g;
+}
+
+// ブレード（スピンテール）：本体＋回るブレード
+const bladeGrp = new THREE.Group();
+const bladeBody = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.8, 6, 12).rotateZ(Math.PI / 2).scale(1, 1, 0.5), metalMat(0x2a2a2a, 0xc8ccd0, { holo: 0.6 }));
+const bladeWire = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.6, 4).rotateZ(Math.PI / 2), shadedMat(0xaaaaaa));
+bladeWire.position.x = -0.75;
+const bladeSpin = new THREE.Group();
+bladeSpin.position.x = -1.15;
+const bladeLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.45, 20, 10, 0, Math.PI * 2, 0, 0.6).scale(1, 0.35, 0.62), metalMat(0xffd166, 0xffd166, { holo: 0.2 }));
+bladeLeaf.rotation.z = Math.PI / 2;
+bladeLeaf.position.set(0, 0.12, 0);
+bladeSpin.add(bladeLeaf);
+bladeGrp.add(bladeBody, bladeWire, bladeSpin);
+world.add(bladeGrp);
+extras.push(bladeGrp);
+
+// ルアーの動き（位置と姿勢）。x 方向に進む
+const MOTIONS = {
+  // しゃくって跳ねる→止めてヒラヒラ落ちる（1.8秒でくり返す）
+  jerk(T) {
+    const P = 1.8, n = Math.floor(T / P), c = (T % P) / P;
+    const up = c < 0.16 ? smooth01(c / 0.16) : 1;
+    const fall = c < 0.16 ? 0 : (c - 0.16) / 0.84;
+    const y = n * 0.35 + up * 1.2 - fall * 1.05;
+    const x = n * 1.1 + up * 0.9 + fall * 0.2;
+    const pitch = c < 0.16 ? 0.9 : -0.25 + Math.sin(fall * 12) * 0.25; // 跳ねる時は頭が上
+    const roll = c < 0.16 ? 0 : Math.sin(fall * 14) * 0.9; // ヒラヒラ
+    return { p: V(x, y, Math.sin(n * 2.1) * 0.3), pitch, roll, phase: c < 0.16 ? "up" : "fall" };
+  },
+  tada(T) { return { p: V(T * 2.2, Math.sin(T * 1.3) * 0.05, 0), pitch: 0, roll: Math.sin(T * 14) * 0.3, phase: "swim" }; },
+  fall(T) { return { p: V(T * 0.12, -T * 0.9, Math.sin(T * 2.2) * 0.25), pitch: -0.3 + Math.sin(T * 5) * 0.3, roll: Math.sin(T * 6) * 1.0, phase: "fall" }; },
+  hop(T) {
+    const P = 2.2, n = Math.floor(T / P), c = (T % P) / P;
+    const y = c < 0.25 ? Math.sin(c / 0.25 * Math.PI / 2) * 0.7 : 0.7 * (1 - smooth01((c - 0.25) / 0.6));
+    return { p: V(n * 0.9 + smooth01(c / 0.5) * 0.9, y, 0), pitch: c < 0.25 ? 0.5 : -0.15, roll: 0, phase: c < 0.25 ? "up" : "fall" };
+  },
+};
+function seabedY(x, z) {
+  return -9.5 - Math.max(0, z) * 0.05 + Math.sin(x * 0.21 + z * 0.13) * 0.35 + Math.sin(x * 0.07 - z * 0.19) * 0.6 + Math.sin(x * 0.9 + z * 1.3) * 0.06;
+}
+function placeLure(obj, m, origin, yawRight = true) {
+  obj.visible = true;
+  obj.position.copy(origin).add(m.p);
+  obj.rotation.set(m.roll, yawRight ? 0 : Math.PI, m.pitch, "XYZ");
+}
+// 軌跡（過去2秒の通り道）
+const lureTrail = (() => {
+  const n = 80;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute("a", new THREE.BufferAttribute(new Float32Array(n), 1));
+  const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute float a; varying float vA; void main(){ vA = a; vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = 0.12*900.0/-mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying float vA; void main(){ float d = length(gl_PointCoord-0.5); gl_FragColor = vec4(vec3(1.0,0.85,0.4)*smoothstep(0.5,0.1,d)*vA, 1.0); }` });
+  const p = new THREE.Points(g, m);
+  p.frustumCulled = false;
+  return p;
+})();
+world.add(lureTrail);
+extras.push(lureTrail);
+function updateTrail(fn, T, origin, span = 2.2) {
+  lureTrail.visible = true;
+  const pos = lureTrail.geometry.attributes.position.array, a = lureTrail.geometry.attributes.a.array;
+  const n = a.length;
+  for (let i = 0; i < n; i++) {
+    const tt = Math.max(0, T - (i / n) * span);
+    const m = fn(tt);
+    pos[i * 3] = origin.x + m.p.x; pos[i * 3 + 1] = origin.y + m.p.y; pos[i * 3 + 2] = origin.z + m.p.z;
+    a[i] = (1 - i / n) * 0.9;
+  }
+  lureTrail.geometry.attributes.position.needsUpdate = true;
+  lureTrail.geometry.attributes.a.needsUpdate = true;
+}
+const chaser = school("サゴシ", 3, 2.4, 81, { freq: 10 });
+world.add(chaser);
+extras.push(chaser);
+function chase(T, target, behind = 3, spread = 0.8) {
+  chaser.visible = true;
+  const { off } = chaser.userData;
+  for (let i = 0; i < off.length; i++) {
+    const o = off[i];
+    const p = V(target.x - behind - i * 1.6 + Math.sin(T * 2 + i) * 0.3, target.y + o.y * spread * 0.5, target.z + o.z * spread);
+    _q.setFromEuler(_e.set(0, 0, Math.sin(T * 3 + i) * 0.05));
+    _s.setScalar(o.s);
+    _m.compose(p, _q, _s);
+    chaser.setMatrixAt(i, _m);
+  }
+  chaser.instanceMatrix.needsUpdate = true;
+}
+const LO = V(-20, -6, 20); // ルアーの見せ場（沖の中層）
+function slowTag(t) { html += `<div class="slowtag" style="position:absolute;right:60px;top:120px;font-size:34px;font-weight:900;color:#fff;background:#e3412b;padding:6px 20px;border-radius:12px;opacity:${0.6 + 0.4 * Math.sin(t * 4)}">スロー再生</div>`; }
+
+Object.assign(SHOTS, {
+  lr_thumb(t, d, s) {
+    base(0);
+    const m = { p: V(0, 0, 0), pitch: 0.5, roll: 0.6 };
+    placeLure(jigPivot, m, V(LO.x + 4, LO.y + 0.4, LO.z));
+    jigPivot.scale.setScalar(1.6);
+    chase(1, V(LO.x + 4, LO.y, LO.z), 2.4, 0.4);
+    look(V(LO.x + 2.5, LO.y - 1.2, LO.z + 4.2), V(LO.x + 3.6, LO.y + 0.2, LO.z), 50);
+    html += `<div style="position:absolute;left:70px;top:230px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.12;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  lr_hook(t, d, s) {
+    base(0);
+    jigPivot.scale.setScalar(1);
+    // 下から見上げる：ヒラヒラ落ちてくるジグ
+    const T = t * 0.6;
+    const m = MOTIONS.fall(T);
+    const o = V(LO.x, LO.y + 4.5, LO.z);
+    placeLure(jigPivot, m, o);
+    const lp = jigPivot.position.clone();
+    look(V(lp.x + 1.2, lp.y - 3.4, lp.z + 2.2), lp, 58);
+    if (t > d * 0.55) chase(t, V(lp.x + lerp(-6, 1, smooth01((t - d * 0.55) / (d * 0.4))) + 2, lp.y - 0.3, lp.z), 0, 0.3);
+    slowTag(t);
+    const a = clamp01(t / 0.6) * clamp01((d * 0.5 - t) / 0.4);
+    html += `<div class="big" style="top:250px;font-size:92px;opacity:${a}">魚には、ルアーが<br><span style="color:#ffd166">こう見えている</span></div>`;
+    const b = clamp01((t - d * 0.6) / 0.5);
+    html += `<div class="big" style="top:180px;font-size:66px;opacity:${b}">ジグ・ワーム・ブレードの動きを<br>3Dスローで比べます</div>`;
+  },
+  lr_title(t, d) {
+    base(0);
+    jigPivot.scale.setScalar(1.3);
+    placeLure(jigPivot, { p: V(0, 0, 0), pitch: 0.2, roll: t * 0.8 }, V(LO.x, LO.y, LO.z));
+    look(V(LO.x + Math.sin(t * 0.3) * 4, LO.y + 0.5, LO.z + Math.cos(t * 0.3) * 4), LO, 50);
+    const a = clamp01(t / 0.7);
+    html += `<div class="big" style="top:250px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:112px;margin-top:26px">魚から見たルアーの動き</div><div style="font-size:60px;color:#ffd166">ジグ・ワーム・ブレード</div></div>`;
+  },
+  lr_parts(t, d, s, k) {
+    base(0);
+    jigPivot.scale.setScalar(1.5);
+    placeLure(jigPivot, { p: V(0, 0, 0), pitch: 0.15, roll: Math.sin(t * 0.5) * 0.6 }, LO);
+    const ang = t * 0.25;
+    look(V(LO.x + Math.sin(ang) * 3.2, LO.y + 0.6, LO.z + Math.cos(ang) * 3.2), LO, 48);
+    label(V(LO.x - 0.4, LO.y, LO.z), "メタルジグ", "金属のおもり（重くて遠くへ飛ぶ）", k >= 0 ? 1 : 0, "gold", -200, -120);
+    label(V(LO.x + 1.35, LO.y + 0.1, LO.z), "アシストフック", "頭側についた針", k >= 1 ? 1 : 0, "", 200, -100);
+    if (k >= 2) label(V(LO.x, LO.y - 0.25, LO.z), "光を反射して光る", "小魚のうろこのよう", 1, "", 120, 120);
+  },
+  lr_jerk(t, d, s, k) {
+    base(0);
+    jigPivot.scale.setScalar(1);
+    const T = t * 0.55; // スロー
+    const m = MOTIONS.jerk(T);
+    const o = V(LO.x - 6, LO.y - 1, LO.z);
+    placeLure(jigPivot, m, o);
+    updateTrail(MOTIONS.jerk, T, o);
+    const lp = jigPivot.position.clone();
+    look(V(lp.x - 0.5, lp.y + 0.3, lp.z + 4.3), V(lp.x + 0.3, lp.y, lp.z), 52);
+    slowTag(t);
+    label(V(lp.x, lp.y + 0.4, lp.z), m.phase === "up" ? "しゃくると、上へ跳ねる" : "止めると、ヒラヒラ落ちる", m.phase === "up" ? "ジャーク" : "フォール", 1, m.phase === "up" ? "" : "gold", 0, -120);
+    if (k >= 2) html += `<div class="card" style="left:110px;top:150px;width:640px"><b style="font-size:40px">弱った小魚のように見える</b><div style="font-size:30px;margin-top:8px">と言われます</div></div>`;
+  },
+  lr_tada(t, d, s, k) {
+    base(0);
+    jigPivot.scale.setScalar(1);
+    const T = t * 0.8;
+    const m = MOTIONS.tada(T);
+    const o = V(LO.x - 14, LO.y, LO.z);
+    placeLure(jigPivot, m, o);
+    updateTrail(MOTIONS.tada, T, o, 1.2);
+    const lp = jigPivot.position.clone();
+    if (k >= 1) chase(t, lp, lerp(6, 2.6, smooth01((t - (s._k1 ?? 0)) / 3)), 0.4);
+    look(V(lp.x - 2, lp.y + 0.6, lp.z + 6), V(lp.x - 1, lp.y, lp.z), 52);
+    label(V(lp.x, lp.y + 0.3, lp.z), "タダ巻き", "一定の速さで巻くだけ", k >= 0 ? 1 : 0, "", 0, -120);
+    if (k >= 1) label(V(lp.x - 3, lp.y, lp.z), "サゴシ・青物", "速い動きを追う", 1, "gold", -160, 100);
+  },
+  lr_below(t, d, s, k) {
+    base(0);
+    jigPivot.scale.setScalar(1);
+    const T = t * 0.5;
+    const m = MOTIONS.jerk(T + 0.4);
+    const o = V(LO.x - 2, LO.y + 2, LO.z);
+    placeLure(jigPivot, m, o);
+    const lp = jigPivot.position.clone();
+    look(V(lp.x - 0.6, lp.y - 4.5, lp.z + 0.8), V(lp.x, lp.y + 2, lp.z), 62);
+    slowTag(t);
+    label(lp, "下から見ると", "空の明るさを背に、影（シルエット）で見える", k >= 0 ? 1 : 0, "gold", 220, 120);
+    if (k >= 1) html += `<div class="card" style="left:110px;top:150px;width:640px"><b style="font-size:40px">フォールでキラッと光る</b><div style="font-size:30px;margin-top:8px">向きが変わるたびに光が反射する</div></div>`;
+  },
+  lr_worm(t, d, s, k) {
+    base(0);
+    show(gashira, mebaru);
+    const T = t * 0.6;
+    const m = MOTIONS.hop(T);
+    const o = V(-8, seabedY(-8, 9.5) + 0.2, 9.5);
+    placeLure(wormGrp, m, o);
+    updateWorm(t, k >= 1 ? 0.22 : 0.16);
+    updateTrail(MOTIONS.hop, T, o, 2.5);
+    const lp = wormGrp.position.clone();
+    updateSchool(gashira, t * 0.2, V(lp.x + 2.5, -9.1, 5), V(2, 0.1, 1), -1);
+    updateSchool(mebaru, t * 0.3, V(lp.x + 1.5, -7.2, 4.5), V(2, 0.6, 1), -1);
+    look(V(lp.x - 0.8, lp.y + 0.5, lp.z + 4.2), V(lp.x + 0.2, lp.y, lp.z), 50);
+    slowTag(t);
+    label(V(lp.x, lp.y + 0.25, lp.z), "ジグヘッド＋ワーム", "底をちょんちょん、ふわっと", k >= 0 ? 1 : 0, "", 0, -130);
+    if (k >= 1) label(V(lp.x - 1.1, lp.y, lp.z), "しっぽがゆれる", "ゆっくりでもよく動く", 1, "gold", -160, 90);
+    if (k >= 2) label(V(lp.x + 2.5, -9.1, 5), "ガシラ・メバル", "底や物かげの魚", 1, "", 180, -60);
+  },
+  lr_blade(t, d, s, k) {
+    base(0);
+    const T = t * 0.6;
+    const m = MOTIONS.tada(T);
+    const o = V(LO.x - 10, LO.y + 0.5, LO.z);
+    placeLure(bladeGrp, m, o);
+    bladeGrp.rotation.x = 0;
+    bladeSpin.rotation.x = t * 22; // 回転
+    updateTrail(MOTIONS.tada, T, o, 1.2);
+    const lp = bladeGrp.position.clone();
+    if (k >= 2) chase(t, lp, lerp(6, 2.8, smooth01((t - (s._k2 ?? 0)) / 2.5)), 0.4);
+    look(V(lp.x - 1.4, lp.y + 0.4, lp.z + 3.6), V(lp.x - 0.6, lp.y, lp.z), 50);
+    slowTag(t);
+    label(V(lp.x - 1.05, lp.y + 0.3, lp.z), "回るブレード", "キラキラ光る", k >= 0 ? 1 : 0, "gold", -120, -120);
+    if (k >= 1) label(V(lp.x, lp.y, lp.z), "ブルブルふるえる", "水の振動で気づかせる", 1, "", 160, 110);
+    if (k >= 2) label(V(lp.x - 3, lp.y, lp.z), "サゴシ・タチウオ", "よく使われる", 1, "", -150, 110);
+  },
+  lr_quiz(t, d, s, k) {
+    base(0);
+    jigPivot.scale.setScalar(1);
+    const T = t * 0.5;
+    const o = V(LO.x - 6, LO.y - 1, LO.z);
+    const m = MOTIONS.jerk(T);
+    placeLure(jigPivot, m, o);
+    updateTrail(MOTIONS.jerk, T, o, 3);
+    const lp = jigPivot.position.clone();
+    look(V(lp.x - 0.5, lp.y + 0.3, lp.z + 7.5), V(lp.x, lp.y, lp.z), 55);
+    const ans = k >= 2;
+    const opts = [["1", "上に跳ねた瞬間"], ["2", "ヒラヒラ落ちるフォール中"], ["3", "まっすぐ巻いている時"]];
+    html += `<div class="card" style="left:110px;top:150px;width:700px"><b style="font-size:44px">${ans ? "答え：2 フォール中" : "クイズ"}</b><div style="font-size:30px;margin-top:8px">${ans ? "ジグは、フォール中に食いつくことが<br>多いと言われます" : "ジグに魚が食いつきやすいのは？"}</div>${k >= 1 ? opts.map(([n, x]) => `<div class="opt" style="font-size:34px;padding:12px 22px;${ans && n !== "2" ? "opacity:.35" : ""}${ans && n === "2" ? ";background:#e6f7ea" : ""}"><i style="width:50px;height:50px;font-size:28px">${n}</i>${x}</div>`).join("") : ""}</div>`;
+  },
+  lr_sum(t, d, s, k) {
+    base(0);
+    jigPivot.scale.setScalar(1.2);
+    placeLure(jigPivot, { p: V(0, 0, 0), pitch: 0.2, roll: t * 0.6 }, LO);
+    look(V(LO.x + Math.sin(t * 0.2) * 5, LO.y + 0.5, LO.z + Math.cos(t * 0.2) * 5), LO, 50);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.5 * clamp01(t / 0.6)})"></div>`;
+    html += `<div class="big" style="top:130px;font-size:64px;opacity:${clamp01(t / 0.5)}">ルアーの動き まとめ</div>`;
+    const rows = [["ジグ", "跳ねる→ヒラヒラ落ちる。青物・サゴシ", "#5fc3c9"], ["ワーム", "底でふわっと、しっぽがゆれる。根魚・メバル", "#9be15d"], ["ブレード", "回って光る・ふるえる。サゴシ・タチウオ", "#f2b630"]];
+    rows.forEach(([a1, b1, col], i) => {
+      const a = clamp01((t - 0.4 - i * 0.5) / 0.35);
+      html += `<div class="card" style="left:300px;right:300px;top:${270 + i * 180}px;padding:22px 30px;opacity:${a};display:flex;align-items:center;gap:26px"><b style="background:${col};color:#06213a;font-size:42px;padding:10px 0;width:190px;text-align:center;border-radius:18px">${a1}</b><div style="font-size:38px;font-weight:900">${b1}</div></div>`;
+    });
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
