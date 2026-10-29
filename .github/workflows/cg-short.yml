@@ -12,6 +12,10 @@ on:
         description: "true で投稿する（false は作るだけ）"
         required: true
         default: "false"
+      skip_render:
+        description: "true なら作り直さず、サイトに置いてある今日の動画を投稿する"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -27,6 +31,7 @@ jobs:
 
   render:
     needs: plan
+    if: github.event.inputs.skip_render != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -54,7 +59,11 @@ jobs:
           python scripts/cg/render_cg.py $S --portrait --chunk 0/1
           python scripts/cg/render_cg.py $S --portrait --finish
           mkdir -p out
-          cp build/long/$S.mp4 out/$S.mp4
+          # サイト（Cloudflare）は1ファイル25MiBまで。22MB 以下に収める
+          D=$(ffprobe -v error -show_entries format=duration -of csv=p=0 build/long/$S.mp4)
+          VB=$(python3 -c "print(int(21*8*1024/$D - 130))")
+          ffmpeg -y -loglevel error -i build/long/$S.mp4 -c:v libx264 -preset slow -b:v ${VB}k -pass 1 -an -f mp4 /dev/null
+          ffmpeg -y -loglevel error -i build/long/$S.mp4 -c:v libx264 -preset slow -b:v ${VB}k -pass 2 -c:a aac -b:a 128k -movflags +faststart out/$S.mp4
           ffmpeg -y -loglevel error -ss 12 -i out/$S.mp4 -frames:v 1 -q:v 2 out/$S.jpg
           echo "::notice::$S: $(du -h out/$S.mp4 | cut -f1), $(python3 -c "import json;print(json.load(open('build/long/$S.meta.json'))['duration'])")s"
       - uses: actions/upload-artifact@v4
@@ -65,11 +74,13 @@ jobs:
 
   publish:
     needs: render
+    if: always() && (needs.render.result == 'success' || needs.render.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
+        if: github.event.inputs.skip_render != 'true'
         with:
           pattern: short-*
           path: /tmp/short
@@ -80,8 +91,10 @@ jobs:
           IDS=""
           for S in ${{ github.event.inputs.slugs }}; do
             ID=$(python scripts/sns/cg_short.py id $S)
-            cp /tmp/short/$S.mp4 public/sns/$ID.mp4
-            cp /tmp/short/$S.jpg public/sns/$ID.jpg
+            if [ -f /tmp/short/$S.mp4 ]; then
+              cp /tmp/short/$S.mp4 public/sns/$ID.mp4
+              cp /tmp/short/$S.jpg public/sns/$ID.jpg
+            fi
             IDS="$IDS $S:$ID"
           done
           echo "ids=$IDS" >> $GITHUB_OUTPUT
