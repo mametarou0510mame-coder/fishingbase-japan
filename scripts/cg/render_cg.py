@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "video"))
 FPS = int(os.environ.get("CG_FPS", "24"))
 LEAD, GAP, TAIL = 0.6, 0.45, 0.9
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PORTRAIT = "--portrait" in sys.argv  # 縦（ショート・リール）
+VW, VH = (1080, 1920) if PORTRAIT else (1920, 1080)
 FLAGS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
 
 
@@ -49,9 +51,10 @@ def frame_args(timeline, total, tg, T_offset=0.0):
     t = tg - it["start"]
     d = it["end"] - it["start"]
     k, cap = 0, ""
+    kmap = s.get("kmap")  # ショート用：セリフの番号 → 本編のラベル番号
     for i, (c0, c1, ln) in enumerate(it["cues"]):
         if tg >= c0 - 0.05:
-            k = i
+            k = kmap[i] if kmap else i
         if c0 - 0.05 <= tg <= c1 + GAP:
             cap = ln["text"]
     if s.get("nocap"):
@@ -65,7 +68,8 @@ def frame_args(timeline, total, tg, T_offset=0.0):
         dim = max(dim, 1 - (d - t) / 1.0)
     extra = {k2: v for k2, v in s.items() if k2 not in ("lines",)}
     for i, (c0, _, _) in enumerate(it["cues"]):
-        extra[f"_k{i}"] = c0 - it["start"]  # 各セリフが始まる時刻（シーンの中の秒）
+        kk = kmap[i] if kmap else i
+        extra.setdefault(f"_k{kk}", c0 - it["start"])  # 各セリフが始まる時刻（シーンの中の秒）
     return {
         "shot": s["type"], "t": t, "d": d, "s": extra, "k": k, "T": tg + T_offset, "cap": cap,
         "chapter": s.get("chapter") if s["type"] not in ("summary",) else "まとめ",
@@ -88,9 +92,9 @@ def serve():
 def open_page(pw):
     port = serve()
     b = pw.chromium.launch(args=FLAGS)
-    p = b.new_page(viewport={"width": 1920, "height": 1080})
+    p = b.new_page(viewport={"width": VW, "height": VH})
     p.on("pageerror", lambda e: print("pageerror:", e, flush=True))
-    p.goto(f"http://127.0.0.1:{port}/scripts/cg/index.html")
+    p.goto(f"http://127.0.0.1:{port}/scripts/cg/index.html" + ("?portrait" if PORTRAIT else ""))
     p.wait_for_function("window.frame && window.ready", timeout=120000)
     p.evaluate("window.ready")
     p.evaluate("document.fonts.ready")

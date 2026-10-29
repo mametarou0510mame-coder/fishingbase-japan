@@ -1,0 +1,121 @@
+name: CG short
+
+# 3DCG 動画のショート版（縦 1080x1920）を作り、Instagram リールと YouTube ショートに投稿する。
+on:
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: "content/cg の short-* の slug（空白区切り）"
+        required: true
+        default: "short-cg-teibou-3d short-cg-shokumotsu"
+      publish:
+        description: "true で投稿する（false は作るだけ）"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.s.outputs.json }}
+    steps:
+      - id: s
+        run: echo "json=$(python3 -c "import json,sys;print(json.dumps(sys.argv[1].split()))" "${{ github.event.inputs.slugs }}")" >> $GITHUB_OUTPUT
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        slug: ${{ fromJson(needs.plan.outputs.slugs) }}
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet playwright numpy pillow
+          python -m playwright install --with-deps chromium > /dev/null
+      - name: Narrate and render
+        run: |
+          S=${{ matrix.slug }}
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version >/dev/null && break; sleep 5; done
+          python scripts/video/narrate.py content/cg/$S.json
+          python scripts/cg/render_cg.py $S --portrait --chunk 0/1
+          python scripts/cg/render_cg.py $S --portrait --finish
+          mkdir -p out
+          cp build/long/$S.mp4 out/$S.mp4
+          ffmpeg -y -loglevel error -ss 12 -i out/$S.mp4 -frames:v 1 -q:v 2 out/$S.jpg
+          echo "::notice::$S: $(du -h out/$S.mp4 | cut -f1), $(python3 -c "import json;print(json.load(open('build/long/$S.meta.json'))['duration'])")s"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: short-${{ matrix.slug }}
+          path: out/
+          retention-days: 7
+
+  publish:
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: short-*
+          path: /tmp/short
+          merge-multiple: true
+      - name: Put videos on the site
+        id: put
+        run: |
+          IDS=""
+          for S in ${{ github.event.inputs.slugs }}; do
+            ID=$(python scripts/sns/cg_short.py id $S)
+            cp /tmp/short/$S.mp4 public/sns/$ID.mp4
+            cp /tmp/short/$S.jpg public/sns/$ID.jpg
+            IDS="$IDS $S:$ID"
+          done
+          echo "ids=$IDS" >> $GITHUB_OUTPUT
+          [ "${{ github.event.inputs.publish }}" = "true" ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A public/sns
+          git commit -qm "3DCGショート動画" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+          exit 1
+      - name: Publish
+        if: github.event.inputs.publish == 'true'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          git pull -q origin main
+          N=0
+          for P in ${{ steps.put.outputs.ids }}; do
+            [ $N -gt 0 ] && sleep 120
+            python scripts/sns/cg_short.py publish ${P%%:*} ${P##*:} || F=1
+            N=$((N+1))
+          done
+          exit ${F:-0}
+      - name: Save posting record
+        if: always() && github.event.inputs.publish == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -qm "3DCGショートの投稿記録"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+          exit 1

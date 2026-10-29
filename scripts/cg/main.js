@@ -1,7 +1,14 @@
 // ツレドキCG：堤防の海の中を3Dで見せる。フレームごとに window.frame(...) を呼ぶと、その瞬間の絵を描く（時間で決まる＝何度描いても同じ絵）。
 import * as THREE from "three";
 
-const W = 1920, H = 1080;
+// ?portrait で縦（ショート・リール用 1080x1920）
+const PORTRAIT = /portrait/.test(location.search);
+const W = PORTRAIT ? 1080 : 1920, H = PORTRAIT ? 1920 : 1080;
+if (PORTRAIT) {
+  document.body.classList.add("portrait");
+  document.getElementById("lines").setAttribute("width", W);
+  document.getElementById("lines").setAttribute("height", H);
+}
 const canvas = document.getElementById("gl");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(1);
@@ -12,6 +19,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 600);
+camera.aspect = W / H;
 const U = { time: { value: 0 }, night: { value: 0 }, under: { value: 1 }, fogDensity: { value: 0.035 }, fogColor: { value: new THREE.Color(0x0d4a6e) } };
 
 // ---------- 乱数（毎回同じ） ----------
@@ -538,7 +546,7 @@ function label(world3, text, sub, a, cls = "", dx = 0, dy = -110) {
   if (a <= 0.01) return;
   const p = project(world3);
   if (p.behind) return;
-  const lx = p.x + dx, ly = p.y + dy;
+  const lx = Math.max(PORTRAIT ? 170 : 0, Math.min(W - (PORTRAIT ? 170 : 0), p.x + dx * (PORTRAIT ? 0.6 : 1))), ly = p.y + dy;
   lines += `<line x1="${p.x}" y1="${p.y}" x2="${lx}" y2="${ly}" stroke="rgba(255,255,255,${0.85 * a})" stroke-width="3"/><circle cx="${p.x}" cy="${p.y}" r="${8 * a}" fill="rgba(255,255,255,${a})"/>`;
   html += `<div class="lab ${cls}" style="left:${lx}px;top:${ly}px;opacity:${a};transform:translate(-50%,-100%) scale(${0.85 + 0.15 * a})">${text}${sub ? `<small>${sub}</small>` : ""}</div>`;
 }
@@ -546,7 +554,8 @@ function label(world3, text, sub, a, cls = "", dx = 0, dy = -110) {
 // ---------- カメラ ----------
 function look(pos, target, fov = 50) {
   camera.position.copy(pos);
-  camera.fov = fov;
+  // 縦画面では、横の見える範囲が横画面の時と同じくらいになるように広げる
+  camera.fov = PORTRAIT ? Math.min(88, (2 * Math.atan(Math.tan((fov * Math.PI) / 360) / (W / H) * 0.85) * 180) / Math.PI) : fov;
   camera.updateProjectionMatrix();
   camera.lookAt(target);
   camera.updateMatrixWorld(true);
@@ -979,6 +988,17 @@ function arrowCard(items, t, opts = {}) {
 }
 
 Object.assign(SHOTS, {
+  short_end(t, d, s) {
+    base(0);
+    const c = V(NC.x, -3.6, NC.z);
+    updateBall(t, c, 2.4, 1, [], 1);
+    updateRaiders(raiders, t * 0.35, c, 6, 2, 0);
+    const ang = t * 0.1;
+    look(V(c.x + Math.sin(ang) * 15, -3.8, c.z + Math.cos(ang) * 15), c, 55);
+    const a = clamp01(t / 0.5);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.45 * a})"></div>`;
+    html += `<div class="big" style="top:520px;opacity:${a}"><div style="font-size:70px">くわしくは</div><div style="font-size:104px;color:#ffd166">フル版で公開中</div><div style="font-size:46px;margin-top:24px">${s.full || ""}</div><div style="margin-top:60px;font-size:92px">ツレドキ<span style="font-size:44px;border:4px solid #fff;border-radius:12px;padding:0 10px;margin-left:10px;vertical-align:16px">関西</span></div></div>`;
+  },
   fc_thumb(t, d, s) {
     base(0);
     const c = V(NC.x, -3.4, NC.z);
@@ -1068,7 +1088,7 @@ Object.assign(SHOTS, {
     const shake = Math.sin(t * 23) * 0.05;
     const ang = -0.4 + t * 0.05;
     look(V(c.x + Math.sin(ang) * 9 + shake, -3.2 + shake, c.z + Math.cos(ang) * 9), c, 56);
-    html += `<div style="position:absolute;right:60px;top:120px;font-size:34px;font-weight:900;color:#fff;background:#e3412b;padding:6px 20px;border-radius:12px;opacity:${0.6 + 0.4 * Math.sin(t * 4)}">スロー再生</div>`;
+    html += `<div class="slowtag" style="position:absolute;right:60px;top:120px;font-size:34px;font-weight:900;color:#fff;background:#e3412b;padding:6px 20px;border-radius:12px;opacity:${0.6 + 0.4 * Math.sin(t * 4)}">スロー再生</div>`;
     if (k >= 1) label(preds[0], "サゴシ・サワラ", "鋭い歯で一気に", 1, "gold", 120, -60);
     if (k >= 2) label(preds[7] || preds[1], "ハマチ（青物）", "群れで追いこむ", 1, "red", -140, 90);
   },

@@ -30,6 +30,15 @@
   .vign { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,10,25,.55) 100%); }
   .opt { display: flex; align-items: center; gap: 20px; background: #fff; border-radius: 26px; padding: 20px 30px; font-size: 44px; font-weight: 900; color: #10345a; margin-top: 22px; }
   .opt i { font-style: normal; width: 64px; height: 64px; border-radius: 50%; background: #e3412b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 34px; }
+  body.portrait, html:has(body.portrait) { width: 1080px; height: 1920px; }
+  body.portrait #gl { width: 1080px; height: 1920px; }
+  body.portrait .cap { left: 40px; right: 40px; bottom: 430px; font-size: 44px; padding: 18px 26px; }
+  body.portrait .big { zoom: .8; padding: 330px 30px 0; }
+  body.portrait .card { zoom: .9; margin-top: 240px; }
+  body.portrait .slowtag { top: 260px !important; }
+  body.portrait .chapter { top: 150px; left: 40px; }
+  body.portrait .logo { top: 150px; right: 40px; }
+  body.portrait .lab { font-size: 32px; }
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head>
