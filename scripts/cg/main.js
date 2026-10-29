@@ -20,7 +20,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 600);
 camera.aspect = W / H;
-const U = { time: { value: 0 }, night: { value: 0 }, under: { value: 1 }, fogDensity: { value: 0.035 }, fogColor: { value: new THREE.Color(0x0d4a6e) } };
+const U = { wave: { value: new THREE.Vector3(200, 0, 6) }, chop: { value: 0 }, time: { value: 0 }, night: { value: 0 }, under: { value: 1 }, fogDensity: { value: 0.035 }, fogColor: { value: new THREE.Color(0x0d4a6e) } };
 
 // ---------- 乱数（毎回同じ） ----------
 function rng(seed) {
@@ -166,8 +166,11 @@ function makeSurface() {
     transparent: true,
     side: THREE.DoubleSide,
     depthWrite: false,
-    vertexShader: `uniform float time; varying vec3 vW; varying float vH;
+    vertexShader: `uniform float time; uniform vec3 wave; uniform float chop; varying vec3 vW; varying float vH;
       void main(){ vec3 p = position; float h = sin(p.x*0.18+time*1.1)*0.18 + sin(p.z*0.23-time*0.9)*0.16 + sin((p.x+p.z)*0.5+time*1.7)*0.05;
+        h *= 1.0 + chop*2.5; h += chop*0.35*sin(p.x*0.9+p.z*0.7+time*2.3);
+        // 大きな波（高波）：wave.x=波の位置(z)、wave.y=高さ、wave.z=幅
+        h += wave.y * exp(-pow((p.z - wave.x)/wave.z, 2.0)) * (0.85 + 0.15*sin(p.x*0.08));
         p.y += h; vH=h; vec4 w = modelMatrix*vec4(p,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
     fragmentShader: `uniform float time; uniform float night; uniform float under; varying vec3 vW; varying float vH;
       void main(){
@@ -191,6 +194,7 @@ function makeSurface() {
           vec3 deep = vec3(0.02,0.16,0.26);
           vec3 c = mix(deep, skyc, clamp(fres*1.4, 0.0, 1.0));
           c += vec3(1.0,0.85,0.6) * pow(max(dot(R, normalize(vec3(-0.6,0.12,0.8))), 0.0), 120.0) * 2.5;
+          c = mix(c, vec3(0.92,0.95,0.97), smoothstep(1.1, 2.4, vH) * 0.85); // 高波の白い波頭
           c *= mix(1.0, 0.2, night);
           gl_FragColor = vec4(c, 0.96);
         }
@@ -576,6 +580,8 @@ function base(night = 0) {
   bands.children.forEach((b) => (b.material.opacity = 0));
   lamp.visible = night > 0.01;
   extras.forEach((x) => (x.visible = false));
+  U.wave.value.set(200, 0, 6);
+  U.chop.value = 0;
 }
 function hide(...xs) { xs.forEach((x) => (x.visible = false)); }
 function show(...xs) { xs.forEach((x) => (x.visible = true)); }
@@ -1427,6 +1433,253 @@ Object.assign(SHOTS, {
     rows.forEach(([a1, b1, col], i) => {
       const a = clamp01((t - 0.4 - i * 0.5) / 0.35);
       html += `<div class="card" style="left:360px;right:360px;top:${270 + i * 180}px;padding:22px 30px;opacity:${a};display:flex;align-items:center;gap:26px"><b style="background:${col};color:#06213a;font-size:42px;padding:10px 0;width:190px;text-align:center;border-radius:18px">${a1}</b><div style="font-size:40px;font-weight:900">${b1}</div></div>`;
+    });
+  },
+});
+
+
+// =====================================================================
+// 堤防の危険（cg-kiken）：高波・転落・テトラ・夜・釣り針
+// =====================================================================
+// 人の形（顔のないマネキン）。vest=ライフジャケット
+function mannequin(color = 0x8f9aa6, vest = true) {
+  const g = new THREE.Group();
+  const m = shadedMat(color, { rough: 0.05 });
+  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.85, 10), m); legL.position.set(-0.13, 0.43, 0);
+  const legR = legL.clone(); legR.position.x = 0.13;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.75, 14), m); body.position.y = 1.22;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), m); head.position.y = 1.8;
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), shadedMat(0x2c3e50)); cap.position.y = 1.83;
+  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.7, 8), m); armL.position.set(-0.32, 1.2, 0); armL.rotation.z = 0.15;
+  const armR = armL.clone(); armR.position.x = 0.32; armR.rotation.z = -0.15;
+  g.add(legL, legR, body, head, cap, armL, armR);
+  if (vest) {
+    const v = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.27, 0.5, 14), shadedMat(0xff7a1a, { rough: 0.05 })); v.position.y = 1.3;
+    g.add(v);
+    g.userData.vest = v;
+  }
+  g.userData.armR = armR;
+  return g;
+}
+const man = mannequin();
+const man2 = mannequin(0x7d8a96, true);
+world.add(man, man2);
+extras.push(man, man2);
+// 竿と糸
+const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.035, 3, 6).translate(0, 1.5, 0), shadedMat(0x222222));
+world.add(rod);
+extras.push(rod);
+const lineGeo = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 24 }, () => V(0, 0, 0)));
+const fishLine = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+fishLine.frustumCulled = false;
+world.add(fishLine);
+extras.push(fishLine);
+// 海藻・コケのついたスロープ
+const slope = new THREE.Mesh(
+  new THREE.BoxGeometry(12, 0.5, 14),
+  new THREE.ShaderMaterial({
+    uniforms: { ...U },
+    vertexShader: `varying vec3 vW; varying vec3 vN; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform float time; ${FOG_GLSL} varying vec3 vW; varying vec3 vN; float h(vec2 p){ return fract(sin(dot(p,vec2(12.9,78.2)))*43758.5); }
+      void main(){ float wet = smoothstep(1.6, -0.2, vW.y); vec3 c = mix(vec3(0.62,0.64,0.62), mix(vec3(0.12,0.32,0.1), vec3(0.3,0.5,0.15), h(floor(vW.xz*4.))), wet);
+        float diff = clamp(dot(vN, normalize(vec3(0.3,1.,0.4))),0.,1.); c *= 0.4 + 0.7*diff;
+        vec3 V = normalize(cameraPosition - vW); vec3 R = reflect(-normalize(vec3(-0.6,0.5,0.8)), vN); c += vec3(1.)*pow(max(dot(R,V),0.),40.)*0.6*wet;
+        gl_FragColor = vec4(underwater(c, vW, distance(cameraPosition,vW)), 1.); }`,
+  }),
+);
+slope.position.set(-45, -1.6, 4);
+slope.rotation.x = 0.42;
+world.add(slope);
+extras.push(slope);
+// ヘッドライトの光
+const headCone = new THREE.Mesh(
+  new THREE.ConeGeometry(1.4, 5, 32, 1, true).translate(0, -2.5, 0),
+  new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+);
+world.add(headCone);
+extras.push(headCone);
+// 投げた仕掛けの軌跡
+function placeMan(m, x, z, yaw = 0) { m.visible = true; m.position.set(x, 3.1, z); m.rotation.set(0, yaw, 0); }
+function warnRing(p, a, txt) {
+  if (a <= 0) return;
+  const q = project(p);
+  html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;width:180px;height:180px;transform:translate(-50%,-50%) scale(${0.8 + 0.2 * Math.sin(U.time.value * 6)});border:10px solid #e3412b;border-radius:50%;opacity:${a}"></div>`;
+  if (txt) html += `<div class="lab red" style="left:${q.x}px;top:${q.y - 110}px;opacity:${a}">${txt}</div>`;
+}
+function dangerCard(title, body, a, top = 150) {
+  html += `<div class="card" style="left:110px;top:${top}px;width:760px;opacity:${a};border-left:18px solid #e3412b"><b style="font-size:46px;color:#c62828">⚠ ${title}</b><div style="font-size:31px;margin-top:8px;line-height:1.45">${body}</div></div>`;
+}
+function okCard(title, body, a, top = 150) {
+  html += `<div class="card" style="left:110px;top:${top}px;width:760px;opacity:${a};border-left:18px solid #2aa84a"><b style="font-size:46px;color:#1e7a36">◯ ${title}</b><div style="font-size:31px;margin-top:8px;line-height:1.45">${body}</div></div>`;
+}
+
+Object.assign(SHOTS, {
+  kk_thumb(t, d, s) {
+    base(0.15);
+    sky.visible = true;
+    U.under.value = 0;
+    U.chop.value = 0.8;
+    U.wave.value.set(4, 3.2, 5);
+    placeMan(man, -3, -3, Math.PI);
+    show(splash); splash.position.set(-2, 2.6, 1); splash.material.uniforms.power.value = 1.6;
+    look(V(14, 5, 22), V(-3, 2.5, 0), 55);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1100px;background:linear-gradient(90deg,rgba(40,4,4,.7),rgba(0,0,0,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:230px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.12;margin-top:30px;-webkit-text-stroke:3px #3a0606">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  kk_hook(t, d, s) {
+    base(0.25);
+    sky.visible = true;
+    U.under.value = 0;
+    U.chop.value = 0.6;
+    // 大きな波が堤防に近づき、上をこえる
+    const wz = lerp(60, -2, smooth01((t - 1) / (d * 0.55)));
+    const amp = lerp(1.2, 3.4, smooth01((t - 1) / (d * 0.55)));
+    U.wave.value.set(wz, amp, 4.5);
+    placeMan(man, -3, -6, Math.PI);
+    const hit = smooth01((t - d * 0.55) / 0.4) * (1 - smooth01((t - d * 0.9) / 0.5));
+    if (hit > 0) { show(splash); splash.position.set(-3, 2.4, 1); splash.material.uniforms.power.value = 1.8 * hit + 0.3; }
+    look(path(V(18, 4, 30), V(10, 5, 16), ease(t / d)), V(-3, 2, 2), 55);
+    const a = clamp01(t / 0.6) * clamp01((d * 0.5 - t) / 0.4);
+    html += `<div class="big" style="top:250px;font-size:88px;opacity:${a}">晴れていても、<br><span style="color:#ff8a7a">突然やってくる危険</span></div>`;
+    const b = clamp01((t - d * 0.62) / 0.4);
+    html += `<div class="big" style="top:200px;font-size:72px;opacity:${b}">冬の堤防の危険5つを<br>3DCGで再現</div>`;
+  },
+  kk_title(t, d) {
+    base(0.2);
+    sky.visible = true;
+    U.under.value = 0;
+    U.chop.value = 0.5;
+    placeMan(man, -3, -6, Math.PI);
+    const ang = t * 0.06;
+    look(V(Math.sin(ang) * 30, 8, 30 + Math.cos(ang) * 4), V(0, 1.5, 0), 55);
+    const a = clamp01(t / 0.7);
+    html += `<div style="position:absolute;inset:0;background:rgba(30,4,4,${0.35 * a})"></div>`;
+    html += `<div class="big" style="top:290px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:120px;margin-top:26px">冬の堤防 危険5つ</div><div style="font-size:60px;color:#ffd166">知っていれば、防げる事故がある</div></div>`;
+  },
+  kk_wave(t, d, s, k) {
+    base(0.2);
+    sky.visible = true;
+    U.under.value = 0;
+    U.chop.value = 0.7;
+    const cyc = (t % 7) / 7;
+    U.wave.value.set(lerp(55, -2, smooth01(cyc / 0.8)), lerp(1.4, 3.3, smooth01(cyc / 0.8)), 4.5);
+    const hit = cyc > 0.78 ? Math.sin((cyc - 0.78) / 0.22 * Math.PI) : 0;
+    if (hit > 0) { show(splash); splash.position.set(-1, 2.4, 1); splash.material.uniforms.power.value = 1.7 * hit + 0.2; }
+    placeMan(man, k >= 2 ? -3 : 0, k >= 2 ? -8 : -0.8, Math.PI);
+    look(V(-16, 6, 22), V(0, 2, 0), 55);
+    if (k < 2) warnRing(V(0, 4, -0.8), k >= 1 ? 1 : 0, "海側のふちは波をかぶる");
+    if (k >= 0 && k < 2) dangerCard("高波・うねり", "晴れていても、遠くの低気圧などの影響で<br>大きな波が来ることがある", 1);
+    if (k >= 2) okCard("こうする", "波をかぶった跡（ぬれた所）には近づかない<br>天気・波の予報を見て、荒れる日は行かない", 1);
+  },
+  kk_fall(t, d, s, k) {
+    base(0);
+    sky.visible = k < 1;
+    U.under.value = k >= 1 ? 1 : 0;
+    U.chop.value = 0.3;
+    show(slope);
+    placeMan(man, -38, -2, Math.PI * 0.5);
+    if (k === 0) {
+      look(V(-30, 5, 16), V(-44, -0.5, 4), 52);
+      warnRing(V(-45, -0.6, 3.2), 1, "海藻・コケでとても滑る");
+      dangerCard("転落", "ぬれたコンクリートやスロープは<br>とても滑りやすい", 1);
+    } else {
+      // 水の中から見た堤防の高さ
+      look(V(-20, -4.5, 22), V(-20, -3.5, 0), 62);
+      html += `<div style="position:absolute;left:1500px;top:170px;width:14px;height:720px;background:linear-gradient(#5fc3c9,#0a3a5a);border-radius:7px"></div>`;
+      html += `<div class="lab" style="left:1507px;top:170px;transform:translate(-50%,-110%)">海面</div><div class="lab red" style="left:1507px;top:890px;transform:translate(-50%,0)">底（数m〜10m以上）</div>`;
+      if (k >= 1) dangerCard("足は着かない", "堤防の足元でも水深は深いことが多い<br>冬の海は冷たく、体が動きにくくなる", 1);
+      if (k >= 2) okCard("こうする", "ライフジャケットを必ず着る<br>滑りにくい靴をはく・スロープに降りない", 1, 470);
+    }
+  },
+  kk_tetra(t, d, s, k) {
+    base(0);
+    sky.visible = k < 1;
+    U.under.value = k >= 1 ? 1 : 0;
+    if (k === 0) {
+      look(V(36, 7, 22), V(42, 0, 4), 55);
+      warnRing(V(41, 1.5, 5), 1, "テトラの上");
+      dangerCard("テトラポッド", "丸くて滑りやすく、<br>足を置ける場所が少ない", 1);
+    } else {
+      look(path(V(38, -2, 12), V(40, -6, 6), ease((t - (s._k1 ?? 0)) / 5)), V(42, -8, 2), 64);
+      if (k >= 1) dangerCard("すき間は深くて暗い", "落ちると自力で上がるのが難しい<br>外から見つけてもらいにくい", 1);
+      if (k >= 2) okCard("こうする", "テトラには乗らない<br>立入禁止の場所には絶対に入らない", 1, 470);
+    }
+  },
+  kk_night(t, d, s, k) {
+    base(0.92);
+    sky.visible = true;
+    U.under.value = 0;
+    placeMan(man, -6, -1.2, Math.PI);
+    const lit = k >= 2;
+    if (lit) { show(headCone); headCone.position.set(-6, 4.9, -0.9); headCone.rotation.set(0.7, 0, 0); }
+    look(V(-12, 6.5, 12), V(-6, 2.6, -1), 55);
+    if (k < 2) warnRing(V(-6, 3.1, 0.2), k >= 1 ? 1 : 0, "ふちが見えない");
+    if (k >= 0 && k < 2) dangerCard("夜の堤防", "足元のふち・段差・ロープが見えにくい<br>冬は日が暮れるのが早い", 1);
+    if (lit) okCard("こうする", "ヘッドライトで足元を照らす<br>明るいうちに場所を下見しておく", 1);
+  },
+  kk_cast(t, d, s, k) {
+    base(0.05);
+    sky.visible = true;
+    U.under.value = 0;
+    placeMan(man, 0, -4, Math.PI);
+    if (k >= 1) placeMan(man2, 1.2, -8.2, Math.PI);
+    // 竿を後ろへふりかぶって、前へ投げる（4秒でくり返す）
+    const c = (t % 4) / 4;
+    const back = c < 0.45 ? smooth01(c / 0.45) : 1 - smooth01((c - 0.45) / 0.12);
+    const ang = lerp(-0.4, 1.35, back); // 0=前、+ が後ろ
+    const base3 = V(0.3, 4.3, -4);
+    rod.visible = true;
+    rod.position.copy(base3);
+    rod.rotation.set(-ang, 0, 0);
+    const tip = V(0.3, 4.3 + Math.cos(ang) * 3, -4 - Math.sin(ang) * 3);
+    // 仕掛け：後ろでは竿先からぶら下がり、前へ投げると飛んでいく
+    let lure;
+    if (c < 0.57) lure = V(tip.x, tip.y - 1.2 + back * 0.4, tip.z - back * 1.6);
+    else { const f = (c - 0.57) / 0.43; lure = V(tip.x, tip.y + Math.sin(f * Math.PI) * 4 - f * 3, tip.z + f * 26); }
+    const pts = []; for (let i = 0; i < 24; i++) { const f = i / 23; pts.push(V(lerp(tip.x, lure.x, f), lerp(tip.y, lure.y, f) - Math.sin(f * Math.PI) * 0.6, lerp(tip.z, lure.z, f))); }
+    fishLine.visible = true;
+    fishLine.geometry.setFromPoints(pts);
+    look(V(5.5, 5.4, -0.5), V(0.3, 4.6, -5.5), 55);
+    if (k >= 1) warnRing(V(1.2, 4.5, -8.2), 1, "後ろに人がいたら…");
+    if (k >= 0 && k < 2) dangerCard("釣り針", "投げる時、針が後ろの人や<br>自分に刺さることがある", 1);
+    if (k >= 2) okCard("こうする", "投げる前に後ろと横を確認<br>帽子・サングラスで頭と目を守る", 1);
+  },
+  kk_vest(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    placeMan(man, 0, -4, Math.PI * 0.85);
+    const ang = t * 0.25;
+    look(V(Math.sin(ang) * 4, 4.8, -4 + Math.cos(ang) * 4), V(0, 4.2, -4), 45);
+    label(V(0, 4.5, -4), "ライフジャケット", "", 1, "gold", 260, -60);
+    okCard("ライフジャケット", "落ちても浮いていられる<br>渡船で沖堤防に渡る時は、桜マーク付き（国の安全基準に合ったもの）の着用を求められることが多い", 1);
+  },
+  kk_118(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    U.chop.value = 0.3;
+    placeMan(man, -3, -3, Math.PI);
+    const ang = t * 0.05;
+    look(V(Math.sin(ang) * 26, 9, 26 + Math.cos(ang) * 4), V(0, 1.5, 0), 55);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.45 * clamp01(t / 0.5)})"></div>`;
+    html += `<div class="card" style="left:430px;right:430px;top:170px;text-align:center"><b style="font-size:50px">人が海に落ちたら</b>
+      <div style="display:flex;gap:26px;justify-content:center;margin-top:24px">${[["1", "自分は飛びこまない"], ["2", "浮く物を投げる"], ["3", "118番に通報"]].map(([n, x], i) => `<div style="opacity:${k >= i ? 1 : 0.15};background:#f4f7fa;border-radius:20px;padding:20px 22px;width:280px"><div style="font-size:60px;font-weight:900;color:#e3412b">${n}</div><div style="font-size:36px;font-weight:900">${x}</div></div>`).join("")}</div>
+      <div style="font-size:30px;margin-top:20px;color:#3a5a78">118番＝海の事件・事故の通報（海上保安庁）</div></div>`;
+  },
+  kk_sum(t, d, s, k) {
+    base(0.1);
+    sky.visible = true;
+    U.under.value = 0;
+    placeMan(man, -3, -6, Math.PI);
+    const ang = t * 0.04;
+    look(V(Math.sin(ang) * 30, 9, 30), V(0, 1.5, 0), 55);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.5 * clamp01(t / 0.6)})"></div>`;
+    html += `<div class="big" style="top:110px;font-size:64px;opacity:${clamp01(t / 0.5)}">冬の堤防 危険5つ</div>`;
+    const rows = [["高波", "波をかぶった跡に近づかない"], ["転落", "ライフジャケット・滑りにくい靴"], ["テトラ", "乗らない・立入禁止に入らない"], ["夜", "ヘッドライト・明るいうちに下見"], ["釣り針", "投げる前に後ろを確認"]];
+    rows.forEach(([a1, b1], i) => {
+      const a = clamp01((t - 0.4 - i * 0.4) / 0.35);
+      html += `<div class="card" style="left:380px;right:380px;top:${230 + i * 136}px;padding:16px 28px;opacity:${a};display:flex;align-items:center;gap:26px"><b style="background:#e3412b;color:#fff;font-size:38px;padding:8px 0;width:170px;text-align:center;border-radius:16px">${a1}</b><div style="font-size:38px;font-weight:900">${b1}</div></div>`;
     });
   },
 });
