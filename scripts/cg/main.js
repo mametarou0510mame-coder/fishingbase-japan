@@ -71,6 +71,7 @@ function makeSeabed() {
       void main(){
         vec3 sand = vec3(0.86, 0.78, 0.6) * (0.85 + 0.15*hash(floor(vW.xz*6.)));
         float diff = clamp(dot(vN, normalize(vec3(0.3,1.,0.2))), 0.0, 1.0);
+        if (vW.y > 1.0) sand = mix(vec3(0.42,0.45,0.42), vec3(0.36,0.46,0.3), hash(floor(vW.xz*0.4))) * (0.9 + 0.1*hash(floor(vW.xz*8.)));
         vec3 col = sand * (0.35 + 0.65*diff);
         col += vec3(0.9,1.0,1.0) * caust(vW.xz*0.9, time) * 0.22 * (1.0 - night);
         gl_FragColor = vec4(underwater(col, vW, distance(cameraPosition, vW)), 1.0);
@@ -1140,6 +1141,293 @@ Object.assign(SHOTS, {
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.5 * clamp01(t / 0.6)})"></div>`;
     html += `<div class="big" style="top:150px;font-size:64px;opacity:${clamp01(t / 0.5)}">海の中の食物連鎖</div>`;
     arrowCard([["太陽", "光", "#ffd166"], ["植物プランクトン", "光で育つ", "#6dff8a"], ["動物プランクトン", "植物プランクトンを食べる", "#ffb066"], ["イワシ", "プランクトンを食べる", "#5fc3c9"], ["青物", "サゴシ・ハマチ", "#e3412b"], ["釣り人", "ナブラ・鳥山がサイン", "#9ab0ff"]], t, { y: 330, step: 0.5 });
+  },
+});
+
+
+// =====================================================================
+// 流れの見える化（cg-nagare）：潮目・ヨレ・反転流
+// =====================================================================
+// 突堤（岸から沖へ突き出た堤防）：x=-2〜2, z=-10〜30
+const PIER = { x0: -2, x1: 2, z0: -10, z1: 30 };
+const pier = new THREE.Group();
+{
+  const body = new THREE.Mesh(new THREE.BoxGeometry(PIER.x1 - PIER.x0, 16, PIER.z1 - PIER.z0), concrete);
+  body.position.set(0, -5.5 + 0.3, (PIER.z0 + PIER.z1) / 2);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(PIER.x1 - PIER.x0 + 0.4, 0.6, PIER.z1 - PIER.z0 + 0.4), shadedMat(0xb8bec2, { rough: 0.1 }));
+  deck.position.set(0, 2.8, (PIER.z0 + PIER.z1) / 2);
+  pier.add(body, deck);
+  // 先端の赤い灯台
+  const lh = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 5, 16), shadedMat(0xd23a2a, { rough: 0.05 }));
+  lh.position.set(0, 5.6, PIER.z1 - 1.5);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.5, 16), shadedMat(0xf2f2f2, { rough: 0.05 }));
+  cap.position.set(0, 8.3, PIER.z1 - 1.5);
+  pier.add(lh, cap);
+}
+world.add(pier);
+extras.push(pier);
+
+// 流れの場（x,z → 速さ）。シーンごとに切り替える
+let FIELD = () => [1, 0];
+const EDDY = { x: 8.5, z: 17, r: 8 };
+const FIELDS = {
+  base: (dir) => (x, z) => [dir * 1.0, 0.08 * Math.sin(x * 0.05 + z * 0.1)],
+  shiome: () => (x, z) => {
+    const X = x - 0; // x=0 でぶつかる
+    const s = 1 - Math.tanh(X / 3) ** 2;
+    return [-Math.tanh(X / 3) * 1.2, 0.15 + 0.9 * s];
+  },
+  pier: (eddyK = 1) => (x, z) => {
+    let vx = 1.1, vz = 0;
+    const ax = Math.abs(x);
+    if (z < PIER.z1 + 4) {
+      const near = 1 - smooth01((ax - 2) / 9); // 突堤の近く
+      const below = smooth01((PIER.z1 + 4 - z) / 10);
+      if (x < 0) {
+        // 上流側：突堤にぶつかって先端へ向かって曲がる（ヨレ）
+        vx *= 1 - near * below * 0.85;
+        vz += near * below * 1.0;
+      } else {
+        vx *= 1 - near * below * 0.9;
+        vz -= near * below * 0.35;
+      }
+    }
+    // 先端の外側は流れが速くなる
+    const tip = Math.exp(-((x) ** 2 + (z - PIER.z1 - 2) ** 2) / 40);
+    vx += tip * 0.6;
+    // 下流側のうず（反転流）
+    const dx = x - EDDY.x, dz = z - EDDY.z;
+    const w = Math.exp(-(dx * dx + dz * dz) / (EDDY.r * EDDY.r)) * eddyK;
+    const tx = dz / EDDY.r, tz = -dx / EDDY.r;
+    vx = vx * (1 - w) + tx * 0.45 * w;
+    vz = vz * (1 - w) + tz * 0.45 * w;
+    return [vx, vz];
+  },
+};
+function smooth01(x) { return x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x); }
+
+const FLOW_N = 1700, TRAIL = 7;
+const FLOW_SUB = 3; // 1区間を何個の粒で埋めるか
+const flowLines = (() => {
+  const n = FLOW_N * (TRAIL - 1) * FLOW_SUB;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute("col", new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute vec4 col; varying vec4 vC; void main(){ vC = col; vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = (0.25 + 0.45*col.a) * 900.0 / -mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying vec4 vC; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.1,d)*vC.a; gl_FragColor = vec4(vC.rgb*a*0.6, 1.0); }`,
+  });
+  const l = new THREE.Points(g, m);
+  l.frustumCulled = false;
+  l.renderOrder = 20;
+  return l;
+})();
+world.add(flowLines);
+extras.push(flowLines);
+const _fh = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+// opts: { x0,x1,z0,z1: 粒の出る範囲, y, speed, color: "speed"|"side", alpha }
+function updateFlow(T, opts) {
+  flowLines.visible = true;
+  const pos = flowLines.geometry.attributes.position.array, col = flowLines.geometry.attributes.col.array;
+  const dt = 1 / 12, sp = opts.speed ?? 3.2, y = opts.y ?? 0.35;
+  let o = 0, oc = 0;
+  const px = new Float32Array(TRAIL), pz = new Float32Array(TRAIL);
+  for (let i = 0; i < FLOW_N; i++) {
+    const L = 4 + _fh(i) * 4, ph = _fh(i + 0.5) * L;
+    const cyc = Math.floor((T + ph) / L), age = T + ph - cyc * L;
+    let x = lerp(opts.x0, opts.x1, _fh(i * 7.1 + cyc * 3.3)), z = lerp(opts.z0, opts.z1, _fh(i * 3.7 + cyc * 5.9));
+    const side = x < 0 ? 0 : 1;
+    const steps = Math.floor(age / dt);
+    let dead = false;
+    for (let k = 0; k < TRAIL; k++) { px[k] = x; pz[k] = z; }
+    for (let s = 0; s < steps; s++) {
+      const v = FIELD(x, z);
+      x += v[0] * sp * dt; z += v[1] * sp * dt;
+      if (x > PIER.x0 - 0.2 && x < PIER.x1 + 0.2 && z < PIER.z1 + 0.2 && z > PIER.z0 && opts.pier) { dead = true; break; }
+      if (z < 0.5) { dead = true; break; }
+      for (let k = TRAIL - 1; k > 0; k--) { px[k] = px[k - 1]; pz[k] = pz[k - 1]; }
+      px[0] = x; pz[0] = z;
+    }
+    const v = FIELD(x, z), spd = Math.hypot(v[0], v[1]);
+    const fade = smooth01(age / 0.8) * smooth01((L - age) / 0.8) * (dead ? 0 : 1) * (opts.alpha ?? 1);
+    let r, g, b;
+    if (opts.color === "side") { [r, g, b] = side ? [0.45, 1.0, 0.6] : [0.3, 0.75, 1.0]; }
+    else { const k = smooth01((spd - 0.3) / 0.6); r = lerp(1.0, 0.35, k); g = lerp(0.62, 0.9, k); b = lerp(0.2, 1.0, k); } // 遅い=オレンジ、速い=水色
+    for (let k = 0; k < TRAIL - 1; k++) {
+      for (let j = 0; j < FLOW_SUB; j++) {
+        const f = j / FLOW_SUB;
+        pos[o++] = lerp(px[k], px[k + 1], f); pos[o++] = y; pos[o++] = lerp(pz[k], pz[k + 1], f);
+        col[oc++] = r; col[oc++] = g; col[oc++] = b; col[oc++] = fade * (1 - (k + f) / TRAIL);
+      }
+    }
+  }
+  flowLines.geometry.attributes.position.needsUpdate = true;
+  flowLines.geometry.attributes.col.needsUpdate = true;
+}
+// 地図の上のピン（A/B/C）
+function mapPin(p, txt, a, color = "#e3412b") {
+  if (a <= 0) return;
+  const q = project(p);
+  html += `<div class="pin" style="left:${q.x}px;top:${q.y}px;opacity:${a};background:${color};transform:translate(-50%,-50%) scale(${0.6 + 0.4 * a})">${txt}</div>`;
+}
+const suzuki = school("スズキ", 4, 2.6, 71, { freq: 6 });
+world.add(suzuki);
+extras.push(suzuki);
+const AERIAL = (t, d) => { const k = ease(t / d); return [V(lerp(-26, -18, k), lerp(46, 40, k), lerp(78, 70, k)), V(6, 0, 22)]; };
+
+Object.assign(SHOTS, {
+  nf_thumb(t, d, s) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(1);
+    updateFlow(30, { x0: -40, x1: 30, z0: 2, z1: 70, pier: true });
+    look(V(22, 32, 56), V(2, 0, 20), 50);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1100px;background:linear-gradient(90deg,rgba(2,14,28,.75),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:230px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.12;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  nf_hook(t, d, s) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(1);
+    const [p, l] = AERIAL(t, d);
+    look(V(p.x + 10, lerp(26, 40, ease(t / d)), p.z - 10), l, 50);
+    const reveal = smooth01((t - d * 0.45) / 1.2);
+    if (reveal > 0) updateFlow(t + 20, { x0: -40, x1: 30, z0: 2, z1: 70, pier: true, alpha: reveal });
+    const a = clamp01(t / 0.6) * clamp01((d * 0.45 - t) / 0.4);
+    html += `<div class="big" style="top:250px;font-size:84px;opacity:${a}">同じ海なのに<br><span style="color:#ffd166">釣れる場所と、釣れない場所</span></div>`;
+    const b = clamp01((t - d * 0.55) / 0.5);
+    html += `<div class="big" style="top:160px;font-size:70px;opacity:${b}">見えない「流れ」を<br>色で見える化</div>`;
+  },
+  nf_title(t, d) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(1);
+    updateFlow(t + 40, { x0: -40, x1: 30, z0: 2, z1: 70, pier: true });
+    const ang = t * 0.05;
+    look(V(Math.sin(ang) * 40 + 4, 34, 62 + Math.cos(ang) * 6), V(4, 0, 22), 50);
+    const a = clamp01(t / 0.7);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.35 * a})"></div>`;
+    html += `<div class="big" style="top:290px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:116px;margin-top:26px">潮目・ヨレ・反転流</div><div style="font-size:60px;color:#ffd166">流れがわかると、釣れる場所がわかる</div></div>`;
+  },
+  nf_base(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    // 1行目までは東向き、2行目から向きが変わる
+    const flip = k >= 1 ? smooth01((t - (s._k1 ?? 0)) / 2.5) : 0;
+    FIELD = FIELDS.base(1 - 2 * flip);
+    updateFlow(t, { x0: -45, x1: 45, z0: 20, z1: 80, color: "speed" });
+    look(V(0, 38, 98), V(0, 0, 45), 48);
+    const lab = flip < 0.5 ? "→ 満ち潮の流れ（例）" : "← 引き潮の流れ（例）";
+    html += `<div class="lab gold" style="left:960px;top:330px;font-size:44px">${lab}</div>`;
+    if (k >= 2) html += `<div class="card" style="left:560px;right:560px;top:150px;text-align:center;font-size:34px;font-weight:800">潮の満ち引きで、流れの向きと速さが変わる</div>`;
+  },
+  nf_shiome(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    FIELD = FIELDS.shiome();
+    updateFlow(t, { x0: -40, x1: 40, z0: 30, z1: 90, color: "side" });
+    foam.material.uniforms.show.value = k >= 1 ? 1 : 0;
+    foam.position.set(0, 0.05, 70);
+    look(V(-30, 30, 105), V(0, 0, 62), 48);
+    label(V(-22, 0.4, 60), "流れA", "", k >= 0 ? 1 : 0, "", 0, -60);
+    label(V(22, 0.4, 60), "流れB", "", k >= 0 ? 1 : 0, "", 0, -60);
+    label(V(0, 0.4, 70), "潮目", "流れがぶつかる線", k >= 1 ? 1 : 0, "gold", 0, -160);
+    if (k >= 2) html += `<div class="card" style="left:120px;top:160px;width:620px"><b style="font-size:40px">潮目に集まるもの</b><div style="font-size:30px;margin-top:8px">プランクトン・小魚・流れてきたエサ<br>→ それを追う大きな魚</div></div>`;
+  },
+  nf_yore(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(0.0);
+    updateFlow(t, { x0: -40, x1: 0, z0: 2, z1: 60, pier: true });
+    look(V(-30, 30, 58), V(-4, 0, 22), 50);
+    label(V(-14, 0.4, 14), "流れが突堤にぶつかる", "", k >= 0 ? 1 : 0, "", -60, -60);
+    label(V(-3, 0.4, 28), "ヨレ", "流れが曲がる・弱まる", k >= 1 ? 1 : 0, "gold", -120, -120);
+    label(V(1, 0.4, 34), "先端の外側", "流れが速い", k >= 2 ? 1 : 0, "", 180, -60);
+  },
+  nf_eddy(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(1);
+    updateFlow(t, { x0: -30, x1: 30, z0: 2, z1: 55, pier: true });
+    look(V(24, 34, 56), V(8, 0, 18), 50);
+    label(V(EDDY.x, 0.4, EDDY.z), "反転流", "うずを巻いて逆向きに流れる", k >= 0 ? 1 : 0, "gold", 120, -110);
+    if (k >= 1) label(V(EDDY.x - 4, 0.4, EDDY.z + 6), "流れがゆるい（オレンジ）", "エサがたまりやすい", 1, "", -220, -40);
+    if (k >= 2) html += `<div class="card" style="left:120px;top:160px;width:640px"><b style="font-size:40px">色の見方</b><div style="font-size:30px;margin-top:8px"><span style="color:#2a9fd0">■</span> 水色＝流れが速い<br><span style="color:#e08a2a">■</span> オレンジ＝流れがゆるい</div></div>`;
+  },
+  nf_under(t, d, s, k) {
+    base(0);
+    show(pier, suzuki, sardines);
+    // うずの中に小魚が集まり、そのさかい目でスズキやチヌが待つ（流れに頭を向ける）
+    const c = V(EDDY.x, -3, EDDY.z);
+    updateSchool(sardines, t, c, V(3, 1.2, 3), 1, 0.5);
+    updateSchool(suzuki, t * 0.3, V(EDDY.x - 6, -4.5, EDDY.z + 6), V(1.5, 0.6, 1.5), -1);
+    look(path(V(EDDY.x + 10, -3.5, EDDY.z + 14), V(EDDY.x + 4, -4, EDDY.z + 12), ease(t / d)), V(EDDY.x - 3, -3.6, EDDY.z), 56);
+    label(c, "小魚がたまる", "流れがゆるいうずの中", k >= 0 ? 1 : 0, "", 0, -110);
+    label(V(EDDY.x - 6, -4.5, EDDY.z + 6), "スズキ（シーバス）", "流れのさかい目で待つ", k >= 1 ? 1 : 0, "gold", -160, -60);
+    if (k >= 2) html += `<div class="card" style="left:120px;top:160px;width:640px"><b style="font-size:38px">魚は流れに頭を向ける</b><div style="font-size:30px;margin-top:8px">流れてくるエサを待つことが多い</div></div>`;
+  },
+  nf_quiz(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(1);
+    updateFlow(t + 10, { x0: -40, x1: 30, z0: 2, z1: 70, pier: true, alpha: 0.9 });
+    look(V(-6, 44, 66), V(4, 0, 22), 50);
+    const ans = k >= 2;
+    const pins = [[V(-22, 0.4, 34), "A", "沖の流れの真ん中"], [V(5.5, 0.4, 24), "B", "先端のうらの反転流のさかい目"], [V(-14, 0.4, 6), "C", "岸ぎわ（流れのない場所）"]];
+    pins.forEach(([p, n, txt], i) => {
+      const a = clamp01((t - 0.3 - i * 0.4) / 0.3);
+      mapPin(p, n, a, ans && n === "B" ? "#2aa84a" : ans ? "#777" : "#e3412b");
+      if (k >= 1 || ans) label(p, txt, "", a * (ans && n !== "B" ? 0.45 : 1), ans && n === "B" ? "gold" : "", 0, -70);
+    });
+    html += `<div class="card" style="left:110px;top:150px;width:520px;opacity:${clamp01(t / 0.5)}"><b style="font-size:44px">${ans ? "答え：B" : "クイズ"}</b><div style="font-size:30px;margin-top:8px">${ans ? "流れのヨレ・反転流のさかい目は<br>魚がつきやすいと言われます" : "魚がつきやすいのは<br>A・B・C どこ？"}</div></div>`;
+  },
+  nf_find(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.shiome();
+    foam.material.uniforms.show.value = 1;
+    foam.position.set(8, 0.05, 70);
+    look(V(0.8, 4.8, 29.7), V(22, 0, 78), 46); // 突堤の上から見た景色
+    const tips = [["海面の泡やゴミが筋になる", "潮目の目印"], ["波の立ち方・色が変わる", "流れがぶつかる・曲がる所"], ["ルアーを巻く重さが変わる", "流れの強さが変わったサイン"]];
+    tips.forEach(([h, sub], i) => {
+      if (k < i) return;
+      const a = clamp01((t - (s["_k" + i] ?? 0)) / 0.4);
+      html += `<div class="card" style="left:110px;top:${150 + i * 175}px;width:860px;padding:20px 30px;opacity:${a};border-left:16px solid #f2b630"><b style="font-size:44px">${i + 1}. ${h}</b><div style="font-size:28px;color:#3a5a78;margin-top:6px">${sub}</div></div>`;
+    });
+  },
+  nf_sum(t, d, s, k) {
+    base(0);
+    sky.visible = true;
+    U.under.value = 0;
+    show(pier);
+    FIELD = FIELDS.pier(1);
+    updateFlow(t + 30, { x0: -40, x1: 30, z0: 2, z1: 70, pier: true, alpha: 0.7 });
+    const ang = t * 0.04;
+    look(V(Math.sin(ang) * 36, 36, 64 + Math.cos(ang) * 6), V(4, 0, 22), 50);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.45 * clamp01(t / 0.6)})"></div>`;
+    html += `<div class="big" style="top:130px;font-size:64px;opacity:${clamp01(t / 0.5)}">流れのまとめ</div>`;
+    const rows = [["潮目", "流れがぶつかる線。エサが集まる", "#5fc3c9"], ["ヨレ", "流れが曲がる・弱まる所", "#f2b630"], ["反転流", "うず。流れのさかい目に魚がつく", "#ff5a4a"]];
+    rows.forEach(([a1, b1, col], i) => {
+      const a = clamp01((t - 0.4 - i * 0.5) / 0.35);
+      html += `<div class="card" style="left:360px;right:360px;top:${270 + i * 180}px;padding:22px 30px;opacity:${a};display:flex;align-items:center;gap:26px"><b style="background:${col};color:#06213a;font-size:42px;padding:10px 0;width:190px;text-align:center;border-radius:18px">${a1}</b><div style="font-size:40px;font-weight:900">${b1}</div></div>`;
+    });
   },
 });
 
