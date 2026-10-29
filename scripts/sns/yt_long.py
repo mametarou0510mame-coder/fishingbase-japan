@@ -18,7 +18,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          # 第3弾（2026-10-26。冬の夜釣りは11〜12月の事故シーズン前に出す）
          "long-month-11",
          # 3DCG（2026-10-28 オーナー Go）
-         "cg-teibou-3d", "cg-shokumotsu",
+         "cg-teibou-3d", "cg-shokumotsu", "cg-nagare", "cg-kiken", "cg-lure",
          "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
 REC = "data/sns/long-posts.json"
 

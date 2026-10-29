@@ -13,6 +13,8 @@ def caption(src):
     cap = [src["caption"], ""]
     if full:
         cap += ["▶ フル版はYouTubeで公開中", f"https://youtu.be/{full}", ""]
+    else:
+        cap += ["▶ フル版はYouTubeで公開中", "プロフィールのリンク →「YouTube」から見られます", ""]
     cap += ["▼関西の釣果・潮・今日の釣れる時間", "・プロフィールのリンクから", SITE.replace("https://", ""), "", reels.CREDIT, "", reels.TAGS + " " + src["tags"]]
     return "\n".join(cap)
 
