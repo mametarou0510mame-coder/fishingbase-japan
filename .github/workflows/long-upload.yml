@@ -1,9 +1,10 @@
 name: Long video upload
 
-# long-media ブランチに保存した長尺動画を、1日1本 YouTube に投稿する（18時台。投稿できなかった日は21時台にもう一度試す）。
+# long-media ブランチに保存した長尺動画を、1日2本 YouTube に投稿する（7時台と18時台。出せなかった分は21時台にもう一度試す）。
 # 全部投稿し終わったら何もしない。キューは yt_long.py の ORDER。
 on:
   schedule:
+    - cron: "17 22 * * *" # 07:17 JST
     - cron: "17 9 * * *" # 18:17 JST
     - cron: "17 12 * * *" # 21:17 JST（18時に出せなかった日だけ）
   workflow_dispatch:

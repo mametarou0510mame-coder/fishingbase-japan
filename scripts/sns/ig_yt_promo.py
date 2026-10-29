@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, os.path.dirname(__file__))
 import discuss  # noqa: E402
 from draw import FONT_BLACK, FONT_BOLD, FONT_REG, GLOW, NAVY, RED, WHITE, font, logo  # noqa: E402
-from reels import ig_reel, wait_url  # noqa: E402
+from reels import ig_reel, wait_url, yt_short  # noqa: E402
 from video_post import SITE  # noqa: E402
 
 JST = timezone(timedelta(hours=9))
@@ -100,11 +100,16 @@ def frame(src, chapters, total_min, thumb=None):
 def make(out):
     posts = json.load(open(POSTS, encoding="utf-8")) if os.path.exists(POSTS) else {}
     done = json.load(open(LOG, encoding="utf-8")) if os.path.exists(LOG) else {}
-    todo = [s for s, v in posts.items() if v.get("youtube") and s not in done]
-    if not todo:
+    # 3DCG（cg-*）は専用のショートがあるので除く
+    ok = lambda s: not s.startswith("cg-") and os.path.exists(f"content/long/{s}.json")
+    # Instagram は出したが YouTube ショートがまだ（上限で止まった等）のものを先に
+    redo = [s for s, v in done.items() if ok(s) and not v.get("youtube") and v.get("at", "") >= "2026-10-30"]
+    todo = [s for s, v in posts.items() if v.get("youtube") and s not in done and ok(s)]
+    if not redo and not todo:
         print("紹介する長尺動画はありません")
         return
-    slug = todo[0]
+    slug = redo[0] if redo else todo[0]
+    platforms = ["youtube"] if redo else ["instagram", "youtube"]
     src = json.load(open(f"content/long/{slug}.json", encoding="utf-8"))
     os.makedirs(out, exist_ok=True)
     for f in (f"{slug}.mp4", f"{slug}.jpg", f"{slug}-chapters.txt"):
@@ -142,7 +147,12 @@ def make(out):
     if slug in discuss.LONG:
         cap += discuss.caption(discuss.LONG[slug])
     cap += ["", TAGS]
-    json.dump({"slug": slug, "id": vid, "caption": "\n".join(cap)}, open(f"{out}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # YouTube ショートの説明：フル版へのリンク
+    ycap = [f"{title}（約{total_min}分）の予告編です。", "", "▶ フル版はこちら", f"https://youtu.be/{posts[slug]['youtube']}", "", "▼ この動画でわかること"]
+    ycap += [f"・{c['title']}" for c in listed[:8]]
+    ycap += ["", "▼関西の釣果・潮・今日の釣れる時間", SITE, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
+    json.dump({"slug": slug, "id": vid, "caption": "\n".join(cap), "yt_title": f"{title}【予告】", "yt_caption": "\n".join(ycap), "platforms": platforms},
+              open(f"{out}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(vid)
 
 
@@ -151,11 +161,35 @@ def publish(out):
     url = f"{SITE}/sns/{p['id']}.mp4"
     if not wait_url(url):
         raise SystemExit(f"動画がサイトに公開されていません: {url}")
-    ig = ig_reel(url, f"{SITE}/sns/{p['id']}.jpg", p["caption"])
-    print(f"::notice::Instagram で YouTube 動画を紹介しました {ig}（{p['slug']}）")
     done = json.load(open(LOG, encoding="utf-8")) if os.path.exists(LOG) else {}
-    done[p["slug"]] = {"instagram": ig, "at": datetime.now(JST).isoformat(timespec="minutes")}
-    json.dump(done, open(LOG, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    rec = done.get(p["slug"], {})
+    failed = False
+    if "instagram" in p.get("platforms", ["instagram"]):
+        try:
+            rec["instagram"] = ig_reel(url, f"{SITE}/sns/{p['id']}.jpg", p["caption"])
+            rec["at"] = datetime.now(JST).isoformat(timespec="minutes")
+            print(f"::notice::Instagram で YouTube 動画を紹介しました {rec['instagram']}（{p['slug']}）")
+        except Exception as e:
+            print(f"::error::instagram: {e}")
+            failed = True
+    if "youtube" in p.get("platforms", []) and p.get("yt_caption"):
+        try:
+            yt = yt_short(f"public/sns/{p['id']}.mp4", p["yt_title"], p["yt_caption"])
+            if yt:
+                rec["youtube"] = yt
+                print(f"::notice::youtube ok {yt}（{p['slug']}）")
+        except Exception as e:
+            if "uploadLimitExceeded" in str(e):
+                print("::warning::YouTube の投稿上限に達したため、次の回にもう一度投稿します")
+            else:
+                print(f"::error::youtube: {e}")
+                failed = True
+    if rec:
+        rec.setdefault("at", datetime.now(JST).isoformat(timespec="minutes"))
+        done[p["slug"]] = rec
+        json.dump(done, open(LOG, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    if failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

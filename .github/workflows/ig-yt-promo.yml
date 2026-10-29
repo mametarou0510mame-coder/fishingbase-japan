@@ -1,9 +1,11 @@
 name: Instagram YouTube promo
 
 # YouTube に投稿した長尺動画（完全ガイド）を、Instagram のリール（約35秒の予告編）で紹介する。
-# 毎日 21:30 に1本。まだ紹介していない動画がなければ何もしない。
+# 毎日 15:30 と 21:30 に1本ずつ。Instagram リールと YouTube ショート（フル版へのリンク付き）の両方に出す。
+# まだ紹介していない動画がなければ何もしない。
 on:
   schedule:
+    - cron: "7 6 * * *" # 15:07 JST に作り始め、15:30 に投稿
     - cron: "7 12 * * *" # 21:07 JST に作り始め、21:30 に投稿
   workflow_dispatch:
     inputs:
@@ -45,14 +47,14 @@ jobs:
           git add -A public/sns
           git commit -qm "YouTube 紹介リール: ${{ steps.make.outputs.id }}" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
-      - name: Wait until 21:30
+      - name: Wait until :30
         if: steps.make.outputs.id != '' && (github.event_name == 'schedule' || github.event.inputs.wait == 'true')
         run: |
           python - <<'PY'
           import time
           from datetime import datetime, timedelta, timezone
           now = datetime.now(timezone(timedelta(hours=9)))
-          t = now.replace(hour=21, minute=30, second=0, microsecond=0)
+          t = now.replace(minute=30, second=0, microsecond=0)
           s = (t - now).total_seconds()
           if 0 < s < 3600: print(f"wait {s:.0f}s"); time.sleep(s)
           PY
@@ -61,9 +63,12 @@ jobs:
         env:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
         run: python scripts/sns/ig_yt_promo.py publish /tmp/promo
       - name: Save log
-        if: steps.make.outputs.id != ''
+        if: always() && steps.make.outputs.id != ''
         run: |
           git add data/sns/ig-yt-promo.json
           git diff --cached --quiet && exit 0

@@ -21,6 +21,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-teibou-3d", "cg-shokumotsu", "cg-nagare", "cg-kiken", "cg-lure",
          "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
 REC = "data/sns/long-posts.json"
+PER_DAY = 2  # 1日に出す長尺の本数（07:17 と 18:17。出せなかった分は 21:17）
 
 
 def posted():
@@ -31,11 +32,11 @@ def posted():
 
 
 def main():
-    if sys.argv[1] == "next":  # まだ投稿していない次の動画の slug を出す（1日1本。今日すでに出していれば空）
+    if sys.argv[1] == "next":  # まだ投稿していない次の動画の slug を出す（1日 PER_DAY 本まで。超えていれば空）
         from datetime import datetime, timedelta, timezone
         done = posted()
         today = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
-        if any(v.get("at", "").startswith(today) for v in done.values()) and "--force" not in sys.argv:
+        if sum(v.get("at", "").startswith(today) for v in done.values()) >= PER_DAY and "--force" not in sys.argv:
             print("")
             return
         print(next((s for s in ORDER if s not in done), ""))
