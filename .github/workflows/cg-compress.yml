@@ -44,4 +44,5 @@ jobs:
           split -b 90M -d -a 2 /tmp/cg/$S.mp4 $S.mp4.part-
           cp /tmp/cg/$S.jpg $S.jpg
           cp /tmp/cg/$S-chapters.txt $S-chapters.txt
-          git add -A && git commit -qm "CG video for upload: $S" && git push origin long-media
+          git add -A && git commit -qm "CG video for upload: $S"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
