@@ -23,9 +23,16 @@ def main():
     cmd, slug = sys.argv[1], sys.argv[2]
     src = json.load(open(f"content/cg/{slug}.json", encoding="utf-8"))
     if cmd == "id":
-        print(f"cg-{slug.replace('short-cg-', '')}-{reels.now().strftime('%Y-%m-%d')}")
+        stem = f"cg-{slug.replace('short-cg-', '')}-"
+        if "--existing" in sys.argv:  # サイトに置いてある一番新しい動画を使う
+            have = sorted(f[:-4] for f in os.listdir("public/sns") if f.startswith(stem) and f.endswith(".mp4"))
+            if have:
+                print(have[-1])
+                return
+        print(stem + reels.now().strftime("%Y-%m-%d"))
         return
     vid = sys.argv[3]
+    plats = sys.argv[sys.argv.index("--platforms") + 1].split(",") if "--platforms" in sys.argv else ["instagram", "youtube"]
     cap = caption(src)
     print(cap)
     url = f"{SITE}/sns/{vid}.mp4"
@@ -35,7 +42,7 @@ def main():
     rec = {"slot": "cg-short", "key": slug, "id": vid, "at": reels.now().isoformat(timespec="minutes")}
     failed = False
     try:
-        ig = reels.ig_reel(url, f"{SITE}/sns/{vid}.jpg", cap)
+        ig = reels.ig_reel(url, f"{SITE}/sns/{vid}.jpg", cap) if "instagram" in plats else None
         if ig:
             rec["instagram"] = ig
             print(f"::notice::instagram ok {ig}")
@@ -43,7 +50,7 @@ def main():
         print(f"::error::instagram: {e}")
         failed = True
     try:
-        yt = reels.yt_short(f"public/sns/{vid}.mp4", src["title"], cap)
+        yt = reels.yt_short(f"public/sns/{vid}.mp4", src["title"], cap) if "youtube" in plats else None
         if yt:
             rec["youtube"] = yt
             print(f"::notice::youtube ok {yt}")

@@ -12,6 +12,10 @@ on:
         description: "true で投稿する（false は作るだけ）"
         required: true
         default: "false"
+      platforms:
+        description: "instagram,youtube（カンマ区切り）"
+        required: false
+        default: "instagram,youtube"
       skip_render:
         description: "true なら作り直さず、サイトに置いてある今日の動画を投稿する"
         required: false
@@ -90,7 +94,8 @@ jobs:
         run: |
           IDS=""
           for S in ${{ github.event.inputs.slugs }}; do
-            ID=$(python scripts/sns/cg_short.py id $S)
+            E=""; [ "${{ github.event.inputs.skip_render }}" = "true" ] && E="--existing"
+            ID=$(python scripts/sns/cg_short.py id $S $E)
             if [ -f /tmp/short/$S.mp4 ]; then
               cp /tmp/short/$S.mp4 public/sns/$ID.mp4
               cp /tmp/short/$S.jpg public/sns/$ID.jpg
@@ -118,7 +123,7 @@ jobs:
           N=0
           for P in ${{ steps.put.outputs.ids }}; do
             [ $N -gt 0 ] && sleep 120
-            python scripts/sns/cg_short.py publish ${P%%:*} ${P##*:} || F=1
+            python scripts/sns/cg_short.py publish ${P%%:*} ${P##*:} --platforms "${{ github.event.inputs.platforms || 'instagram,youtube' }}" || F=1
             N=$((N+1))
           done
           exit ${F:-0}
