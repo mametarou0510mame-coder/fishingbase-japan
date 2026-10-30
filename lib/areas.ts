@@ -76,6 +76,34 @@ export const AREAS: Area[] = [
     spots: ["maizuru-shinkai-koen", "amino-asamogawa-ko", "taiza-ko"],
     intro: "日本海側の舞鶴湾と丹後半島のエリアです。大阪湾とは潮や釣れる魚の時期が異なります。",
   },
+  {
+    slug: "tokyo-bay",
+    name: "東京湾（横浜・東京・千葉）",
+    region: "横浜市・東京都江東区・千葉県市原市",
+    spots: ["honmoku-umizuri-shisetsu", "daikoku-umizuri-shisetsu", "isogo-umizuri-shisetsu", "wakasu-kaihin-koen-umizuri", "ichihara-umizuri-koen"],
+    intro: "東京湾に面した関東のエリアです。横浜市の3つの海づり施設、東京都の若洲海浜公園、市原市の海づり公園など、公共の海釣り施設が集まっています。",
+  },
+  {
+    slug: "shizuoka",
+    name: "静岡・駿河湾",
+    region: "静岡市清水区",
+    spots: ["shimizuko-umizuri-koen"],
+    intro: "駿河湾に面した中部のエリアです。2026年4月に、清水港に新しい海づり施設ができました。",
+  },
+  {
+    slug: "yamaguchi-kitakyushu",
+    name: "山口・北九州",
+    region: "山口県光市・福岡県北九州市",
+    spots: ["fishing-park-hikari", "wakita-umizuri-sanbashi"],
+    intro: "瀬戸内海の西の端と、響灘に面したエリアです。桟橋型の海釣り施設で、手ぶらでも釣りを始められます。",
+  },
+  {
+    slug: "kagoshima",
+    name: "鹿児島・錦江湾",
+    region: "鹿児島市（市街地・桜島）",
+    spots: ["kamoike-umizuri-koen", "sakurajima-umizuri-koen"],
+    intro: "桜島を望む錦江湾のエリアです。鹿児島市の海づり公園が、市街地と桜島に1か所ずつあります。",
+  },
 ];
 
 export const findArea = (slug: string) => AREAS.find((a) => a.slug === slug);

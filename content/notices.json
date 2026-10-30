@@ -2,6 +2,76 @@
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
   {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "honmoku-umizuri-shisetsu",
+   "text": "本牧海づり施設（横浜市中区）を掲載しました。全国に広げて最初に載せる釣り場の一つです。料金・営業時間は横浜市港湾局のページで確認しました。",
+   "source": "https://www.city.yokohama.lg.jp/kanko-bunka/minato/taikan/asobu/spot/umizuri.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "daikoku-umizuri-shisetsu",
+   "text": "大黒海づり施設（横浜市鶴見区）を掲載しました。",
+   "source": "https://www.city.yokohama.lg.jp/kanko-bunka/minato/taikan/asobu/spot/umizuri.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "isogo-umizuri-shisetsu",
+   "text": "磯子海づり施設（横浜市磯子区）を掲載しました。",
+   "source": "https://www.city.yokohama.lg.jp/kanko-bunka/minato/taikan/asobu/spot/umizuri.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "wakasu-kaihin-koen-umizuri",
+   "text": "若洲海浜公園の海釣り施設（東京都江東区）を掲載しました。無料で、6:00〜21:00に使えます。",
+   "source": "https://www.kouwan.metro.tokyo.lg.jp/kanko/11_kaijokouen_kwakasu_202404.pdf"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "ichihara-umizuri-koen",
+   "text": "オリジナルメーカー海づり公園（市原市海づり施設）を掲載しました。中学生以下は無料です。",
+   "source": "https://maruchiba.jp/spot/detail_10603.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "shimizuko-umizuri-koen",
+   "text": "清水港海づり公園（静岡市清水区興津）を掲載しました。2026年4月29日に暫定オープンした新しい施設で、2026年度は土日祝だけの営業です。ライフジャケットの着用が必要です。",
+   "source": "https://www.city.shizuoka.lg.jp/s7524/s013047.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "fishing-park-hikari",
+   "text": "フィッシングパーク光（山口県光市）を掲載しました。",
+   "source": "https://yamaguchi-tourism.jp/spot/detail_11926.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "wakita-umizuri-sanbashi",
+   "text": "脇田海釣り桟橋（北九州市若松区）を掲載しました。",
+   "source": "https://www.city.kitakyushu.lg.jp/wakamatsu/file_0021.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "kamoike-umizuri-koen",
+   "text": "鴨池海づり公園（鹿児島市）を掲載しました。投げ釣りは禁止です。",
+   "source": "https://www.city.kagoshima.lg.jp/seisanryutu/shisetsu/kanko/017.html"
+  },
+  {
+   "date": "2026-10-30",
+   "kind": "新規掲載",
+   "spot": "sakurajima-umizuri-koen",
+   "text": "桜島海づり公園（鹿児島市）を掲載しました。釣り竿を無料で借りられます。",
+   "source": "https://www.city.kagoshima.lg.jp/seisanryutu/shisetsu/kanko/018.html"
+  },
+  {
    "date": "2026-10-27",
    "kind": "ルール変更",
    "spot": "okura-kaigan-higashi",
