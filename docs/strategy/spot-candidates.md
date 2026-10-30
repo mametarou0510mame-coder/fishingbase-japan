@@ -54,7 +54,7 @@
 | 淡路島海上釣り堀 海人（掲載候補） | 兵庫・洲本市由良、海上釣り堀 | http://www.yura-kaito.com/hours/ （2026-10-23 承認待ちで時間切れ） |
 | 海上釣堀 湯浅（掲載候補。公式サイトで営業中・料金を確かめてから載せる） | 和歌山・湯浅町、海上釣り堀 | https://yuasa-tsuribori.com/ （2026-10-27 承認待ちで時間切れ） |
 | 大阪市「市民の声」回答（コスモスクエア以外に大阪市が釣り場として案内している場所を拾うため） | 大阪・大阪市 | https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000666979.html （2026-10-27 承認待ちで時間切れ） |
-| 気象庁の予報区コード表（関西以外の weatherArea を確かめるため。今回は記憶のコードで入れ、天気の自動取得の結果で確認） | 全国 | https://www.jma.go.jp/bosai/common/const/area.json （2026-10-30 承認待ちで時間切れ） |
+| 気象庁の予報区コード表（関西以外の weatherArea を確かめるため。2026-10-30 に追加した7区域は、天気の自動取得ですべて取得できたことを確認済み。次に新しい府県を足すときに使う） | 全国 | https://www.jma.go.jp/bosai/common/const/area.json （2026-10-30 承認待ちで時間切れ） |
 | フィッシングパーク光（光市の公式ページで最新の料金・ルールを確かめるため） | 山口・光市、海釣り施設 | https://www.city.hikari.lg.jp/kanko_bunka/fishingpark/index.html （2026-10-30 承認待ちで時間切れ） |
 | 横浜の海づり施設の利用案内（禁止事項・駐車場・レンタルを確かめるため） | 神奈川・横浜市 | https://yokohama-fishingpiers.jp/honmoku/user-guide/?index=1 （大黒・磯子も /daikoku/・/isogo/ の同じページ。2026-10-30 承認待ちで時間切れ） |
 | 日本釣振興会「海釣り施設一覧」（全国の候補を拾うため） | 全国 | https://www.jsafishing.or.jp/海釣り施設一覧 （2026-10-30 サイト側のエラーで読めず） |
