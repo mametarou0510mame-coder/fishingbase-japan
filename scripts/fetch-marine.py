@@ -142,10 +142,15 @@ def nearest_sea(field, lat, lon):
 
 def main():
     coords = json.load(open("lib/spotCoords.json", encoding="utf-8"))
+    # 全国の潮位ポイント（気象庁 潮位表の約240地点）も同じように計算する（キーは "t:地点記号"）
+    for st in json.load(open("lib/tideStations.json", encoding="utf-8"))["stations"]:
+        if st.get("lat") is not None and st.get("lon") is not None:
+            coords["t:" + st["code"]] = {"lat": st["lat"], "lon": st["lon"]}
     run, res = pick_run()
     print(f"[marine] run {run.isoformat()} res {res}")
     grid = {}  # slug -> (j, i, dkm, glat, glon)
-    series = {slug: {p: [] for p in PARAMS + ["ws", "wd"]} for slug in coords}
+    series = {slug: {p: [] for p in PARAMS + ["ws", "wd", "rain"]} for slug in coords}
+    tp_prev = None
     for step in STEPS:
         url = file_url(run, step, res)
         idx = read_index(url)
@@ -177,6 +182,21 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"[marine] wind {step}h: {e}", file=sys.stderr)
             u = v = None
+        # 雨：積算降水量（m）の3時間の差 → mm（潮位ポイントだけ）
+        try:
+            tp = decode(get(wurl + ".grib2", widx["tp"])) if u is not None and "tp" in widx else None
+        except Exception as e:  # noqa: BLE001
+            print(f"[marine] tp {step}h: {e}", file=sys.stderr)
+            tp = None
+        for slug, c in coords.items():
+            if not slug.startswith("t:"):
+                continue
+            if tp is None or tp_prev is None:
+                series[slug]["rain"].append(None if step else 0.0)
+                continue
+            a, b = bilinear(tp, c["lat"], c["lon"]), bilinear(tp_prev, c["lat"], c["lon"])
+            series[slug]["rain"].append(None if math.isnan(a) or math.isnan(b) else round(max(0.0, (a - b) * 1000), 1))
+        tp_prev = tp
         for slug, c in coords.items():
             if u is None:
                 series[slug]["ws"].append(None)
@@ -193,11 +213,19 @@ def main():
         print(f"[marine] step {step}h ok")
 
     points = {}
+    tide_points = {}
     for slug, g in grid.items():
+        if slug.startswith("t:"):
+            # 潮位ポイント：海の格子がなくても風・雨は出す
+            tide_points[slug[2:]] = {"distKm": None if g is None else round(g[2], 1), **series[slug]}
+            if g is None:
+                for p in PARAMS:
+                    tide_points[slug[2:]][p] = []
+            continue
         if g is None:
             print(f"[marine] {slug}: 近くに海の格子がありません", file=sys.stderr)
             continue
-        points[slug] = {"lat": round(g[3], 3), "lon": round(g[4], 3), "distKm": round(g[2], 1), **series[slug]}
+        points[slug] = {"lat": round(g[3], 3), "lon": round(g[4], 3), "distKm": round(g[2], 1), **{k: v for k, v in series[slug].items() if k != "rain"}}
     out = {
         "fetchedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source": "ECMWF Open Data（IFS 波浪モデル・大気モデル）CC BY 4.0",
@@ -211,6 +239,14 @@ def main():
         json.dump(out, fp, ensure_ascii=False, separators=(",", ":"))
         fp.write("\n")
     print(f"[marine] saved {len(points)} points")
+    # 潮位ポイントは1地点1ファイル（アプリが選んだ地点の分だけ読む）
+    import os
+    os.makedirs("public/data/marine-tide", exist_ok=True)
+    meta = {k: out[k] for k in ("fetchedAt", "source", "sourceUrl", "resolution", "run", "stepHours")}
+    for code, ser in tide_points.items():
+        with open(f"public/data/marine-tide/{code}.json", "w", encoding="utf-8") as fp:
+            json.dump({**meta, "code": code, **ser}, fp, ensure_ascii=False, separators=(",", ":"))
+    print(f"[marine] saved {len(tide_points)} tide points")
 
 
 if __name__ == "__main__":

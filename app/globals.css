@@ -655,3 +655,11 @@ body.app-mode main.wrap { max-width: none; padding: 0; margin: 0; }
 .fa-back { display: inline-flex; align-items: center; gap: 6px; border: 0; background: #10345a; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .fa-back span { font-size: 1.1rem; line-height: 1; }
 .fa-bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.95rem; color: #10283f; }
+/* 潮位ポイントの風・波・雨の表 */
+.mt-day { margin: 8px 0 10px; }
+.mt-day > b { font-size: 14px; }
+.mt-grid { display: grid; gap: 2px 0; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; background: #f6f9fb; border-radius: 10px; padding: 6px 4px; margin-top: 3px; }
+.mt-grid .mt-k { text-align: left; color: #607386; font-size: 12px; padding-left: 4px; }
+.mt-grid .mt-h { color: #607386; font-size: 12px; }
+.mt-grid i { font-style: normal; font-size: 11px; margin-right: 1px; }
+.fa-tidechip { background: #fff; color: #1f6fb2; border: 2px solid #1f6fb2; }
