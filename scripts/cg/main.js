@@ -2470,7 +2470,7 @@ Object.assign(SHOTS, {
 // 仕上げ（v2）：ブルーム（光のにじみ）・色の調整・周辺減光・フィルムの粒子・色ずれ
 // ?look=v1 で従来の見た目
 // =====================================================================
-const LOOK_V2 = !/look=v1/.test(location.search);
+const LOOK_V2 = /look=v2/.test(location.search); // 2026-10-30 オーナー判断：わかりやすさ優先。仕上げ v2 は使わない（?look=v2 で試せる）
 const POST = (() => {
   if (!LOOK_V2) return null;
   const mk = (w, h, samples = 0) => new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, samples, depthBuffer: samples > 0 });
