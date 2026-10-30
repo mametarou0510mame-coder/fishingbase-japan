@@ -2015,6 +2015,440 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 冬の水温と魚の居場所（cg-suion）：海の断面模型（水温を色で）・水温の3Dグラフ
+// =====================================================================
+// 世界から離れた「スタジオ」（z=-500）に、海を輪切りにした模型を置く。左＝岸の浅場、右＝沖の深場
+const DIO = V(0, 0, -500);
+const D = (x, y, z) => V(DIO.x + x, DIO.y + y, DIO.z + z);
+const DX0 = -22, DX1 = 22, DBOT = -15, DZ = 12;
+// 大阪湾の海面水温（気象庁 沿岸域の海面水温情報、2021〜2025年の日平均を月ごとに平均。1月〜12月）
+const SUION = [11.8, 10.3, 11.0, 14.2, 17.6, 21.9, 26.5, 28.0, 27.3, 23.9, 20.1, 15.8];
+function dioY(x) {
+  const wig = (0.22 * Math.sin(x * 1.3) + 0.12 * Math.sin(x * 3.1)) * smooth01((x + 16) / 4);
+  return 1.2 - 2.4 * smooth01((x + 22) / 6) - 2.6 * smooth01((x + 14) / 10) - 9 * smooth01((x + 3) / 9) + wig;
+}
+const studio = new THREE.Group();
+studio.position.copy(DIO);
+world.add(studio);
+extras.push(studio);
+{
+  const bd = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 16), new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c = mix(vec3(0.01,0.035,0.08), vec3(0.05,0.17,0.28), smoothstep(-0.25,0.7,h)); gl_FragColor = vec4(c,1.); }`,
+  }));
+  const fl = new THREE.Mesh(new THREE.CircleGeometry(90, 64).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; void main(){ vec2 q = vL.xz/4.0; vec2 g = abs(fract(q - 0.5) - 0.5) / fwidth(q); float line = 1.0 - min(min(g.x,g.y),1.0);
+      float r = length(vL.xz)/90.0; float a = (0.55 + 0.45*line) * (1.0 - smoothstep(0.25,1.0,r)); gl_FragColor = vec4(mix(vec3(0.03,0.09,0.15), vec3(0.25,0.6,0.75), line*0.7), a); }`,
+  }));
+  fl.position.y = DBOT - 0.3;
+  studio.add(bd, fl);
+}
+// 水温 → 色（冷たい＝青、温かい＝赤）
+const TEMP_GLSL = `
+uniform float season; uniform float sun; uniform float time;
+float Tsum(vec2 p){ return 20.0 + 8.0*smoothstep(-8.5,-3.0,p.y); }
+float Twin(vec2 p){ return 8.0 + 4.5*smoothstep(-16.0,4.0,p.x) + 0.5*smoothstep(-4.0,-12.0,p.y); }
+float temp(vec2 p){ p.x += sin(p.y*1.1+time*0.45)*0.5; p.y += sin(p.x*0.6-time*0.35)*0.25;
+  float T = season < 1.0 ? mix(Tsum(p), 23.0, season) : mix(23.0, Twin(p), season-1.0);
+  T += sun*6.5*(1.0-smoothstep(-15.0,-1.0,p.x))*smoothstep(-5.0,-0.5,p.y);
+  return T; }
+vec3 pal(float k){ k = clamp(k,0.,1.);
+  vec3 c0=vec3(0.07,0.18,0.78), c1=vec3(0.08,0.62,0.95), c2=vec3(0.3,0.86,0.55), c3=vec3(1.0,0.78,0.2), c4=vec3(0.95,0.26,0.14);
+  if(k<0.25) return mix(c0,c1,k/0.25); if(k<0.5) return mix(c1,c2,(k-0.25)/0.25); if(k<0.75) return mix(c2,c3,(k-0.5)/0.25); return mix(c3,c4,(k-0.75)/0.25); }
+vec3 tcol(float T){ vec3 c = pal((T-8.0)/20.0); float f = T/2.0; float w = fwidth(f); float line = 1.0 - smoothstep(0.0, w*1.6, abs(fract(f+0.5)-0.5)); return mix(c, vec3(1.0), line*0.45); }`;
+function tempJS(x, y, season, sun = 0) {
+  const ss = (a, b, v) => smooth01((v - a) / (b - a));
+  const ts = 20 + 8 * ss(-8.5, -3, y), tw = 8.0 + 4.5 * ss(-16, 4, x) + 0.5 * ss(-4, -12, y);
+  let T = season < 1 ? lerp(ts, 23, season) : lerp(23, tw, season - 1);
+  return T + sun * 6.5 * (1 - ss(-15, -1, x)) * ss(-5, -0.5, y);
+}
+function tempColor(T) {
+  const k = clamp01((T - 8) / 20), cs = [[18, 46, 199], [20, 158, 242], [77, 219, 140], [255, 199, 51], [242, 66, 36]];
+  const i = Math.min(3, Math.floor(k * 4)), f = k * 4 - i;
+  return `rgb(${cs[i].map((c, j) => Math.round(lerp(c, cs[i + 1][j], f))).join(",")})`;
+}
+const WU = { season: { value: 0 }, sun: { value: 0 }, time: U.time };
+const dio = new THREE.Group();
+studio.add(dio);
+{
+  // 海底（砂と地層の断面）
+  const sh = new THREE.Shape();
+  sh.moveTo(DX0, DBOT);
+  sh.lineTo(DX1, DBOT);
+  for (let i = 120; i >= 0; i--) { const x = DX0 + (DX1 - DX0) * i / 120; sh.lineTo(x, dioY(x)); }
+  const g = new THREE.ExtrudeGeometry(sh, { depth: DZ, bevelEnabled: false, steps: 1, curveSegments: 1 });
+  g.translate(0, 0, -DZ / 2);
+  const ground = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; float hash(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719)))*43758.5453); }
+      void main(){ float n = hash(floor(vL*5.0));
+        vec3 sand = vec3(0.86,0.77,0.58)*(0.86+0.14*n);
+        vec3 soil = mix(vec3(0.33,0.24,0.16), vec3(0.52,0.41,0.28), 0.5+0.5*sin(vL.y*2.3 + sin(vL.x*0.45)*1.6)) * (0.86+0.14*n);
+        vec3 c = vN.y > 0.3 ? sand : soil;
+        float diff = clamp(dot(normalize(vN), normalize(vec3(0.3,1.0,0.55))),0.,1.);
+        c *= 0.5 + 0.65*diff; gl_FragColor = vec4(c,1.); }`,
+  }));
+  dio.add(ground);
+  // 浅場の岩
+  const r = rng(301), mat = shadedMat(0x6d675e, { rough: 0.3 });
+  for (let i = 0; i < 14; i++) {
+    const x = -15 + r() * 9, z = -4.5 + r() * 9;
+    const m = new THREE.Mesh(makeRock(0.5 + r() * 0.7, 300 + i), mat);
+    m.position.set(x, dioY(x) + 0.15, z);
+    m.rotation.set(r() * 3, r() * 3, r() * 3);
+    dio.add(m);
+  }
+  // 海藻
+  for (let i = 0; i < 16; i++) {
+    const h = 0.8 + r() * 1.2, x = -17 + r() * 12;
+    const wg = new THREE.PlaneGeometry(0.22, h, 1, 6); wg.translate(0, h / 2, 0);
+    const w = new THREE.Mesh(wg, new THREE.ShaderMaterial({
+      uniforms: { ...U, ph: { value: r() * 6 } }, side: THREE.DoubleSide,
+      vertexShader: `uniform float time; uniform float ph; varying float vY; void main(){ vec3 p = position; vY = uv.y; p.x += sin(time*1.2+ph+p.y*1.5)*0.15*uv.y; gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
+      fragmentShader: `varying float vY; void main(){ gl_FragColor = vec4(mix(vec3(0.12,0.3,0.12), vec3(0.45,0.62,0.2), vY),1.); }`,
+    }));
+    w.position.set(x, dioY(x), -4.5 + r() * 9);
+    w.rotation.y = r() * 3;
+    dio.add(w);
+  }
+  // 水（断面を色で）：奥の壁は不透明、前と上はうっすら
+  let xs = DX0;
+  for (let x = DX0; x < DX1; x += 0.01) if (dioY(x) < 0) { xs = x; break; }
+  const ws = new THREE.Shape();
+  ws.moveTo(xs, 0);
+  ws.lineTo(DX1, 0);
+  for (let i = 0; i <= 120; i++) { const x = DX1 - (DX1 - xs) * i / 120; ws.lineTo(x, Math.min(-0.001, dioY(x))); }
+  const wmat = (alpha, top) => new THREE.ShaderMaterial({
+    uniforms: { ...WU, alpha: { value: alpha } }, transparent: alpha < 1, depthWrite: alpha >= 1, side: THREE.FrontSide,
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float alpha; ${TEMP_GLSL} varying vec3 vL; varying vec3 vN;
+      void main(){ vec3 c = tcol(temp(vL.xy)); float a = alpha;
+        if (vN.y > 0.5) { a = ${top}; c = mix(c, vec3(0.9,1.0,1.0), 0.18*pow(abs(sin(vL.x*1.3+time)*sin(vL.z*1.7-time*0.8)),4.0)); }
+        gl_FragColor = vec4(c, a); }`,
+  });
+  const back = new THREE.Mesh(new THREE.ShapeGeometry(ws), wmat(1, "1.0"));
+  back.position.z = -DZ / 2 + 0.02;
+  const vg = new THREE.ExtrudeGeometry(ws, { depth: DZ - 0.04, bevelEnabled: false, steps: 1, curveSegments: 1 });
+  vg.translate(0, 0, -DZ / 2 + 0.02);
+  const vol = new THREE.Mesh(vg, wmat(0.3, "0.55"));
+  vol.renderOrder = 8;
+  dio.add(back, vol);
+  // ふちの線（ガラスの水槽のように）
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(DX1 - DX0, -DBOT + 1.6, DZ)), new THREE.LineBasicMaterial({ color: 0xbfe6ea, transparent: true, opacity: 0.35 }));
+  edges.position.set(0, (DBOT + 1.6) / 2, 0);
+  dio.add(edges);
+}
+// 秋に上下の水が混ざる様子（白い粒の輪）
+const conv = (() => {
+  const cells = [[-11, -1.6, 4.2, 0.9, 1], [1.5, -5, 3.4, 3.6, -1], [9, -7.2, 3.4, 4.8, 1], [16.5, -7.2, 3.4, 4.8, -1]];
+  const heads = 90, tail = 7, n = cells.length * heads * tail;
+  const a1 = new Float32Array(n * 4), a2 = new Float32Array(n * 4);
+  const r = rng(311);
+  let o = 0;
+  cells.forEach(([cx, cy, rx, ry, dir]) => {
+    for (let h = 0; h < heads; h++) {
+      const ph = r(), z = -5 + r() * 10, sc = 0.55 + r() * 0.45;
+      for (let k = 0; k < tail; k++) {
+        a1.set([cx, cy, rx * sc, ry * sc], o * 4);
+        a2.set([dir, ph - k * 0.012, z, 1 - k / tail], o * 4);
+        o++;
+      }
+    }
+  });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute("a1", new THREE.BufferAttribute(a1, 4));
+  g.setAttribute("a2", new THREE.BufferAttribute(a2, 4));
+  const m = new THREE.ShaderMaterial({
+    uniforms: { ...U, show: { value: 0 } }, transparent: true, depthWrite: false, depthTest: false,
+    vertexShader: `uniform float time; attribute vec4 a1; attribute vec4 a2; varying float vA;
+      void main(){ float a = (a2.y + time*0.07*a2.x)*6.2832; vec3 p = vec3(a1.x + a1.z*cos(a), a1.y + a1.w*sin(a), a2.z);
+        vA = a2.w; vec4 mv = modelViewMatrix*vec4(p,1.); gl_PointSize = (0.12 + 0.12*a2.w) * 900.0 / -mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `uniform float show; varying float vA; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.1,d)*vA*show; gl_FragColor = vec4(vec3(1.0), a*0.85); }`,
+  });
+  const p = new THREE.Points(g, m);
+  p.frustumCulled = false;
+  p.renderOrder = 12;
+  return p;
+})();
+dio.add(conv);
+// 太陽（晴れた日）
+const sunGrp = new THREE.Group();
+{
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 128;
+  const cx = cv.getContext("2d"), gr = cx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, "rgba(255,250,220,1)"); gr.addColorStop(0.25, "rgba(255,220,120,.85)"); gr.addColorStop(1, "rgba(255,200,80,0)");
+  cx.fillStyle = gr; cx.fillRect(0, 0, 128, 128);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  sp.scale.set(7, 7, 1);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 7, 13, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beam.position.set(2.5, -6, 0);
+  beam.rotation.z = 0.35;
+  void beam;
+  sunGrp.add(sp);
+  sunGrp.position.set(-13, 8.5, -2);
+}
+dio.add(sunGrp);
+// 模型の中の魚
+const dAji = school("アジ", 40, 1.6, 321, { freq: 11 });
+const dGas = school("ガシラ", 4, 1.2, 322, { freq: 4, amp: 0.04 });
+world.add(dAji, dGas);
+extras.push(dAji, dGas);
+function ajiAt(season, back = 0) {
+  // 夏(0)：中ほど → 秋(1)：浅場 → 冬(2)：深場。back は冬の深場から浅場へ戻る割合（晴れた日）
+  let x, y;
+  if (season < 1) { const e = smooth01(season); x = lerp(1, -5, e); y = lerp(-2.6, -1.9, e); }
+  else { const e = smooth01(season - 1); x = lerp(-5, 13, e); y = lerp(-1.9, -10.9, e * e); }
+  if (back > 0) { const e = smooth01(back); x = lerp(x, -6, e); y = lerp(y, -2, Math.sqrt(e)); }
+  return V(x, y, 0);
+}
+function dioLife(T, season, back = 0, slow = 0) {
+  show(studio, dAji, dGas);
+  dio.visible = true;
+  graph.visible = false;
+  const a = ajiAt(season, back);
+  const deep = smooth01(season - 1) * (1 - back);
+  updateSchool(dAji, T * (1 - 0.5 * slow), D(a.x, a.y, a.z), V(3.2, lerp(0.45, 0.8, deep), 3), Math.sin(T * 0.3) > 0 ? 1 : -1);
+  updateSchool(dGas, T * 0.2, D(-11, dioY(-11) + 0.5, 0.5), V(2.2, 0.1, 2.5), 1);
+  return D(a.x, a.y, a.z);
+}
+function setSeason(season, sun = 0) { WU.season.value = season; WU.sun.value = sun; }
+function studioBase() {
+  base(0);
+  U.under.value = 0;
+  show(studio);
+  conv.material.uniforms.show.value = 0;
+  sunGrp.visible = false;
+  setSeason(0, 0);
+}
+// 3Dの棒グラフ（月ごとの水温）
+const graph = new THREE.Group();
+graph.position.set(0, -9, 0);
+studio.add(graph);
+const bars = [];
+{
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(40, 0.4, 5), shadedMat(0x24435e, { rough: 0.05 }));
+  plate.position.y = -0.2;
+  graph.add(plate);
+  SUION.forEach((v, i) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1, 2.3).translate(0, 0.5, 0), shadedMat(0xffffff, { rough: 0.04 }));
+    m.position.set((i - 5.5) * 3.2, 0, 0);
+    m.userData = { v, col: new THREE.Color(tempColor(v)) };
+    bars.push(m);
+    graph.add(m);
+  });
+}
+const BAR_H = 0.45;
+function drawBars(t, opts = {}) {
+  // opts.hide: 色を消して「？」にする月のリスト、opts.hi: 強調する月、opts.grow: 伸び始める時刻
+  bars.forEach((b, i) => {
+    const g = ease((t - (opts.grow ?? -10) - i * 0.12) / 0.7);
+    b.scale.y = Math.max(0.001, b.userData.v * BAR_H * g);
+    const hid = opts.hide && opts.hide.includes(i);
+    const dim = opts.hi && opts.hi.length && !opts.hi.includes(i) ? 0.45 : 1;
+    b.material.uniforms.base.value.copy(hid ? new THREE.Color(0x8a96a3) : b.userData.col).multiplyScalar(dim);
+    const p = project(V(DIO.x + b.position.x, DIO.y + graph.position.y - 0.6, DIO.z + 1.2));
+    html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,0);color:#fff;font-weight:900;font-size:${PORTRAIT ? 24 : 30}px;text-shadow:0 2px 6px #000;opacity:${g}">${i + 1}月</div>`;
+    if (hid && g > 0.5) {
+      const q = project(V(DIO.x + b.position.x, DIO.y + graph.position.y + b.scale.y + 0.4, DIO.z));
+      html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;transform:translate(-50%,-100%);color:#ffd166;font-weight:900;font-size:56px;text-shadow:0 2px 8px #000">？</div>`;
+    }
+  });
+}
+function barLabel(i, a, cls = "gold", dx = 0, dy = -90) {
+  const b = bars[i];
+  label(V(DIO.x + b.position.x, DIO.y + graph.position.y + b.scale.y, DIO.z), `${i + 1}月 約${Math.round(b.userData.v)}℃`, "", a, cls, dx, dy);
+}
+// 季節・水温の表示（右下）
+function seasonHud(season, a = 1) {
+  const mo = season < 1 ? 8 + 3 * season : 11 + 3 * (season - 1);
+  const m0 = Math.floor(mo), f = mo - m0;
+  const T = lerp(SUION[(m0 - 1) % 12], SUION[m0 % 12], f);
+  const name = ((m0 - 1) % 12) + 1;
+  const pos = PORTRAIT ? "right:40px;bottom:420px" : "right:70px;bottom:80px";
+  html += `<div class="card" style="${pos};left:auto;top:auto;margin:0;zoom:1;padding:18px 30px;opacity:${a};display:flex;align-items:center;gap:22px">
+    <div style="width:26px;height:130px;border-radius:13px;background:#dfe7ee;position:relative;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:${clamp01((T - 6) / 24) * 100}%;background:${tempColor(T)}"></div></div>
+    <div><div style="font-size:30px;color:#3a5a78;font-weight:800">大阪湾の海面水温（平均）</div><div style="font-size:76px;font-weight:900;line-height:1.1">${name}月 <span style="color:${tempColor(T)}">${T.toFixed(0)}℃</span></div></div></div>`;
+}
+const legendHtml = () => `<div style="position:absolute;${PORTRAIT ? "left:40px;top:230px" : "left:70px;top:125px"};display:flex;align-items:center;gap:12px;color:#fff;font-weight:900;font-size:28px;text-shadow:0 2px 6px #000">冷たい<div style="width:260px;height:22px;border-radius:11px;background:linear-gradient(90deg,${[8, 13, 18, 23, 28].map(tempColor).join(",")})"></div>温かい</div>`;
+// 縦画面では模型が横にはみ出さないよう、正面から引いて見る
+const dioPortrait = (t) => look(D(Math.sin(t * 0.03) * 4, 3, 60), D(0, -5, 0), 50);
+const dioCam = (ang, dist = 46, y = -3.5, tx = 0, ty = -5.5, fov = 50) => PORTRAIT ? dioPortrait(ang * 10) : look(D(Math.sin(ang) * dist + tx, y, Math.cos(ang) * dist), D(tx, ty, 0), fov);
+
+Object.assign(SHOTS, {
+  wt_thumb(t, d, s) {
+    studioBase();
+    setSeason(2);
+    const c = dioLife(12, 2);
+    look(D(-9, 4, 34), D(-11, -7, 0), 52);
+    label(c, "深場", "冬の魚の居場所", 1, "gold", -60, -170);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1000px;background:linear-gradient(90deg,rgba(2,14,28,.82),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:230px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.12;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  wt_hook(t, d, s) {
+    studioBase();
+    const season = 2 * smooth01((t - 1.2) / (d * 0.72));
+    setSeason(season);
+    dioLife(t, season);
+    const k = ease(t / d);
+    if (PORTRAIT) look(path(D(-8, 6, 62), D(4, 2, 60), k), D(0, -5, 0), 50);
+    else look(path(D(-22, 8, 40), D(6, 0, 48), k), D(lerp(-3, 2, k), lerp(-1.5, -3.5, k), 0), lerp(50, 54, k));
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${PORTRAIT ? 900 : 420}px;background:linear-gradient(rgba(2,10,22,.75),rgba(2,10,22,0))"></div>`;
+    seasonHud(season, clamp01((t - 0.6) / 0.5));
+    const a = clamp01(t / 0.6) * clamp01((d * 0.5 - t) / 0.4);
+    html += `<div class="big" style="top:120px;font-size:90px;opacity:${a}">冬になると、魚は<br><span style="color:#7fd3ff">どこへ消える？</span></div>`;
+    const b = clamp01((t - d * 0.56) / 0.5);
+    html += `<div class="big" style="top:130px;font-size:68px;opacity:${b}">海の中の温度を<br>色で見える化</div>`;
+  },
+  wt_title(t, d) {
+    studioBase();
+    setSeason(2);
+    dioLife(t + 30, 2);
+    dioCam(-0.35 + t * 0.05, 50, 2);
+    const a = clamp01(t / 0.7);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.4 * a})"></div>`;
+    html += `<div class="big" style="top:290px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:116px;margin-top:26px">冬、魚はどこへ？</div><div style="font-size:60px;color:#7fd3ff">水温を色で見ると、答えがわかる</div></div>`;
+  },
+  wt_body(t, d, s, k) {
+    base(0);
+    show(aji);
+    // 水温が下がると、泳ぎがゆっくりになる（時間をゆっくり進める）
+    const t1 = s._k1 ?? d * 0.4;
+    const cold = (x) => (k >= 1 ? smooth01((x - t1) / 3.5) : 0);
+    let tau = 0;
+    const N = 80;
+    for (let i = 0; i < N; i++) { const x = (i + 0.5) * t / N; tau += (1 - 0.7 * cold(x)) * t / N; }
+    const c = V(8 + Math.sin(tau * 0.25) * 4, -5.2, 14);
+    updateSchool(aji, tau * 1.4, c, V(4, 1.1, 2.6), Math.cos(tau * 0.25) > 0 ? 1 : -1);
+    look(path(V(c.x - 9, -4.4, c.z + 13), V(c.x - 4, -5, c.z + 10), ease(t / d)), V(c.x, -5.1, c.z), 52);
+    const T = lerp(22, 11, cold(t));
+    label(V(c.x - 1, -5.6, c.z), "アジ", "体温＝まわりの水温（変温動物）", k >= 0 ? 1 : 0, "", -220, 170);
+    if (k >= 1) label(V(c.x + 3, -5.4, c.z), "水が冷たいと", "動きがゆっくりに", 1, "red", 220, 120);
+    const top = PORTRAIT ? 300 : 150;
+    html += `<div class="card" style="right:70px;left:auto;top:${top}px;padding:20px 28px;text-align:center"><div style="font-size:28px;font-weight:800;color:#3a5a78">水温</div>
+      <div style="width:34px;height:220px;margin:12px auto;border-radius:17px;background:#dfe7ee;position:relative;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:${clamp01((T - 6) / 24) * 100}%;background:${tempColor(T)}"></div></div>
+      <div style="font-size:60px;font-weight:900;color:${tempColor(T)}">${T.toFixed(0)}℃</div></div>`;
+    if (k >= 2) html += `<div class="card" style="left:110px;top:${top}px;width:640px"><b style="font-size:40px">冬の釣りは「水温」がヒント</b><div style="font-size:30px;margin-top:8px">魚の居場所も、食い方も変わる</div></div>`;
+  },
+  wt_graph(t, d, s, k) {
+    studioBase();
+    dio.visible = false;
+    graph.visible = true;
+    const ang = -0.28 + ease(t / d) * 0.22;
+    if (PORTRAIT) look(D(Math.sin(ang) * 30, 4, 54), D(0, -1.5, 0), 48);
+    else look(D(Math.sin(ang) * 44, 4, Math.cos(ang) * 44), D(0, -1.5, 0), 48);
+    drawBars(t, { grow: 0.2, hi: k >= 2 ? [1, 7, 10] : k >= 1 ? [7, 10] : [] });
+    if (k >= 1) { barLabel(7, 1, "red", 0, -80); barLabel(10, 1, "gold", 120, -70); }
+    if (k >= 2) barLabel(1, 1, "", 0, -90);
+    if (k >= 2) html += `<div class="big" style="top:${PORTRAIT ? 380 : 170}px;font-size:60px">夏と冬で <span style="color:#ffd166">約18℃</span> の差</div>`;
+    html += `<div style="position:absolute;${PORTRAIT ? "left:40px;right:40px;top:230px" : "left:70px;top:125px"};color:#bfe6ea;font-weight:700;font-size:24px;text-shadow:0 2px 6px #000">出典：気象庁「沿岸域の海面水温情報（大阪湾）」2021〜2025年の日平均を月ごとに平均</div>`;
+  },
+  wt_quiz(t, d, s, k) {
+    studioBase();
+    dio.visible = false;
+    graph.visible = true;
+    const ans = k >= 2;
+    if (PORTRAIT) look(D(0, 2, 50), D(0, -6, 0), 48);
+    else look(D(-9, 4, 48), D(-15, -2.5, 0), 48);
+    drawBars(t + 10, { hide: ans ? [] : [0, 1, 11], hi: ans ? [1] : [] });
+    if (ans) barLabel(1, 1, "gold", 170, -70);
+    const opts = [["1", "12月"], ["2", "1月"], ["3", "2月"]];
+    html += `<div class="card" style="left:110px;top:150px;width:640px"><b style="font-size:44px">${ans ? "答え：3 2月" : "クイズ"}</b><div style="font-size:30px;margin-top:8px">${ans ? "空気がいちばん寒いのは1月ごろ。<br>海は冷めにくく、少し遅れて冷える" : "大阪湾の海の水温が<br>いちばん低くなるのは何月？"}</div>${k >= 1 ? opts.map(([n, x]) => `<div class="opt" style="font-size:38px;padding:12px 22px;${ans && n !== "3" ? "opacity:.35" : ""}${ans && n === "3" ? ";background:#e6f7ea" : ""}"><i style="width:54px;height:54px;font-size:30px">${n}</i>${x}</div>`).join("") : ""}</div>`;
+  },
+  wt_section(t, d, s, k) {
+    studioBase();
+    const e1 = ease((t - (s._k1 ?? 0)) / 3.5), e2 = ease((t - (s._k2 ?? 0)) / 3.5);
+    const season = k <= 0 ? 0 : k === 1 ? e1 : 1 + e2;
+    setSeason(season);
+    conv.material.uniforms.show.value = k === 1 ? clamp01((t - (s._k1 ?? 0)) / 1) : k >= 2 ? 1 - clamp01((t - (s._k2 ?? 0)) / 2) : 0;
+    dioLife(t, season);
+    dioCam(-0.12 + t * 0.012, 47, -2, 0, -6.5, 50);
+    html += legendHtml();
+    const L = (x, y, txt, sub, a, cls, dx, dy) => label(D(x, y, 6), txt, sub, a, cls, dx, dy);
+    L(-17, 0.6, "岸（浅い）", "", 1, "", 0, -70);
+    L(18, 0.2, "沖（深い）", "", 1, "", 0, -70);
+    if (k === 0) { L(5, -1.5, "温かい水", "上のほう", 1, "red", -60, -150); L(10, -11, "冷たい水", "下のほう", 1, "", 120, 60); }
+    if (k === 1) L(6, -4, "上下が混ざる", "冷えて重くなった水が沈む", clamp01((t - (s._k1 ?? 0)) / 0.6), "gold", -160, -150);
+    if (k >= 2) { L(-12, -1.2, "浅い所", "さらに冷えやすい", e2, "", 200, 90); L(12, -8, "深い所", "ほぼ同じ冷たさ", e2, "gold", 120, -80); }
+    const nm = season < 0.5 ? "夏" : season < 1.5 ? "秋" : "冬";
+    html += `<div class="tag" style="position:absolute;${PORTRAIT ? "right:40px;top:230px" : "right:70px;top:130px"};font-size:46px;background:${season < 0.5 ? "#e3412b" : season < 1.5 ? "#e08a2a" : "#2a7fd0"}">${nm}の海</div>`;
+  },
+  wt_where(t, d, s, k) {
+    studioBase();
+    const mv = k >= 0 ? smooth01((t - 0.5) / 6) : 0;
+    setSeason(2);
+    // 秋の浅場から冬の深場へ移る
+    const c = dioLife(t, 1 + 0.001 + mv * 0.999, 0, 0.3);
+    dioCam(0.28 - t * 0.02, 44, -3, 3, -7, 50);
+    html += legendHtml();
+    label(D(-12, -1.5, 6), "浅場", "冷えやすい・水温が変わりやすい", 1, "", -40, -110);
+    label(c, "アジの群れ", mv < 0.95 ? "深場へ移動中" : "深場に落ちた", 1, "gold", 120, -110);
+    if (k >= 1) label(D(14, -12, 6), "深場", "水の量が多く、水温が安定", 1, "", 60, 110);
+  },
+  wt_sunny(t, d, s, k) {
+    studioBase();
+    sunGrp.visible = k >= 1;
+    const sk = k >= 1 ? ease((t - (s._k1 ?? 0)) / 3) : 0;
+    setSeason(2, sk);
+    const back = k >= 2 ? ease((t - (s._k2 ?? 0)) / 4) * 0.85 : 0;
+    const c = dioLife(t, 2, back);
+    dioCam(-0.3 + t * 0.015, 42, 0, -5, -5, 50);
+    html += legendHtml();
+    if (k === 0) html += `<div class="tag" style="position:absolute;${PORTRAIT ? "right:40px;top:230px" : "right:70px;top:130px"};font-size:46px;background:#2a7fd0">冬の海</div>`;
+    if (k >= 1) label(D(-12, -0.8, 6), "浅場の水が少し温まる", "晴れて風の弱い日", sk, "gold", -40, -130);
+    if (k >= 2) label(c, "魚が浅場に出てくることも", "昼すぎ〜夕方", 1, "", 200, 120);
+  },
+  wt_fish(t, d, s, k) {
+    base(0);
+    wallLife(t);
+    tetraLife(t);
+    bottomLife(t);
+    hide(chinu, kisu, haze, hirame, ainame);
+    updateSchool(gashira, t * 0.25, V(35.5, -8.7, 8.5), V(1.6, 0.15, 1), 1);
+    const W = [[V(-7.5, -4.2, 6.8), V(-11, -4.7, 1.5)], [V(32, -7.4, 14.5), V(36, -8.6, 7.5)], [V(-4.2, -7.4, 12.5), V(-6, -9.45, 9)]];
+    const kk = Math.max(0, Math.min(2, k));
+    const tr = kk > 0 ? ease((t - (s["_k" + kk] ?? 0)) / 1.8) : 1;
+    const from = W[Math.max(0, kk - 1)], to = W[kk];
+    const drift = V(Math.sin(t * 0.3) * 0.6, 0, 0);
+    look(path(from[0], to[0], tr).add(drift), path(from[1], to[1], tr), 52);
+    label(V(-11, -4.5, 1.6), "メバル", "壁ぎわ・物かげ", kk === 0 ? 1 : 0, "", -40, -100);
+    label(V(35.5, -8.5, 8.5), "ガシラ", "テトラ・岩のすき間", kk === 1 && tr > 0.8 ? 1 : 0, "gold", -120, -120);
+    label(V(-6, -9.3, 9), "カレイ", "砂地の底", kk === 2 && tr > 0.8 ? 1 : 0, "red", -120, -90);
+    html += `<div class="card" style="right:70px;left:auto;top:${PORTRAIT ? 300 : 150}px;width:520px;padding:18px 26px"><b style="font-size:36px">冷たい水に強い魚</b><div style="font-size:30px;margin-top:6px">${["メバル", "ガシラ", "カレイ"].map((n, i) => `<span style="opacity:${kk >= i ? 1 : 0.3};margin-right:16px">${n}</span>`).join("")}</div></div>`;
+  },
+  wt_tips(t, d, s, k) {
+    studioBase();
+    setSeason(2, 0.35);
+    dioLife(t, 2, 0);
+    if (PORTRAIT) look(D(Math.sin(t * 0.05) * 3, 4, 60), D(0, -12, 0), 50);
+    else look(D(-27 + Math.sin(t * 0.05) * 1.5, 3, 70), D(-27, -6.5, 0), 50);
+    const tips = [["深場が近い場所を選ぶ", "足元から深い所など（立入禁止の場所には入らない）"], ["底の近くを、ゆっくり誘う", "冷たい水の中では動きがゆっくり"], ["晴れて風の弱い日を選ぶ", "急に冷えこんだ直後は食いが落ちやすい、と言われます"]];
+    tips.forEach(([h, sub], i) => {
+      if (k < i) return;
+      const a = clamp01((t - (s["_k" + i] ?? 0)) / 0.4);
+      html += `<div class="card" style="left:110px;top:${150 + i * 175}px;width:860px;padding:20px 30px;opacity:${a};border-left:16px solid #2a7fd0"><b style="font-size:44px">${i + 1}. ${h}</b><div style="font-size:28px;color:#3a5a78;margin-top:6px">${sub}</div></div>`;
+    });
+  },
+  wt_sum(t, d, s, k) {
+    studioBase();
+    setSeason(2);
+    dioLife(t, 2);
+    dioCam(t * 0.04 - 0.2, 50, 1);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.5 * clamp01(t / 0.6)})"></div>`;
+    html += `<div class="big" style="top:110px;font-size:64px;opacity:${clamp01(t / 0.5)}">冬の水温と魚 まとめ</div>`;
+    const rows = [["水温", "夏 約28℃ → 冬 約10℃（大阪湾）", "#e3412b"], ["深場", "水温が安定。冬の魚の居場所", "#2a7fd0"], ["晴れた日", "浅場が温まり、魚が出てくることも", "#f2b630"], ["冬の魚", "メバル・ガシラ・カレイ", "#5fc3c9"]];
+    rows.forEach(([a1, b1, col], i) => {
+      const a = clamp01((t - 0.4 - i * 0.45) / 0.35);
+      html += `<div class="card" style="left:300px;right:300px;top:${240 + i * 160}px;padding:18px 28px;opacity:${a};display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:38px;padding:8px 0;width:200px;text-align:center;border-radius:16px">${a1}</b><div style="font-size:38px;font-weight:900">${b1}</div></div>`;
+    });
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
