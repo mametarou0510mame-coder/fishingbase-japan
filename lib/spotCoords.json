@@ -316,5 +316,75 @@
   "address": "大阪府泉南郡岬町深日2917",
   "matched": "大阪府岬町深日２９１７番地",
   "rough": false
+ },
+ "honmoku-umizuri-shisetsu": {
+  "lat": 35.4355,
+  "lon": 139.6727,
+  "address": "神奈川県横浜市中区本牧ふ頭",
+  "matched": "神奈川県横浜市中区本牧ふ頭",
+  "rough": false
+ },
+ "daikoku-umizuri-shisetsu": {
+  "lat": 35.46,
+  "lon": 139.6805,
+  "address": "神奈川県横浜市鶴見区大黒ふ頭",
+  "matched": "神奈川県横浜市鶴見区大黒ふ頭",
+  "rough": false
+ },
+ "isogo-umizuri-shisetsu": {
+  "lat": 35.4046,
+  "lon": 139.6335,
+  "address": "神奈川県横浜市磯子区新磯子町",
+  "matched": "神奈川県横浜市磯子区新磯子町",
+  "rough": false
+ },
+ "wakasu-kaihin-koen-umizuri": {
+  "lat": 35.6268,
+  "lon": 139.8287,
+  "address": "東京都江東区若洲",
+  "matched": "東京都江東区若洲",
+  "rough": false
+ },
+ "ichihara-umizuri-koen": {
+  "lat": 35.5421,
+  "lon": 140.0608,
+  "address": "千葉県市原市五井南海岸1-12",
+  "matched": "千葉県市原市五井南海岸１番地",
+  "rough": false
+ },
+ "shimizuko-umizuri-koen": {
+  "lat": 35.0513,
+  "lon": 138.5079,
+  "address": "静岡県静岡市清水区興津清見寺町",
+  "matched": "静岡県静岡市清水区興津清見寺町",
+  "rough": false
+ },
+ "fishing-park-hikari": {
+  "lat": 33.9278,
+  "lon": 131.9646,
+  "address": "山口県光市室積6丁目17-1",
+  "matched": "山口県光市室積六丁目１７番１号",
+  "rough": false
+ },
+ "wakita-umizuri-sanbashi": {
+  "lat": 33.9277,
+  "lon": 130.7194,
+  "address": "福岡県北九州市若松区大字安屋地先",
+  "matched": "福岡県北九州市若松区安屋",
+  "rough": false
+ },
+ "kamoike-umizuri-koen": {
+  "lat": 31.5569,
+  "lon": 130.5622,
+  "address": "鹿児島県鹿児島市与次郎2丁目9-12",
+  "matched": "鹿児島県鹿児島市与次郎二丁目９番１２号",
+  "rough": false
+ },
+ "sakurajima-umizuri-koen": {
+  "lat": 31.5841,
+  "lon": 130.5953,
+  "address": "鹿児島県鹿児島市桜島横山町1722-3",
+  "matched": "鹿児島県鹿児島市桜島横山町",
+  "rough": false
  }
 }
