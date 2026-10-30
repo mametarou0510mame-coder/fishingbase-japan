@@ -19,6 +19,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "long-month-11",
          # 3DCG（2026-10-28 オーナー Go）
          "cg-teibou-3d", "cg-shokumotsu", "cg-nagare", "cg-kiken", "cg-lure",
+         "cg-suion",  # 2026-10-30 冬の水温（3DCG）
          "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
 REC = "data/sns/long-posts.json"
 PER_DAY = 2  # 1日に出す長尺の本数（07:17 と 18:17。出せなかった分は 21:17）
