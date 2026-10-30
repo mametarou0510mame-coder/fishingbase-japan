@@ -70,6 +70,17 @@ jobs:
           ffmpeg -y -loglevel error -i build/long/$S.mp4 -c:v libx264 -preset slow -b:v ${VB}k -pass 2 -c:a aac -b:a 128k -movflags +faststart out/$S.mp4
           ffmpeg -y -loglevel error -ss 12 -i out/$S.mp4 -frames:v 1 -q:v 2 out/$S.jpg
           echo "::notice::$S: $(du -h out/$S.mp4 | cut -f1), $(python3 -c "import json;print(json.load(open('build/long/$S.meta.json'))['duration'])")s"
+      - name: Save preview (publish=false)
+        if: github.event.inputs.publish != 'true'
+        run: |
+          S=${{ matrix.slug }}
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin long-media
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p preview && cp $GITHUB_WORKSPACE/out/$S.mp4 $GITHUB_WORKSPACE/out/$S.jpg preview/
+          git add -A && git commit -qm "short preview: $S"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
       - uses: actions/upload-artifact@v4
         with:
           name: short-${{ matrix.slug }}

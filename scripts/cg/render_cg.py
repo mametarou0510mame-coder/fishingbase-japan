@@ -56,7 +56,7 @@ def frame_args(timeline, total, tg, T_offset=0.0):
         if tg >= c0 - 0.05:
             k = kmap[i] if kmap else i
         if c0 - 0.05 <= tg <= c1 + GAP:
-            cap = ln["text"]
+            cap = (s.get("caps") or [None] * 99)[i] or ln["text"]  # caps：字幕だけ短く・強調つきにする
     if s.get("nocap"):
         cap = ""
     dim = 0.0
