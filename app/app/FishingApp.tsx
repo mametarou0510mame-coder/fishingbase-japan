@@ -268,7 +268,7 @@ export default function FishingApp() {
               <>
                 {near && near.length > 0 && <h2>近くの釣り場</h2>}
                 <ul className="fa-near">
-                  {near.map((s) => (
+                  {(near ?? []).map((s) => (
                     <li key={s.slug}>
                       <button type="button" onClick={() => open(s.slug)}>
                         <i style={{ background: TYPE_COLOR[s.type] }} />
