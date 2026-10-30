@@ -9,8 +9,14 @@ import FavoriteButton from "@/app/components/FavoriteButton";
 import InstallHint from "@/app/components/InstallHint";
 import type { DayResult } from "@/lib/shio";
 import type { WindStation } from "@/lib/liveWind";
+import TideViewer from "@/app/components/TideViewer";
+import MarineTable from "@/app/components/MarineTable";
+import { nearestAmedasWind } from "@/lib/amedasNearest";
 
 type SpotLite = { slug: string; name: string; type: string; area: string; lat: number; lon: number };
+// 全国の潮位ポイント（気象庁 潮位表の地点）
+type TidePt = { code: string; name: string; pref: string; lat: number; lon: number; obsOffset: number | null };
+const TIDE_COLOR = "#1F6FB2";
 type Method = {
   slug: string;
   title: string;
@@ -85,6 +91,11 @@ export default function FishingApp() {
   const [near, setNear] = useState<(SpotLite & { km: number })[] | null>(null);
   const [mi, setMi] = useState(0);
   const sheet = useRef<HTMLDivElement>(null);
+  const [tides, setTides] = useState<TidePt[]>([]);
+  const [tsel, setTsel] = useState<TidePt | null>(null);
+  const [twind, setTwind] = useState<WindStation | null>(null);
+  const [nearT, setNearT] = useState<(TidePt & { km: number })[] | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   // サイトのヘッダー・フッターを隠して、アプリの画面にする
   useEffect(() => {
@@ -97,6 +108,7 @@ export default function FishingApp() {
     setMi(0);
     try {
       const d = (await (await fetch(`/app-data/spot/${slug}.json`)).json()) as SpotData;
+      setTsel(null);
       setSel(d);
       setFull(true);
       sheet.current?.scrollTo({ top: 0 });
@@ -114,7 +126,48 @@ export default function FishingApp() {
     fetch("/app-data/spots.json")
       .then((r) => r.json())
       .then((d) => setSpots(d.spots));
+    fetch("/app-data/tides.json")
+      .then((r) => r.json())
+      .then((d) => setTides(d.points))
+      .catch(() => setTides([]));
   }, []);
+
+  // 潮位ポイントを開く：潮（タイドグラフ）・いまの風・風と波の予報
+  const openTide = useCallback((t: TidePt, fly = true) => {
+    setSel(null);
+    setTsel(t);
+    setTwind(null);
+    setFull(true);
+    sheet.current?.scrollTo({ top: 0 });
+    nearestAmedasWind(t.lat, t.lon).then(setTwind).catch(() => setTwind(null));
+    if (fly && map.current) map.current.setView([t.lat, t.lon], Math.max(map.current.getZoom(), 11), { animate: false });
+    if (new URLSearchParams(location.search).get("tide")) history.replaceState({ tide: t.code }, "", `/app/?tide=${t.code}`);
+    else history.pushState({ tide: t.code }, "", `/app/?tide=${t.code}`);
+  }, []);
+
+  // 地図に全国の潮位ポイントを出す（釣り場より小さい、白抜きの青い点）
+  useEffect(() => {
+    if (!mapReady || !tides.length || !map.current) return;
+    const Lf = (window as unknown as { L: L }).L;
+    const layer = Lf.layerGroup();
+    for (const t of tides) {
+      const mk = Lf.circleMarker([t.lat, t.lon], { radius: 6, color: TIDE_COLOR, weight: 3, fillColor: "#fff", fillOpacity: 1 });
+      mk.bindTooltip(`${t.name}（潮位）`, { direction: "top", offset: [0, -6] });
+      mk.on("click", () => openTide(t, true));
+      layer.addLayer(mk);
+    }
+    layer.addTo(map.current);
+    // 釣り場のピンを上に
+    map.current.eachLayer((ly: L) => {
+      if (ly.options?.radius === 9) ly.bringToFront?.();
+    });
+    const q = new URLSearchParams(location.search).get("tide");
+    const hit = q ? tides.find((t) => t.code === q) : undefined;
+    if (hit) openTide(hit, true);
+    return () => {
+      layer.remove();
+    };
+  }, [mapReady, tides, openTide]);
 
   useEffect(() => {
     if (!spots.length || !mapEl.current || map.current) return;
@@ -131,6 +184,7 @@ export default function FishingApp() {
         mk.on("click", () => open(s.slug, true));
       }
       map.current = m;
+      setMapReady(true);
       const q = new URLSearchParams(location.search).get("spot");
       if (q) open(q, true);
     });
@@ -139,15 +193,18 @@ export default function FishingApp() {
   // 閉じる：地図に戻る（ブラウザの「戻る」でも閉じる）
   const close = () => {
     setSel(null);
+    setTsel(null);
     setFull(false);
-    if (history.state?.spot) history.back();
+    if (history.state?.spot || history.state?.tide) history.back();
     else history.replaceState(null, "", "/app/");
     setTimeout(() => map.current?.invalidateSize(), 50);
   };
   useEffect(() => {
     const onPop = () => {
-      if (!new URLSearchParams(location.search).get("spot")) {
+      const q = new URLSearchParams(location.search);
+      if (!q.get("spot") && !q.get("tide")) {
         setSel(null);
+        setTsel(null);
         setFull(false);
       }
     };
@@ -160,9 +217,11 @@ export default function FishingApp() {
     navigator.geolocation.getCurrentPosition(
       (p) => {
         const me = { lat: p.coords.latitude, lon: p.coords.longitude };
-        const list = spots.map((s) => ({ ...s, km: dist(me, s) })).sort((a, b) => a.km - b.km).slice(0, 5);
+        const list = spots.map((s) => ({ ...s, km: dist(me, s) })).filter((s) => s.km < 60).sort((a, b) => a.km - b.km).slice(0, 5);
         setNear(list);
+        setNearT(tides.map((t) => ({ ...t, km: dist(me, t) })).sort((a, b) => a.km - b.km).slice(0, 3));
         setSel(null);
+        setTsel(null);
         const Lf = (window as unknown as { L: L }).L;
         if (map.current && Lf) {
           Lf.circleMarker([me.lat, me.lon], { radius: 7, color: "#fff", weight: 3, fillColor: "#2B7BE4", fillOpacity: 1 }).addTo(map.current);
@@ -183,29 +242,33 @@ export default function FishingApp() {
           ツレドキ
         </Link>
         <button type="button" className="fa-btn" onClick={locate}>
-          📍 近くの釣り場
+          📍 近くのポイント
         </button>
       </header>
-      <div className={`fa-legend${sel ? " hide" : ""}`}>
+      <div className={`fa-legend${sel || tsel ? " hide" : ""}`}>
         {Object.entries(TYPE_COLOR).map(([k, c]) => (
           <span key={k}>
             <i style={{ background: c }} />
             {k.replace("（渡船）", "")}
           </span>
         ))}
+        <span>
+          <i style={{ background: "#fff", border: `2px solid ${TIDE_COLOR}`, width: 8, height: 8 }} />
+          潮位ポイント（全国{tides.length || 239}）
+        </span>
       </div>
 
-      <section ref={sheet} className={`fa-sheet${sel ? " screen" : " mini"}`} aria-live="polite">
-        {!sel && <button type="button" className="fa-handle" aria-label={full ? "小さくする" : "大きくする"} onClick={() => setFull(!full)} />}
-        {!sel && (
+      <section ref={sheet} className={`fa-sheet${sel || tsel ? " screen" : " mini"}`} aria-live="polite">
+        {!sel && !tsel && <button type="button" className="fa-handle" aria-label={full ? "小さくする" : "大きくする"} onClick={() => setFull(!full)} />}
+        {!sel && !tsel && (
           <div className="fa-pad">
             {loading ? (
               <p>読み込み中…</p>
-            ) : near && near.length ? (
+            ) : (near && near.length) || (nearT && nearT.length) ? (
               <>
-                <h2>近くの釣り場</h2>
+                {near && near.length > 0 && <h2>近くの釣り場</h2>}
                 <ul className="fa-near">
-                  {near.map((s) => (
+                  {(near ?? []).map((s) => (
                     <li key={s.slug}>
                       <button type="button" onClick={() => open(s.slug)}>
                         <i style={{ background: TYPE_COLOR[s.type] }} />
@@ -217,11 +280,80 @@ export default function FishingApp() {
                     </li>
                   ))}
                 </ul>
+                {nearT && nearT.length > 0 && (
+                  <>
+                    <h2>近くの潮位ポイント</h2>
+                    <ul className="fa-near">
+                      {nearT.map((t) => (
+                        <li key={t.code}>
+                          <button type="button" onClick={() => openTide(t)}>
+                            <i style={{ background: "#fff", border: `2px solid ${TIDE_COLOR}` }} />
+                            <b>{t.name}</b>
+                            <span>
+                              {t.pref}・約{t.km.toFixed(1)}km
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </>
             ) : (
-              <p className="fa-hint">地図のピンをタップすると、その釣り場の潮・天気・風・波と、おすすめの釣り方・道具が見られます。</p>
+              <p className="fa-hint">
+                地図のピンをタップすると、その釣り場の潮・天気・風・波と、おすすめの釣り方・道具が見られます。白抜きの青い点は全国の潮位ポイント（約240地点）で、潮・いまの風・風と波の予報が見られます。
+              </p>
             )}
             <InstallHint />
+          </div>
+        )}
+        {tsel && !sel && (
+          <div className="fa-pad">
+            <div className="fa-bar">
+              <button type="button" className="fa-back" onClick={close} aria-label="閉じて地図に戻る">
+                <span aria-hidden>×</span> 地図に戻る
+              </button>
+              <b className="fa-bar-name">{tsel.name}（潮位）</b>
+            </div>
+            <div className="fa-head">
+              <div>
+                <span className="fa-type fa-tidechip">潮位ポイント</span>
+                <h2>{tsel.name}</h2>
+                <p className="small">{tsel.pref}</p>
+              </div>
+            </div>
+            <p className="fa-actions">
+              <Link href={`/tide/${tsel.code.toLowerCase()}/`}>くわしいタイドグラフ・過去の潮位 →</Link>
+            </p>
+            {twind && <LiveWind station={twind} />}
+            <h3>潮（タイドグラフ）</h3>
+            <TideViewer st={{ code: tsel.code, name: tsel.name, lat: tsel.lat, lon: tsel.lon, obsOffset: tsel.obsOffset }} />
+            <h3>風・波・雨の予報（5日間）</h3>
+            <MarineTable code={tsel.code} />
+            {(() => {
+              const ns = spots.map((x) => ({ ...x, km: dist(tsel, x) })).filter((x) => x.km < 20).sort((a, b) => a.km - b.km).slice(0, 4);
+              return ns.length ? (
+                <>
+                  <h3>近くの釣り場</h3>
+                  <ul className="fa-near">
+                    {ns.map((x) => (
+                      <li key={x.slug}>
+                        <button type="button" onClick={() => open(x.slug)}>
+                          <i style={{ background: TYPE_COLOR[x.type] }} />
+                          <b>{x.name}</b>
+                          <span>
+                            {x.type}・約{x.km.toFixed(1)}km
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null;
+            })()}
+            <p className="small">
+              潮位：気象庁「潮位表」「潮位観測情報」（{tsel.name}）／いまの風：気象庁アメダス{twind ? `（${twind.name}、約${twind.distKm}km）` : ""}／予報：ECMWF Open Data（CC BY 4.0）。港の地点の潮です。釣り場とは時刻・高さが少しずれることがあります。現地の状況・注意報を優先してください。
+            </p>
           </div>
         )}
         {sel && (
