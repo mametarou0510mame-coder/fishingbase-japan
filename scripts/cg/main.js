@@ -71,9 +71,16 @@ function makeSeabed() {
       void main(){
         vec3 sand = vec3(0.86, 0.78, 0.6) * (0.85 + 0.15*hash(floor(vW.xz*6.)));
         float diff = clamp(dot(vN, normalize(vec3(0.3,1.,0.2))), 0.0, 1.0);
-        if (vW.y > 1.0) sand = mix(vec3(0.42,0.45,0.42), vec3(0.36,0.46,0.3), hash(floor(vW.xz*0.4))) * (0.9 + 0.1*hash(floor(vW.xz*8.)));
+        if (vW.y > 1.0) {
+          // 陸：なめらかなノイズで、舗装（灰）と緑をまだらに
+          vec2 q = vW.xz * 0.06; vec2 iq = floor(q); vec2 fq = fract(q); fq = fq*fq*(3.0-2.0*fq);
+          float n1 = mix(mix(hash(iq), hash(iq+vec2(1,0)), fq.x), mix(hash(iq+vec2(0,1)), hash(iq+vec2(1,1)), fq.x), fq.y);
+          vec2 q2 = vW.xz * 0.23; vec2 i2 = floor(q2); vec2 f2 = fract(q2); f2 = f2*f2*(3.0-2.0*f2);
+          float n2 = mix(mix(hash(i2), hash(i2+vec2(1,0)), f2.x), mix(hash(i2+vec2(0,1)), hash(i2+vec2(1,1)), f2.x), f2.y);
+          sand = mix(vec3(0.50,0.52,0.53), vec3(0.30,0.40,0.27), smoothstep(0.45, 0.75, n1*0.7 + n2*0.3)) * (0.92 + 0.08*n2);
+        }
         vec3 col = sand * (0.35 + 0.65*diff);
-        col += vec3(0.9,1.0,1.0) * caust(vW.xz*0.9, time) * 0.22 * (1.0 - night);
+        col += vec3(0.9,1.0,1.0) * caust(vW.xz*0.9, time) * 0.22 * (1.0 - night) * step(vW.y, 1.0);
         gl_FragColor = vec4(underwater(col, vW, distance(cameraPosition, vW)), 1.0);
       }`,
   });
@@ -194,6 +201,15 @@ function makeSurface() {
           vec3 deep = vec3(0.02,0.16,0.26);
           vec3 c = mix(deep, skyc, clamp(fres*1.4, 0.0, 1.0));
           c += vec3(1.0,0.85,0.6) * pow(max(dot(R, normalize(vec3(-0.6,0.12,0.8))), 0.0), 120.0) * 2.5;
+          // 細かいきらめき（ブルームで光る）
+          vec2 gp = vW.xz * 4.0 + vec2(time * 0.7, time * 0.4);
+          vec2 gq = floor(gp);
+          float gr = fract(sin(dot(gq, vec2(12.9898,78.233)))*43758.5453);
+          vec2 gc = vec2(fract(gr * 13.7), fract(gr * 71.3)) * 0.6 + 0.2;
+          float gl = step(0.975, gr) * smoothstep(0.12, 0.0, length(fract(gp) - gc)) * (0.5 + 0.5 * sin(time * 6.0 + gr * 40.0));
+          c += vec3(1.0,0.95,0.85) * gl * 0.9 * (1.0 - night);
+          // 空の色をもう少し映して、深い青に
+          c = mix(c, c * vec3(0.85,0.98,1.1), 0.35);
           c = mix(c, vec3(0.92,0.95,0.97), smoothstep(1.1, 2.4, vH) * 0.85); // 高波の白い波頭
           c *= mix(1.0, 0.2, night);
           gl_FragColor = vec4(c, 0.96);
@@ -2449,6 +2465,89 @@ Object.assign(SHOTS, {
   },
 });
 
+
+// =====================================================================
+// 仕上げ（v2）：ブルーム（光のにじみ）・色の調整・周辺減光・フィルムの粒子・色ずれ
+// ?look=v1 で従来の見た目
+// =====================================================================
+const LOOK_V2 = !/look=v1/.test(location.search);
+const POST = (() => {
+  if (!LOOK_V2) return null;
+  const mk = (w, h, samples = 0) => new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, samples, depthBuffer: samples > 0 });
+  const rtScene = mk(W, H, 4);
+  const rtA = mk(W >> 2, H >> 2), rtB = mk(W >> 2, H >> 2), rtC = mk(W >> 3, H >> 3), rtD = mk(W >> 3, H >> 3);
+  const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+  const qs = new THREE.Scene();
+  qs.add(quad);
+  const vs = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+  const bright = new THREE.ShaderMaterial({
+    uniforms: { src: { value: null }, th: { value: 0.68 } }, vertexShader: vs,
+    fragmentShader: `uniform sampler2D src; uniform float th; varying vec2 vUv;
+      void main(){ vec3 c = texture2D(src, vUv).rgb; float l = dot(c, vec3(0.299,0.587,0.114)); gl_FragColor = vec4(c * smoothstep(th, th + 0.35, l), 1.0); }`,
+  });
+  const blur = new THREE.ShaderMaterial({
+    uniforms: { src: { value: null }, dir: { value: new THREE.Vector2() } }, vertexShader: vs,
+    fragmentShader: `uniform sampler2D src; uniform vec2 dir; varying vec2 vUv;
+      void main(){ vec3 c = texture2D(src, vUv).rgb * 0.227;
+        c += (texture2D(src, vUv + dir*1.385).rgb + texture2D(src, vUv - dir*1.385).rgb) * 0.316;
+        c += (texture2D(src, vUv + dir*3.231).rgb + texture2D(src, vUv - dir*3.231).rgb) * 0.070;
+        gl_FragColor = vec4(c, 1.0); }`,
+  });
+  const comp = new THREE.ShaderMaterial({
+    uniforms: { src: { value: null }, b1: { value: null }, b2: { value: null }, time: { value: 0 }, night: { value: 0 }, res: { value: new THREE.Vector2(W, H) } },
+    vertexShader: vs,
+    fragmentShader: `uniform sampler2D src; uniform sampler2D b1; uniform sampler2D b2; uniform float time; uniform float night; uniform vec2 res; varying vec2 vUv;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      void main(){
+        vec2 d = vUv - 0.5;
+        float r2 = dot(d, d);
+        // 画面の端ほど少しだけ色がずれる
+        vec2 ca = d * r2 * 0.012;
+        vec3 c = vec3(texture2D(src, vUv + ca).r, texture2D(src, vUv).g, texture2D(src, vUv - ca).b);
+        // 光のにじみ
+        vec3 bl = texture2D(b1, vUv).rgb * 0.9 + texture2D(b2, vUv).rgb * 1.1;
+        c += bl * mix(0.7, 1.05, night);
+        // 色の調整：コントラスト、彩度、暗部は青緑・明部は暖色
+        float l = dot(c, vec3(0.299,0.587,0.114));
+        c = mix(vec3(l), c, 1.12);
+        c = mix(c, c * vec3(0.92, 1.02, 1.08), smoothstep(0.45, 0.0, l) * 0.6);
+        c = mix(c, c * vec3(1.06, 1.0, 0.92), smoothstep(0.55, 1.0, l) * 0.5);
+        c = (c - 0.5) * 1.06 + 0.5 + 0.01;
+        // 周辺減光
+        c *= mix(1.0, 0.72, smoothstep(0.12, 0.62, r2 * 2.2));
+        // フィルムの粒子
+        c += (h(vUv * res + fract(time * 7.13) * 100.0) - 0.5) * 0.035;
+        gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
+      }`,
+  });
+  function pass(mat, target) {
+    quad.material = mat;
+    renderer.setRenderTarget(target);
+    renderer.render(qs, quadCam);
+  }
+  return {
+    render() {
+      renderer.setRenderTarget(rtScene);
+      renderer.clear();
+      renderer.render(scene, camera);
+      bright.uniforms.src.value = rtScene.texture; pass(bright, rtA);
+      blur.uniforms.src.value = rtA.texture; blur.uniforms.dir.value.set(1 / (W >> 2), 0); pass(blur, rtB);
+      blur.uniforms.src.value = rtB.texture; blur.uniforms.dir.value.set(0, 1 / (H >> 2)); pass(blur, rtA);
+      blur.uniforms.src.value = rtA.texture; blur.uniforms.dir.value.set(1 / (W >> 3), 0); pass(blur, rtC);
+      blur.uniforms.src.value = rtC.texture; blur.uniforms.dir.value.set(0, 1 / (H >> 3)); pass(blur, rtD);
+      blur.uniforms.src.value = rtD.texture; blur.uniforms.dir.value.set(2 / (W >> 3), 0); pass(blur, rtC);
+      blur.uniforms.src.value = rtC.texture; blur.uniforms.dir.value.set(0, 2 / (H >> 3)); pass(blur, rtD);
+      comp.uniforms.src.value = rtScene.texture;
+      comp.uniforms.b1.value = rtA.texture;
+      comp.uniforms.b2.value = rtD.texture;
+      comp.uniforms.time.value = U.time.value;
+      comp.uniforms.night.value = U.night.value;
+      pass(comp, null);
+    },
+  };
+})();
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
@@ -2469,7 +2568,8 @@ window.frame = function (o) {
   const fc = new THREE.Color(0x0d4a6e).lerp(new THREE.Color(0x020a16), U.night.value);
   scene.background = U.under.value > 0.5 ? fc : null;
   U.fogColor.value.copy(new THREE.Color(0x0d4a6e));
-  renderer.render(scene, camera);
+  if (POST) POST.render();
+  else renderer.render(scene, camera);
   if (o.chapter) html += `<div class="chapter"><b>${o.chapterNo ?? ""}</b><span>${o.chapter}</span></div>`;
   html += `<div class="logo">ツレドキ<i>関西</i></div>`;
   if (o.cap) html += `<div class="cap">${o.cap}</div>`;
