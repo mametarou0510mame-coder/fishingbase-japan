@@ -2844,31 +2844,33 @@ Object.assign(SHOTS, {
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
     const P = PORTRAIT;
     html += `<div class="big" style="top:${P ? 280 : 110}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
-    [["資源量", "2000年 約1,500トン → 2010年 約4,600トン（約3倍）"], ["取り組み", "休漁・網の目・放流（2002〜2011年度）"], ["サゴシ", "とれたサワラの約8割は0〜1歳（鳥取県）"]].forEach(([a1, b1], i) => {
+    [["資源量", "1998年 約690トン → 2024年 約6,500トン（約9倍）"], ["取り組み", "休漁・網の目・放流（2002〜2011年度）、その後も管理を継続"], ["いま", "親魚の量はここ5年減る傾向。見守りが必要"], ["サゴシ", "とれたサワラの約8割は0〜1歳（鳥取県）"]].forEach(([a1, b1], i) => {
       const a = clamp01((t - 0.4 - i * 0.4) / 0.3);
-      html += card(P ? 60 : 300, (P ? 470 : 250) + i * (P ? 220 : 170), P ? 880 : 1320, `<div style="display:flex;align-items:center;gap:22px"><b style="background:#1f6fb2;color:#fff;font-size:34px;padding:8px 16px;border-radius:14px;white-space:nowrap">${a1}</b><div style="font-size:${P ? 34 : 38}px;font-weight:900">${b1}</div></div>`, a, "padding:18px 24px");
+      html += card(P ? 60 : 300, (P ? 450 : 220) + i * (P ? 200 : 150), P ? 880 : 1320, `<div style="display:flex;align-items:center;gap:22px"><b style="background:#1f6fb2;color:#fff;font-size:34px;padding:8px 16px;border-radius:14px;white-space:nowrap">${a1}</b><div style="font-size:${P ? 34 : 38}px;font-weight:900">${b1}</div></div>`, a, "padding:18px 24px");
     });
   },
 });
-// 資源量のグラフ（水産庁の資料）。step：0=2000年だけ、1=2010年まで、2=途中の年も
+// 資源量のグラフ（水産研究・教育機構の資源評価。山口県 令和7年版の資料から）
+// step：0=1987年と1998年、1=2024年まで、2=親魚量の注意も
 function swChart(step, small) {
-  const data = [[2000, 1482], [2003, 3653], [2005, 2355], [2010, 4607]];
-  const show = (y) => (y === 2000 ? step >= 0 : y === 2010 ? step >= 1 : step >= 2);
-  const grow = (y) => (y === 2000 ? clamp01(step + 1) : y === 2010 ? clamp01(step) : clamp01(step - 1));
-  const H = small ? 300 : PORTRAIT ? 560 : 400;
+  const data = [[1987, 15718], [1998, 688], [2024, 6500]];
+  const show = (y) => (y === 2024 ? step >= 1 : step >= 0);
+  const grow = (y) => (y === 2024 ? clamp01(step) : clamp01(step + 1));
+  const H = small ? 300 : PORTRAIT ? 520 : 380;
   const bars = data.map(([y, v]) => {
     const g = grow(y), on = show(y);
-    const h = (v / 5000) * H * g;
-    const col = y === 2000 ? "#e3412b" : y === 2010 ? "#2ecc71" : "#7fa3c2";
+    const h = Math.max(4, (v / 16000) * H * g);
+    const col = y === 1998 ? "#e3412b" : y === 2024 ? "#2ecc71" : "#7fa3c2";
     return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;opacity:${on ? 1 : 0.12}">
       <b style="font-size:${small ? 28 : 40}px;color:#10345a">${on ? Math.round(v * g).toLocaleString() : ""}</b>
-      <div style="width:70%;height:${h}px;background:${col};border-radius:12px 12px 0 0"></div>
+      <div style="width:62%;height:${h}px;background:${col};border-radius:12px 12px 0 0"></div>
       <div style="font-size:${small ? 26 : 34}px;font-weight:900;color:#10345a;margin-top:6px">${y}年</div></div>`;
   }).join("");
   return `<div style="font-size:${small ? 30 : 38}px;font-weight:900;color:#10345a">瀬戸内海のサワラの資源量（トン）</div>
     <div style="display:flex;gap:12px;height:${H + 90}px;align-items:flex-end;margin-top:14px;border-bottom:4px solid #10345a">${bars}</div>
-    ${step >= 1 && !small ? `<div style="font-size:${PORTRAIT ? 46 : 44}px;font-weight:900;color:#1e7a36;margin-top:14px;text-align:center">10年で約3倍に</div>` : ""}
-    <div style="font-size:22px;color:#3a5a78;margin-top:8px">出典：水産庁「サワラ瀬戸内海系群資源回復計画の評価・総括」</div>`;
+    ${step >= 1 && !small ? `<div style="font-size:${PORTRAIT ? 44 : 40}px;font-weight:900;color:#1e7a36;margin-top:12px;text-align:center">一番少なかった年の約9倍に</div>` : ""}
+    ${step >= 2 && !small ? `<div style="font-size:${PORTRAIT ? 34 : 30}px;font-weight:900;color:#c62828;margin-top:6px;text-align:center">ただし親魚の量はここ5年減る傾向・目安を下回る</div>` : ""}
+    <div style="font-size:22px;color:#3a5a78;margin-top:8px">出典：山口県「令和7年版 瀬戸内海側重要魚種の資源評価 サワラ」（水産研究・教育機構の資源評価）</div>`;
 }
 
 // =====================================================================
