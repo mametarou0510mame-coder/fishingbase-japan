@@ -2650,6 +2650,214 @@ Object.assign(SHOTS, {
 });
 
 // =====================================================================
+// 瀬戸内海のサワラはなぜ戻ってきた？（cg-sawara、sw_*）：水産庁・鳥取県の資料にもとづく
+// =====================================================================
+// 網（縦に張った流し網）：格子模様の板
+const NET = new THREE.Mesh(
+  new THREE.PlaneGeometry(26, 9),
+  new THREE.ShaderMaterial({
+    uniforms: { ...U, cell: { value: 1.0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying vec2 vP; varying vec3 vW; void main(){ vP = position.xy; vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform float cell; ${FOG_GLSL} varying vec2 vP; varying vec3 vW;
+      void main(){ vec2 g = abs(fract(vP / cell + 0.5) - 0.5) * cell; float l = 1.0 - smoothstep(0.03, 0.07, min(g.x, g.y));
+        if (l < 0.05) discard; gl_FragColor = vec4(underwater(vec3(0.95,0.92,0.8), vW, distance(cameraPosition, vW)), l * 0.95); }`,
+  }),
+);
+NET.position.set(-30, -4.5, 22);
+NET.rotation.y = Math.PI / 2; // 網は z 方向に広がる（魚は x 方向に泳いで通る）
+world.add(NET);
+extras.push(NET);
+const youngSw = school("サゴシ", 10, 1.1, 91, { freq: 14 });
+const bigSw = school("サゴシ", 3, 3.2, 92, { freq: 9 });
+const releaseSw = school("サゴシ", 40, 0.5, 93, { freq: 16 });
+world.add(youngSw, bigSw, releaseSw);
+extras.push(youngSw, bigSw, releaseSw);
+// 魚を1匹ずつ置く（x：進む位置、向き dir）
+function placeEach(mesh, T, fn) {
+  mesh.visible = true;
+  const { off } = mesh.userData;
+  for (let i = 0; i < off.length; i++) {
+    const r = fn(i, off[i]);
+    _q.setFromEuler(_e.set(0, r.yaw ?? 0, Math.sin(T * 3 + i) * 0.05));
+    _s.setScalar(off[i].s);
+    _m.compose(r.p, _q, _s);
+    mesh.setMatrixAt(i, _m);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+}
+const SW_SIZES = [3.4, 5.5, 7.2]; // 鳥取県の成長式で計算した 0・1・2歳の尾叉長（×10cm）
+const swRuler = [0, 1, 2].map((i) => {
+  const m = fishMesh("サゴシ", SW_SIZES[i], { amp: 0.03, freq: 5 });
+  world.add(m);
+  extras.push(m);
+  return m;
+});
+const card = (x, y, w, inner, a = 1, extra = "") =>
+  `<div class="card" style="left:${x}px;top:${y}px;width:${w}px;opacity:${a};transform:translateY(${(1 - a) * 24}px);${extra}">${inner}</div>`;
+const swBg = (t) => {
+  // 背景：サゴシが泳ぐ海の中（説明の画面では少し暗くする）
+  show(sagoshi);
+  updateSchool(sagoshi, t, V(-6 + Math.sin(t * 0.2) * 4, -3, 24), V(4, 1, 3), Math.cos(t * 0.2) > 0 ? 1 : -1);
+  look(V(-4 + Math.sin(t * 0.05) * 3, -3.2, 38), V(-6, -3.4, 22), 55);
+};
+
+Object.assign(SHOTS, {
+  sw_thumb(t, d, s) {
+    base(0);
+    swBg(3);
+    const P = PORTRAIT;
+    html += `<div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:130px;line-height:1.12;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+    if (!P) html += `<div style="position:absolute;right:90px;top:250px;width:520px;height:560px;background:rgba(255,255,255,.92);border-radius:26px;padding:26px">${swChart(1, true)}</div>`;
+  },
+  sw_hook(t, d) {
+    base(0);
+    show(raiders);
+    const c = V(-6, -3, 24);
+    updateRaiders(raiders, t * 0.6, c, 2.4, 1.2, 0);
+    look(V(c.x + 3, -3, c.z + 17 - t * 0.3), c, 55);
+    const a = clamp01(t / 0.4);
+    bigText(PORTRAIT ? 330 : 130, "瀬戸内海のサワラ<br>なぜ戻ってきた？", "いま釣れているサゴシの話", a);
+  },
+  sw_title(t, d) {
+    base(0);
+    swBg(t + 5);
+    const a = clamp01(t / 0.6);
+    html += `<div class="big" style="top:${PORTRAIT ? 560 : 280}px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:${PORTRAIT ? 96 : 110}px;margin-top:26px">瀬戸内海のサワラは<br>なぜ戻ってきた？</div><div style="font-size:${PORTRAIT ? 46 : 52}px;color:#ffd166;margin-top:10px">水産庁・鳥取県の資料から</div></div>`;
+  },
+  sw_graph(t, d, s, k) {
+    base(0);
+    swBg(t + 10);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
+    const P = PORTRAIT;
+    const W0 = P ? 940 : 1100, L0 = P ? 70 : 410, T0 = P ? 330 : 120;
+    html += `<div style="position:absolute;left:${L0}px;top:${T0}px;width:${W0}px;background:rgba(255,255,255,.95);border-radius:28px;padding:26px 30px">${swChart(k + clamp01((t - (s["_k" + k] ?? 0)) / 1.2), false)}</div>`;
+  },
+  sw_plan(t, d, s, k) {
+    base(0);
+    swBg(t + 20);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 76 : 64}px">10年の取り組み<div style="font-size:${P ? 40 : 36}px;color:#ffd166;margin-top:6px">2002〜2011年度・水産庁の資源回復計画</div></div>`;
+    const items = [["1", "休漁", "流し網の漁を春か秋に休む"], ["2", "網の目を大きく", "10.6cm以上にそろえる"], ["3", "放流", "育てた稚魚を海に放す"]];
+    items.forEach(([n, h, sub], i) => {
+      const on = k >= (i === 0 ? 1 : 2);
+      const a = on ? clamp01((t - (s["_k" + (i === 0 ? 1 : 2)] ?? 0) - (i === 2 ? 0.8 : 0)) / 0.4) : 0;
+      const y = (P ? 560 : 330) + i * (P ? 210 : 180);
+      html += card(P ? 80 : 460, y, P ? 840 : 920, `<div style="display:flex;align-items:center;gap:26px"><b style="background:#2ecc71;color:#06213a;font-size:54px;width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center">${n}</b><div><b style="font-size:50px">${h}</b><div style="font-size:32px;color:#3a5a78">${sub}</div></div></div>`, a, "padding:18px 26px");
+    });
+  },
+  sw_net(t, d, s, k) {
+    base(0);
+    NET.visible = true;
+    // 若い魚（小さい）は網の目をすり抜け、大きい魚は網に当たって向きを変える
+    const L = 12;
+    placeEach(youngSw, t, (i, o) => {
+      const u = ((t * 0.18 + i / 10) % 1);
+      return { p: V(-30 - L + u * 2 * L, -4.5 + o.y * 3, 22 + o.z * 8), yaw: 0 };
+    });
+    placeEach(bigSw, t, (i, o) => {
+      const u = ((t * 0.12 + i / 3) % 1);
+      const x = -30 - L + u * L * 1.9;
+      const hit = Math.max(0, x - (-31.5));
+      return { p: V(Math.min(x, -31.5) - hit * 0.6, -4.5 + o.y * 2, 18 + i * 4), yaw: x > -31.5 ? Math.PI : 0 };
+    });
+    look(V(-44, -3.2, PORTRAIT ? 42 : 36), V(-30, -4.5, 22), 52);
+    label(V(-30, -0.4, 22), "網の目 10.6cm以上", "流し網", 1, "", 0, -40);
+    if (k >= 1) label(V(-27, -4.6, 24), "若い魚はすり抜ける", "0〜1歳の魚の約16%", 1, "gold ans", 140, -120);
+    legend([["#ffd166", "若い（小さい）魚"], ["#e3412b", "大きい魚"]]);
+  },
+  sw_release(t, d, s, k) {
+    base(0);
+    // 水面から小さな稚魚が広がっていく
+    placeEach(releaseSw, t, (i, o) => {
+      const u = clamp01((t - i * 0.08) / 6);
+      const ang = o.p * 6.28;
+      return { p: V(-6 + Math.cos(ang) * u * 8 * o.w, -0.6 - u * 4 * (0.5 + o.s * 0.4), 24 + Math.sin(ang) * u * 6), yaw: -ang };
+    });
+    look(V(-6, -3.5, 36), V(-6, -2.2, 24), 55);
+    label(V(-6, -0.4, 24), "放流", "育てた稚魚を海に放す", 1, "", 0, -60);
+    if (k >= 1) html += card(PORTRAIT ? 80 : 110, PORTRAIT ? 980 : 520, PORTRAIT ? 840 : 760, `<b style="font-size:46px">とれるまで生き残ったのは<br><span style="color:#1e7a36;font-size:72px">約24%</span></b><div style="font-size:28px;color:#3a5a78">平成14〜22年の平均（水産庁の資料）</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4));
+    if (k >= 2) html += card(PORTRAIT ? 80 : 110, PORTRAIT ? 330 : 150, PORTRAIT ? 840 : 760, `<b style="font-size:40px">もう1つの理由</b><div style="font-size:32px;margin-top:6px">生まれた数がたまたま多い年（卓越年級群）があったことも、回復の要因とされています</div>`, clamp01((t - (s._k2 ?? 0)) / 0.4));
+  },
+  sw_travel(t, d, s, k) {
+    base(0);
+    show(raiders);
+    // 東（右）から西（左）へ泳ぐサワラ
+    placeEach(raiders, t, (i, o) => ({ p: V(6 - ((t * 2.2 + i * 3) % 30), -3 + o.y, 22 + o.z * 3), yaw: Math.PI }));
+    look(V(-6, -3, 38), V(-6, -3, 22), 55);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.35)"></div>`;
+    const P = PORTRAIT;
+    const a = clamp01(t / 0.5), b = k >= 1 ? clamp01((t - (s._k1 ?? 0)) / 2) : 0;
+    const days = Math.round(229 * b), cm = (23.6 * (k >= 2 ? clamp01((t - (s._k2 ?? 0)) / 1.5) : 0)).toFixed(1);
+    const W1 = P ? 940 : 1300, L1 = P ? 70 : 310;
+    html += `<div style="position:absolute;left:${L1}px;top:${P ? 520 : 220}px;width:${W1}px;opacity:${a};background:rgba(255,255,255,.95);border-radius:28px;padding:30px">
+      <div style="font-size:36px;font-weight:900;color:#10345a">鳥取県の標識放流の記録</div>
+      <div style="position:relative;height:${P ? 300 : 260}px;margin-top:20px">
+        <div style="position:absolute;left:0;top:40px;text-align:center;width:300px"><div style="width:44px;height:44px;border-radius:50%;background:#2ecc71;margin:0 auto;border:6px solid #fff;box-shadow:0 0 0 4px #2ecc71"></div><b style="font-size:40px;color:#10345a">鳥取県 沿岸</b><div style="font-size:28px;color:#3a5a78">ここでとれた</div></div>
+        <div style="position:absolute;right:0;top:40px;text-align:center;width:300px"><div style="width:44px;height:44px;border-radius:50%;background:#e3412b;margin:0 auto;border:6px solid #fff;box-shadow:0 0 0 4px #e3412b"></div><b style="font-size:40px;color:#10345a">福井県 敦賀湾</b><div style="font-size:28px;color:#3a5a78">ここで放流</div></div>
+        <div style="position:absolute;right:150px;top:66px;height:10px;width:calc((100% - 300px) * ${b});background:#1f6fb2;border-radius:5px"></div>
+        <div style="position:absolute;left:0;right:0;top:${P ? 170 : 150}px;text-align:center;font-weight:900;color:#10345a"><span style="font-size:${P ? 80 : 72}px">${days}</span><span style="font-size:40px">日後</span>${k >= 2 ? `　<span style="font-size:${P ? 80 : 72}px;color:#1e7a36">+${cm}</span><span style="font-size:40px;color:#1e7a36">cm</span>` : ""}</div>
+      </div>
+      <div style="font-size:26px;color:#3a5a78">※位置関係を示した図で、地図ではありません。福井県→鳥取県は西向き。</div></div>`;
+  },
+  sw_size(t, d, s, k) {
+    base(0);
+    swRuler.forEach((m, i) => {
+      m.visible = true;
+      m.position.set(-6 - (SW_SIZES[2] - SW_SIZES[i]) / 2, -1.2 - i * 2.4, 24);
+    });
+    look(V(-6, -3.9, PORTRAIT ? 44 : 39), V(-6, -3.9, 24), 40);
+    const ages = ["0歳 約34cm", "1歳 約55cm", "2歳 約72cm"];
+    ages.forEach((a1, i) => label(V(-6 - (SW_SIZES[2] - SW_SIZES[i]) / 2 - SW_SIZES[i] / 2, -1.2 - i * 2.4, 24), a1, "", clamp01((t - 0.3 - i * 0.4) / 0.3), i < 2 ? "gold" : "", -10, -40));
+    html += `<div style="position:absolute;left:0;right:0;top:${PORTRAIT ? 250 : 110}px;text-align:center;color:#fff;font-weight:900;font-size:${PORTRAIT ? 44 : 40}px;text-shadow:0 3px 12px rgba(0,0,0,.6)">鳥取県の調査の成長の式で計算した大きさ（尾叉長）</div>`;
+    // 「約8割」は字幕で伝える（カードと字幕が重なるため出さない）
+  },
+  sw_angler(t, d, s, k) {
+    base(0);
+    swBg(t + 30);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.5)"></div>`;
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 120}px;font-size:${P ? 76 : 64}px">釣り人にできること</div>`;
+    [["食べる分だけ持ち帰る"], ["地域や釣り場のルールを確かめる"], ["釣った魚はおいしくいただく"]].forEach(([h], i) => {
+      const kk = i === 0 ? 1 : i === 1 ? 1 : 2;
+      const a = k >= kk ? clamp01((t - (s["_k" + kk] ?? 0) - (i === 1 ? 0.6 : 0)) / 0.4) : 0;
+      html += card(P ? 80 : 460, (P ? 520 : 290) + i * (P ? 170 : 150), P ? 840 : 920, `<b style="font-size:46px"><span style="color:#2ecc71">✔</span> ${h}</b>`, a, "padding:22px 30px");
+    });
+  },
+  sw_sum(t, d, s, k) {
+    base(0);
+    swBg(t + 40);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 110}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
+    [["資源量", "2000年 約1,500トン → 2010年 約4,600トン（約3倍）"], ["取り組み", "休漁・網の目・放流（2002〜2011年度）"], ["サゴシ", "とれたサワラの約8割は0〜1歳（鳥取県）"]].forEach(([a1, b1], i) => {
+      const a = clamp01((t - 0.4 - i * 0.4) / 0.3);
+      html += card(P ? 60 : 300, (P ? 470 : 250) + i * (P ? 220 : 170), P ? 880 : 1320, `<div style="display:flex;align-items:center;gap:22px"><b style="background:#1f6fb2;color:#fff;font-size:34px;padding:8px 16px;border-radius:14px;white-space:nowrap">${a1}</b><div style="font-size:${P ? 34 : 38}px;font-weight:900">${b1}</div></div>`, a, "padding:18px 24px");
+    });
+  },
+});
+// 資源量のグラフ（水産庁の資料）。step：0=2000年だけ、1=2010年まで、2=途中の年も
+function swChart(step, small) {
+  const data = [[2000, 1482], [2003, 3653], [2005, 2355], [2010, 4607]];
+  const show = (y) => (y === 2000 ? step >= 0 : y === 2010 ? step >= 1 : step >= 2);
+  const grow = (y) => (y === 2000 ? clamp01(step + 1) : y === 2010 ? clamp01(step) : clamp01(step - 1));
+  const H = small ? 300 : PORTRAIT ? 560 : 400;
+  const bars = data.map(([y, v]) => {
+    const g = grow(y), on = show(y);
+    const h = (v / 5000) * H * g;
+    const col = y === 2000 ? "#e3412b" : y === 2010 ? "#2ecc71" : "#7fa3c2";
+    return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;opacity:${on ? 1 : 0.12}">
+      <b style="font-size:${small ? 28 : 40}px;color:#10345a">${on ? Math.round(v * g).toLocaleString() : ""}</b>
+      <div style="width:70%;height:${h}px;background:${col};border-radius:12px 12px 0 0"></div>
+      <div style="font-size:${small ? 26 : 34}px;font-weight:900;color:#10345a;margin-top:6px">${y}年</div></div>`;
+  }).join("");
+  return `<div style="font-size:${small ? 30 : 38}px;font-weight:900;color:#10345a">瀬戸内海のサワラの資源量（トン）</div>
+    <div style="display:flex;gap:12px;height:${H + 90}px;align-items:flex-end;margin-top:14px;border-bottom:4px solid #10345a">${bars}</div>
+    ${step >= 1 && !small ? `<div style="font-size:${PORTRAIT ? 46 : 44}px;font-weight:900;color:#1e7a36;margin-top:14px;text-align:center">10年で約3倍に</div>` : ""}
+    <div style="font-size:22px;color:#3a5a78;margin-top:8px">出典：水産庁「サワラ瀬戸内海系群資源回復計画の評価・総括」</div>`;
+}
+
+// =====================================================================
 // 仕上げ（v2）：ブルーム（光のにじみ）・色の調整・周辺減光・フィルムの粒子・色ずれ
 // ?look=v1 で従来の見た目
 // =====================================================================
