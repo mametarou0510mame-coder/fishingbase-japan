@@ -1,5 +1,6 @@
 // ツレドキCG：堤防の海の中を3Dで見せる。フレームごとに window.frame(...) を呼ぶと、その瞬間の絵を描く（時間で決まる＝何度描いても同じ絵）。
 import * as THREE from "three";
+import { LAND, geo } from "./japan.js";
 
 // ?portrait で縦（ショート・リール用 1080x1920）
 const PORTRAIT = /portrait/.test(location.search);
@@ -2871,6 +2872,458 @@ function swChart(step, small) {
     ${step >= 1 && !small ? `<div style="font-size:${PORTRAIT ? 44 : 40}px;font-weight:900;color:#1e7a36;margin-top:12px;text-align:center">一番少なかった年の約9倍に</div>` : ""}
     ${step >= 2 && !small ? `<div style="font-size:${PORTRAIT ? 34 : 30}px;font-weight:900;color:#c62828;margin-top:6px;text-align:center">ただし親魚の量はここ5年減る傾向・目安を下回る</div>` : ""}
     <div style="font-size:22px;color:#3a5a78;margin-top:8px">出典：山口県「令和7年版 瀬戸内海側重要魚種の資源評価 サワラ」（水産研究・教育機構の資源評価）</div>`;
+}
+
+
+// =====================================================================
+// ブリの一生（cg-buri、by_*）：水産研究・教育機構の資源評価（令和7年度）・環境省・北海道立総合研究機構の資料にもとづく
+// =====================================================================
+// 日本地図（陸地は Natural Earth）。本編の海から離れた場所（x=500）に置く
+const MAPO = V(500, 0, 0);
+const jmap = new THREE.Group();
+jmap.position.copy(MAPO);
+world.add(jmap);
+extras.push(jmap);
+const MG = (lon, lat, y = 0.7) => { const [x, z] = geo(lon, lat); return V(MAPO.x + x, y, MAPO.z + z); };
+const MAP_BG = "vec3(0.02,0.07,0.13)";
+const MAP_EDGE = `float edge(vec2 p){ return smoothstep(30.5, 25.0, abs(p.x)) * smoothstep(30.0, 24.0, -p.y) * smoothstep(32.4, 27.0, p.y); }`;
+{
+  const bd = new THREE.Mesh(new THREE.SphereGeometry(170, 32, 16), new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vP; void main(){ float h = normalize(vP).y; gl_FragColor = vec4(mix(${MAP_BG}, vec3(0.04,0.13,0.22), smoothstep(-0.2,0.8,h)),1.); }`,
+  }));
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(120, 120, 1, 1).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+    uniforms: { time: U.time },
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL; ${MAP_EDGE}
+      void main(){ vec2 p = vL.xz; vec2 ll = vec2(p.x/(0.81915*2.4)+135.0, -p.y/2.4+35.0);
+        vec2 g = abs(fract(ll/5.0 - 0.5) - 0.5) * 5.0; vec2 fw = fwidth(ll);
+        float line = 1.0 - smoothstep(0.0, 1.2, min(g.x/fw.x, g.y/fw.y));
+        vec3 c = mix(vec3(0.06,0.25,0.42), vec3(0.09,0.33,0.52), 0.5+0.5*sin(p.x*0.21+time*0.15)*sin(p.y*0.17-time*0.1));
+        c += line * 0.07;
+        gl_FragColor = vec4(mix(${MAP_BG}, c, edge(p)), 1.); }`,
+  }));
+  const shapes = LAND.map((r) => new THREE.Shape(r.map(([x, z]) => new THREE.Vector2(x, -z))));
+  const lg = new THREE.ExtrudeGeometry(shapes, { depth: 0.5, bevelEnabled: false, curveSegments: 1 });
+  lg.rotateX(-Math.PI / 2);
+  const land = new THREE.Mesh(lg, new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; ${MAP_EDGE}
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      void main(){ float n = hash(floor(vL.xz*4.0));
+        vec3 top = mix(vec3(0.84,0.80,0.64), vec3(0.62,0.72,0.52), 0.5+0.5*sin(vL.x*0.6)*sin(vL.z*0.5)) * (0.95+0.05*n);
+        vec3 c = vN.y > 0.5 ? top : vec3(0.42,0.40,0.33);
+        float diff = clamp(dot(normalize(vN), normalize(vec3(0.3,1.0,0.5))),0.,1.); c *= 0.6+0.45*diff;
+        gl_FragColor = vec4(mix(${MAP_BG}, c, edge(vL.xz)), 1.); }`,
+  }));
+  const coast = new THREE.Group();
+  const cm = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 });
+  LAND.forEach((r) => {
+    const pts = r.filter(([x, z]) => Math.abs(x) < 29 && z > -29 && z < 31).map(([x, z]) => V(x, 0.52, z));
+    if (pts.length > 2) coast.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), cm));
+  });
+  jmap.add(bd, sea, land, coast);
+}
+// 回遊ルート（チューブ。prog で描き進める、dir で模様を流す）
+function makeRoute(pts, color, w = 0.3) {
+  const curve = new THREE.CatmullRomCurve3(pts.map(([lo, la]) => { const [x, z] = geo(lo, la); return V(x, 0.8, z); }), false, "centripetal");
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 260, w, 8, false), new THREE.ShaderMaterial({
+    uniforms: { time: U.time, prog: { value: 1 }, dir: { value: 0 }, col: { value: new THREE.Color(color) }, op: { value: 1 } },
+    transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; uniform float prog; uniform float dir; uniform vec3 col; uniform float op; varying vec2 vUv;
+      void main(){ if (vUv.x > prog) discard; float dash = smoothstep(0.3, 0.5, fract(vUv.x*26.0 - dir*time*0.8));
+        gl_FragColor = vec4(mix(col, vec3(1.0), dash*0.5), op); }`,
+  }));
+  m.renderOrder = 10;
+  m.userData.curve = curve;
+  jmap.add(m);
+  return m;
+}
+function routeSet(m, prog, op = 1, dir = 0) {
+  m.visible = op > 0.01 && prog > 0.001;
+  m.material.uniforms.prog.value = prog;
+  m.material.uniforms.op.value = op;
+  m.material.uniforms.dir.value = dir;
+}
+// 北部型：東シナ海 ⇔ 北海道沿岸（日本海を通る）
+const R_NORTH = makeRoute([[127.2, 30.0], [128.6, 32.4], [129.6, 34.1], [131.4, 35.6], [133.4, 36.6], [135.8, 37.4], [137.6, 38.6], [139.2, 40.0], [139.5, 41.8], [140.6, 43.6], [141.4, 45.0], [142.4, 45.7]], "#ff6b5a", 0.34);
+// 中・西部型：東シナ海 ⇔ 能登半島以西の日本海
+const R_MID = makeRoute([[126.6, 30.4], [127.9, 32.6], [129.0, 34.3], [130.6, 35.4], [132.4, 36.0], [134.3, 36.2], [136.1, 37.0]], "#ffd166", 0.34);
+// 太平洋側の小さな回遊群（遠州灘〜四国南西岸、紀伊水道〜薩南、豊後水道〜薩南）
+const R_PAC = [
+  makeRoute([[137.7, 34.45], [136.4, 33.55], [135.4, 33.15], [134.2, 32.95], [133.0, 32.55], [132.4, 32.6]], "#5ee08a", 0.22),
+  makeRoute([[135.0, 33.95], [134.4, 32.9], [133.0, 31.9], [131.6, 31.0], [130.6, 30.6]], "#5ee08a", 0.22),
+  makeRoute([[132.2, 33.15], [131.9, 32.2], [131.4, 31.2], [130.8, 30.65]], "#5ee08a", 0.22),
+];
+// 産卵が見られる範囲（九州沿岸〜能登半島以西／伊豆諸島以西）
+const R_SPAWN_J = makeRoute([[129.6, 33.9], [131.0, 34.9], [132.6, 35.7], [134.4, 35.85], [135.9, 35.95], [136.6, 36.9]], "#ff9f40", 0.18);
+const R_SPAWN_P = makeRoute([[130.4, 31.0], [131.6, 31.7], [132.6, 32.6], [134.2, 33.0], [135.6, 33.25], [137.2, 34.3], [139.3, 34.3]], "#ff9f40", 0.18);
+// 主な産卵場（東シナ海の陸棚のふち）：脈打つ光
+const SPAWN = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+  uniforms: { time: U.time, op: { value: 1 } }, transparent: true, depthWrite: false,
+  vertexShader: `varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform float time; uniform float op; varying vec2 vP; void main(){ float r = length(vP); float ring = smoothstep(0.08,0.0,abs(r - fract(time*0.35)));
+    float a = pow(1.0 - r, 1.2) * (0.55 + 0.15*sin(time*3.0)) + ring*0.5*(1.0-r); gl_FragColor = vec4(vec3(1.0,0.45,0.35), a*op); }`,
+}));
+{ const [x, z] = geo(126.9, 29.8); SPAWN.position.set(x, 0.6, z); SPAWN.scale.set(6.5, 1, 2.6); SPAWN.rotation.y = 0.75; SPAWN.renderOrder = 9; jmap.add(SPAWN); }
+// 6月に14℃以上になる日本海（模式図）。latN：北のふち
+const WARM = new THREE.Mesh(new THREE.PlaneGeometry(64, 64).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+  uniforms: { latN: { value: 40 }, op: { value: 1 }, time: U.time }, transparent: true, depthWrite: false,
+  vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform float latN; uniform float op; uniform float time; varying vec3 vL;
+    void main(){ vec2 ll = vec2(vL.x/(0.81915*2.4)+135.0, -vL.z/2.4+35.0);
+      float east = ll.y < 37.5 ? 138.8 : (ll.y < 42.7 ? 140.2 : 142.6);
+      float south = ll.x > 132.0 ? 35.2 : 33.9;
+      float m = smoothstep(127.6, 128.4, ll.x) * smoothstep(east + 0.3, east - 0.3, ll.x) * smoothstep(south - 0.3, south + 0.3, ll.y);
+      float d = latN - ll.y; float fill = smoothstep(-0.15, 0.25, d); float rim = exp(-pow(d/0.35, 2.0));
+      float stripe = 0.85 + 0.15*step(0.5, fract((vL.x + vL.z)*0.9 - time*0.3));
+      vec3 c = mix(vec3(1.0,0.56,0.22)*stripe, vec3(1.0,0.95,0.8), rim);
+      gl_FragColor = vec4(c, m * op * min(1.0, fill*0.78 + rim*0.9)); }`,
+}));
+WARM.position.y = 0.04;
+WARM.renderOrder = 8;
+jmap.add(WARM);
+// 地図の上の小さな群れ（寝かせて置く）
+const mapFish = [0, 1].map((i) => { const m = school("ハマチ", 7, 1.5, 520 + i, { amp: 0.02, freq: 8 }); world.add(m); extras.push(m); return m; });
+const _e2 = new THREE.Euler(0, 0, 0, "YXZ");
+function fishOnRoute(mesh, route, u0, T, back = false, spread = 0.7) {
+  mesh.visible = true;
+  const { off } = mesh.userData, c = route.userData.curve;
+  for (let i = 0; i < off.length; i++) {
+    const o = off[i];
+    const u = Math.min(0.999, Math.max(0.001, u0 + o.x * 0.03));
+    const p = c.getPointAt(u), tg = c.getTangentAt(u);
+    const sg = back ? -1 : 1;
+    const yaw = Math.atan2(-tg.z * sg, tg.x * sg);
+    p.x += -tg.z * o.y * spread + Math.sin(T * o.w + o.p) * 0.12;
+    p.z += tg.x * o.y * spread;
+    p.y = 1.1;
+    _e2.set(-Math.PI / 2, yaw, 0);
+    _q.setFromEuler(_e2);
+    _s.setScalar(o.s);
+    _m.compose(p.add(MAPO), _q, _s);
+    mesh.setMatrixAt(i, _m);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+}
+function mapBase() {
+  base(0);
+  U.under.value = 0;
+  jmap.visible = true;
+  [R_NORTH, R_MID, ...R_PAC, R_SPAWN_J, R_SPAWN_P].forEach((r) => (r.visible = false));
+  SPAWN.visible = false;
+  WARM.visible = false;
+}
+// 地図のカメラ：[経度, 緯度, 高さ] を k でつなぐ
+function mapCam(a, b = a, k = 0, fov = 45) {
+  const lo = lerp(a[0], b[0], k), la = lerp(a[1], b[1], k), h = lerp(a[2], b[2], k);
+  const c = MG(lo, la, 0);
+  look(V(c.x, h, c.z + h * 0.62), c, fov);
+}
+// 地名などの札
+function mtag(lon, lat, text, a = 1, cls = "", dy = 0) {
+  if (a <= 0.01) return;
+  const p = project(MG(lon, lat, 0.6));
+  html += `<div class="lab ${cls}" style="left:${p.x}px;top:${p.y + dy}px;opacity:${a};transform:translate(-50%,-50%) scale(${0.85 + 0.15 * a});font-size:${PORTRAIT ? 30 : 28}px;padding:4px 16px">${text}</div>`;
+}
+const srcLine = (txt) => `<div style="position:absolute;left:${PORTRAIT ? 40 : 70}px;bottom:${PORTRAIT ? 300 : 200}px;color:#cfe6f5;font-size:${PORTRAIT ? 22 : 22}px;font-weight:700;text-shadow:0 2px 6px #000">出典：${txt}</div>`;
+// 流れ藻（モジャコの家）：水面に浮かぶ海藻のかたまり
+const moba = new THREE.Group();
+moba.position.set(-6, -0.1, 24);
+world.add(moba);
+extras.push(moba);
+{
+  const r = rng(511);
+  const mat = (ph) => new THREE.ShaderMaterial({
+    uniforms: { ...U, ph: { value: ph } }, side: THREE.DoubleSide,
+    vertexShader: `uniform float time; uniform float ph; varying float vY; varying vec3 vW; varying float vX;
+      void main(){ vec3 p = position; vY = -p.y; vX = uv.x; p.x *= 1.0 - 0.7*uv.y*0.0 - 0.65*clamp(vY/3.2,0.,1.);
+        p.x += sin(time*1.1+ph+p.y*1.6)*0.12*vY; p.z += cos(time*0.8+ph+p.y)*0.08*vY;
+        vec4 w = modelMatrix*vec4(p,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `${FOG_GLSL} uniform float ph; varying float vY; varying vec3 vW; varying float vX;
+      void main(){ float leaf = abs(sin(vY*9.0 + ph*3.0)); if (abs(vX-0.5) > 0.22 + 0.28*leaf) discard;
+        vec3 c = mix(vec3(0.66,0.56,0.2), vec3(0.34,0.31,0.1), clamp(vY/3.0,0.,1.)) * (0.8 + 0.25*sin(ph*7.0));
+        gl_FragColor = vec4(underwater(c, vW, distance(cameraPosition, vW)), 1.); }`,
+  });
+  for (let i = 0; i < 130; i++) {
+    const h = 0.8 + r() * 2.6;
+    const g = new THREE.PlaneGeometry(0.34, h, 1, 10);
+    g.translate(0, -h / 2, 0);
+    const m = new THREE.Mesh(g, mat(r() * 6));
+    const a = r() * 6.28, rad = Math.sqrt(r()) * 2.8;
+    m.position.set(Math.cos(a) * rad, r() * 0.1, Math.sin(a) * rad * 0.75);
+    m.rotation.set((r() - 0.5) * 0.7, r() * 3, (r() - 0.5) * 0.7);
+    moba.add(m);
+  }
+  // 浮き袋（小さな粒）
+  const bl = new THREE.InstancedMesh(new THREE.SphereGeometry(0.07, 8, 6), shadedMat(0x8a7a2a, { rough: 0.2 }), 260);
+  for (let i = 0; i < 260; i++) {
+    const a = r() * 6.28, rad = Math.sqrt(r()) * 2.8;
+    _m.makeTranslation(Math.cos(a) * rad + (r() - 0.5) * 0.4, -r() * 1.6, Math.sin(a) * rad * 0.75);
+    bl.setMatrixAt(i, _m);
+  }
+  moba.add(bl);
+}
+const mojako = school("ハマチ", 30, 0.34, 512, { freq: 16 });
+world.add(mojako);
+extras.push(mojako);
+// 大きさの比較（ハマチの絵を使う）
+const BY_NAME = [2.0, 4.0, 6.0, 8.0]; // 関西の呼び名の目安（ツバス・ハマチ・メジロ・ブリ）×10cm（環境省）
+const BY_AGE = [4.1, 6.0, 7.2, 8.0]; // 1〜4歳の尾叉長（水産研究・教育機構、太平洋・千葉以西、1月時点）×10cm
+const byRuler = [0, 1, 2, 3].map(() => { const m = fishMesh("ハマチ", 1, { amp: 0.03, freq: 5 }); world.add(m); extras.push(m); return m; });
+const byBg = (t) => {
+  show(hamachi);
+  updateSchool(hamachi, t, V(-6 + Math.sin(t * 0.2) * 5, -3.2, 24), V(3, 1, 2.4), Math.cos(t * 0.2) > 0 ? 1 : -1);
+  look(V(-4 + Math.sin(t * 0.05) * 3, -3.2, 38), V(-6, -3.4, 22), 55);
+};
+const dim = (v = 0.55) => `<div style="position:absolute;inset:0;background:rgba(2,14,28,${v})"></div>`;
+const rowCard = (P, i, a, h, sub, top0, step, col = "#1f6fb2") =>
+  card(P ? 60 : 300, top0 + i * step, P ? 880 : 1320, `<div style="display:flex;align-items:center;gap:22px"><b style="background:${col};color:#fff;font-size:34px;padding:8px 16px;border-radius:14px;white-space:nowrap">${h}</b><div style="font-size:${P ? 34 : 38}px;font-weight:900">${sub}</div></div>`, a, "padding:18px 24px");
+
+Object.assign(SHOTS, {
+  by_thumb(t, d, s) {
+    mapBase();
+    routeSet(R_NORTH, 1, 1);
+    routeSet(R_MID, 1, 1);
+    R_PAC.forEach((r) => routeSet(r, 1, 1));
+    SPAWN.visible = true;
+    fishOnRoute(mapFish[0], R_NORTH, 0.62, 3);
+    fishOnRoute(mapFish[1], R_MID, 0.45, 3, true);
+    const c = MG(130.5, 37.2, 0);
+    look(V(c.x, 64, c.z + 34), c, 45);
+    html += `<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,14,28,.85) 0%,rgba(2,14,28,.55) 38%,rgba(2,14,28,0) 60%)"></div>`;
+    html += `<div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px;background:#10345a;color:#ffd166;border:3px solid #ffd166">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  by_hook(t, d) {
+    base(0);
+    academyBadge();
+    byBg(t);
+    const a = clamp01(t / 0.4);
+    bigText(PORTRAIT ? 330 : 130, "ブリの一生<br>日本を回る大回遊", "名前が変わる出世魚の話", a);
+  },
+  by_title(t, d) {
+    mapBase();
+    routeSet(R_NORTH, clamp01(t / 3), 0.9);
+    routeSet(R_MID, clamp01((t - 0.5) / 3), 0.9);
+    const k = ease(clamp01(t / d));
+    mapCam([132, 35.5, 52], [133, 37, 72], k);
+    html += dim(0.35);
+    const a = clamp01(t / 0.6);
+    html += `<div class="big" style="top:${PORTRAIT ? 560 : 260}px;opacity:${a}"><span class="tag" style="background:#10345a;color:#ffd166;border:3px solid #ffd166">ツレドキアカデミー</span><div style="font-size:${PORTRAIT ? 96 : 110}px;margin-top:26px">ブリの一生</div><div style="font-size:${PORTRAIT ? 50 : 56}px;margin-top:6px">流れ藻のモジャコから80cmへ</div><div style="font-size:${PORTRAIT ? 36 : 40}px;color:#ffd166;margin-top:18px">水産研究・教育機構・環境省・北海道の資料から</div></div>`;
+  },
+  by_spawn(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    const k1 = k >= 1 ? ease(clamp01((t - (s._k1 ?? 0)) / 2.5)) : 0;
+    mapCam([128.5, 31.0, 40], [132.6, 33.9, 50], k1);
+    SPAWN.visible = true;
+    mtag(124.8, 27.9, "東シナ海", 1 - k1);
+    label(MG(126.9, 29.8), "主な産卵場", "東シナ海の大陸棚のふち", clamp01(t / 0.6), "gold ans", 0, -90);
+    if (k >= 1) {
+      routeSet(R_SPAWN_J, clamp01((t - (s._k1 ?? 0) - 0.6) / 2.4), 0.9);
+      routeSet(R_SPAWN_P, clamp01((t - (s._k1 ?? 0) - 1.2) / 2.4), 0.9);
+      mtag(136.9, 37.6, "能登半島より西", clamp01((t - (s._k1 ?? 0) - 2.2) / 0.4), "gold", -40);
+      mtag(139.4, 33.7, "伊豆諸島より西", clamp01((t - (s._k1 ?? 0) - 2.8) / 0.4), "gold", 30);
+      legend([["#ff9f40", "産卵が見られる範囲"]], clamp01((t - (s._k1 ?? 0) - 1) / 0.4));
+    }
+    if (k >= 2) {
+      const a = clamp01((t - (s._k2 ?? 0)) / 0.4), P = PORTRAIT;
+      const bar = (lab, m0, m1, col) => `<div style="display:flex;align-items:center;gap:14px;margin-top:10px"><b style="width:${P ? 150 : 140}px;font-size:28px">${lab}</b><div style="position:relative;flex:1;height:34px;background:#e6edf3;border-radius:8px"><div style="position:absolute;left:${(m0 - 1) / 12 * 100}%;width:${(m1 - m0 + 1) / 12 * 100}%;top:0;bottom:0;background:${col};border-radius:8px"></div></div></div>`;
+      html += card(P ? 60 : 110, P ? 1180 : 150, P ? 880 : 740, `<b style="font-size:36px">産卵期（月）</b>${bar("太平洋側", 1, 5, "#5ee08a")}${bar("日本海側", 1, 7, "#ffd166")}<div style="display:flex;justify-content:space-between;margin:6px 0 0 ${P ? 164 : 154}px;font-size:22px;color:#3a5a78">${[1, 3, 5, 7, 9, 11].map((m) => `<span>${m}月</span>`).join("")}</div><div style="font-size:24px;color:#3a5a78;margin-top:8px">九州西岸の盛期は4〜5月と推定</div>`, a, "padding:22px 28px");
+    }
+    html += srcLine("水産研究・教育機構「令和7（2025）年度ブリの資源評価」");
+  },
+  by_mojako(t, d, s, k) {
+    base(0);
+    academyBadge();
+    show(moba);
+    show(mojako);
+    updateSchool(mojako, t, V(-6 + Math.sin(t * 0.3) * 0.6, -1.5, 24), V(1.8, 0.45, 1.2), Math.cos(t * 0.3) > 0 ? 1 : -1);
+    look(V(-6 + Math.sin(t * 0.06) * 2, -4.6, 33), V(-6, -1.0, 24), 55);
+    label(V(-6, -0.4, 24), "流れ藻", "海に浮かぶ海藻のかたまり", clamp01(t / 0.6), "", -260, -40);
+    label(V(-5, -1.5, 24.5), "モジャコ", "ブリの子ども", clamp01((t - 1.2) / 0.5), "gold ans", 260, 120);
+    if (k >= 1) {
+      const a = clamp01((t - (s._k1 ?? 0)) / 0.4), P = PORTRAIT;
+      html += card(P ? 80 : 110, P ? 1060 : 560, P ? 840 : 700, `<div style="font-size:40px;font-weight:900">全長 <span style="color:#1e7a36;font-size:58px">約3cm</span> で魚を食べ始める</div><div style="font-size:40px;font-weight:900;margin-top:8px"><span style="color:#1e7a36;font-size:58px">13cm</span> をこえると魚だけを食べる</div><div style="font-size:24px;color:#3a5a78;margin-top:8px">水産研究・教育機構「令和7（2025）年度ブリの資源評価」</div>`, a, "padding:22px 28px");
+    }
+    if (k >= 2) {
+      const a = clamp01((t - (s._k2 ?? 0)) / 0.4), P = PORTRAIT;
+      html += card(P ? 80 : 110, P ? 330 : 150, P ? 840 : 760, `<b style="font-size:38px">流れ藻の量で、やって来る数が大きく変わる</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">環境省「せとうちネット」ハマチ</div>`, a, "padding:20px 28px");
+    }
+  },
+  by_mojamap(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    mapCam([131.5, 33.2, 46], [132.5, 34.6, 52], ease(clamp01(t / d)));
+    const t0 = t - (s._k0 ?? 0);
+    const pins = [[130.4, 30.4, "3〜4月", "薩南", 0.3, -40, 120], [128.6, 32.5, "4〜5月", "九州西岸・五島", 2.4, -120, -60], [132.6, 31.6, "4〜5月", "日向灘", 3.6, 90, 40], [136.6, 33.4, "4〜5月", "熊野灘", 4.4, 40, 110]];
+    pins.forEach(([lo, la, m, n, at, dx, dy]) => label(MG(lo, la), m, n, clamp01((t0 - at) / 0.5), "gold", dx, dy));
+    if (k >= 1) label(MG(133.2, 36.55), "6月", "隠岐の周り", clamp01((t - (s._k1 ?? 0)) / 0.5), "gold ans", 0, -70);
+    if (k < 2) legend([["#ffd166", "モジャコが見られる時期"]]);
+    if (k >= 2) {
+      const a = clamp01((t - (s._k2 ?? 0)) / 0.4), P = PORTRAIT;
+      html += card(P ? 80 : 1160, P ? 1150 : 150, P ? 840 : 680, `<div style="font-size:40px;font-weight:900">尾叉長 <span style="color:#1e7a36;font-size:58px">約7cm</span> で<br>流れ藻を離れて沿岸へ</div><div style="font-size:24px;color:#3a5a78;margin-top:8px">環境省「せとうちネット」ハマチ</div>`, a, "padding:22px 28px");
+    }
+    html += srcLine("水産研究・教育機構「令和7（2025）年度ブリの資源評価」");
+  },
+  by_grow(t, d, s, k) {
+    base(0);
+    academyBadge();
+    const m1 = k >= 1 ? ease(clamp01((t - (s._k1 ?? 0)) / 1.2)) : 0;
+    const names = ["ツバス 約20cm", "ハマチ 約40cm", "メジロ 約60cm", "ブリ 約80cm"];
+    const ages = ["1歳 約41cm", "2歳 約60cm", "3歳 約72cm", "4歳 約80cm"];
+    const kg = ["約1.0kg", "約3.5kg", "約6.0kg", "約8.1kg"];
+    const mature = ["0%", "50%", "100%", "100%"];
+    byRuler.forEach((m, i) => {
+      const L = lerp(BY_NAME[i], BY_AGE[i], m1);
+      m.visible = true;
+      m.scale.set(L, L, 1);
+      m.position.set(-4 - (8 - L) / 2, -1.0 - i * 2.3, 24);
+    });
+    look(V(-4.5, -4.4, PORTRAIT ? 45 : 41), V(-4.5, -4.4, 24), 42);
+    byRuler.forEach((m, i) => {
+      const L = lerp(BY_NAME[i], BY_AGE[i], m1), p = V(-4 - (8 - L) / 2 - L / 2, -1.0 - i * 2.3, 24);
+      const a = k >= 1 ? 1 : clamp01((t - 0.3 - i * 0.5) / 0.3);
+      const txt = k >= 1 ? ages[i] : names[i];
+      const sub = k >= 3 ? `大人の割合 ${mature[i]}` : k >= 2 ? kg[i] : "";
+      label(p, txt, sub, a, k >= 3 && i >= 2 ? "gold ans" : i === 3 ? "gold" : "", -60, -10);
+    });
+    const P = PORTRAIT;
+    const head = k >= 1 ? "成長の目安（尾叉長・1月の時点）" : "関西での呼び名（大きさの目安）";
+    html += `<div style="position:absolute;left:0;right:0;top:${P ? 250 : 110}px;text-align:center;color:#fff;font-weight:900;font-size:${P ? 44 : 40}px;text-shadow:0 3px 12px rgba(0,0,0,.6)">${head}</div>`;
+    html += srcLine(k >= 1 ? "水産研究・教育機構「令和7（2025）年度ブリの資源評価」（太平洋・千葉以西）" : "環境省「せとうちネット」ハマチ");
+  },
+  by_route(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    mapCam([134.2, 37.8, 54], [134.2, 37.4, 57], ease(clamp01(t / d)));
+    SPAWN.visible = true;
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    routeSet(R_NORTH, k >= 1 ? 1 : clamp01(t / 2.5), 1, -1);
+    if (k === 0) {
+      fishOnRoute(mapFish[0], R_NORTH, 1 - ((t * 0.07) % 1), t, true);
+      label(MG(138.6, 39.6), "冬〜春に南へ", "卵を産むため", clamp01((t - 1) / 0.5), "red", 140, -40);
+    }
+    if (k >= 1) {
+      routeSet(R_MID, clamp01(t1 / 2), 1, 0);
+      const u = 0.5 + 0.48 * Math.sin(t * 0.35);
+      fishOnRoute(mapFish[0], R_NORTH, u, t, Math.cos(t * 0.35) < 0);
+      fishOnRoute(mapFish[1], R_MID, 0.5 + 0.48 * Math.sin(t * 0.5 + 1), t, Math.cos(t * 0.5 + 1) < 0);
+      label(MG(140.0, 42.6), "北部型", "北海道沿岸 ⇔ 東シナ海", clamp01((t1 - 0.4) / 0.5), "red", 180, -40);
+      label(MG(134.3, 36.3), "中・西部型", "能登半島以西の日本海 ⇔ 東シナ海", clamp01((t1 - 1.6) / 0.5), "gold", -160, -110);
+    }
+    if (k >= 2) {
+      R_PAC.forEach((r, i) => routeSet(r, clamp01((t2 - i * 0.5) / 1.6), 1, 0));
+      label(MG(135.5, 32.6), "太平洋側の小さな回遊群", "遠州灘〜四国南西岸・紀伊水道〜薩南 など", clamp01((t2 - 1) / 0.5), "ans", 160, 130);
+    }
+    legend([["#ff6b5a", "北部型"], ["#ffd166", "中・西部型"], ["#5ee08a", "太平洋側"]].slice(0, k >= 2 ? 3 : k >= 1 ? 2 : 1));
+    html += srcLine("水産研究・教育機構「令和7（2025）年度ブリの資源評価」");
+  },
+  by_north(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    const k2 = k >= 2 ? ease(clamp01((t - (s._k2 ?? 0)) / 1.5)) : 0;
+    mapCam([142.0, 43.6, 44], [136.8, 40.6, 52], k2);
+    const P = PORTRAIT;
+    if (k <= 1) {
+      label(MG(145.3, 43.9), "根室海峡のあたりでも増加", "2013年以降", clamp01((t - 2.5) / 0.5), "gold", 0, -80);
+      html += card(P ? 80 : 110, P ? 1100 : 560, P ? 840 : 640, `<b style="font-size:34px">北海道のブリの漁獲（2024年）</b><div style="font-size:72px;font-weight:900;color:#1e7a36">約1.6万トン</div><div style="font-size:30px;font-weight:800">2011年以降に急に増えた</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">水産研究・教育機構「令和7（2025）年度ブリの資源評価」</div>`, clamp01(t / 0.5), "padding:22px 28px");
+    }
+    if (k === 1) {
+      routeSet(R_NORTH, 1, 1, 1);
+      fishOnRoute(mapFish[0], R_NORTH, 0.7 + ((t * 0.05) % 0.29), t, false, 0.9);
+      html += card(P ? 80 : 1150, P ? 300 : 150, P ? 840 : 680, `<b style="font-size:34px">北海道の研究機関の報告</b><div style="font-size:32px;font-weight:800;margin-top:8px">・ブリの資源が増えた<br>・大きく泳ぐ力の強いブリが増え、より北まで回遊</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4), "padding:22px 28px");
+    }
+    if (k >= 2) {
+      WARM.visible = true;
+      WARM.material.uniforms.latN.value = lerp(39.0, 45.7, ease(clamp01((t - (s._k2 ?? 0) - 2.5) / 5)));
+      mtag(141.9, 45.75, "宗谷", 1, "", -36);
+      label(MG(131.5, 39.6), "6月に14℃以上の日本海", "模式図", clamp01((t - (s._k2 ?? 0) - 1.5) / 0.5), "gold", -120, -60);
+      label(MG(140.6, 45.2), "2010年代", "宗谷まで届く年が多く", clamp01((t - (s._k2 ?? 0) - 7.2) / 0.5), "gold ans", 260, 90);
+      html += card(P ? 80 : 110, P ? 1150 : 600, P ? 840 : 560, `<b style="font-size:32px">ブリが暮らせる水温の下限の目安</b><div style="font-size:72px;font-weight:900;color:#c62828">14℃</div>`, clamp01((t - (s._k2 ?? 0) - 0.5) / 0.4), "padding:20px 28px");
+    }
+    html += srcLine(k >= 1 ? "星野昇「北海道におけるブリの来遊状況」北水試だより94号（2017）" : "水産研究・教育機構「令和7（2025）年度ブリの資源評価」");
+  },
+  by_stock(t, d, s, k) {
+    base(0);
+    academyBadge();
+    byBg(t + 10);
+    html += dim();
+    const P = PORTRAIT;
+    const W0 = P ? 940 : 1200, L0 = P ? 70 : 360, T0 = P ? 300 : 110;
+    html += `<div style="position:absolute;left:${L0}px;top:${T0}px;width:${W0}px;background:rgba(255,255,255,.95);border-radius:28px;padding:26px 30px">${byChart(k, t - (k >= 1 ? s._k1 ?? 0 : s._k0 ?? 0))}</div>`;
+  },
+  by_kansai(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    mapCam([134.0, 35.6, 50], [134.4, 34.6, 30], ease(clamp01(t / 4)));
+    WARM.visible = false;
+    const c = V(0, 0, 0);
+    // 瀬戸内海の若い魚
+    const { off } = mapFish[0].userData;
+    mapFish[0].visible = true;
+    off.forEach((o, i) => {
+      const lo = 133.6 + Math.sin(t * 0.2 * o.w + o.p) * 1.4 + o.x * 0.6, la = 34.25 + o.y * 0.12;
+      const p = MG(lo, la, 1.1);
+      _e2.set(-Math.PI / 2, Math.cos(t * 0.2 * o.w + o.p) > 0 ? 0 : Math.PI, 0);
+      _q.setFromEuler(_e2);
+      _s.setScalar(o.s * 0.5);
+      _m.compose(p, _q, _s);
+      mapFish[0].setMatrixAt(i, _m);
+    });
+    mapFish[0].instanceMatrix.needsUpdate = true;
+    mtag(133.4, 34.3, "瀬戸内海", 1, "gold", -60);
+    mtag(135.25, 34.45, "大阪湾", clamp01((t - 1) / 0.5), "", 0);
+    const P = PORTRAIT;
+    html += card(P ? 80 : 110, P ? 1130 : 600, P ? 840 : 720, `<b style="font-size:36px">若い魚は瀬戸内海に入り<br><span style="color:#1e7a36;font-size:56px">2歳くらいまで</span> とどまる</b><div style="font-size:22px;color:#3a5a78;margin-top:6px">環境省「せとうちネット」ハマチ</div>`, k === 0 ? clamp01((t - 1.5) / 0.4) : 0, "padding:22px 28px");
+    if (k >= 1) html += card(P ? 80 : 110, P ? 1130 : 600, P ? 840 : 720, `<b style="font-size:36px">とられるブリの数の<br><span style="color:#c62828;font-size:64px">7〜9割</span> は0歳と1歳</b><div style="font-size:22px;color:#3a5a78;margin-top:6px">水産研究・教育機構「令和7（2025）年度ブリの資源評価」</div>`, k === 1 ? clamp01((t - (s._k1 ?? 0)) / 0.4) : 0, "padding:22px 28px");
+    if (k >= 2) {
+      html += dim(0.5 * clamp01((t - (s._k2 ?? 0)) / 0.5));
+      html += `<div class="big" style="top:${P ? 300 : 120}px;font-size:${P ? 72 : 60}px;opacity:${clamp01((t - (s._k2 ?? 0)) / 0.5)}">釣り人にできること</div>`;
+      [["食べる分だけ持ち帰る"], ["小さなツバス・ハマチは大切に"], ["地域や釣り場のルールを確かめる"]].forEach(([h], i) => {
+        const a = clamp01((t - (s._k2 ?? 0) - 1.2 - i * 0.8) / 0.4);
+        html += card(P ? 80 : 460, (P ? 520 : 270) + i * (P ? 170 : 150), P ? 840 : 920, `<b style="font-size:44px"><span style="color:#2ecc71">✔</span> ${h}</b>`, a, "padding:22px 30px");
+      });
+    }
+  },
+  by_sum(t, d, s, k) {
+    base(0);
+    academyBadge();
+    byBg(t + 40);
+    html += dim();
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 100}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
+    [["生まれ", "東シナ海の大陸棚のふちなど。産卵期は1〜7月"], ["モジャコ", "流れ藻の下で育ち、約7cmで沿岸へ"], ["回遊", "北部型・中・西部型、太平洋側の小さな群れ"], ["成長", "4歳で約80cm。2歳前後から大人に"], ["いま", "資源量は多いが、若い魚（加入量）は2024年に最少"]].forEach(([a1, b1], i) => {
+      html += rowCard(P, i, clamp01((t - 0.4 - i * 0.4) / 0.3), a1, b1, P ? 440 : 200, P ? 180 : 140, i === 4 ? "#c62828" : "#1f6fb2");
+    });
+  },
+});
+// 資源のグラフ（水産研究・教育機構「令和7（2025）年度ブリの資源評価」）
+// step 0：資源量、1：加入量（若い魚の数）、2：親魚量の注記
+function byChart(step, tt) {
+  const P = PORTRAIT, g = clamp01(tt / 1.2);
+  const bars = (rows, max, unit, H) => `<div style="display:flex;gap:14px;height:${H + 100}px;align-items:flex-end;margin-top:14px;border-bottom:4px solid #10345a">${rows.map(([lab, v0, v1, col, txt], i) => {
+    const gi = clamp01(g * 1.6 - i * 0.3);
+    const h1 = (v1 / max) * H * gi, h0 = (v0 / max) * H * gi;
+    return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
+      <b style="font-size:${P ? 34 : 36}px;color:#10345a;opacity:${gi}">${txt}</b>
+      <div style="width:60%;height:${h1 - h0}px;background:${col};border-radius:12px 12px ${v0 ? 12 : 0}px ${v0 ? 12 : 0}px;margin-bottom:${h0}px;${v0 ? "opacity:.75;background:repeating-linear-gradient(45deg," + col + " 0 12px,#9fb8cc 12px 20px)" : ""}"></div>
+      <div style="font-size:${P ? 28 : 30}px;font-weight:900;color:#10345a;margin-top:6px;white-space:nowrap">${lab}</div></div>`;
+  }).join("")}</div>`;
+  const H = P ? 480 : 330;
+  let h = "";
+  if (step === 0) {
+    h = `<div style="font-size:${P ? 38 : 36}px;font-weight:900;color:#10345a">ブリの資源量（万トン）</div>` +
+      bars([["1994〜2008年", 14.1, 22.4, "#7fa3c2", "14〜22"], ["2022年（最高）", 0, 39.2, "#2ecc71", "39.2"], ["2024年", 0, 34.3, "#1f6fb2", "34.3"]], 40, "万トン", H);
+  } else {
+    h = `<div style="font-size:${P ? 38 : 36}px;font-weight:900;color:#10345a">加入量（その年に加わる若い魚の数・億尾）</div>` +
+      bars([["1994〜2008年", 0.69, 1.34, "#7fa3c2", "0.7〜1.3"], ["2020年", 0, 1.89, "#7fa3c2", "1.89"], ["2024年", 0, 0.69, "#e3412b", "0.69"]], 2, "億尾", H) +
+      `<div style="font-size:${P ? 40 : 36}px;font-weight:900;color:#c62828;margin-top:12px;text-align:center;opacity:${clamp01(tt - 1.5)}">2024年は1994年以降で最も少ない</div>`;
+    if (step >= 2) h += `<div style="font-size:${P ? 32 : 30}px;font-weight:900;color:#1e7a36;margin-top:8px;text-align:center">親魚の量は21.6万トン：管理の目安（17.9万トン）を上回る</div>`;
+  }
+  return h + `<div style="font-size:22px;color:#3a5a78;margin-top:10px">出典：水産研究・教育機構「令和7（2025）年度ブリの資源評価」、水産庁（2025年12月）</div>`;
 }
 
 // =====================================================================

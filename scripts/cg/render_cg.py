@@ -124,6 +124,16 @@ def main():
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{d}/thumb-full.jpg", "-vf", "scale=1280:720", "-q:v", "2", f"{d}/thumb.jpg"], check=True)
         return
 
+    if "--at" in args:  # 確認用：指定した秒の絵（例 --at 30,45.5）
+        os.makedirs(f"{d}/at", exist_ok=True)
+        with sync_playwright() as pw:
+            b, p = open_page(pw)
+            for tg in args[args.index("--at") + 1].split(","):
+                p.evaluate("o => window.frame(o)", frame_args(timeline, total, float(tg)))
+                p.screenshot(path=f"{d}/at/{float(tg):07.2f}{'-p' if PORTRAIT else ''}.jpg", type="jpeg", quality=85)
+            b.close()
+        return
+
     if "--stills" in args:
         os.makedirs(f"{d}/stills", exist_ok=True)
         with sync_playwright() as pw:
