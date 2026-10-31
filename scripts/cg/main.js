@@ -2694,6 +2694,11 @@ const swRuler = [0, 1, 2].map((i) => {
 });
 const card = (x, y, w, inner, a = 1, extra = "") =>
   `<div class="card" style="left:${x}px;top:${y}px;width:${w}px;opacity:${a};transform:translateY(${(1 - a) * 24}px);${extra}">${inner}</div>`;
+// ツレドキアカデミー（研究・調査にもとづく学術シリーズ）のバッジ
+function academyBadge() {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;right:${P ? 250 : 270}px;top:${P ? 150 : 50}px;background:#10345a;color:#ffd166;font-weight:900;font-size:${P ? 26 : 24}px;padding:6px 16px;border-radius:999px;border:2px solid #ffd166">ツレドキアカデミー</div>`;
+}
 const swBg = (t) => {
   // 背景：サゴシが泳ぐ海の中（説明の画面では少し暗くする）
   show(sagoshi);
@@ -2711,6 +2716,7 @@ Object.assign(SHOTS, {
   },
   sw_hook(t, d) {
     base(0);
+    academyBadge();
     show(raiders);
     const c = V(-6, -3, 24);
     updateRaiders(raiders, t * 0.6, c, 2.4, 1.2, 0);
@@ -2722,10 +2728,11 @@ Object.assign(SHOTS, {
     base(0);
     swBg(t + 5);
     const a = clamp01(t / 0.6);
-    html += `<div class="big" style="top:${PORTRAIT ? 560 : 280}px;opacity:${a}"><span class="tag">ツレドキ3D</span><div style="font-size:${PORTRAIT ? 96 : 110}px;margin-top:26px">瀬戸内海のサワラは<br>なぜ戻ってきた？</div><div style="font-size:${PORTRAIT ? 46 : 52}px;color:#ffd166;margin-top:10px">水産庁・鳥取県の資料から</div></div>`;
+    html += `<div class="big" style="top:${PORTRAIT ? 560 : 280}px;opacity:${a}"><span class="tag" style="background:#10345a;color:#ffd166;border:3px solid #ffd166">ツレドキアカデミー</span><div style="font-size:${PORTRAIT ? 96 : 110}px;margin-top:26px">瀬戸内海のサワラは<br>なぜ戻ってきた？</div><div style="font-size:${PORTRAIT ? 46 : 52}px;color:#ffd166;margin-top:10px">水産庁・鳥取県の資料から</div></div>`;
   },
   sw_graph(t, d, s, k) {
     base(0);
+    academyBadge();
     swBg(t + 10);
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
     const P = PORTRAIT;
@@ -2734,6 +2741,7 @@ Object.assign(SHOTS, {
   },
   sw_plan(t, d, s, k) {
     base(0);
+    academyBadge();
     swBg(t + 20);
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
     const P = PORTRAIT;
@@ -2748,6 +2756,7 @@ Object.assign(SHOTS, {
   },
   sw_net(t, d, s, k) {
     base(0);
+    academyBadge();
     NET.visible = true;
     // 若い魚（小さい）は網の目をすり抜け、大きい魚は網に当たって向きを変える
     const L = 12;
@@ -2768,6 +2777,7 @@ Object.assign(SHOTS, {
   },
   sw_release(t, d, s, k) {
     base(0);
+    academyBadge();
     // 水面から小さな稚魚が広がっていく
     placeEach(releaseSw, t, (i, o) => {
       const u = clamp01((t - i * 0.08) / 6);
@@ -2781,6 +2791,7 @@ Object.assign(SHOTS, {
   },
   sw_travel(t, d, s, k) {
     base(0);
+    academyBadge();
     show(raiders);
     // 東（右）から西（左）へ泳ぐサワラ
     placeEach(raiders, t, (i, o) => ({ p: V(6 - ((t * 2.2 + i * 3) % 30), -3 + o.y, 22 + o.z * 3), yaw: Math.PI }));
@@ -2802,6 +2813,7 @@ Object.assign(SHOTS, {
   },
   sw_size(t, d, s, k) {
     base(0);
+    academyBadge();
     swRuler.forEach((m, i) => {
       m.visible = true;
       m.position.set(-6 - (SW_SIZES[2] - SW_SIZES[i]) / 2, -1.2 - i * 2.4, 24);
@@ -2814,6 +2826,7 @@ Object.assign(SHOTS, {
   },
   sw_angler(t, d, s, k) {
     base(0);
+    academyBadge();
     swBg(t + 30);
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.5)"></div>`;
     const P = PORTRAIT;
@@ -2826,6 +2839,7 @@ Object.assign(SHOTS, {
   },
   sw_sum(t, d, s, k) {
     base(0);
+    academyBadge();
     swBg(t + 40);
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,0.55)"></div>`;
     const P = PORTRAIT;
