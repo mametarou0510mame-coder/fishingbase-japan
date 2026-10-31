@@ -82,7 +82,7 @@ export default function Privacy() {
           <tr><th>SNS</th><td>Instagram、Threads（Meta Platforms, Inc.）の公式API</td></tr>
         </tbody>
       </table>
-      <p className="small">当サイトはAmazonアソシエイト・プログラムの参加者となった場合、適格販売により収入を得ることがあります。</p>
+      <p className="small">Amazonのアソシエイトとして、当サイトは適格販売により収入を得ています。</p>
 
       <h2>5. 安全管理</h2>
       <p>取得した情報への不正アクセス、漏えい、改ざんを防ぐため、アクセス権限の限定、通信の暗号化など適切な安全管理措置を講じます。</p>

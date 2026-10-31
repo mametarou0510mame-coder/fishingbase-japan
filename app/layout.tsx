@@ -87,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p className="small">
               立入禁止区域・漁港の作業区域では釣りをしないでください。ライフジャケットを必ず着用しましょう。
             </p>
+            <p className="small">当サイトはアフィリエイト広告（Amazonアソシエイト含む）を掲載しています。Amazonのアソシエイトとして、{SITE.name}は適格販売により収入を得ています。</p>
             <p className="small">© 2026 {SITE.name}</p>
           </div>
         </footer>

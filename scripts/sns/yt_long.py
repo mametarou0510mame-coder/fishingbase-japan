@@ -64,6 +64,7 @@ def main():
     desc += ["", "▼関西の釣果・潮・今日の釣れる時間（ねらい目）", f"{SITE}/"]
     if slug in discuss.LONG:
         desc += discuss.caption(discuss.LONG[slug])
+    desc += ["", "※このチャンネルはアフィリエイト広告（Amazonアソシエイト含む）を掲載しています。Amazonのアソシエイトとして、当チャンネルは適格販売により収入を得ています。"]
     desc += ["", CREDIT, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {
