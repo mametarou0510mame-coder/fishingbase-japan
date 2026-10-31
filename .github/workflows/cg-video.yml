@@ -115,4 +115,5 @@ jobs:
           mkdir -p cg && cp -r $GITHUB_WORKSPACE/out/* cg/
           # GitHub は1ファイル100MBまで。大きい動画はブランチに入れず、成果物（artifact）だけに残す
           find cg -name "*.mp4" -size +95M -print -delete
-          git add -A && git commit -qm "CG video: ${{ github.event.inputs.slug }}" && git push origin long-media
+          git add -A && git commit -qm "CG video: ${{ github.event.inputs.slug }}"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
