@@ -3008,7 +3008,7 @@ function fishOnRoute(mesh, route, u0, T, back = false, spread = 0.7) {
   }
   mesh.instanceMatrix.needsUpdate = true;
 }
-function mapBase() {
+let mapBase = function () {
   base(0);
   U.under.value = 0;
   jmap.visible = true;
@@ -3325,6 +3325,251 @@ function byChart(step, tt) {
   }
   return h + `<div style="font-size:22px;color:#3a5a78;margin-top:10px">出典：水産研究・教育機構「令和7（2025）年度ブリの資源評価」、水産庁（2025年12月）</div>`;
 }
+
+
+// =====================================================================
+// タチウオはなぜ夜に釣れる？（cg-tachiuo、tc_*）：徳島県・三重県・水産研究・教育機構・気象庁の資料にもとづく
+// =====================================================================
+const tcSchool = school("タチウオ", 18, 2.7, 701, { amp: 0.03, freq: 4 });
+world.add(tcSchool);
+extras.push(tcSchool);
+const TC = V(10, 0, 14); // 群れを見せる沖の場所（海底は約 -10.2）
+const TC_BOT = seabedY(TC.x, TC.z);
+// 時刻（0〜24、24 以上は翌日）→ 群れの深さ（y）。徳島県の資料（若狭湾の報告の引用）の模式
+function tcDepth(h) {
+  const x = ((h % 24) + 24) % 24;
+  const bot = TC_BOT + 1.4, mid = -4.2, up = -3.0;
+  if (x >= 8 && x < 16) return bot;
+  if (x >= 16 && x < 19.5) return lerp(bot, mid, smooth01((x - 16) / 3.5));
+  if (x >= 19.5 || x < 3) return mid;
+  if (x < 4.8) return lerp(mid, bot + 1.2, smooth01((x - 3) / 1.8)); // 夜明け前は深く
+  if (x < 6) return lerp(bot + 1.2, up, smooth01((x - 4.8) / 1.2)); // 朝まずめに一時浅く
+  return lerp(up, bot, smooth01((x - 6) / 2)); // 日の出のあとは底へ
+}
+function tcNight(h) {
+  const x = ((h % 24) + 24) % 24;
+  if (x >= 7 && x < 17) return 0;
+  if (x >= 17 && x < 19) return smooth01((x - 17) / 2);
+  if (x >= 5 && x < 7) return 1 - smooth01((x - 5) / 2);
+  return 1;
+}
+function tcPlace(T, y, spread = 1) {
+  tcSchool.visible = true;
+  const { off } = tcSchool.userData;
+  for (let i = 0; i < off.length; i++) {
+    const o = off[i];
+    const p = V(TC.x + o.x * 5.5 + Math.sin(T * 0.3 * o.w + o.p) * 0.4, Math.min(-0.8, y + o.y * 1.1 * spread + Math.sin(T * 0.5 + o.p) * 0.15), TC.z + o.z * 3);
+    _e2.set(0, o.p, Math.PI / 2 - 0.15 + Math.sin(T * 0.4 + o.p) * 0.05);
+    _q.setFromEuler(_e2);
+    _s.setScalar(o.s);
+    _m.compose(p, _q, _s);
+    tcSchool.setMatrixAt(i, _m);
+  }
+  tcSchool.instanceMatrix.needsUpdate = true;
+}
+const tcCam = (t) => look(V(TC.x - 2 + Math.sin(t * 0.05) * 1.5, -4.6, TC.z + (PORTRAIT ? 22 : 17)), V(TC.x, -5.0, TC.z), 52);
+// 24時間の時計（昼は黄色、夜は紺）
+function tcClock(h, a = 1) {
+  const x = ((h % 24) + 24) % 24, P = PORTRAIT;
+  const ang = (x / 24) * 360 - 90, R = 70;
+  const hx = 90 + Math.cos((ang * Math.PI) / 180) * R * 0.78, hy = 90 + Math.sin((ang * Math.PI) / 180) * R * 0.78;
+  const arc = (h0, h1, col) => { const a0 = ((h0 / 24) * 360 - 90) * Math.PI / 180, a1 = ((h1 / 24) * 360 - 90) * Math.PI / 180; return `<path d="M${90 + Math.cos(a0) * R},${90 + Math.sin(a0) * R} A${R},${R} 0 ${h1 - h0 > 12 ? 1 : 0} 1 ${90 + Math.cos(a1) * R},${90 + Math.sin(a1) * R}" stroke="${col}" stroke-width="18" fill="none"/>`; };
+  const name = x >= 8 && x < 16 ? "昼" : x >= 16 && x < 19 ? "夕方" : x >= 19 || x < 3 ? "夜" : x < 4.8 ? "夜明け前" : x < 6.3 ? "朝まずめ" : "日の出のあと";
+  const hh = Math.floor(x), mm = Math.floor((x - hh) * 60 / 10) * 10;
+  html += `<div style="position:absolute;${P ? "left:40px;top:230px" : "left:70px;top:120px"};opacity:${a};display:flex;align-items:center;gap:18px;background:rgba(6,22,42,.82);border-radius:22px;padding:12px 22px 12px 12px">
+    <svg width="180" height="180" viewBox="0 0 180 180">${arc(6, 18, "#ffd166")}${arc(18, 30, "#2a4f8a")}
+    <line x1="90" y1="90" x2="${hx}" y2="${hy}" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="90" cy="90" r="9" fill="#fff"/>
+    <text x="90" y="14" fill="#fff" font-size="16" text-anchor="middle" font-weight="700">0時</text><text x="90" y="178" fill="#fff" font-size="16" text-anchor="middle" font-weight="700">12時</text></svg>
+    <div style="color:#fff;font-weight:900"><div style="font-size:${P ? 64 : 58}px;line-height:1">${hh}:${String(mm).padStart(2, "0")}</div><div style="font-size:${P ? 40 : 36}px;color:#ffd166">${name}</div></div></div>`;
+}
+// 深さの目盛り（左側）
+function tcRuler(a = 1) {
+  const pts = [[0, "表層"], [-4.6, "中層"], [TC_BOT + 0.4, "底（海底付近）"]];
+  pts.forEach(([y, txt]) => {
+    const q = project(V(TC.x + 9, y, TC.z));
+    html += `<div style="position:absolute;right:${PORTRAIT ? 40 : 70}px;top:${q.y}px;transform:translateY(-50%);opacity:${a};display:flex;align-items:center;gap:10px;flex-direction:row-reverse;color:#fff;font-weight:900;font-size:${PORTRAIT ? 30 : 30}px;text-shadow:0 2px 6px #000"><span style="width:44px;height:5px;background:#bfe6ea;display:inline-block"></span>${txt}</div>`;
+  });
+}
+// 地図の上の棒グラフ（漁獲量）
+const tcBars = {};
+[["wakayama", 135.35, 34.05, 0x7fa3c2], ["tokushima", 134.45, 33.95, 0x7fa3c2], ["chiba", 140.15, 35.45, 0x2ecc71]].forEach(([k, lo, la, col]) => {
+  const [x, z] = geo(lo, la);
+  const ghost = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1, 0.9).translate(0, 0.5, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, depthWrite: false }));
+  const solid = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1, 0.9).translate(0, 0.5, 0), shadedMat(col, { rough: 0.05 }));
+  ghost.position.set(x, 0.5, z);
+  solid.position.set(x, 0.5, z);
+  ghost.renderOrder = 11;
+  jmap.add(ghost, solid);
+  tcBars[k] = { ghost, solid, lo, la };
+});
+const tcRulerFish = [0, 1, 2].map(() => { const f = fishMesh("タチウオ", 1, { amp: 0.03, freq: 4 }); f.rotation.z = Math.PI / 2 - 0.1; world.add(f); extras.push(f); return f; });
+const TC_H = 1 / 1800; // 1800トンで1
+function tcBar(k, ghostT, solidT, gk, sk) {
+  const b = tcBars[k];
+  b.ghost.visible = ghostT > 0 && gk > 0.01;
+  b.solid.visible = solidT > 0 && sk > 0.01;
+  b.ghost.scale.y = Math.max(0.01, ghostT * TC_H * gk);
+  b.solid.scale.y = Math.max(0.01, solidT * TC_H * sk);
+}
+function tcBarsOff() { Object.values(tcBars).forEach((b) => { b.ghost.visible = b.solid.visible = false; }); }
+const _mapBase0 = mapBase;
+mapBase = function () { _mapBase0(); tcBarsOff(); };
+const tcSrc = (txt) => srcLine(txt);
+
+Object.assign(SHOTS, {
+  tc_thumb(t, d, s) {
+    base(0.55);
+    tcPlace(12, -3.6, 1.2);
+    show(sardines);
+    updateSchool(sardines, 12, V(TC.x + 3, -2.2, TC.z), V(5, 0.6, 2), 1);
+    look(V(TC.x - 1, -4.2, TC.z + 12), V(TC.x + 3, -3.4, TC.z), 55);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1050px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px;background:#10345a;color:#ffd166;border:3px solid #ffd166">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  tc_hook(t, d) {
+    const h = lerp(14, 20, ease(clamp01(t / d)));
+    base(tcNight(h) * 0.6);
+    academyBadge();
+    tcPlace(t, tcDepth(h));
+    tcCam(t);
+    tcClock(h, clamp01((t - 0.5) / 0.5));
+    const a = clamp01(t / 0.4);
+    bigText(PORTRAIT ? 600 : 130, "タチウオはなぜ<br>夜に釣れる？", "答えは「深さ」にある", a);
+  },
+  tc_day(t, d, s, k) {
+    const k1 = s._k1 ?? d * 0.5, k2 = s._k2 ?? d;
+    const h = s._k1 === undefined ? lerp(12, 22, ease(clamp01(t / d))) : t < k1 ? lerp(12, 26, ease(clamp01(t / k1))) : lerp(26, 32.5, ease(clamp01((t - k1) / Math.max(1, k2 - k1 - 0.5))));
+    base(tcNight(h) * 0.6);
+    academyBadge();
+    tcPlace(t, tcDepth(h), (h % 24) >= 19.5 || (h % 24) < 3 ? 1.6 : 0.8);
+    tcCam(t);
+    tcClock(h);
+    tcRuler();
+    label(V(TC.x + 2, tcDepth(h) + 1.2, TC.z), "タチウオの群れ", "", 1, "gold", 260, -40);
+    if (k >= 2) {
+      const P = PORTRAIT;
+      html += card(P ? 80 : 1150, P ? 1150 : 150, P ? 840 : 660, `<b style="font-size:34px">紀伊水道の延縄の調査</b><div style="font-size:38px;font-weight:900;margin-top:8px">昼：<span style="color:#1f6fb2">底の層</span>　夜：<span style="color:#1e7a36">水深30m付近の中層</span></div>`, clamp01((t - k2) / 0.4), "padding:22px 28px");
+    }
+    html += tcSrc("上田・池脇「タチウオ曳縄の海中での動き」徳島水研だより105号（2018。若狭湾の報告〈宗清1990〉の引用を含む）");
+  },
+  tc_why(t, d, s, k) {
+    const night = k !== 1;
+    const h = k === 1 ? 13 : 20;
+    base(tcNight(h) * 0.6);
+    academyBadge();
+    tcPlace(t, tcDepth(h), night ? 1.6 : 0.8);
+    tcCam(t + 20);
+    tcClock(h);
+    tcRuler();
+    if (k === 0) label(V(TC.x - 3, -2.6, TC.z), "堤防からの仕掛けが届きやすい", "夜は浅いタナへ上がる", clamp01((t - 1) / 0.5), "gold ans", -160, -90);
+    if (k === 1) label(V(TC.x, TC_BOT + 1.6, TC.z), "昼は底近く", "狙うなら底のタナ", clamp01((t - (s._k1 ?? 0)) / 0.5), "gold ans", 0, -150);
+    if (k >= 2) {
+      show(sardines);
+      updateSchool(sardines, t, V(TC.x + 2, -2.4, TC.z), V(5, 0.6, 2), 1);
+      label(V(TC.x + 4, -2.2, TC.z), "カタクチイワシなどの小魚", "エビの仲間も食べる", clamp01((t - (s._k2 ?? 0)) / 0.5), "", 160, -80);
+    }
+    html += tcSrc(k >= 2 ? "水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」" : "徳島県の資料をもとにした考え方（目安）");
+  },
+  tc_season(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    mapCam([135.0, 33.75, 13], [134.95, 33.55, 15], ease(clamp01(t / d)));
+    const t1 = t - (s._k1 ?? 0);
+    // 春：南から紀伊水道へ入る／11月：南の深場へ
+    const { off } = mapFish[0].userData;
+    mapFish[0].visible = true;
+    const u = k === 0 ? clamp01((t - 1) / 6) : k === 1 ? 1 - clamp01(t1 / 5) : 0;
+    off.forEach((o, i) => {
+      const la = lerp(33.2, 34.1, u) + o.y * 0.12, lo = 134.95 + o.x * 0.18;
+      const p = MG(lo, la, 1.1);
+      _e2.set(-Math.PI / 2, k === 1 ? -Math.PI / 2 : Math.PI / 2, 0);
+      _q.setFromEuler(_e2);
+      _s.setScalar(o.s * 0.3);
+      _m.compose(p, _q, _s);
+      mapFish[0].setMatrixAt(i, _m);
+    });
+    mapFish[0].instanceMatrix.needsUpdate = true;
+    if (k >= 2) mapFish[0].visible = false;
+    mtag(134.9, 34.0, "紀伊水道", 1, "", 0);
+    mtag(135.3, 34.55, "大阪湾", 1, "", 0);
+    if (k === 0) label(MG(134.95, 33.8), "4月ごろ 北へ", "水温が上がると紀伊水道へ", clamp01((t - 1.5) / 0.5), "gold", 280, 60);
+    if (k >= 0) label(MG(134.95, 33.95), "水温18℃くらいの水に集まる", "", clamp01((t - 0.3) / 0.5) * (k === 0 ? 1 : 0), "", -260, -120);
+    if (k >= 1) label(MG(134.95, 33.25), "11月ごろ 南の深場へ", "海底谷（水深100〜300m）で冬越し（推定）", clamp01(t1 / 0.5), "gold ans", 0, 120);
+    if (k >= 2) {
+      const P = PORTRAIT;
+      html += card(P ? 80 : 110, P ? 1150 : 150, P ? 840 : 700, `<b style="font-size:34px">徳島県の調査</b><div style="font-size:38px;font-weight:900;margin-top:8px">水温が下がる<span style="color:#c62828">11月以降</span>、<br>沿岸の漁場で少なくなる</div>`, clamp01((t - (s._k2 ?? 0)) / 0.4), "padding:22px 28px");
+    }
+    html += tcSrc(k >= 2 ? "吉見・和田「資源動向調査（タチウオ）」徳島県" : "水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」　※位置はおおよそ");
+  },
+  tc_grow(t, d, s, k) {
+    base(0);
+    academyBadge();
+    const PLs = [20, 28, 35];
+    tcRulerFish.forEach((f, i) => {
+      const L = (PLs[i] / 35) * 4.4;
+      f.visible = true;
+      f.scale.set(L, L, 1);
+      f.position.set(-10 + i * 3.8, -5.6 + Math.sin(t * 0.6 + i) * 0.08, 24);
+    });
+    look(V(-4.2, -4.9, PORTRAIT ? 40 : 35), V(-4.2, -4.9, 24), 45);
+    ["1歳 約20cm", "2歳 約28cm", "3歳 約35cm"].forEach((txt, i) => label(V(-10 + i * 3.8, -5.6 + (PLs[i] / 35) * 2.2, 24), txt, "肛門前長", clamp01((t - 0.4 - i * 0.5) / 0.4), i === 2 ? "gold" : "", 0, -40));
+    const P = PORTRAIT;
+    html += `<div style="position:absolute;left:0;right:0;top:${P ? 250 : 110}px;text-align:center;color:#fff;font-weight:900;font-size:${P ? 40 : 38}px;text-shadow:0 3px 12px rgba(0,0,0,.6)">紀伊水道のタチウオの成長の目安（肛門前長＝頭の先から肛門まで）</div>`;
+    if (k >= 1) html += card(P ? 80 : 1150, P ? 1150 : 560, P ? 840 : 680, `<b style="font-size:36px">1歳から卵を産み始める</b><div style="font-size:30px;font-weight:800;margin-top:8px">メス：肛門前長 約21cmで成熟<br>産卵は主に4〜11月（春〜夏と秋の2つの群れ）</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4), "padding:22px 28px");
+    html += tcSrc("水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」");
+  },
+  tc_now(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    const t1 = t - (s._k1 ?? 0);
+    const kc = k >= 1 ? ease(clamp01(t1 / 3)) : 0;
+    { const lo = lerp(135.4, 137.4, kc), la = lerp(33.6, 34.0, kc), h = lerp(20, 28, kc), c = MG(lo, la, 0); look(V(c.x - h * 0.25, h * 0.55, c.z + h * 1.05), V(c.x, 2.5, c.z - 2), 45); }
+    const g = ease(clamp01((t - 0.5) / 2)), sd = ease(clamp01((t - 3) / 2));
+    tcBar("wakayama", 11759, 311, g, sd);
+    tcBar("tokushima", 2830, 75, g, sd);
+    if (k >= 1) tcBar("chiba", 0, 1695, 0, ease(clamp01((t1 - 0.5) / 2)));
+    const top = (k1, val) => { const b = tcBars[k1]; return MG(b.lo, b.la, val * TC_H + 0.6); };
+    label(top("wakayama", 11759 * g), "和歌山県", `最大 約1万1700トン → 2023年 311トン`, g, "", -230, -40);
+    label(top("tokushima", 2830 * g), "徳島県", `1976年 2830トン → 2023年 75トン`, g, "", -200, 120);
+    if (k >= 1) label(top("chiba", 1695), "千葉県", "2023年 1695トン（過去最高・全国一）", clamp01((t1 - 1.5) / 0.5), "gold ans", 120, -60);
+    legend([["rgba(255,255,255,.5)", "多かった時代"], ["#7fa3c2", "2023年"]]);
+    if (k >= 2) {
+      const P = PORTRAIT;
+      html += card(P ? 80 : 110, P ? 1130 : 560, P ? 840 : 720, `<b style="font-size:32px">資料が挙げる要因</b><div style="font-size:34px;font-weight:900;margin-top:6px">漁獲の影響に加え、<span style="color:#c62828">黒潮の大蛇行</span>や温暖化などの環境の変化</div><div style="font-size:26px;color:#3a5a78;margin-top:6px">黒潮大蛇行：2017年8月〜2025年4月（気象庁）</div>`, clamp01((t - (s._k2 ?? 0)) / 0.4), "padding:22px 28px");
+    }
+    html += tcSrc(k >= 2 ? "水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ」、気象庁（2025年8月29日）" : "水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」");
+  },
+  tc_kansai(t, d, s, k) {
+    mapBase();
+    academyBadge();
+    mapCam([133.6, 33.6, 34], [133.6, 33.6, 36], ease(clamp01(t / d)));
+    label(MG(135.15, 33.95), "和歌山県", "2004年から網の目を大きく（小さな魚を守る）", clamp01((t - 0.5) / 0.5), "gold", 200, -60);
+    label(MG(134.6, 33.75), "徳島県", "秋は小さな魚が多い場所を避ける", clamp01((t - 2.5) / 0.5), "gold", 60, 130);
+    if (k >= 1) label(MG(132.1, 33.1), "大分県", "2013年から春の産卵期に休漁", clamp01((t - (s._k1 ?? 0)) / 0.5), "gold", -200, -60);
+    if (k >= 2) {
+      const a0 = clamp01((t - (s._k2 ?? 0)) / 0.5), P = PORTRAIT;
+      html += dim(0.5 * a0);
+      html += `<div class="big" style="top:${P ? 300 : 120}px;font-size:${P ? 72 : 60}px;opacity:${a0}">釣り人にできること</div>`;
+      [["小さなタチウオは持ち帰りすぎない"], ["食べる分だけ持ち帰る"], ["地域や釣り場のルールを確かめる"]].forEach(([h], i) => {
+        const a = clamp01((t - (s._k2 ?? 0) - 1.2 - i * 0.8) / 0.4);
+        html += card(P ? 80 : 460, (P ? 520 : 270) + i * (P ? 170 : 150), P ? 840 : 920, `<b style="font-size:44px"><span style="color:#2ecc71">✔</span> ${h}</b>`, a, "padding:22px 30px");
+      });
+    }
+    html += tcSrc("水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」");
+  },
+  tc_sum(t, d, s, k) {
+    base(0.5);
+    academyBadge();
+    tcPlace(t, -3.6, 1.4);
+    tcCam(t);
+    html += dim();
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 100}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
+    [["1日", "昼は底、夜は中層〜表層。朝まずめに一時浅く"], ["季節", "4月ごろ紀伊水道へ、11月ごろ南の深場へ"], ["成長", "1歳で約20cm（肛門前長）、1歳から産卵"], ["いま", "和歌山・徳島は大きく減少、千葉は過去最高"], ["できること", "小さなタチウオは大切に、食べる分だけ"]].forEach(([a1, b1], i) => {
+      html += rowCard(P, i, clamp01((t - 0.4 - i * 0.4) / 0.3), a1, b1, P ? 440 : 200, P ? 180 : 140, i === 3 ? "#c62828" : "#1f6fb2");
+    });
+  },
+});
 
 // =====================================================================
 // 仕上げ（v2）：ブルーム（光のにじみ）・色の調整・周辺減光・フィルムの粒子・色ずれ
