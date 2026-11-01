@@ -341,6 +341,9 @@ def make_flash(day):
     return guide, "\n".join(cap)
 
 
+YT_SLOTS = {"trivia"}  # YouTube ショートにも出す枠（定型の枠は同じ型・同じ声のくり返しになるので YouTube には出さない）
+
+
 def make(slot, outdir):
     os.makedirs(outdir, exist_ok=True)
     day = now().strftime("%Y-%m-%d")
@@ -372,7 +375,9 @@ def make(slot, outdir):
     g.setdefault("key", vid)
     json.dump(g, open(f"{outdir}/{vid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     plat = json.load(open("content/hot-flash.json", encoding="utf-8")).get("platforms") if slot == "flash" else None
-    json.dump({"id": vid, "slot": slot, "key": g["key"], "caption": cap, "title": g["title"], "platforms": plat or ["instagram", "youtube"]}, open(f"{outdir}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # 2026-11-01 オーナー判断：毎日の定型リール（釣れる時間・お得情報・予報など）は Instagram だけ。YouTube は豆知識（trivia）だけ出す
+    plat = [x for x in (plat or ["instagram", "youtube"]) if x != "youtube" or slot in YT_SLOTS] or ["instagram"]
+    json.dump({"id": vid, "slot": slot, "key": g["key"], "caption": cap, "title": g["title"], "platforms": plat}, open(f"{outdir}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(cap)
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:

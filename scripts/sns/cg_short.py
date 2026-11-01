@@ -5,7 +5,8 @@ import json, os, sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 from video_post import SITE  # noqa: E402
-import reels  # noqa: E402
+import reels
+import yt_long  # noqa: E402
 
 
 def caption(src):
@@ -50,7 +51,7 @@ def main():
         print(f"::error::instagram: {e}")
         failed = True
     try:
-        yt = reels.yt_short(f"public/sns/{vid}.mp4", src["title"], cap) if "youtube" in plats else None
+        yt = reels.yt_short(f"public/sns/{vid}.mp4", yt_long.yt_title(src["title"]), cap) if "youtube" in plats else None
         if yt:
             rec["youtube"] = yt
             print(f"::notice::youtube ok {yt}")

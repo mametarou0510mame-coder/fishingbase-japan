@@ -1,6 +1,6 @@
 # YouTube に長尺動画を投稿する（説明欄に章の目次を入れる）。
 #   python scripts/sns/yt_long.py <slug> <mp4> <thumb.jpg> <chapters.txt> [--publish]
-import json, os, sys
+import json, re, os, sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 from video_post import SITE, clean, http  # noqa: E402
@@ -25,6 +25,12 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
 REC = "data/sns/long-posts.json"
 PER_DAY = 2  # 1日に出す長尺の本数（07:17 と 18:17。出せなかった分は 21:17）
+
+
+def yt_title(t):
+    # 2026-11-01：中身（問い）を先に、シリーズ名【…】は後ろに回す（検索・おすすめで最初に目に入る所を中身にする）
+    m = re.match(r"^【([^】]+)】\s*(.+)$", t)
+    return f"{m[2]}【{m[1]}】" if m else t
 
 
 def posted():
@@ -70,7 +76,7 @@ def main():
     desc += ["", CREDIT, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {
-        "snippet": {"title": src["title"][:100], "description": "\n".join(desc)[:4900], "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
+        "snippet": {"title": yt_title(src["title"])[:100], "description": "\n".join(desc)[:4900], "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},
     }
     print(meta["snippet"]["title"])
