@@ -1,6 +1,6 @@
 name: Instagram comments
 
-# Instagram のコメントに自動で返信し、質問つきの投稿に最初のコメント（質問）を書き込む。
+# 質問つきの投稿に最初のコメント（質問）を書き込む。コメントへの自動返信は 2026-11-01 から停止（ig_comments.py の AUTO_REPLY）。
 on:
   schedule:
     - cron: "*/30 * * * *"

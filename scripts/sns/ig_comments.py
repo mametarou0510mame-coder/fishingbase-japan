@@ -1,6 +1,6 @@
 # Instagram のコメント対応（30分ごと）。
 #  1) 質問つきの投稿に、運営から「最初のコメント」で質問を書き込む（アプリで長押し→ピン留めすると固定表示になる）
-#  2) 付いたコメントに、内容に合わせて1回だけ自動で返信する（同じコメントには二度返信しない）
+#  2) 付いたコメントに、内容に合わせて1回だけ自動で返信する（同じコメントには二度返信しない）→ 2026-11-01 から停止（AUTO_REPLY）
 # API でできるのは返信・非表示・削除までで、コメントの「固定（ピン留め）」はできない。
 import json, os, re, sys, time, urllib.parse
 from datetime import datetime, timedelta, timezone
@@ -11,6 +11,7 @@ from video_post import clean, http  # noqa: E402
 API = "https://graph.facebook.com/v21.0"
 LOG = "data/sns/ig-comments.json"
 MAX_REPLIES = 30
+AUTO_REPLY = False  # 2026-11-01 オーナー指示：コメントへの自動返信はしない（質問の「最初のコメント」だけ続ける）
 NG = re.compile(r"https?://|www\.|LINE|ライン|副業|稼げ|儲か|フォロー返|相互|DM|ＤＭ|死|殺|バカ|アホ|クソ|ブス|キモ", re.I)
 NUMS = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "①": 0, "②": 1, "③": 2, "④": 3, "⑤": 4, "１": 0, "２": 1, "３": 2, "４": 3, "５": 4}
 
@@ -90,7 +91,7 @@ def main():
                 n_first += 1
             except Exception as e:
                 print(f"::warning::最初のコメントを書けませんでした（{m['id']}）: {e}")
-        if not m.get("comments_count"):
+        if not AUTO_REPLY or not m.get("comments_count"):
             continue
         # 2) コメントへの返信
         cs = http("GET", f"{API}/{m['id']}/comments?{q({'fields': 'id,text,username,timestamp,replies{username}', 'limit': 50, 'access_token': tok})}").get("data", [])
