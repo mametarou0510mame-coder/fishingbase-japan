@@ -23,6 +23,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-sawara",  # 2026-10-31 ツレドキアカデミー R6（オーナー OK・臨時投稿）
          "cg-buri",  # 2026-10-31 ツレドキアカデミー R5（オーナー OK、11/1 朝の枠）
          "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday",
+         "cg-tachiuo",  # 2026-11-02 ツレドキアカデミー R1（オーナー OK、11/3 朝の枠）
          # 第4弾（2026-11-02。書き出し済み）
          "long-aomono-end", "long-kiken10", "long-kinou", "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae"]
 REC = "data/sns/long-posts.json"
