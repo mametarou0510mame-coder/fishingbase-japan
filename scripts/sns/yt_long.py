@@ -63,8 +63,8 @@ def main():
     desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
     gear = tackle_lines(gs)
     if gear:
-        shops = "楽天市場・Amazon" if affiliate.AMAZON_TAG else "楽天市場"
-        note = "※楽天アフィリエイト・Amazonアソシエイトのリンクです。" if affiliate.AMAZON_TAG else "※楽天アフィリエイトのリンクです。"
+        shops = "楽天市場"  # YouTube は Amazon（もしも）の提携が否認（2026-11-02）なので Amazon のリンクは出さない
+        note = "※楽天アフィリエイトのリンクです。"
         desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + [note + "価格・在庫はリンク先でご確認ください。", ""]
     if gs:
         desc += ["▼くわしい解説・道具リスト（初級・中級・上級）"]
@@ -74,7 +74,7 @@ def main():
     desc += ["", "▼関西の釣果・潮・今日の釣れる時間（ねらい目）", f"{SITE}/"]
     if slug in discuss.LONG:
         desc += discuss.caption(discuss.LONG[slug])
-    desc += ["", "※このチャンネルはアフィリエイト広告（Amazonアソシエイト含む）を掲載しています。Amazonのアソシエイトとして、当チャンネルは適格販売により収入を得ています。"]
+    desc += ["", "※このチャンネルはアフィリエイト広告（楽天アフィリエイト）を掲載しています。"]
     desc += ["", CREDIT, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {

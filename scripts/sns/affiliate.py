@@ -14,15 +14,16 @@ def rakuten_search_url(keyword, short=True):
     return f"https://hb.afl.rakuten.co.jp/hgc/{RAKUTEN_AFFILIATE_ID}/?pc={q}&m={q}"
 
 
-def tackle_lines(guides, limit=6):
-    """ガイドの初級の道具を重複なしで、楽天市場の検索リンクつきの行にする"""
+def tackle_lines(guides, limit=6, amazon=False):
+    """ガイドの初級の道具を重複なしで、楽天市場の検索リンクつきの行にする
+    amazon：Amazon のリンクも付けるか。もしもアフィリエイトの Amazon は媒体ごとの提携で、YouTube は否認（2026-11-02）。YouTube では使わない"""
     out, seen = [], set()
     for g in guides:
         for it in g["tackle"][0]["items"]:
             if it["name"] in seen or not it.get("keyword"):
                 continue
             seen.add(it["name"])
-            amz = amazon_search_url(it["keyword"])
+            amz = amazon_search_url(it["keyword"]) if amazon else None
             out.append(f"・{it['name']}（{it['spec']}）\n楽天 {rakuten_search_url(it['keyword'])}" + (f"\nAmazon {amz}" if amz else ""))
             if len(out) >= limit:
                 return out
