@@ -3450,7 +3450,7 @@ Object.assign(SHOTS, {
       const P = PORTRAIT;
       html += card(P ? 80 : 1150, P ? 1150 : 150, P ? 840 : 660, `<b style="font-size:34px">紀伊水道の延縄の調査</b><div style="font-size:38px;font-weight:900;margin-top:8px">昼：<span style="color:#1f6fb2">底の層</span>　夜：<span style="color:#1e7a36">水深30m付近の中層</span></div>`, clamp01((t - k2) / 0.4), "padding:22px 28px");
     }
-    html += tcSrc("上田・池脇「タチウオ曳縄の海中での動き」徳島水研だより105号（2018。若狭湾の報告〈宗清1990〉の引用を含む）");
+    html += tcSrc(k >= 2 ? "上田・池脇「タチウオ曳縄の海中での動き」徳島水研だより105号（2018）" : "若狭湾西部の調査（宗清 1990）／徳島水研だより105号（2018）での引用による");
   },
   tc_why(t, d, s, k) {
     const night = k !== 1;
@@ -3468,7 +3468,7 @@ Object.assign(SHOTS, {
       updateSchool(sardines, t, V(TC.x + 2, -2.4, TC.z), V(5, 0.6, 2), 1);
       label(V(TC.x + 4, -2.2, TC.z), "カタクチイワシなどの小魚", "エビの仲間も食べる", clamp01((t - (s._k2 ?? 0)) / 0.5), "", 160, -80);
     }
-    html += tcSrc(k >= 2 ? "水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」" : "徳島県の資料をもとにした考え方（目安）");
+    html += tcSrc(k >= 2 ? "水産研究・教育機構「令和6（2024）年度 資源評価調査報告書 タチウオ（太平洋中・南部）」" : "若狭湾の調査をもとにした考え方（目安）");
   },
   tc_season(t, d, s, k) {
     mapBase();
