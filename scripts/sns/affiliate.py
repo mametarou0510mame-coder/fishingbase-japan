@@ -30,11 +30,15 @@ def tackle_lines(guides, limit=6, amazon=False):
     return out
 
 
-# Amazonアソシエイト（lib/affiliate.ts の AMAZON_TAG と同じ値。空の間は Amazon のリンクを出さない）
-AMAZON_TAG = ""
+# Amazon（もしもアフィリエイト経由。lib/affiliate.ts と同じ値）。Instagram は承認・YouTube は否認（2026-11-02）
+MOSHIMO_AMAZON = {"a_id": "5858728", "p_id": "170", "pc_id": "185", "pl_id": "4062"}
+AMAZON_TAG = ""  # 互換のため。サイトでの提携が承認されるまで空（空の間は Amazon のリンクを出さない）
 
 
-def amazon_search_url(keyword):
-    if not AMAZON_TAG:
+def amazon_search_url(keyword, force=False):
+    """もしもの「どこでもリンク」形式の Amazon 検索リンク。force=True は承認済みの媒体（Instagram）用"""
+    if not (AMAZON_TAG or force):
         return None
-    return f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}&tag={AMAZON_TAG}"
+    m = MOSHIMO_AMAZON
+    target = f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}"
+    return f"https://af.moshimo.com/af/c/click?a_id={m['a_id']}&p_id={m['p_id']}&pc_id={m['pc_id']}&pl_id={m['pl_id']}&url={urllib.parse.quote(target, safe='')}"
