@@ -22,7 +22,9 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-suion",  # 2026-10-30 冬の水温（3DCG）
          "cg-sawara",  # 2026-10-31 ツレドキアカデミー R6（オーナー OK・臨時投稿）
          "cg-buri",  # 2026-10-31 ツレドキアカデミー R5（オーナー OK、11/1 朝の枠）
-         "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday"]
+         "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday",
+         # 第4弾（2026-11-02。書き出し済み）
+         "long-aomono-end", "long-kiken10", "long-kinou", "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae"]
 REC = "data/sns/long-posts.json"
 PER_DAY = 2  # 1日に出す長尺の本数（07:17 と 18:17。出せなかった分は 21:17）
 
