@@ -389,9 +389,10 @@ const top = new THREE.Mesh(new THREE.BoxGeometry(160, 0.6, 12), shadedMat(0xb8be
 top.position.set(0, 2.8, -5);
 world.add(top);
 // 壁のカキ殻・フジツボ
+let WALL_BAR = null;
 {
   const r = rng(3);
-  const bar = new THREE.InstancedMesh(new THREE.ConeGeometry(0.07, 0.08, 7).rotateX(Math.PI / 2), shadedMat(0xd8d2c4, { rough: 0.3 }), 9000);
+  const bar = WALL_BAR = new THREE.InstancedMesh(new THREE.ConeGeometry(0.07, 0.08, 7).rotateX(Math.PI / 2), shadedMat(0xd8d2c4, { rough: 0.3 }), 9000);
   for (let i = 0; i < 9000; i++) {
     const y = 0.6 - Math.pow(r(), 0.8) * 4.5; // 潮の満ち引きの範囲に多い
     const s = 0.6 + r() * 0.9;
@@ -599,6 +600,9 @@ function base(night = 0) {
   extras.forEach((x) => (x.visible = false));
   U.wave.value.set(200, 0, 6);
   U.chop.value = 0;
+  U.fogDensity.value = 0.035;
+  wall.visible = top.visible = true;
+  if (WALL_BAR) WALL_BAR.visible = true;
 }
 function hide(...xs) { xs.forEach((x) => (x.visible = false)); }
 function show(...xs) { xs.forEach((x) => (x.visible = true)); }
@@ -1022,6 +1026,7 @@ Object.assign(SHOTS, {
     const a = clamp01(t / 0.5);
     html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.45 * a})"></div>`;
     html += `<div class="big" style="top:520px;opacity:${a}"><div style="font-size:70px">くわしくは</div><div style="font-size:104px;color:#ffd166">フル版で公開中</div><div style="font-size:46px;margin-top:24px">${s.full || ""}</div><div style="margin-top:60px;font-size:92px">ツレドキ<span style="font-size:44px;border:4px solid #fff;border-radius:12px;padding:0 10px;margin-left:10px;vertical-align:16px">関西</span></div></div>`;
+    isoBar(s);
   },
   fc_thumb(t, d, s) {
     base(0);
@@ -3571,6 +3576,292 @@ Object.assign(SHOTS, {
   },
 });
 
+
+// =====================================================================
+// 見える化・実戦編 第3弾：磯場、どこに投げる？（cg-iso、is_*）。沈み根・サラシ・溝
+// =====================================================================
+const IX = -80; // 磯の場所（本編の堤防から離れた x）
+const ISO = new THREE.Group();
+world.add(ISO);
+extras.push(ISO);
+const ROCK_MAT = shadedMat(0x5e5850, { rough: 0.4 });
+const ROCK_MAT2 = shadedMat(0x6b6458, { rough: 0.35 });
+function isoRock(x, z, r, top, seed, mat = ROCK_MAT, sx = 1, sz = 1) {
+  const bot = seabedY(x, z) - 0.5;
+  const m = new THREE.Mesh(makeRock(1, seed), mat);
+  const sy = (top - bot) / 0.78;
+  m.scale.set(r * sx, sy, r * sz);
+  m.position.set(x, bot, z);
+  m.rotation.y = seed * 1.3;
+  ISO.add(m);
+  return m;
+}
+// 岸の岩（陸）
+{
+  const r = rng(801);
+  for (let i = 0; i < 18; i++) isoRock(IX - 34 + i * 4 + r() * 2, -3 + r() * 3, 3 + r() * 2.2, 2.2 + r() * 2.2, 810 + i, r() < 0.5 ? ROCK_MAT : ROCK_MAT2);
+  for (let i = 0; i < 16; i++) isoRock(IX - 32 + i * 4.5 + r() * 2, -8 + r() * 2.5, 3.6 + r() * 2, 3.6 + r() * 2.4, 870 + i, r() < 0.5 ? ROCK_MAT2 : ROCK_MAT);
+}
+// 岸の上の岩場（堤防の地面をかくす）
+{
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(110, 70, 40, 24).rotateX(-Math.PI / 2), ROCK_MAT2);
+  const p = g.geometry.attributes.position, r = rng(805);
+  for (let i = 0; i < p.count; i++) p.setY(i, r() * 0.6);
+  g.geometry.computeVertexNormals();
+  g.position.set(IX, 3.25, -40);
+  ISO.add(g);
+}
+// 沖の岩（水面から出ている）
+const ISO_REEF = { x: IX - 13, z: 15, r: 2.6 };
+isoRock(ISO_REEF.x, ISO_REEF.z, ISO_REEF.r, 1.8, 830);
+isoRock(ISO_REEF.x + 2.2, ISO_REEF.z + 1.6, 1.6, 0.9, 831, ROCK_MAT2);
+// 沈み根（水の下にかくれた岩）
+const NE = [{ x: IX + 3, z: 17, r: 4.2, top: -2.2 }, { x: IX + 7, z: 29, r: 3.2, top: -3.0 }, { x: IX - 13, z: 27, r: 3.4, top: -2.8 }];
+NE.forEach((n, i) => { isoRock(n.x, n.z, n.r, n.top, 840 + i); isoRock(n.x + n.r * 0.5, n.z - n.r * 0.6, n.r * 0.55, n.top - 0.9, 850 + i, ROCK_MAT2); });
+// 溝（沈み根の列のあいだの砂地）：x = IX-5 付近、z 6〜36
+const MIZO = { x: IX - 5, z0: 6, z1: 36, w: 4 };
+// 海の色が濃く見える所（沈み根の上）
+const isoShade = NE.map((n) => {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+    uniforms: { op: { value: 0 } }, transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float op; varying vec2 vP; void main(){ float r = length(vP); gl_FragColor = vec4(0.0,0.06,0.1, op * smoothstep(1.0,0.35,r)); }`,
+  }));
+  m.position.set(n.x, 0.12, n.z);
+  m.scale.set(n.r * 1.3, 1, n.r * 1.1);
+  m.renderOrder = 6;
+  ISO.add(m);
+  return m;
+});
+// サラシ（白い泡）
+const SARASHI = [[IX - 13, 0.3, 13.2, 4.2, 2.6], [IX - 20, 0.3, 3.2, 5, 2.2], [IX + 8, 0.3, 3, 6, 2.2], [IX - 4, 0.3, 2.8, 4, 1.8]];
+const isoFoam = SARASHI.map(([x, y, z, rx, rz], i) => {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+    uniforms: { time: U.time, op: { value: 1 }, ph: { value: i * 1.7 } }, transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; uniform float op; uniform float ph; varying vec2 vP;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
+      void main(){ float r = length(vP); float pulse = 0.75 + 0.25*sin(time*1.6 + ph);
+        float fo = n(vP*5.0 + vec2(time*0.6, -time*0.4) + ph) * 0.6 + n(vP*11.0 - time*0.8) * 0.4;
+        float a = smoothstep(1.0, 0.25, r / pulse) * smoothstep(0.35, 0.65, fo + 0.25*(1.0 - r));
+        gl_FragColor = vec4(vec3(0.97,0.99,1.0), a * op * 0.92); }`,
+  }));
+  m.position.set(x, y, z);
+  m.scale.set(rx, 1, rz);
+  m.renderOrder = 7;
+  ISO.add(m);
+  return m;
+});
+const isoMan = mannequin(0x7d8a96, true);
+world.add(isoMan);
+extras.push(isoMan);
+// 流れ（左→右）：沈み根・岩で曲がり、裏側でゆるくなる
+FIELDS.iso = () => (x, z) => {
+  let vx = 1.0, vz = 0.06 * Math.sin(x * 0.05 + z * 0.1);
+  for (const n of [...NE, ISO_REEF]) {
+    const R = n.r * 1.05, dx = x - n.x, dz = z - n.z, d2 = dx * dx + dz * dz;
+    if (d2 < R * R) return [0.05, 0];
+    const k = (R * R) / (d2 * d2);
+    vx += -k * (dx * dx - dz * dz) * 0.9;
+    vz += -k * 2 * dx * dz * 0.9;
+    if (dx > 0) {
+      const w = Math.exp(-dx / (3.2 * R)) * Math.exp(-((dz / (R * 1.1)) ** 2));
+      vx *= 1 - 0.75 * w;
+      vz += Math.sin(dz * 0.8 + dx * 0.4) * 0.25 * w;
+    }
+  }
+  return [vx, vz];
+};
+let hideSurface = false;
+function isoBase() {
+  base(0);
+  sky.visible = true;
+  U.under.value = 0;
+  U.chop.value = 0.25;
+  ISO.visible = true;
+  wall.visible = top.visible = false; // 磯にはコンクリートの壁はない
+  if (WALL_BAR) WALL_BAR.visible = false;
+  isoShade.forEach((m) => (m.material.uniforms.op.value = 0));
+  isoFoam.forEach((m) => (m.material.uniforms.op.value = 1));
+  FIELD = FIELDS.iso();
+}
+const isoTop = (cx, cz, dist, t = 0, d = 1) => topView(IX + cx, cz, dist, t, d);
+// 水面を消して海の中を透かして見る（水中の色はつけ、霧は薄く）
+function isoXray() { hideSurface = true; U.under.value = 1; U.fogDensity.value = 0.012; }
+// 画面に線を描く（3Dの点の列 → SVG の線）。prog：描く割合
+function pathLine(pts, color, prog = 1, w = 8, dash = "") {
+  const n = Math.max(2, Math.floor(pts.length * clamp01(prog)));
+  const q = pts.slice(0, n).map((p) => project(p)).filter((p) => !p.behind);
+  if (q.length < 2) return null;
+  lines += `<polyline points="${q.map((p) => `${p.x},${p.y}`).join(" ")}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${dash ? `stroke-dasharray="${dash}"` : ""} opacity="0.95"/>`;
+  return q[q.length - 1];
+}
+const bez = (a, b, c, n = 40) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t; return V(u * u * a.x + 2 * u * t * b.x + t * t * c.x, u * u * a.y + 2 * u * t * b.y + t * t * c.y, u * u * a.z + 2 * u * t * b.z + t * t * c.z); });
+// ルアーの通り道（上から）：沈み根 NE[0] の向こうに投げ、根のきわを通して手前へ
+const N0 = NE[0];
+const CAST_LAND = V(N0.x + 1.5, 0.5, N0.z + N0.r + 3.5);
+const CAST_PATH = bez(CAST_LAND, V(N0.x + N0.r + 2.6, 0.5, N0.z + 1), V(IX + 1.5, 0.5, 1.5));
+const CAST_AIR = bez(V(IX + 1.5, 3.6, 0.5), V(IX + 2, 12, (CAST_LAND.z) / 2), CAST_LAND, 30);
+const ISO_LEG = [["#4cc3ff", "速い流れ"], ["#ff9f40", "ゆるい流れ（よれ）"], ["#2ecc71", "投げる場所"]];
+const isoBar = (s) => {
+  // ショートの「ずっと出ている題名」（YouTube ショートはサムネを選べないため、どのコマでも何の動画かわかるように）
+  if (!PORTRAIT || !s.bar) return;
+  html += `<div style="position:absolute;left:36px;right:230px;top:40px;text-align:center;background:rgba(6,22,42,.88);border:4px solid #ffd166;border-radius:22px;padding:8px 12px;color:#fff;font-weight:900;font-size:50px;line-height:1.15;z-index:5">${s.bar}</div>`;
+};
+
+Object.assign(SHOTS, {
+  is_thumb(t, d, s) {
+    isoBase();
+    isoShade.forEach((m) => (m.material.uniforms.op.value = 0.55));
+    updateFlow(40, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46 });
+    isoTop(0, 18, 40, 0, 1);
+    target(CAST_LAND.x, CAST_LAND.z, 3, 1, 1);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:980px;background:linear-gradient(90deg,rgba(2,14,28,.82),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:210px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  is_hook(t, d, s) {
+    isoBase();
+    updateFlow(t + 30, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: 0.6 });
+    isoTop(0, 18, 42, t, d);
+    // ショートはサムネを選べないので、最初のコマから文字を出す
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3) * clamp01((d * 0.5 - t) / 0.4);
+    bigText(PORTRAIT ? 1050 : 140, "この磯、<br>どこに投げる？", "見えない「沈み根」が答え", a);
+    ["A", "B", "C"].forEach((n, i) => mapPin([V(IX - 2, 0.6, 7), V(CAST_LAND.x, 0.6, CAST_LAND.z), V(IX + 22, 0.6, 40)][i], n, PORTRAIT ? 1 : clamp01((t - d * 0.5) / 0.3 - i * 0.6)));
+    isoBar(s);
+  },
+  is_xray(t, d, s, k) {
+    isoBase();
+    const t2 = t - (s._k2 ?? 0);
+    if (!(k >= 2 && t2 > 2.5)) isoXray();
+    if (k >= 2) { isoShade.forEach((m) => (m.material.uniforms.op.value = clamp01((t2 - 2.5) / 0.6) * 0.6)); }
+    isoFoam.forEach((m) => (m.material.uniforms.op.value = 0.35));
+    const focus = k === 1 ? { x: N0.x + 6, z: N0.z, r: 6, dim: 0.3 } : null;
+    updateFlow(t + 10, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: k >= 1 ? 1 : 0.4, focus });
+    const kk = ease(clamp01(t / 4));
+    if (PORTRAIT) look(V(IX + 2 - 10 * kk, 30 - 6 * kk, 46), V(IX, -3, 20), 50);
+    else look(V(IX - 10 + 4 * kk, 22 - 4 * kk, 52 - 6 * kk), V(IX - 2, -3.5, 20), 48);
+    label(V(N0.x, N0.top + 0.4, N0.z), "沈み根", "水の下にかくれた岩", clamp01((t - 0.6) / 0.5), "gold", -40, -80);
+    label(V(NE[2].x, NE[2].top + 0.4, NE[2].z), "沈み根", "", clamp01((t - 1.2) / 0.5), "gold", -60, -70);
+    label(V(MIZO.x, seabedY(MIZO.x, 22) + 0.5, 22), "溝（みぞ）", "根と根のあいだの砂地", clamp01((t - 2) / 0.5), "", 80, 100);
+    if (k === 1) label(V(N0.x + 6.5, 0.4, N0.z), "根の裏はゆるい流れ（よれ）", "小魚が集まると言われる", clamp01((t - (s._k1 ?? 0) - 0.8) / 0.5), "gold ans", PORTRAIT ? -120 : 200, PORTRAIT ? -160 : -60);
+    if (k >= 2 && t2 > 2.5) label(V(N0.x, 0.4, N0.z), "海の色が濃い所", "根や海藻があることが多い", clamp01((t2 - 3) / 0.5), "gold ans", 0, -90);
+    if (k >= 1) legend(ISO_LEG.slice(0, 2));
+    isoBar(s);
+  },
+  is_cast(t, d, s, k) {
+    isoBase();
+    const t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    if (k <= 1) {
+      isoXray();
+      isoFoam.forEach((m) => (m.material.uniforms.op.value = 0.3));
+      updateFlow(t + 50, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: 0.35 });
+      isoTop(2, 15, 40, 0, 1);
+      placeMan(isoMan, IX + 1.5, -0.2, Math.PI);
+      isoMan.position.y = 3.4;
+      const pAir = pathLine(CAST_AIR, "#ffffff", clamp01((t0 - 0.4) / 1.4), 5, "10 12");
+      target(CAST_LAND.x, CAST_LAND.z, 2.6, clamp01((t0 - 1.6) / 0.4), t);
+      label(CAST_LAND, "ここに落とす", "沈み根の少し向こう", clamp01((t0 - 1.8) / 0.4) * (k >= 1 ? 1 - clamp01((t1 - 1.0) / 0.4) : 1), "gold ans", 160, -60);
+      label(V(N0.x, 0.4, N0.z), "沈み根", "", 1, "", -160, -40);
+      if (k >= 1) {
+        const pr = clamp01((t1 - 0.3) / 4);
+        const tip = pathLine(CAST_PATH, "#2ecc71", pr, 9);
+        if (tip) lines += `<circle cx="${tip.x}" cy="${tip.y}" r="13" fill="#ffd166" stroke="#06213a" stroke-width="4"/>`;
+        label(CAST_PATH[16], "根のきわを通す", "ここで食わせるイメージ", clamp01((t1 - 1.5) / 0.5), "gold ans", 220, 40);
+      }
+      void pAir;
+      legend(ISO_LEG);
+    } else {
+      // 横から：根の上は浅い → 竿を立てて、巻く速さを上げてかわす
+      base(0);
+      ISO.visible = true;
+      wall.visible = top.visible = false;
+      if (WALL_BAR) WALL_BAR.visible = false;
+      U.under.value = 1;
+      look(V(N0.x + 18, -4.2, N0.z - 1), V(N0.x, -4.6, N0.z - 1), 52);
+      const prof = Array.from({ length: 41 }, (_, i) => { const z = N0.z + 9 - i * 0.55; const over = Math.exp(-(((z - N0.z) / (N0.r * 0.9)) ** 2)); return V(N0.x - 1, lerp(-7.2, N0.top + 0.9, over), z); });
+      const tip = pathLine(prof, "#ffd166", clamp01((t2 - 0.3) / 3.5), 8);
+      if (tip) lines += `<circle cx="${tip.x}" cy="${tip.y}" r="13" fill="#ffd166" stroke="#06213a" stroke-width="4"/>`;
+      label(V(N0.x - 1, N0.top + 0.9, N0.z), "根の上は浅い", "竿を立てる・巻く速さを上げてかわす", clamp01((t2 - 1.6) / 0.5), "red", 0, -80);
+      label(V(N0.x - 1, -7.2, N0.z + 8), "根の向こう", "沈めてから巻く", clamp01((t2 - 0.4) / 0.5), "", 0, -60);
+      html += `<div style="position:absolute;${PORTRAIT ? "left:40px;top:240px" : "left:70px;top:125px"};color:#fff;font-weight:900;font-size:34px;text-shadow:0 2px 8px #000">横から見たルアーの通り道（沖 ← → 岸）</div>`;
+    }
+    isoBar(s);
+  },
+  is_sarashi(t, d, s, k) {
+    isoBase();
+    isoFoam.forEach((m, i) => (m.material.uniforms.op.value = i === 0 ? 1 : 0.5));
+    updateFlow(t + 70, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: 0.4, focus: { x: ISO_REEF.x, z: ISO_REEF.z, r: 6, dim: 0.2 } });
+    const kk = ease(clamp01(t / 5));
+    look(V(ISO_REEF.x + 4 - 3 * kk, 13 - 2 * kk, ISO_REEF.z + (PORTRAIT ? 24 : 18)), V(ISO_REEF.x, 0, ISO_REEF.z), 50);
+    label(V(ISO_REEF.x - 1, 0.6, ISO_REEF.z - 1.5), "サラシ", "波が岩に当たってできる白い泡", clamp01((t - 0.6) / 0.5), "", -200, -80);
+    if (k >= 1) {
+      const a = clamp01((t - (s._k1 ?? 0)) / 0.5);
+      target(ISO_REEF.x + 4.6, ISO_REEF.z + 2.4, 2.2, a, t);
+      label(V(ISO_REEF.x + 4.6, 0.6, ISO_REEF.z + 2.4), "ここ！", "サラシの切れ目（泡と青い水のさかい目）", a, "gold ans", PORTRAIT ? -150 : 160, PORTRAIT ? -150 : -60);
+    }
+    legend(ISO_LEG);
+    isoBar(s);
+  },
+  is_mizo(t, d, s, k) {
+    isoBase();
+    isoXray();
+    isoFoam.forEach((m) => (m.material.uniforms.op.value = 0.3));
+    updateFlow(t + 90, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: 0.3 });
+    const kk = ease(clamp01(t / 5));
+    look(V(MIZO.x + 3, 15 - 2 * kk, 5 + 2 * kk), V(MIZO.x, -8, 23), 52);
+    label(V(MIZO.x, seabedY(MIZO.x, 24) + 0.6, 24), "溝（みぞ）", "根と根のあいだ＝魚の通り道と言われる", clamp01((t - 0.5) / 0.5), "gold", 0, -90);
+    if (k >= 1) {
+      const pts = Array.from({ length: 30 }, (_, i) => V(MIZO.x + Math.sin(i * 0.2) * 0.3, -1, MIZO.z1 - 2 - i * ((MIZO.z1 - 2 - 3) / 29)));
+      const tip = pathLine(pts, "#2ecc71", clamp01((t - (s._k1 ?? 0) - 0.3) / 3), 9);
+      if (tip) lines += `<circle cx="${tip.x}" cy="${tip.y}" r="13" fill="#ffd166" stroke="#06213a" stroke-width="4"/>`;
+      label(V(MIZO.x, -1, MIZO.z1 - 3), "溝にそって投げる", "溝の筋を通して巻く", clamp01((t - (s._k1 ?? 0)) / 0.5), "gold ans", 180, -40);
+    }
+    isoBar(s);
+  },
+  is_quiz(t, d, s, k) {
+    isoBase();
+    const ans = k >= 1;
+    if (ans && t - (s._k1 ?? 0) > 0.6) isoXray();
+    isoShade.forEach((m) => (m.material.uniforms.op.value = ans ? 0 : 0.55));
+    updateFlow(t + 110, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: ans ? 1 : 0.5, focus: ans ? { x: N0.x + 5, z: N0.z + 3, r: 7, dim: 0.3 } : null });
+    isoTop(0, 18, 42, 0, 1);
+    const P = [V(IX - 2, 0.6, 7), V(CAST_LAND.x, 0.6, CAST_LAND.z), V(IX + 22, 0.6, 40)];
+    ["A", "B", "C"].forEach((n, i) => mapPin(P[i], n, 1, ans && i !== 1 ? "#7f8b96" : "#e3412b"));
+    if (ans) {
+      const a = clamp01((t - (s._k1 ?? 0) - 0.6) / 0.4);
+      target(CAST_LAND.x, CAST_LAND.z, 3, a, t);
+      label(P[1], "答え：B", "沈み根の向こう → 根のきわを通す", a, "gold ans", 0, -100);
+    }
+    html += `<div class="card" style="${PORTRAIT ? "left:40px;right:40px;top:300px" : "left:110px;top:150px;width:560px"};opacity:${ans ? 0 : 1}"><b style="font-size:42px">クイズ</b><div style="font-size:32px;margin-top:6px">海の色が濃いのはどこ？<br>A・B・C のどこに投げる？</div></div>`;
+    isoBar(s);
+  },
+  is_safety(t, d, s, k) {
+    isoBase();
+    U.chop.value = 0.6;
+    isoTop(-6, 8, 34, t, d);
+    placeMan(isoMan, IX - 6, -1, Math.PI);
+    isoMan.position.y = 3.6;
+    const P = PORTRAIT;
+    dangerCard("磯は足場が悪く、波にさらわれる事故も", "立入禁止の場所には入らない。波が高い日・風が強い日はやめる", clamp01(t / 0.4), P ? 330 : 150);
+    if (k >= 1) okCard("ライフジャケットと、すべりにくい磯靴", "ひとりで行かず、だれかに行き先を伝える", clamp01((t - (s._k1 ?? 0)) / 0.4), P ? 760 : 520);
+    isoBar(s);
+  },
+  is_sum(t, d, s, k) {
+    isoBase();
+    updateFlow(t + 130, { x0: IX - 40, x1: IX + 30, z0: 2, z1: 46, alpha: 0.6 });
+    isoTop(0, 18, 46, t, d);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.55 * clamp01(t / 0.4)})"></div>`;
+    const rows = [["沈み根", "少し向こうに落とし、根のきわを通す"], ["サラシ", "泡と青い水のさかい目"], ["溝", "溝にそって投げ、筋を通す"]];
+    html += `<div class="big" style="top:${PORTRAIT ? 330 : 120}px;font-size:${PORTRAIT ? 80 : 64}px">磯の答えも<br><span style="color:#2ecc71">「流れのさかい目」と「根のきわ」</span></div>`;
+    rows.forEach(([a1, b1], i) => {
+      const a = clamp01((t - 0.4 - i * 0.4) / 0.3);
+      html += `<div class="card" style="left:${PORTRAIT ? 60 : 380}px;right:${PORTRAIT ? 60 : 380}px;top:${(PORTRAIT ? 760 : 420) + i * (PORTRAIT ? 170 : 150)}px;opacity:${a};display:flex;align-items:center;gap:22px;padding:18px 26px"><b style="background:#2ecc71;color:#06213a;font-size:36px;padding:8px 16px;border-radius:14px;white-space:nowrap">${a1}</b><div style="font-size:38px;font-weight:900">${b1}</div></div>`;
+    });
+    isoBar(s);
+  },
+});
+
 // =====================================================================
 // 仕上げ（v2）：ブルーム（光のにじみ）・色の調整・周辺減光・フィルムの粒子・色ずれ
 // ?look=v1 で従来の見た目
@@ -3665,7 +3956,8 @@ window.frame = function (o) {
   fn(o.t, o.d, o.s || {}, o.k ?? 0);
   rays.children.forEach((r, i) => (r.position.x = r.userData.x0 + Math.sin(o.T * 0.1 * r.userData.sp + i) * 4));
   rays.visible = U.night.value < 0.5 && U.under.value > 0.5;
-  surface.visible = true;
+  surface.visible = !hideSurface;
+  hideSurface = false;
   snow.visible = U.under.value > 0.5;
   plankton.visible = U.night.value > 0.3;
   if (U.night.value < 0.3) plankton.material.uniforms.glow.value = 0;
@@ -3675,7 +3967,7 @@ window.frame = function (o) {
   U.fogColor.value.copy(new THREE.Color(0x0d4a6e));
   if (POST) POST.render();
   else renderer.render(scene, camera);
-  if (o.chapter) html += `<div class="chapter"><b>${o.chapterNo ?? ""}</b><span>${o.chapter}</span></div>`;
+  if (o.chapter && !(PORTRAIT && o.s && o.s.bar)) html += `<div class="chapter"><b>${o.chapterNo ?? ""}</b><span>${o.chapter}</span></div>`;
   html += `<div class="logo">ツレドキ<i>関西</i></div>`;
   if (o.cap) html += `<div class="cap">${o.cap.replace(/\[\[(.+?)\]\]/g, '<em>$1</em>')}</div>`;
   if (o.dim > 0) html += `<div style="position:absolute;inset:0;background:#000;opacity:${o.dim}"></div>`;
