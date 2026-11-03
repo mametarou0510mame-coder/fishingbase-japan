@@ -57,6 +57,21 @@ def short_spot(name):
 
 
 # ---------- 06:00 今日の釣れる時間 ----------
+def tide_day(code, date):
+    """public/data/tides/<code>-<年>.json（気象庁 潮位表）からその日の潮。翌日0時の値も付ける"""
+    try:
+        y = date[:4]
+        days = json.load(open(f"public/data/tides/{code}-{y}.json", encoding="utf-8"))["days"]
+        i = next(k for k, x in enumerate(days) if x["date"] == date)
+        out = dict(days[i])
+        if i + 1 < len(days):
+            out["next0"] = days[i + 1]["hourly"][0]
+        return out
+    except Exception as e:
+        print(f"::warning::潮のデータがありません（{code} {date}）: {e}")
+        return None
+
+
 def make_spots(day, when="今日"):
     """when=「今日」は朝6時、「明日」は前の日の20時に出す"""
     data = get_json(f"{SITE}/sns/today.json")
@@ -97,14 +112,23 @@ def make_spots(day, when="今日"):
     else:
         lines2 = [f"{when}は、営業時間内に目立つねらい目が少ない日です。"]
     scenes = [{"type": "title", "lines": lines1}]
+    no = iter("①②③④⑤")
     if top:
-        scenes.append({"type": "pattern", "heading": f"① {when}のねらい目", "rows": rows, "lines": lines2})
+        scenes.append({"type": "pattern", "heading": f"{next(no)} {when}のねらい目", "rows": rows, "lines": lines2})
+    # 代表として大阪の潮見表（2026-11-03 オーナー指定：アプリのイメージがつくように）
+    td = tide_day("OS", date)
+    if td:
+        hm = lambda e: f"{int(e['time'][:2])}:{e['time'][3:]}"
+        hl = "、".join(hm(e) for e in td["high"])
+        ll = "、".join(hm(e) for e in td["low"])
+        scenes.append({"type": "tide", "heading": f"{next(no)} {when}の潮（大阪）", "hourly": td["hourly"], "next0": td.get("next0"), "high": td["high"], "low": td["low"],
+                       "station": "大阪", "tideName": tide, "lines": [f"大阪の潮です。満潮は{hl}、干潮は{ll}。全国239地点の潮見表は、ツレドキで見られます。"]})
     if crow:
         c0 = crow[0]
-        scenes.append({"type": "pattern", "heading": f"② 最近の釣果（{md(cdays[0])}）", "rows": crow,
+        scenes.append({"type": "pattern", "heading": f"{next(no)} 最近の釣果（{md(cdays[0])}）", "rows": crow,
                        "lines": [f"最近の釣果では、{c0[0]}で、{c0[1].replace('匹', 'ひき')}が上がっています。"]})
     caution = [f"{windy}か所で風速10m以上の予報" if windy else "風の予報は各釣り場のページで", "ライフジャケットを着る", "釣り場のルールを確認"]
-    scenes.append({"type": "points", "heading": "③ 出かける前に", "items": caution,
+    scenes.append({"type": "points", "heading": f"{next(no)} 出かける前に", "items": caution,
                    "lines": [f"{when}は、{windy}か所で強い風の予報です。無理はしないでください。" if windy else "出かける前に、風の予報と釣り場のルールを確認しましょう。"]})
     q = discuss.spots([short_spot(x["name"]) for x in top])
     scenes.append(discuss.scene(q))
@@ -115,6 +139,8 @@ def make_spots(day, when="今日"):
     for i, s in enumerate(top, 1):
         w = best(s)
         cap.append(f"{'①②③'[i - 1]} {s['name']}　{w['grade']}{w['from']}〜{w['to']}時（{'・'.join(w['reasons']) or '総合'}）")
+    if td:
+        cap += ["", f"▼{when}の潮（大阪・気象庁の推算潮位）", "満潮 " + "・".join(f"{e['time']}（{e['cm']}cm）" for e in td["high"]), "干潮 " + "・".join(f"{e['time']}（{e['cm']}cm）" for e in td["low"]), "全国239地点の潮見表・実測潮位はプロフィールのリンクから"]
     if crow:
         cap += ["", f"▼最近の釣果（{md(cdays[0])}）"] + [f"・{a}：{b}" for a, b in crow]
     if windy:

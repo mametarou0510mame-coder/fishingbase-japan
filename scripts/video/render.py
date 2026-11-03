@@ -636,6 +636,59 @@ def scene_points(d, t, dur, s, meta):
             y += 130
 
 
+def scene_tide(d, t, dur, s, meta):
+    """その日の潮見表（タイドグラフ）。s: hourly（0〜23時、cm）・high/low（[{time, cm}]）・station・tideName"""
+    heading(d, s.get("heading", "今日の潮"))
+    hv = s["hourly"] + [s.get("next0", s["hourly"][-1])]
+    lo_v, hi_v = min(hv) - 20, max(hv) + 25
+    x0, x1, y0, y1 = 80, PW - 50, 230, 740
+    X = lambda h: x0 + (x1 - x0) * h / 24
+    Y = lambda v: y1 - (y1 - y0) * (v - lo_v) / max(1, hi_v - lo_v)
+    # 目盛り
+    fs = F(FONT_BOLD, 30)
+    for h in (0, 6, 12, 18, 24):
+        d.line([(X(h), y0), (X(h), y1)], fill=(205, 220, 232), width=2)
+        d.text((X(h), y1 + 14), f"{h}時", font=fs, fill=INK, anchor="mt")
+    d.line([(x0, y1), (x1, y1)], fill=INK, width=3)
+    # 曲線（1時間ごとの値をなめらかにつなぐ）
+    def val(h):
+        i = min(int(h), 23)
+        f = h - i
+        p0, p1, p2, p3 = hv[max(0, i - 1)], hv[i], hv[min(24, i + 1)], hv[min(24, i + 2)]
+        return p1 + 0.5 * f * (p2 - p0 + f * (2 * p0 - 5 * p1 + 4 * p2 - p3 + f * (3 * (p1 - p2) + p3 - p0)))
+    prog = ease((t - 0.3) / 1.8)
+    pts = [(X(h / 10), Y(val(h / 10))) for h in range(0, int(240 * prog) + 1)]
+    if len(pts) > 1:
+        d.polygon(pts + [(pts[-1][0], y1), (pts[0][0], y1)], fill=(214, 236, 248, 255))
+        d.line(pts, fill=SEA_DEEP, width=8, joint="curve")
+    # 満潮・干潮
+    fm = F(FONT_BLACK, 34)
+    for kind, arr, col, dy in (("満潮", s.get("high", []), RED, -70), ("干潮", s.get("low", []), SEA_DEEP, 26)):
+        for j, e in enumerate(arr):
+            hh, mm = (int(x) for x in e["time"].split(":"))
+            h = hh + mm / 60
+            a = ease((t - 0.3 - 1.8 * h / 24 - 0.2) / 0.4) if prog < 1 else 1
+            if a <= 0:
+                continue
+            x, y = X(h), Y(e["cm"])
+            d.ellipse([x - 12, y - 12, x + 12, y + 12], fill=alpha(col, a), outline=alpha(WHITE, a), width=4)
+            txt = f"{kind} {hh}:{mm:02d}"
+            tw = d.textlength(txt, font=fm)
+            tx = min(max(x - tw / 2, 20), PW - 20 - tw)
+            d.rounded_rectangle([tx - 12, y + dy - 6, tx + tw + 12, y + dy + 44], radius=14, fill=alpha(WHITE, a), outline=alpha(col, a), width=3)
+            d.text((tx, y + dy), txt, font=fm, fill=alpha(col, a))
+    if s.get("tideName"):
+        fb = F(FONT_BLACK, 40)
+        tw = d.textlength(s["tideName"], font=fb)
+        d.rounded_rectangle([PW - 44 - tw - 36, 44, PW - 44, 104], radius=30, fill=RED)
+        d.text((PW - 44 - tw - 18, 50), s["tideName"], font=fb, fill=WHITE)
+    fr = F(FONT_REG, 26)
+    d.text((44, 830), f"気象庁「潮位表」の推算潮位（{s.get('station', '')}）をもとに表示", font=fr, fill=(88, 107, 123))
+    fb2 = F(FONT_BLACK, 40)
+    a = ease((t - 2.4) / 0.5)
+    d.text((44, 900), "全国239地点の潮見表・実測潮位はツレドキで", font=fb2, fill=alpha(NAVY, a))
+
+
 def scene_ask(d, t, dur, s, meta):
     """コメント欄への質問（例：「アミエビ派？トリック派？」と番号の選択肢）"""
     heading(d, s.get("heading", "コメントで教えて！"))
@@ -1582,6 +1635,7 @@ SCENES = {
     "end": scene_end,
     "ask": scene_ask,
     "shot": scene_shot,
+    "tide": scene_tide,
     "homescreen": scene_homescreen,
     "expand": scene_expand,
 }
