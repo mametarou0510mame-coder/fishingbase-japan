@@ -85,6 +85,17 @@ jobs:
           python scripts/video/narrate.py build/reels/$ID.json
           python scripts/video/render.py $ID --outdir public/sns
           echo "id=$ID" >> $GITHUB_OUTPUT
+      - name: Save preview (publish=false)
+        if: steps.s.outputs.slot != 'guide' && steps.s.outputs.publish != 'true'
+        run: |
+          ID=${{ steps.make.outputs.id }}
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin long-media
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p preview && cp $GITHUB_WORKSPACE/public/sns/$ID.mp4 preview/reel-sample.mp4
+          git add -A && git commit -qm "reel preview: $ID"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
       - name: Put video on the site
         if: steps.s.outputs.slot != 'guide' && steps.s.outputs.publish == 'true'
         run: |
