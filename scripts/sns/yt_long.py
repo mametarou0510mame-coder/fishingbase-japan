@@ -26,6 +26,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "long-asaichi", "long-ng10", "long-winter-night", "long-keep-rules", "long-quiz30", "long-weekday",
          "cg-tachiuo",  # 2026-11-02 ツレドキアカデミー R1（オーナー OK、11/3 朝の枠）
          "cg-iso", "cg-rantai",  # 2026-11-03 磯場・アカデミー R4 卵胎生（オーナー：即出し。今日の定時投稿はこの2本に置きかえ）
+         "cg-jissen-katachi",  # 2026-11-03 見える化 実戦編（L字・船道）。定時タスクで force 投稿
          "cg-gashira", "cg-chinu",  # 2026-11-03 アカデミー R3・R2（オーナー OK、11/4 の 7:17 と 18:17）
          # 第4弾（2026-11-02。書き出し済み）
          "long-aomono-end", "long-kiken10", "long-kinou", "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae"]
