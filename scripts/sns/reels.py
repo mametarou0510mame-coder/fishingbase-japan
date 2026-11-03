@@ -113,8 +113,6 @@ def make_spots(day, when="今日"):
         lines2 = [f"{when}は、営業時間内に目立つねらい目が少ない日です。"]
     scenes = [{"type": "title", "lines": lines1}]
     no = iter("①②③④⑤")
-    if top:
-        scenes.append({"type": "pattern", "heading": f"{next(no)} {when}のねらい目", "rows": rows, "lines": lines2})
     # 代表として大阪の潮見表（2026-11-03 オーナー指定：アプリのイメージがつくように）
     td = tide_day("OS", date)
     if td:
@@ -123,6 +121,9 @@ def make_spots(day, when="今日"):
         ll = "、".join(hm(e) for e in td["low"])
         scenes.append({"type": "tide", "heading": f"{next(no)} {when}の潮（大阪）", "hourly": td["hourly"], "next0": td.get("next0"), "high": td["high"], "low": td["low"],
                        "station": "大阪", "tideName": tide, "lines": [f"大阪の潮です。満潮は{hl}、干潮は{ll}。全国239地点の潮見表は、ツレドキで見られます。"]})
+    # 2026-11-03 オーナー指定：潮見表 → ねらい目 の順
+    if top:
+        scenes.append({"type": "pattern", "heading": f"{next(no)} {when}のねらい目", "rows": rows, "lines": lines2})
     if crow:
         c0 = crow[0]
         scenes.append({"type": "pattern", "heading": f"{next(no)} 最近の釣果（{md(cdays[0])}）", "rows": crow,
