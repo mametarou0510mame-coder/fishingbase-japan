@@ -30,7 +30,7 @@ def tackle_lines(guides, limit=6, amazon=False):
     return out
 
 
-# Amazon（もしもアフィリエイト経由。lib/affiliate.ts と同じ値）。Instagram は承認・YouTube は否認（2026-11-02）
+# Amazon（もしもアフィリエイト経由）。ここは Instagram 用の a_id（サイトは lib/affiliate.ts のホームページ用 5873643）。YouTube は否認（2026-11-02）
 MOSHIMO_AMAZON = {"a_id": "5858728", "p_id": "170", "pc_id": "185", "pl_id": "4062"}
 AMAZON_TAG = ""  # 互換のため。サイトでの提携が承認されるまで空（空の間は Amazon のリンクを出さない）
 

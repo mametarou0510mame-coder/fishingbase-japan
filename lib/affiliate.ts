@@ -8,10 +8,11 @@ export function rakutenSearchUrl(keyword: string) {
   return `https://hb.afl.rakuten.co.jp/hgc/${RAKUTEN_AFFILIATE_ID}/?pc=${encodeURIComponent(target)}&m=${encodeURIComponent(target)}`;
 }
 
-// Amazon（もしもアフィリエイト経由。2026-11-02 提携：Instagram は承認、YouTube は否認）
+// Amazon（もしもアフィリエイト経由。Instagram 2026-11-02・ホームページ 2026-11-03 承認、YouTube は否認）
 // a_id 等はリンクに必ず載る公開情報。AMAZON_ON は、この媒体（サイト）での提携が承認されてから true にする
-export const MOSHIMO_AMAZON = { a_id: "5858728", p_id: "170", pc_id: "185", pl_id: "4062" };
-export const AMAZON_ON = false;
+// a_id は媒体ごと：ホームページ 5873643（2026-11-03 承認）／Instagram 5858728。サイトではホームページ用を使う
+export const MOSHIMO_AMAZON = { a_id: "5873643", p_id: "170", pc_id: "185", pl_id: "4062" };
+export const AMAZON_ON = true;
 export const AMAZON_TAG = AMAZON_ON ? "moshimo" : ""; // 互換のため（空の間は Amazon のリンクを出さない）
 
 // Amazon の検索結果ページへのリンク（もしもの「どこでもリンク」と同じ形）
