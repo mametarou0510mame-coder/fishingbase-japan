@@ -3704,9 +3704,10 @@ const CAST_LAND = V(N0.x + 1.5, 0.5, N0.z + N0.r + 3.5);
 const CAST_PATH = bez(CAST_LAND, V(N0.x + N0.r + 2.6, 0.5, N0.z + 1), V(IX + 1.5, 0.5, 1.5));
 const CAST_AIR = bez(V(IX + 1.5, 3.6, 0.5), V(IX + 2, 12, (CAST_LAND.z) / 2), CAST_LAND, 30);
 const ISO_LEG = [["#4cc3ff", "速い流れ"], ["#ff9f40", "ゆるい流れ（よれ）"], ["#2ecc71", "投げる場所"]];
-const isoBar = (s) => {
+const isoBar = () => {}; // 題名の帯は window.frame でまとめて描く（下の drawBar）
+const drawBar = (s) => {
   // ショートの「ずっと出ている題名」（YouTube ショートはサムネを選べないため、どのコマでも何の動画かわかるように）
-  if (!PORTRAIT || !s.bar) return;
+  if (!PORTRAIT || !s || !s.bar) return;
   html += `<div style="position:absolute;left:36px;right:230px;top:40px;text-align:center;background:rgba(6,22,42,.88);border:4px solid #ffd166;border-radius:22px;padding:8px 12px;color:#fff;font-weight:900;font-size:50px;line-height:1.15;z-index:5">${s.bar}</div>`;
 };
 
@@ -3862,6 +3863,276 @@ Object.assign(SHOTS, {
   },
 });
 
+
+// =====================================================================
+// ツレドキアカデミー 共通：岩場の海の中・月の輪・棒グラフ（ov_*・gr_*・cn_* で使う）
+// =====================================================================
+const acMeb = school("メバル", 14, 1.4, 901, { freq: 7 });
+const acGas = school("ガシラ", 6, 1.6, 902, { freq: 4, amp: 0.04 });
+const acChinu = school("チヌ", 5, 1.9, 903, { freq: 6 });
+world.add(acMeb, acGas, acChinu);
+extras.push(acMeb, acGas, acChinu);
+// 岩場（磯のセット）を海の中から見る
+function reefUnder(t, opts = {}) {
+  base(0);
+  ISO.visible = true;
+  wall.visible = top.visible = false;
+  if (WALL_BAR) WALL_BAR.visible = false;
+  U.under.value = 1;
+  const c = V(N0.x - 6, -5, N0.z + 1);
+  if (opts.meb !== false) { show(acMeb); updateSchool(acMeb, t * 0.5, V(c.x + 1, -3.8, c.z + 4), V(3.2, 0.9, 1.6), Math.cos(t * 0.2) > 0 ? 1 : -1); }
+  if (opts.gas !== false) { show(acGas); updateSchool(acGas, t * 0.15, V(c.x + 0.5, seabedY(c.x, c.z + 4) + 0.8, c.z + 4), V(3.5, 0.15, 1.5), 1); }
+  if (opts.chinu) { show(acChinu); updateSchool(acChinu, t * 0.6, V(c.x + Math.sin(t * 0.2) * 3, -4.5, c.z + 4), V(2.5, 0.6, 1), Math.cos(t * 0.2) > 0 ? 1 : -1); }
+  const ang = (opts.ang ?? 0) + t * 0.02;
+  look(V(c.x + Math.sin(ang) * 5 + 2, -4.0, c.z + (PORTRAIT ? 15 : 12)), V(c.x, -5.6, c.z - 1), 55);
+  return c;
+}
+// 12か月の輪。arcs: [[開始月, 終了月, 色, 太さ]]、mark: 強調する月
+function monthRing(arcs, a = 1, size = 300, title = "") {
+  const R = size * 0.38, C = size / 2;
+  const pt = (m, r) => { const ang = ((m - 1) / 12) * Math.PI * 2 - Math.PI / 2; return [C + Math.cos(ang) * r, C + Math.sin(ang) * r]; };
+  const arc = (m0, m1, col, w) => { const e = m1 < m0 ? m1 + 12 : m1; const [x0, y0] = pt(m0 - 0.5, R), [x1, y1] = pt(e + 0.5, R); return `<path d="M${x0},${y0} A${R},${R} 0 ${e - m0 + 1 > 6 ? 1 : 0} 1 ${x1},${y1}" stroke="${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`; };
+  const labels = Array.from({ length: 12 }, (_, i) => { const [x, y] = pt(i + 1, R + size * 0.1); return `<text x="${x}" y="${y + 7}" fill="#fff" font-size="${size * 0.065}" font-weight="800" text-anchor="middle">${i + 1}</text>`; }).join("");
+  return `<div style="opacity:${a};text-align:center"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${C}" cy="${C}" r="${R}" stroke="rgba(255,255,255,.18)" stroke-width="${size * 0.07}" fill="none"/>${arcs.map(([m0, m1, col, w]) => arc(m0, m1, col, w ?? size * 0.07)).join("")}${labels}<text x="${C}" y="${C + 10}" fill="#fff" font-size="${size * 0.09}" font-weight="900" text-anchor="middle">${title}</text></svg></div>`;
+}
+const ringBox = (inner, a = 1) => `<div style="position:absolute;${PORTRAIT ? "left:50%;top:300px;transform:translateX(-50%)" : "left:70px;top:120px"};opacity:${a};background:rgba(6,22,42,.82);border-radius:26px;padding:16px 22px">${inner}</div>`;
+// 棒グラフ（rows: [ラベル, 値, 色, 表示]）
+function acBars(title, rows, max, tt, opts = {}) {
+  const P = PORTRAIT, H = opts.H ?? (P ? 440 : 300), g = clamp01(tt / 1.2);
+  return `<div style="font-size:${P ? 36 : 34}px;font-weight:900;color:#10345a">${title}</div>
+    <div style="display:flex;gap:12px;height:${H + 90}px;align-items:flex-end;margin-top:12px;border-bottom:4px solid #10345a;position:relative">
+    ${opts.line ? `<div style="position:absolute;left:0;right:0;bottom:${(opts.line[0] / max) * H + 46}px;border-top:4px dashed #e3412b"><span style="position:absolute;right:0;top:-34px;color:#c62828;font-weight:900;font-size:26px">${opts.line[1]}</span></div>` : ""}
+    ${rows.map(([lab, v, col, txt], i) => { const gi = clamp01(g * 1.6 - i * 0.15); return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center"><b style="font-size:${P ? 30 : 30}px;color:#10345a;opacity:${gi}">${txt}</b><div style="width:62%;height:${Math.max(3, (v / max) * H * gi)}px;background:${col};border-radius:10px 10px 0 0"></div><div style="font-size:${P ? 24 : 26}px;font-weight:900;color:#10345a;margin-top:6px;white-space:nowrap">${lab}</div></div>`; }).join("")}</div>
+    ${opts.note ? `<div style="font-size:${P ? 32 : 30}px;font-weight:900;color:${opts.noteColor ?? "#c62828"};margin-top:10px;text-align:center;opacity:${clamp01(tt - 1.2)}">${opts.note}</div>` : ""}
+    <div style="font-size:21px;color:#3a5a78;margin-top:8px">出典：${opts.src ?? ""}</div>`;
+}
+const acCard = (inner, a, pos) => card(pos?.[0] ?? (PORTRAIT ? 70 : 360), pos?.[1] ?? (PORTRAIT ? 300 : 110), pos?.[2] ?? (PORTRAIT ? 940 : 1200), inner, a, "padding:24px 30px");
+const acDim = (v = 0.5) => `<div style="position:absolute;inset:0;background:rgba(2,14,28,${v})"></div>`;
+function acHook(t, d, s, main, sub) {
+  const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+  bigText(PORTRAIT ? 1000 : 130, main, sub, a);
+  isoBar(s);
+}
+
+// ---------- R4 メバル・ガシラは卵を産まない？（ov_*）----------
+Object.assign(SHOTS, {
+  ov_thumb(t, d, s) {
+    reefUnder(8);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1050px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px;background:#10345a;color:#ffd166;border:3px solid #ffd166">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  ov_hook(t, d, s) {
+    reefUnder(t);
+    academyBadge();
+    acHook(t, d, s, "メバル・ガシラは<br>卵を産まない？", "お腹の中で子を育てる「卵胎生」");
+  },
+  ov_what(t, d, s, k) {
+    reefUnder(t + 10);
+    academyBadge();
+    html += acDim(0.5);
+    const P = PORTRAIT, a1 = clamp01(t / 0.4), a2 = k >= 1 ? clamp01((t - (s._k1 ?? 0)) / 0.4) : 0;
+    const step = (txt, on, col) => `<div style="flex:1;background:${on ? col : "#e6edf3"};color:${on ? "#fff" : "#7a8a99"};border-radius:16px;padding:14px 8px;text-align:center;font-weight:900;font-size:${P ? 28 : 30}px">${txt}</div>`;
+    const arr = `<div style="font-size:34px;color:#10345a;font-weight:900;align-self:center">→</div>`;
+    html += acCard(`<b style="font-size:${P ? 36 : 38}px">多くの魚</b><div style="display:flex;gap:10px;margin:10px 0 22px">${step("水の中に卵を産む", true, "#7fa3c2")}${arr}${step("海をただよう卵", true, "#7fa3c2")}${arr}${step("ふ化", true, "#7fa3c2")}</div>
+      <div style="opacity:${a2}"><b style="font-size:${P ? 36 : 38}px;color:#c2185b">メバル・カサゴ（卵胎生）</b><div style="display:flex;gap:10px;margin-top:10px">${step("交尾", a2 > 0.5, "#e3417a")}${arr}${step("お腹の中で受精・ふ化", a2 > 0.5, "#e3417a")}${arr}${step("仔魚を産む", a2 > 0.5, "#e3417a")}</div></div>
+      <div style="font-size:22px;color:#3a5a78;margin-top:14px">出典：長崎県総合水産試験場（2006）、三重県「2024年度 カサゴの資源評価」</div>`, a1);
+  },
+  ov_mebaru(t, d, s, k) {
+    reefUnder(t + 20, { gas: false });
+    academyBadge();
+    const P = PORTRAIT;
+    const arcs = [[11, 12, "#4cc3ff"], ...(k >= 0 ? [[1, 2, "#ff6fa5"]] : [])];
+    html += ringBox(monthRing(arcs, 1, P ? 340 : 300, "メバル") + `<div style="color:#fff;font-weight:900;font-size:26px;margin-top:6px"><span style="color:#4cc3ff">●</span> 交尾　<span style="color:#ff6fa5">●</span> 仔魚を産む</div>`, clamp01(t / 0.4));
+    if (k >= 1) html += acCard(`<b style="font-size:34px">愛媛県の研究</b><div style="font-size:${P ? 34 : 36}px;font-weight:900;margin-top:6px">交尾は11〜12月ごろ（推測）<br>メスは<span style="color:#c2185b">1月</span>から産み、<span style="color:#c2185b">2月</span>にはほぼ産み終える</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4), P ? [70, 1060, 940] : [1000, 150, 820]);
+    if (k >= 2) html += acCard(`<b style="font-size:34px">生まれたばかりの仔魚</b><div style="font-size:${P ? 60 : 64}px;font-weight:900;color:#c2185b">全長 6mm ほど</div><svg width="300" height="60" viewBox="0 0 300 60"><line x1="10" y1="50" x2="290" y2="50" stroke="#10345a" stroke-width="3"/>${Array.from({ length: 11 }, (_, i) => `<line x1="${10 + i * 28}" y1="${i % 5 ? 42 : 34}" x2="${10 + i * 28}" y2="50" stroke="#10345a" stroke-width="3"/>`).join("")}<ellipse cx="94" cy="26" rx="84" ry="12" fill="#ffb3c8" stroke="#c2185b" stroke-width="3"/><circle cx="160" cy="24" r="6" fill="#10345a"/></svg><div style="font-size:22px;color:#3a5a78">目盛り：1mm（イメージ）</div>`, clamp01((t - (s._k2 ?? 0)) / 0.4), P ? [70, 1060, 940] : [1000, 520, 820]);
+    html += srcLine("長崎県総合水産試験場「メバルの種苗生産技術について」（2006）／愛媛県「メバルの種苗生産技術開発について」");
+  },
+  ov_kasago(t, d, s, k) {
+    reefUnder(t + 30, { meb: false, ang: 0.5 });
+    academyBadge();
+    const P = PORTRAIT;
+    html += ringBox(monthRing([[11, 5, "rgba(255,159,64,.55)"], [12, 3, "#ff9f40"]], 1, P ? 340 : 300, "カサゴ") + `<div style="color:#fff;font-weight:900;font-size:24px;margin-top:6px"><span style="color:#ff9f40">●</span> お腹に子をもつメスが多い時期</div>`, clamp01(t / 0.4));
+    label(V(N0.x - 5.5, seabedY(N0.x - 5.5, N0.z + 2.5) + 0.6, N0.z + 2.5), "カサゴ（ガシラ）", "岩のすきまにすむ", clamp01((t - 0.5) / 0.5), "gold", 160, -60);
+    if (k >= 1) html += acCard(`<b style="font-size:34px">産仔の季節に</b><div style="font-size:${P ? 72 : 76}px;font-weight:900;color:#e08a2a">3〜4回</div><div style="font-size:30px;font-weight:800">に分けて仔魚を産むと考えられる</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4), P ? [70, 1060, 940] : [1000, 150, 820]);
+    if (k >= 2) html += acCard(`<b style="font-size:34px">九州・瀬戸内海では</b><div style="font-size:${P ? 56 : 60}px;font-weight:900;color:#1e7a36">満1歳で成熟</div>`, clamp01((t - (s._k2 ?? 0)) / 0.4), P ? [70, 1360, 940] : [1000, 480, 820]);
+    html += srcLine("三重県「2024年度 三重県におけるカサゴの資源評価」");
+  },
+  ov_winter(t, d, s, k) {
+    reefUnder(t + 40, { ang: -0.4 });
+    academyBadge();
+    const P = PORTRAIT;
+    if (k === 0) label(V(N0.x - 5, -4.2, N0.z + 2), "冬のお腹の大きい魚", "もうすぐ子を産む親かもしれない", clamp01((t - 0.5) / 0.5), "gold ans", 0, -120);
+    if (k >= 1) {
+      html += acDim(0.5 * clamp01((t - (s._k1 ?? 0)) / 0.5));
+      html += `<div class="big" style="top:${P ? 300 : 120}px;font-size:${P ? 72 : 60}px;opacity:${clamp01((t - (s._k1 ?? 0)) / 0.5)}">冬の釣り人にできること</div>`;
+      [["食べる分だけ持ち帰る"], ["逃がすなら、水から出す時間を短く"], ["同じ岩場の親を残す（カサゴは回遊しない）"]].forEach(([h], i) => {
+        const kk = i < 2 ? 1 : 2;
+        const a = k >= kk ? clamp01((t - (s["_k" + kk] ?? 0) - 0.6 - (i === 1 ? 0.8 : 0)) / 0.4) : 0;
+        html += card(P ? 70 : 420, (P ? 520 : 270) + i * (P ? 170 : 150), P ? 940 : 1080, `<b style="font-size:${P ? 40 : 44}px"><span style="color:#2ecc71">✔</span> ${h}</b>`, a, "padding:22px 30px");
+      });
+    }
+    isoBar(s);
+  },
+  ov_sum(t, d, s, k) {
+    reefUnder(t + 50);
+    academyBadge();
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 100}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
+    [["卵胎生", "お腹の中で受精・ふ化し、仔魚を産む"], ["メバル", "11〜12月に交尾、1〜2月に産む"], ["カサゴ", "12〜3月に多く、3〜4回に分けて産む"], ["冬の釣り", "お腹の大きい親は大切に。食べる分だけ"]].forEach(([a1, b1], i) => {
+      html += rowCard(P, i, clamp01((t - 0.4 - i * 0.4) / 0.3), a1, b1, P ? 440 : 210, P ? 190 : 150, i === 3 ? "#1e7a36" : "#1f6fb2");
+    });
+  },
+});
+
+// ---------- R3 20cmのガシラは何歳？（gr_*）----------
+const GR_M = [14.0, 18.3, 21.4, 23.7, 25.3], GR_F = [12.6, 15.5, 17.3, 18.5, 19.2]; // 静岡県清水港（矢冨ほか 2005、三重県の資料から）全長
+Object.assign(SHOTS, {
+  gr_thumb(t, d, s) { SHOTS.ov_thumb(t, d, s); },
+  gr_hook(t, d, s) {
+    reefUnder(t, { meb: false, ang: 0.6 });
+    academyBadge();
+    acHook(t, d, s, "20cmのガシラは<br>何歳？", "回遊しない魚の、ゆっくりな成長");
+  },
+  gr_grow(t, d, s, k) {
+    reefUnder(t + 10, { meb: false, ang: 0.6 });
+    academyBadge();
+    html += acDim(0.5);
+    const P = PORTRAIT, tt = t - (s._k0 ?? 0);
+    const H = P ? 420 : 300, max = 27, g = clamp01(tt / 1.2);
+    const col = (v, c, on) => `<div style="width:42%;height:${Math.max(3, (v / max) * H * g)}px;background:${c};opacity:${on ? 1 : 0.15};border-radius:8px 8px 0 0;position:relative"><b style="position:absolute;top:-34px;left:50%;transform:translateX(-50%);font-size:${P ? 22 : 24}px;color:#10345a;white-space:nowrap;opacity:${on ? 1 : 0}">${v}</b></div>`;
+    const showM = k >= 1, showF = k >= 2;
+    const bars = GR_M.map((m, i) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end"><div style="display:flex;gap:4px;align-items:flex-end;width:100%;justify-content:center">${col(m, "#1f6fb2", showM)}${col(GR_F[i], "#e3417a", showF)}</div><div style="font-size:${P ? 26 : 28}px;font-weight:900;color:#10345a;margin-top:6px">${i + 1}歳</div></div>`).join("");
+    html += acCard(`<div style="font-size:${P ? 34 : 34}px;font-weight:900">カサゴの年齢と大きさ（全長cm）</div>
+      <div style="display:flex;gap:6px;height:${H + 70}px;align-items:flex-end;margin-top:12px;border-bottom:4px solid #10345a;position:relative">
+      <div style="position:absolute;left:0;right:0;bottom:${(20 / max) * H + 38}px;border-top:4px dashed #e3412b;opacity:${g}"><span style="position:absolute;left:0;top:-34px;color:#c62828;font-weight:900;font-size:26px">20cm</span></div>${bars}</div>
+      <div style="font-size:26px;font-weight:900;margin-top:8px"><span style="color:#1f6fb2">■</span> オス　<span style="color:#e3417a">■</span> メス</div>
+      <div style="font-size:21px;color:#3a5a78;margin-top:4px">出典：静岡県清水港の報告（矢冨ほか 2005）／三重県「2024年度 カサゴの資源評価」</div>`, clamp01(t / 0.4));
+  },
+  gr_stay(t, d, s, k) {
+    reefUnder(t + 20, { meb: false, ang: 0.2 });
+    academyBadge();
+    const P = PORTRAIT;
+    label(V(N0.x - 5.5, seabedY(N0.x - 5.5, N0.z + 2.5) + 0.6, N0.z + 2.5), "同じ岩場に住み続ける", "季節的な回遊はしない", clamp01((t - 0.5) / 0.5), "gold ans", 0, -260);
+    if (k >= 1) html += acCard(`<b style="font-size:34px">すむ場所</b><div style="font-size:${P ? 40 : 42}px;font-weight:900;margin-top:6px">主に<span style="color:#1f6fb2">水深50mより浅い岩礁</span></div>`, clamp01((t - (s._k1 ?? 0)) / 0.4), P ? [70, 1060, 940] : [110, 150, 780]);
+    html += srcLine("三重県「2024年度 三重県におけるカサゴの資源評価」");
+  },
+  gr_now(t, d, s, k) {
+    reefUnder(t + 30, { meb: false, ang: -0.3 });
+    academyBadge();
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    if (k === 0) html += acCard(acBars("鳥羽磯部漁協のカサゴの漁獲量（トン）", [["2006〜2010年", 40, "#7fa3c2", "40以上"], ["2021年", 5.4, "#e3412b", "5.4（最低）"], ["2023年", 6.7, "#1f6fb2", "6.7"]], 45, t - (s._k0 ?? 0), { note: "資源の水準は「低位」、動向は「増加」", src: "三重県「2024年度 三重県におけるカサゴの資源評価」" }), clamp01(t / 0.4));
+    if (k >= 1) html += acCard(`<b style="font-size:36px">放流の効果は？</b><div style="font-size:${P ? 34 : 36}px;font-weight:900;margin-top:10px">三重県：1997年から放流（2022年は12.7万尾）。<br>市場で放流魚はほとんど見られず、<span style="color:#c62828">効果はきわめて小さい</span>と考えられる</div>
+      <div style="font-size:${P ? 30 : 32}px;font-weight:800;margin-top:14px;opacity:${k >= 2 ? 1 : 0}">静岡県・伊豆半島南部：2007年に1万3000尾放流 → 11歳までに取れたのは <span style="color:#c62828">4.11%</span></div>
+      <div style="font-size:21px;color:#3a5a78;margin-top:10px">出典：三重県「2024年度 カサゴの資源評価」（髙木・山田 2019 の引用を含む）</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4));
+  },
+  gr_angler(t, d, s, k) {
+    reefUnder(t + 40, { meb: false, ang: 0.4 });
+    academyBadge();
+    html += acDim(0.5 * clamp01(t / 0.5));
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 300 : 120}px;font-size:${P ? 72 : 60}px">釣り人にできること</div>`;
+    [["小さなガシラは逃がす"], ["同じ穴で釣りすぎない"], ["食べる分だけ持ち帰る・地域のルールを確かめる"]].forEach(([h], i) => {
+      const kk = i < 2 ? 0 : 1;
+      const a = k >= kk ? clamp01((t - (s["_k" + kk] ?? 0) - 0.6 - (i === 1 ? 1.2 : 0)) / 0.4) : 0;
+      html += card(P ? 70 : 380, (P ? 520 : 270) + i * (P ? 170 : 150), P ? 940 : 1160, `<b style="font-size:${P ? 38 : 42}px"><span style="color:#2ecc71">✔</span> ${h}</b>`, a, "padding:22px 30px");
+    });
+    isoBar(s);
+  },
+  gr_sum(t, d, s, k) {
+    reefUnder(t + 50, { meb: false });
+    academyBadge();
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 100}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
+    [["成長", "オスは3歳で約21cm、メスは5歳でも約19cm"], ["すみか", "浅い岩礁にすみ、季節の回遊はしない"], ["いま", "三重県では資源は低位、放流の効果は小さい"], ["できること", "小さな魚は逃がし、同じ穴で釣りすぎない"]].forEach(([a1, b1], i) => {
+      html += rowCard(P, i, clamp01((t - 0.4 - i * 0.4) / 0.3), a1, b1, P ? 440 : 210, P ? 190 : 150, i === 3 ? "#1e7a36" : i === 2 ? "#c62828" : "#1f6fb2");
+    });
+  },
+});
+
+// ---------- R2 チヌはみんなオスで生まれる？（cn_*）----------
+// 年齢ごとの色（オス＝青、メス＝赤）で群れを見せる
+Object.assign(SHOTS, {
+  cn_thumb(t, d, s) {
+    reefUnder(8, { meb: false, gas: false, chinu: true });
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1050px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px;background:#10345a;color:#ffd166;border:3px solid #ffd166">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  cn_hook(t, d, s) {
+    reefUnder(t, { meb: false, gas: false, chinu: true });
+    academyBadge();
+    acHook(t, d, s, "チヌは<br>みんなオスで生まれる？", "性転換と「30歳」の長寿");
+  },
+  cn_sex(t, d, s, k) {
+    reefUnder(t + 10, { meb: false, gas: false, chinu: true });
+    academyBadge();
+    html += acDim(0.45);
+    const P = PORTRAIT;
+    const stage = (age, txt, m, f, on) => `<div style="flex:1;text-align:center;opacity:${on ? 1 : 0.2}"><div style="font-size:${P ? 30 : 32}px;font-weight:900;color:#10345a">${age}</div><div style="display:flex;justify-content:center;gap:4px;margin:10px 0">${"●".repeat(m).split("").map(() => `<span style="color:#1f6fb2;font-size:${P ? 34 : 38}px">●</span>`).join("")}${"●".repeat(f).split("").map(() => `<span style="color:#e3417a;font-size:${P ? 34 : 38}px">●</span>`).join("")}</div><div style="font-size:${P ? 24 : 26}px;font-weight:800;color:#3a5a78">${txt}</div></div>`;
+    html += acCard(`<b style="font-size:${P ? 36 : 38}px">チヌ（クロダイ）の一生と性別</b><div style="display:flex;gap:10px;margin-top:16px">${stage("生まれたとき", "すべてオス", 5, 0, true)}${stage("成長すると", "メスも現れる", 3, 2, k >= 1)}${stage("4〜5歳", "多くがメスに", 1, 4, k >= 1)}</div>
+      <div style="font-size:${P ? 30 : 32}px;font-weight:900;margin-top:14px;opacity:${k >= 2 ? 1 : 0}">一部はオスのまま。<span style="color:#1f6fb2">●</span>オス　<span style="color:#e3417a">●</span>メス</div>
+      <div style="font-size:21px;color:#3a5a78;margin-top:10px">出典：愛知県水産試験場「おさかな情報」</div>`, clamp01(t / 0.4));
+  },
+  cn_teeth(t, d, s, k) {
+    reefUnder(t + 20, { meb: false, gas: false, chinu: true, ang: 0.5 });
+    academyBadge();
+    const c = V(N0.x - 6, -5, N0.z + 1);
+    label(V(c.x, -4.5, c.z + 1), "チヌ", "歯がじょうぶ", clamp01((t - 0.4) / 0.5), "gold", 180, -60);
+    html += acCard(`<b style="font-size:36px">食べているもの</b><div style="font-size:${PORTRAIT ? 40 : 42}px;font-weight:900;margin-top:8px">貝やカニを、<span style="color:#c62828">殻ごとかみくだく</span></div><div style="font-size:21px;color:#3a5a78;margin-top:8px">出典：愛知県水産試験場「おさかな情報」</div>`, clamp01((t - 0.8) / 0.4), PORTRAIT ? [70, 1060, 940] : [110, 150, 760]);
+  },
+  cn_age(t, d, s, k) {
+    reefUnder(t + 30, { meb: false, gas: false, chinu: true, ang: -0.4 });
+    academyBadge();
+    html += acDim(0.5);
+    const P = PORTRAIT;
+    if (k <= 1) {
+      // 耳石の輪（年輪）
+      const n = Math.min(30, Math.floor(clamp01((t - 0.5) / 4) * 30));
+      const rings = Array.from({ length: n }, (_, i) => `<ellipse cx="160" cy="110" rx="${14 + i * 4.6}" ry="${9 + i * 3.1}" fill="none" stroke="${i % 5 === 4 ? "#ffd166" : "rgba(255,255,255,.55)"}" stroke-width="${i % 5 === 4 ? 3 : 1.6}"/>`).join("");
+      html += `<div style="position:absolute;${P ? "left:50%;top:300px;transform:translateX(-50%)" : "left:110px;top:140px"};background:rgba(6,22,42,.85);border-radius:26px;padding:18px 24px;text-align:center;color:#fff;font-weight:900">
+        <div style="font-size:32px">耳石の輪（1年に1本の年輪）</div><svg width="320" height="220" viewBox="0 0 320 220"><ellipse cx="160" cy="110" rx="150" ry="100" fill="#d8c9a8" opacity=".25"/>${rings}</svg><div style="font-size:${P ? 64 : 60}px;color:#ffd166">${n}本 → ${n}歳</div></div>`;
+      if (k >= 1) html += acCard(`<b style="font-size:34px">富山湾の調査（2013〜2017年、320尾）</b><div style="font-size:${P ? 56 : 58}px;font-weight:900;color:#c62828;margin-top:6px">最高 約30歳</div><div style="font-size:30px;font-weight:800">これまで考えられていたより長生き</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4), P ? [70, 1060, 940] : [1000, 150, 820]);
+    } else {
+      html += acCard(acBars("大きさと重さの目安（尾叉長）", [["30cm", 0.5, "#7fa3c2", "約0.5kg"], ["37cm", 1, "#7fa3c2", "約1kg"], ["47cm", 2, "#1f6fb2", "約2kg"]], 2.2, t - (s._k2 ?? 0), { note: "メスのほうが成長が早い", noteColor: "#c2185b", src: "富山県水産研究所「富山湾におけるクロダイの年齢と成長」" }), clamp01((t - (s._k2 ?? 0)) / 0.4));
+    }
+    if (k <= 1) html += srcLine("富山県水産研究所「富山湾におけるクロダイの年齢と成長〜クロダイは長寿だった！〜」");
+  },
+  cn_now(t, d, s, k) {
+    reefUnder(t + 40, { meb: false, gas: false, chinu: true, ang: 0.3 });
+    academyBadge();
+    html += acDim(0.5);
+    const P = PORTRAIT;
+    if (k === 0) html += acCard(`<b style="font-size:34px">岡山県水産研究所（2024年）</b><div style="font-size:${P ? 36 : 38}px;font-weight:900;margin-top:8px">ノリ養殖で、<span style="color:#c62828">クロダイの食害が起きる漁場が増えている</span></div><div style="font-size:${P ? 30 : 32}px;font-weight:800;margin-top:10px">考えられる原因：秋〜冬に水温が下がりにくくなったこと、魚の値段が安く、あまり獲られなくなったこと</div>`, clamp01(t / 0.4));
+    if (k >= 1) html += acCard(`<b style="font-size:34px">徳島県の調査（2024年1月）</b><div style="font-size:${P ? 36 : 38}px;font-weight:900;margin-top:8px">水温 約11〜12℃でもノリ漁場に多く現れ、<br>1時間に <span style="color:#c62828;font-size:${P ? 60 : 64}px">249尾</span> 写った時間も</div><div style="font-size:${P ? 28 : 30}px;font-weight:800;margin-top:8px;opacity:${k >= 2 ? 1 : 0}">昼前と夕方に多く、正午には減る傾向</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4));
+    html += srcLine(k >= 1 ? "岡本裕太「ノリ漁場における食害の長期化」徳島水研だより118号（2024）" : "岡山県農林水産総合センター水産研究所「ノリ養殖におけるクロダイの食害への対応について」（2024）");
+  },
+  cn_angler(t, d, s, k) {
+    reefUnder(t + 50, { meb: false, gas: false, chinu: true });
+    academyBadge();
+    html += acDim(0.5 * clamp01(t / 0.5));
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 300 : 120}px;font-size:${P ? 72 : 60}px">釣り人が知っておきたいこと</div>`;
+    [["大きなチヌは何十年も生きた魚かもしれない"], ["大きな個体の多くはメス（4〜5歳で多くがメスに）"], ["食べる分だけ持ち帰り、ルールを確かめる"]].forEach(([h], i) => {
+      const kk = i === 2 ? 1 : 0;
+      const a = k >= kk ? clamp01((t - (s["_k" + kk] ?? 0) - 0.6 - (i === 1 ? 1.4 : 0)) / 0.4) : 0;
+      html += card(P ? 70 : 360, (P ? 520 : 270) + i * (P ? 190 : 150), P ? 940 : 1200, `<b style="font-size:${P ? 36 : 40}px"><span style="color:#2ecc71">✔</span> ${h}</b>`, a, "padding:22px 30px");
+    });
+    isoBar(s);
+  },
+  cn_sum(t, d, s, k) {
+    reefUnder(t + 60, { meb: false, gas: false, chinu: true });
+    academyBadge();
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    html += `<div class="big" style="top:${P ? 280 : 100}px;font-size:${P ? 72 : 60}px">まとめ</div>`;
+    [["性転換", "生まれたときはすべてオス、4〜5歳で多くがメスに"], ["長寿", "富山湾で最高約30歳"], ["食べ物", "貝やカニを殻ごとかみくだく"], ["いま", "冬のノリ漁場の食害が各地で問題に"]].forEach(([a1, b1], i) => {
+      html += rowCard(P, i, clamp01((t - 0.4 - i * 0.4) / 0.3), a1, b1, P ? 440 : 210, P ? 190 : 150, i === 3 ? "#c62828" : "#1f6fb2");
+    });
+  },
+});
+
 // =====================================================================
 // 仕上げ（v2）：ブルーム（光のにじみ）・色の調整・周辺減光・フィルムの粒子・色ずれ
 // ?look=v1 で従来の見た目
@@ -3967,6 +4238,7 @@ window.frame = function (o) {
   U.fogColor.value.copy(new THREE.Color(0x0d4a6e));
   if (POST) POST.render();
   else renderer.render(scene, camera);
+  drawBar(o.s);
   if (o.chapter && !(PORTRAIT && o.s && o.s.bar)) html += `<div class="chapter"><b>${o.chapterNo ?? ""}</b><span>${o.chapter}</span></div>`;
   html += `<div class="logo">ツレドキ<i>関西</i></div>`;
   if (o.cap) html += `<div class="cap">${o.cap.replace(/\[\[(.+?)\]\]/g, '<em>$1</em>')}</div>`;
