@@ -4024,8 +4024,7 @@ Object.assign(SHOTS, {
     const P = PORTRAIT;
     if (k === 0) html += acCard(acBars("鳥羽磯部漁協のカサゴの漁獲量（トン）", [["2006〜2010年", 40, "#7fa3c2", "40以上"], ["2021年", 5.4, "#e3412b", "5.4（最低）"], ["2023年", 6.7, "#1f6fb2", "6.7"]], 45, t - (s._k0 ?? 0), { note: "資源の水準は「低位」、動向は「増加」", src: "三重県「2024年度 三重県におけるカサゴの資源評価」" }), clamp01(t / 0.4));
     if (k >= 1) html += acCard(`<b style="font-size:36px">放流の効果は？</b><div style="font-size:${P ? 34 : 36}px;font-weight:900;margin-top:10px">三重県：1997年から放流（2022年は12.7万尾）。<br>市場で放流魚はほとんど見られず、<span style="color:#c62828">効果はきわめて小さい</span>と考えられる</div>
-      <div style="font-size:${P ? 30 : 32}px;font-weight:800;margin-top:14px;opacity:${k >= 2 ? 1 : 0}">静岡県・伊豆半島南部：2007年に1万3000尾放流 → 11歳までに取れたのは <span style="color:#c62828">4.11%</span></div>
-      <div style="font-size:21px;color:#3a5a78;margin-top:10px">出典：三重県「2024年度 カサゴの資源評価」（髙木・山田 2019 の引用を含む）</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4));
+      <div style="font-size:21px;color:#3a5a78;margin-top:10px">出典：三重県「2024年度 三重県におけるカサゴの資源評価」</div>`, clamp01((t - (s._k1 ?? 0)) / 0.4));
   },
   gr_angler(t, d, s, k) {
     reefUnder(t + 40, { meb: false, ang: 0.4 });
