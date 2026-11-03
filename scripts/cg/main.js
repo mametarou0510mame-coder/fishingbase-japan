@@ -1276,6 +1276,7 @@ function updateFlow(T, opts) {
       const v = FIELD(x, z);
       x += v[0] * sp * dt; z += v[1] * sp * dt;
       if (x > PIER.x0 - 0.2 && x < PIER.x1 + 0.2 && z < PIER.z1 + 0.2 && z > PIER.z0 && opts.pier) { dead = true; break; }
+      if (opts.solid && opts.solid(x, z)) { dead = true; break; }
       if (z < 0.5 && !(opts.river && Math.abs(x - opts.river.x) < opts.river.w / 2 + 0.5)) { dead = true; break; }
       for (let k = TRAIL - 1; k > 0; k--) { px[k] = px[k - 1]; pz[k] = pz[k - 1]; }
       px[0] = x; pz[0] = z;
@@ -2543,19 +2544,21 @@ FIELDS.tetraEnd = () => (x, z) => {
   return [vx, vz];
 };
 // 全体図（画面の隅）。kind: pier | river | tetra。hi: 光らせる場所 [x,z]（全体図の座標 0〜100）
-function miniMap(kind, hi, a = 1) {
+function miniMap(kind, hi, a = 1, dir = "r") {
   const P = PORTRAIT;
   const L = P ? 40 : 70, T = P ? 230 : 140, S = P ? 250 : 270;
   const shapes = {
     pier: `<rect x="0" y="0" width="100" height="22" fill="#9aa59a"/><rect x="46" y="22" width="8" height="40" fill="#c9ced2"/><circle cx="50" cy="60" r="3" fill="#d23a2a"/>`,
     river: `<rect x="0" y="0" width="100" height="22" fill="#9aa59a"/><rect x="18" y="0" width="10" height="22" fill="#3f6f86"/>`,
+    lpier: `<rect x="0" y="0" width="100" height="22" fill="#9aa59a"/><rect x="30" y="22" width="7" height="30" fill="#c9ced2"/><rect x="30" y="46" width="40" height="6" fill="#c9ced2"/><circle cx="68" cy="49" r="2.5" fill="#d23a2a"/>`,
+    port: `<rect x="0" y="0" width="100" height="22" fill="#9aa59a"/><rect x="45" y="22" width="10" height="58" fill="#0d3556"/><rect x="0" y="40" width="44" height="6" fill="#c9ced2"/><rect x="56" y="40" width="44" height="6" fill="#c9ced2"/>`,
     tetra: `<rect x="0" y="0" width="100" height="22" fill="#9aa59a"/>${[0, 1, 2, 3, 4, 5].map((i) => `<circle cx="${40 + i * 8}" cy="${27 + (i % 2) * 3}" r="4" fill="#b8bcbe"/>`).join("")}`,
   };
   html += `<div style="position:absolute;left:${L}px;top:${T}px;width:${S}px;height:${S}px;opacity:${a};background:rgba(255,255,255,.92);border-radius:22px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
     <div style="font-size:${P ? 24 : 22}px;font-weight:900;color:#10345a;margin:0 0 4px 6px">全体図</div>
     <svg viewBox="0 0 100 80" width="100%" height="${S - 60}px"><rect x="0" y="0" width="100" height="80" fill="#2b6f9e"/>${shapes[kind]}
-    <path d="M6 70 L26 70" stroke="#fff" stroke-width="2.5" marker-end="url(#ah)"/><defs><marker id="ah" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#fff"/></marker></defs>
-    <text x="30" y="73" font-size="7" fill="#fff" font-weight="700">潮の流れ</text>
+    <path d="${dir === "l" ? "M26 70 L6 70" : dir === "in" ? "M92 77 L92 58" : "M6 70 L26 70"}" stroke="#fff" stroke-width="2.5" marker-end="url(#ah)"/><defs><marker id="ah" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#fff"/></marker></defs>
+    <text x="${dir === "in" ? 64 : 30}" y="${dir === "in" ? 70 : 73}" font-size="7" fill="#fff" font-weight="700">${dir === "in" ? "満ち潮" : "潮の流れ"}</text>
     ${hi ? `<circle cx="${hi[0]}" cy="${hi[1]}" r="9" fill="none" stroke="#2ecc71" stroke-width="3"/>` : ""}</svg></div>`;
 }
 function legend(items, a = 1) {
@@ -4129,6 +4132,329 @@ Object.assign(SHOTS, {
     [["性転換", "生まれたときはすべてオス、4〜5歳で多くがメスに"], ["長寿", "富山湾で最高約30歳"], ["食べ物", "貝やカニを殻ごとかみくだく"], ["いま", "冬のノリ漁場の食害が各地で問題に"]].forEach(([a1, b1], i) => {
       html += rowCard(P, i, clamp01((t - 0.4 - i * 0.4) / 0.3), a1, b1, P ? 440 : 210, P ? 190 : 150, i === 3 ? "#c62828" : "#1f6fb2");
     });
+  },
+});
+
+// =====================================================================
+// 見える化・実戦編 長尺（cg-jissen-katachi、jx_*）：L字の堤防・港の入り口（船道）・潮の向きが逆のとき
+// わかりやすさは js_* と同じ作り（主役だけ明るく・太い矢印・緑の円・全体図・凡例）
+// =====================================================================
+// L字の堤防：岸から沖へ（腕1）→ 下流側（右）へ曲がる（腕2）
+const LP = { a1: { x0: -2, x1: 2, z0: 0, z1: 24 }, a2: { x0: -2, x1: 26, z0: 20, z1: 24 } };
+const LEDDY = { x: 31, z: 15, r: 7 };
+const inBox = (b, x, z, m = 0.2) => x > b.x0 - m && x < b.x1 + m && z > b.z0 - m && z < b.z1 + m;
+const lpier = new THREE.Group();
+{
+  for (const b of [LP.a1, LP.a2]) {
+    const w = b.x1 - b.x0, l = b.z1 - b.z0, cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, 16, l), concrete);
+    body.position.set(cx, -5.2, cz);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.6, l + 0.4), shadedMat(0xb8bec2, { rough: 0.1 }));
+    deck.position.set(cx, 2.8, cz);
+    lpier.add(body, deck);
+  }
+  const lh = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 5, 16), shadedMat(0xd23a2a, { rough: 0.05 }));
+  lh.position.set(LP.a2.x1 - 1.5, 5.6, 22);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.5, 16), shadedMat(0xf2f2f2, { rough: 0.05 }));
+  cap.position.set(LP.a2.x1 - 1.5, 8.3, 22);
+  lpier.add(lh, cap);
+}
+world.add(lpier);
+extras.push(lpier);
+const lpSolid = (x, z) => inBox(LP.a1, x, z) || inBox(LP.a2, x, z);
+FIELDS.lpier = () => (x, z) => {
+  let vx = 1.1, vz = 0;
+  // 腕1の上流側（左）：堤防にぶつかって外（沖）へ曲がる＝ヨレ
+  if (x < -2) {
+    const near = 1 - smooth01((-2 - x) / 9), below = smooth01((25 - z) / 8);
+    vx *= 1 - near * below * 0.85;
+    vz += near * below * 1.0;
+  }
+  // 角を回りこんで、外側の面ぞいは少し速い
+  vx += 0.5 * Math.exp(-((x + 2) ** 2 + (z - 26) ** 2) / 30);
+  if (z > 24 && x > -2 && x < 30) vx += 0.35 * Math.exp(-(z - 24) / 4);
+  // 先端の裏のうず（反転流）
+  const dx = x - LEDDY.x, dz = z - LEDDY.z;
+  const w = Math.exp(-(dx * dx + dz * dz) / (LEDDY.r * LEDDY.r));
+  vx = vx * (1 - w) + (dz / LEDDY.r) * 0.45 * w;
+  vz = vz * (1 - w) + (-dx / LEDDY.r) * 0.45 * w;
+  // 内側（港の中）は流れがほとんどない（ゆっくり回る）
+  const inside = smooth01((19 - z) / 3) * smooth01((x - 2) / 3) * smooth01((27 - x) / 4);
+  vx = vx * (1 - inside) + inside * 0.12 * ((z - 10) / 10);
+  vz = vz * (1 - inside) + inside * -0.12 * ((x - 14) / 12);
+  return [vx, vz];
+};
+// 港の入り口（船道）：左右の堤防のあいだ（x=-4〜4）が入り口。満ち潮で外の水が入り口に集まる
+const PT = { l: { x0: -46, x1: -4, z0: 22, z1: 26 }, r: { x0: 4, x1: 46, z0: 22, z1: 26 }, ch: 3 };
+const port = new THREE.Group();
+{
+  for (const b of [PT.l, PT.r]) {
+    const w = b.x1 - b.x0, l = b.z1 - b.z0, cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, 16, l), concrete);
+    body.position.set(cx, -5.2, cz);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.6, l + 0.4), shadedMat(0xb8bec2, { rough: 0.1 }));
+    deck.position.set(cx, 2.8, cz);
+    port.add(body, deck);
+  }
+  // 入り口の灯台（左が白・右が赤）
+  [[-5.5, 0xf2f2f2], [5.5, 0xd23a2a]].forEach(([x, c]) => {
+    const lh = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 5, 16), shadedMat(c, { rough: 0.05 }));
+    lh.position.set(x, 5.6, 24);
+    port.add(lh);
+  });
+  // 船道（深い所）：水面に濃い青の帯と、へりの白い線
+  const ch = new THREE.Mesh(new THREE.PlaneGeometry(PT.ch * 2, 76).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x02101f, transparent: true, opacity: 0.75, depthTest: false }));
+  ch.position.set(0, 0.25, 36);
+  ch.renderOrder = 3;
+  port.add(ch);
+  [-PT.ch, PT.ch].forEach((x) => {
+    const e = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 76).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, depthTest: false }));
+    e.position.set(x, 0.28, 36);
+    e.renderOrder = 4;
+    port.add(e);
+  });
+}
+world.add(port);
+extras.push(port);
+// 小さな船（船道を通る）
+const boat = new THREE.Group();
+{
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 6), shadedMat(0xf4f4f4, { rough: 0.1 }));
+  hull.position.y = 0.6;
+  const bow = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.4, 4).rotateX(Math.PI / 2).rotateZ(Math.PI / 4), shadedMat(0xf4f4f4, { rough: 0.1 }));
+  bow.scale.set(1, 0.45, 1);
+  bow.position.set(0, 0.6, -4.2);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 2), shadedMat(0x2f6fb0, { rough: 0.1 }));
+  cabin.position.set(0, 1.7, 0.8);
+  boat.add(hull, bow, cabin);
+  // 船道の帯（深さを無視して描く）より後に描く
+  boat.children.forEach((m) => { m.material.transparent = true; m.renderOrder = 6; });
+}
+world.add(boat);
+extras.push(boat);
+const ptSolid = (x, z) => inBox(PT.l, x, z) || inBox(PT.r, x, z);
+FIELDS.port = () => (x, z) => {
+  if (z > 26) {
+    // 外：入り口へ集まる。入り口に近いほど速い
+    const dx = x, dz = z - 24, r = Math.hypot(dx, dz) + 0.5;
+    const sp = 0.25 + 1.5 * Math.exp(-r / 9);
+    return [(-dx / r) * sp, (-dz / r) * sp];
+  }
+  if (z >= 21.5) return [-x * 0.08, -1.8]; // 入り口の中：いちばん速い
+  // 港の中：広がって弱まる
+  const dx = x, dz = z - 22, r = Math.hypot(dx, dz) + 0.5;
+  const sp = 0.2 + 1.5 * Math.exp(-r / 7);
+  return [(dx / r) * sp, (dz / r) * sp];
+};
+// 突堤で潮の向きが逆（右→左）。うずは左側にできる
+const pierFwd = FIELDS.pier(1);
+FIELDS.pierRev = () => (x, z) => { const v = pierFwd(-x, z); return [-v[0], v[1]]; };
+// 2つめの緑の円（答えが2つあるとき）
+const TARGET2 = TARGET.clone(), TARGET2_FILL = TARGET_FILL.clone();
+TARGET2.material = TARGET.material.clone();
+TARGET2_FILL.material = TARGET_FILL.material.clone();
+world.add(TARGET2, TARGET2_FILL);
+extras.push(TARGET2, TARGET2_FILL);
+function target2(x, z, r, a, t) {
+  for (const m of [TARGET2, TARGET2_FILL]) { m.visible = a > 0.01; m.position.set(x, 0.7, z); m.scale.setScalar(r * (1 + 0.06 * Math.sin(t * 5 + 1.5))); }
+  TARGET2.material.opacity = a;
+  TARGET2_FILL.material.opacity = 0.22 * a;
+}
+// ×じるし（ここではない）
+function noMark(p, txt, a) {
+  if (a <= 0.01) return;
+  const q = project(p);
+  html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;transform:translate(-50%,calc(-100% + 35px));opacity:${a};text-align:center;color:#fff;font-weight:900;text-shadow:0 2px 8px #000"><div style="font-size:${PORTRAIT ? 30 : 28}px;margin-bottom:6px;background:rgba(6,22,42,.85);padding:4px 14px;border-radius:12px;white-space:nowrap">${txt}</div><div style="width:70px;height:70px;margin:0 auto;border-radius:50%;background:#8a96a3;border:5px solid #fff;font-size:44px;line-height:62px">×</div></div>`;
+}
+const LP_PINS = [V(-5, 0.4, 28), V(14, 0.4, 9), V(16, 0.4, 33)]; // A=角の外、B=内側の奥、C=沖の真ん中
+const LP_ANS = [-5, 28], LP_ANS2 = [30, 23];
+const PT_ANS = [5.6, 33];
+const lpFlow = (T, opts = {}) => { FIELD = FIELDS.lpier(); updateFlow(T, { x0: -40, x1: 50, z0: 2, z1: 70, solid: lpSolid, ...opts }); };
+const jxBase = () => { base(0); sky.visible = true; U.under.value = 0; };
+// 真上に近い角度（topView より少し真上寄り）。縦画面は少し引く
+function jxView(cx, cz, dist, t = 0, d = 1) {
+  const k = ease(t / Math.max(d, 0.01));
+  const D = PORTRAIT ? dist * 1.08 : dist;
+  look(V(cx - 4 + k * 2, D, cz + D * 0.42), V(cx, 0, cz), 48);
+}
+const fadeIn = (t, t0 = 0, dur = 0.4) => clamp01((t - t0) / dur);
+
+Object.assign(SHOTS, {
+  jx_thumb(t, d, s) {
+    jxBase();
+    show(lpier);
+    lpFlow(40);
+    look(V(0, 46, 50), V(2, 0, 15), 50);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1000px;background:linear-gradient(90deg,rgba(2,14,28,.8),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:210px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+    mapPin(V(LP_ANS2[0], 0.4, LP_ANS2[1]), "？", 1, "#2ecc71");
+    mapPin(V(LP_ANS[0], 0.4, LP_ANS[1]), "？", 1, "#2ecc71");
+  },
+  // つかみ：最初のコマから L字の堤防と光る流れと問い
+  jx_hook(t, d, s) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 30);
+    jxView(12, 20, 50, t, d);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    if (PORTRAIT) bigText(0, "このL字の堤防、<br>どこに投げる？", "流れが見えれば、答えがわかる", a);
+    else bigText(20, "このL字の堤防、どこに投げる？", "流れが見えれば、答えがわかる", a);
+    ["A", "B", "C"].forEach((n, i) => mapPin(LP_PINS[i], n, PORTRAIT ? 1 : clamp01((t - 0.8 - i * 0.3) / 0.3)));
+    isoBar(s);
+  },
+  // 見方：粒の色の意味
+  jx_rule(t, d, s, k) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 40);
+    jxView(12, 20, 50, t, d);
+    const t0 = t - (s._k0 ?? 0);
+    label(V(8, 0.6, 30), "水色＝速い流れ", "", fadeIn(t0, 0.8), "", PORTRAIT ? 60 : 0, -90);
+    label(V(14, 0.6, 9), "オレンジ＝ゆるい流れ", "", fadeIn(t0, 2.6), "gold", PORTRAIT ? 60 : 120, -70);
+    if (k >= 1) arrow(0, PORTRAIT ? -8 : -22, 34, PORTRAIT ? 6 : -4, 34, "#4cc3ff", fadeIn(t - (s._k1 ?? 0), 0.8), 2.0);
+    legend(LEG, k >= 1 ? 1 : fadeIn(t0, 1.5));
+    if (k >= 1) html += `<div style="position:absolute;${PORTRAIT ? "right:40px;top:440px" : "right:60px;top:290px"};background:rgba(6,22,42,.9);border:4px solid #2ecc71;border-radius:14px;padding:6px 16px;color:#fff;font-size:${PORTRAIT ? 34 : 30}px;font-weight:900;opacity:1;box-shadow:0 0 ${10 + 8 * Math.sin(t * 5)}px #2ecc71">▲ <span style="color:#2ecc71">緑</span>＝投げる場所</div>`;
+    miniMap("lpier", null, fadeIn(t0, 0.5));
+    isoBar(s);
+  },
+  // L字の堤防：k0 曲がる流れ → k1 答え① 角のヨレ → k2 答え② 先端の裏 → k3 B・C はちがう
+  jx_lpier(t, d, s, k) {
+    jxBase();
+    show(lpier);
+    const focus = k === 0 || k === 1 ? { x: -5, z: 26, r: 7, dim: 0.3 } : k === 2 ? { x: LP_ANS2[0], z: LP_ANS2[1] - 3, r: 7, dim: 0.3 } : null;
+    lpFlow(t + 50, { focus });
+    if (PORTRAIT) {
+      // 縦は横が狭いので、説明中の場所へカメラを寄せる
+      const cxs = [3, 3, 23, 12], ds = [46, 46, 46, 60], kk = Math.min(k, 3), pk = Math.max(0, kk - 1);
+      const e = ease(clamp01((t - (s["_k" + kk] ?? 0)) / 1.2));
+      jxView(lerp(cxs[pk], cxs[kk], e), 20, lerp(ds[pk], ds[kk], e), 0, 1);
+    } else jxView(12, 20, 50, t, d);
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    if (k <= 1) {
+      const ak = k === 1 ? 0.45 : 1;
+      arrow(0, PORTRAIT ? -16 : -20, 14, -7, 14, "#4cc3ff", fadeIn(t, 0.2) * ak, 1.8);
+      arrow(1, -6, 17, -6, 30, "#4cc3ff", fadeIn(t, 1.2) * ak, 1.4);
+    }
+    if (k === 1) {
+      target(LP_ANS[0], LP_ANS[1], 3.4, fadeIn(t1, 0.3), t);
+      label(V(LP_ANS[0], 0.6, LP_ANS[1]), "ここ！①", "角のヨレ（流れが曲がる）", fadeIn(t1, 0.3), "gold ans", PORTRAIT ? 160 : 300, -10);
+    }
+    if (k === 2) {
+      arrow(1, 36, 8, 34, 20, "#ff9f40", fadeIn(t2, 0.2), 1.2);
+      target(LP_ANS2[0], LP_ANS2[1], 3.2, fadeIn(t2, 0.5), t);
+      label(V(LP_ANS2[0], 0.6, LP_ANS2[1]), "ここ！②", "先端の裏・うずとのさかい目", fadeIn(t2, 0.5), "gold ans", PORTRAIT ? -120 : 0, -90);
+    }
+    if (k >= 3) {
+      target(LP_ANS[0], LP_ANS[1], 3, 1, t);
+      target2(LP_ANS2[0], LP_ANS2[1], 3, 1, t);
+      noMark(LP_PINS[1], "B：流れがほとんどない", fadeIn(t3, 0.2));
+      noMark(LP_PINS[2], "C：流れに変化がない", fadeIn(t3, 1.6));
+    }
+    miniMap("lpier", k === 1 ? [27, 57] : k === 2 ? [75, 51] : null);
+    legend(LEG);
+    isoBar(s);
+  },
+  // 通し方：さかい目の少し上流に投げ、流れにのせて通す（k0 投げる → k1 流れにのせる → k2 エサのように）
+  jx_drift(t, d, s, k) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 60, { focus: { x: -7, z: 26, r: 8, dim: 0.35 } });
+    if (PORTRAIT) jxView(-6, 24, 36, 0, 1);
+    else jxView(-5, 25, 34, t, d);
+    const t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 0);
+    placeMan(man, -0.6, 22.6, Math.PI / 2 + 0.3);
+    target(LP_ANS[0], LP_ANS[1], 3.4, 0.5, t);
+    const P0 = V(-0.6, 4.5, 22.6), L0 = V(-15, 0.5, 25), C = V(-7, 0.5, 32), E = V(-1.5, 0.5, 24.2);
+    const bez2 = (u) => V((1 - u) ** 2 * L0.x + 2 * u * (1 - u) * C.x + u * u * E.x, 0.5, (1 - u) ** 2 * L0.z + 2 * u * (1 - u) * C.z + u * u * E.z);
+    const pts = (arr) => arr.map((v) => { const q = project(v); return `${q.x.toFixed(1)},${q.y.toFixed(1)}`; }).join(" ");
+    // 投げる（放物線）
+    const ck = clamp01((t0 - 0.6) / 1.4);
+    const air = Array.from({ length: 25 }, (_, i) => { const u = (i / 24) * ck; return V(lerp(P0.x, L0.x, u), lerp(P0.y, 0.5, u) + Math.sin(u * Math.PI) * 6, lerp(P0.z, L0.z, u)); });
+    if (k === 0 && ck > 0) lines += `<polyline points="${pts(air)}" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="4" stroke-dasharray="10 8"/>`;
+    // 流れにのせて通す道すじ
+    const ka = k >= 1 ? 1 : clamp01((t0 - 2.2) / 0.5);
+    if (ka > 0) lines += `<polyline points="${pts(Array.from({ length: 31 }, (_, i) => bez2(i / 30)))}" fill="none" stroke="rgba(255,209,102,${0.95 * ka})" stroke-width="7" stroke-dasharray="16 10"/>`;
+    // ルアー（黄色い点）
+    let lp = null;
+    if (k === 0) lp = ck < 1 ? air[24] : L0;
+    else lp = bez2(((t1 * 0.16) % 1.15) > 1 ? 1 : (t1 * 0.16) % 1.15);
+    if (lp && ck > 0) { const q = project(lp); html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:#ffd166;border:5px solid #fff;box-shadow:0 0 18px #ffd166"></div>`; }
+    label(L0, "ここに投げる", "さかい目の少し上流", k === 0 ? fadeIn(t0, 2.0) : 0, "gold", PORTRAIT ? 60 : -40, -90);
+    if (k >= 1) label(V(-8, 0.5, 29), "流れにのせて通す", "", fadeIn(t1, 0.4), "gold ans", PORTRAIT ? -40 : -300, -150);
+    label(V(-0.6, 4.6, 22.6), "立つ場所", "", 0.9, "", PORTRAIT ? 120 : 160, -40);
+    miniMap("lpier", [27, 57]);
+    legend(LEG);
+    isoBar(s);
+  },
+  // 港の入り口（船道）：k0 船道 → k1 流れが集まる → k2 答え 船道のへり → k3 船が来たら上げる
+  jx_port(t, d, s, k) {
+    jxBase();
+    show(port);
+    FIELD = FIELDS.port();
+    const focus = k === 1 ? { x: 0, z: 26, r: 7, dim: 0.3 } : k === 2 ? { x: PT_ANS[0], z: PT_ANS[1], r: 5, dim: 0.3 } : null;
+    updateFlow(t + 20, { x0: -50, x1: 50, z0: 2, z1: 74, solid: ptSolid, alpha: k === 0 ? 0.35 : 1, focus });
+    jxView(0, 26, 50, t, d);
+    const t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    if (k === 0) label(V(0, 0.6, 44), "船道（深い道）", "船が通るために深くしてある", fadeIn(t0, 0.5), "gold", PORTRAIT ? 0 : 230, -60);
+    if (k === 1) {
+      arrow(0, -16, 46, -4, 31, "#4cc3ff", fadeIn(t1, 0.2), 1.5);
+      arrow(1, 16, 46, 4, 31, "#4cc3ff", fadeIn(t1, 0.2), 1.5);
+      arrow(2, 0, 30, 0, 14, "#4cc3ff", fadeIn(t1, 1.0), 2.0);
+      label(V(0, 0.6, 18), "入り口で速くなる", "", fadeIn(t1, 1.4), "", PORTRAIT ? 160 : 260, 40);
+    }
+    if (k >= 2) {
+      target(PT_ANS[0], PT_ANS[1], 2.6, k === 2 ? fadeIn(t2, 0.3) : 1, t);
+      label(V(PT_ANS[0], 0.6, PT_ANS[1]), "ここ！", "船道のへり（深さのさかい目）", k === 2 ? fadeIn(t2, 0.3) : 1, "gold ans", PORTRAIT ? 80 : 160, -80);
+    }
+    if (k >= 3) {
+      const u = clamp01(t3 / 7);
+      boat.visible = true;
+      boat.position.set(0, 0, lerp(50, 31, ease(u)));
+      boat.rotation.y = 0;
+      html += `<div class="card" style="left:${PORTRAIT ? 40 : 110}px;top:${PORTRAIT ? 1080 : 560}px;width:${PORTRAIT ? 900 : 620}px;border-left:16px solid #e3412b;opacity:${fadeIn(t3, 0.3)}"><b style="font-size:40px;color:#c62828">⚠ 船が来たら仕掛けを上げる</b><div style="font-size:30px;margin-top:6px">船の通り道。立入禁止の場所には入らない</div></div>`;
+    }
+    miniMap("port", k >= 2 ? [57, 48] : null, 1, "in");
+    legend(LEG);
+    isoBar(s);
+  },
+  // 答え合わせ：突堤で潮の向きが逆（右→左）。k0 問い → k1 A・B・C → k2 答え B → k3 まとめの一言
+  jx_quiz(t, d, s, k) {
+    jxBase();
+    show(pier);
+    FIELD = FIELDS.pierRev();
+    const focus = k >= 2 ? { x: -EDDY.x + 2, z: EDDY.z + 4, r: 6, dim: 0.3 } : null;
+    updateFlow(t + 30, { x0: -30, x1: 40, z0: 2, z1: 70, pier: true, focus });
+    jxView(0, 20, 42, t, d);
+    const t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    arrow(0, PORTRAIT ? 14 : 26, 22, 4, 22, "#4cc3ff", fadeIn(t, 0.2), 2.0);
+    if (k <= 1) {
+      bigText(PORTRAIT ? 0 : 90, "潮の向きが逆！", "どこに投げる？", fadeIn(t, 0.2));
+      const pins = [V(5.5, 0.4, 24), V(-5.5, 0.4, 24), V(12, 0.4, 31)];
+      ["A", "B", "C"].forEach((n, i) => mapPin(pins[i], n, fadeIn(t, 0.8 + i * 0.3, 0.3)));
+    }
+    if (k >= 2) {
+      target(-5.5, 24, 3.2, fadeIn(t2, 0.3), t);
+      label(V(-5.5, 0.6, 24), "答え B！", "うずは流れの下流側にできる", fadeIn(t2, 0.3), "gold ans", PORTRAIT ? 120 : 0, -90);
+      noMark(V(5.5, 0.4, 26), "A：上流側は流れが当たるだけ", fadeIn(t2, 1.5));
+    }
+    if (k >= 3) bigText(PORTRAIT ? 0 : 120, "潮の向きが変われば", "投げる場所も変わる", fadeIn(t3, 0.2));
+    if (!(PORTRAIT && (k <= 1 || k >= 3))) { miniMap("pier", k >= 2 ? [44, 56] : null, 1, "l"); legend(LEG); }
+    isoBar(s);
+  },
+  jx_sum(t, d, s, k) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 80, { alpha: 0.6 });
+    jxView(12, 20, 50, 0, 1);
+    html += `<div style="position:absolute;inset:0;background:rgba(2,14,28,${0.4 * clamp01(t / 0.4)})"></div>`;
+    const P = PORTRAIT;
+    const rows = [["L字の堤防", "角のヨレ・先端の裏"], ["港の入り口", "船道のへり"], ["河口", "川の水と海の水のさかい目"], ["テトラ帯", "切れ目・端（上には乗らない）"], ["突堤", "先端の裏（潮で左右が入れかわる）"]];
+    html += `<div class="big" style="top:${P ? 330 : 80}px;font-size:${P ? 76 : 60}px">形はちがっても答えは<br><span style="color:#2ecc71">「流れのさかい目」</span></div>`;
+    rows.forEach(([a1, b1], i) => {
+      const a = clamp01((t - 0.4 - i * 0.35) / 0.3);
+      html += `<div class="card" style="left:${P ? 60 : 360}px;right:${P ? 60 : 360}px;top:${(P ? 700 : 320) + i * (P ? 150 : 128)}px;opacity:${a};display:flex;align-items:center;gap:22px;padding:14px 26px"><b style="background:#2ecc71;color:#06213a;font-size:34px;padding:6px 16px;border-radius:14px;white-space:nowrap;min-width:190px;text-align:center">${a1}</b><div style="font-size:36px;font-weight:900">${b1}</div></div>`;
+    });
+    isoBar(s);
   },
 });
 
