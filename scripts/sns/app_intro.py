@@ -188,6 +188,7 @@ def make(out):
            "✔ 釣り方ごとのおすすめ釣具も紹介【PR：楽天市場などの広告リンクを含みます】\n\n"
            "▶ プロフィールのリンクから使えます。ホーム画面に追加するとアプリのように使えます\n"
            "保存して、釣りに行く前にチェックしてね\n\n"
+           "音声合成：VOICEVOX:四国めたん\n\n"
            "#釣り #潮見表 #タイドグラフ #魚拓 #釣り好きな人と繋がりたい #海釣り #堤防釣り #釣り初心者 #ツレドキ")
     json.dump({"key": "app-intro-2026-11", "stamp": "app-intro-20261103", "files": files, "caption": cap}, open(f"{out}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
