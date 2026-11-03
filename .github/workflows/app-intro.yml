@@ -1,0 +1,97 @@
+name: App intro (Instagram)
+
+# サイト紹介：カルーセル（8枚）とナレーション付きのリールを作り、確認用に long-media の preview/ へ保存する。
+# publish=carousel / reel で Instagram に投稿する。
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "none / carousel / reel"
+        required: true
+        default: "none"
+
+permissions:
+  contents: write
+
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null
+          pip install --quiet pillow numpy
+      - name: Make
+        run: |
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version >/dev/null && break; sleep 5; done
+          python scripts/sns/app_intro.py make /tmp/appig
+          python scripts/sns/app_intro_reel.py /tmp/appig /tmp/appig/app-intro-reel.mp4 --voice
+          ffmpeg -y -loglevel error -ss 1 -i /tmp/appig/app-intro-reel.mp4 -frames:v 1 -q:v 2 /tmp/appig/app-intro-reel.jpg
+          echo "::notice::reel $(du -h /tmp/appig/app-intro-reel.mp4 | cut -f1)"
+      - name: Save preview
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin long-media
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p preview && cp /tmp/appig/app-intro-reel.mp4 /tmp/appig/app-intro-reel.jpg preview/
+          git add -A && git commit -qm "app intro preview"
+          for i in 1 2 3 4 5; do git push origin long-media && break; sleep 15; git pull --rebase origin long-media; done
+      - name: Upload carousel images (sns-media)
+        if: github.event.inputs.publish == 'carousel'
+        run: |
+          git fetch origin sns-media
+          git worktree add /tmp/sm origin/sns-media && cd /tmp/sm && git checkout -B sns-media
+          STAMP=$(python -c "import json;print(json.load(open('/tmp/appig/post.json'))['stamp'])")
+          for f in /tmp/appig/0*.jpg; do cp "$f" "/tmp/sm/$STAMP-$(basename $f)"; done
+          git add -A && git commit -qm "app intro images" && git push -f origin sns-media
+          sleep 20
+      - name: Publish carousel
+        if: github.event.inputs.publish == 'carousel'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python scripts/sns/ig_images.py publish /tmp/appig "https://raw.githubusercontent.com/${{ github.repository }}/sns-media"
+      - name: Put reel on the site
+        if: github.event.inputs.publish == 'reel'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          cp /tmp/appig/app-intro-reel.mp4 public/sns/app-intro-2026-11.mp4
+          cp /tmp/appig/app-intro-reel.jpg public/sns/app-intro-2026-11.jpg
+          git add public/sns && git commit -qm "サイト紹介リール"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && break; sleep 10; done
+      - name: Publish reel
+        if: github.event.inputs.publish == 'reel'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json, sys
+          sys.path.insert(0, "scripts/sns")
+          import reels
+          from video_post import SITE
+          cap = json.load(open("/tmp/appig/post.json", encoding="utf-8"))["caption"]
+          url = f"{SITE}/sns/app-intro-2026-11.mp4"
+          if not reels.wait_url(url, 20):
+              raise SystemExit("サイトに動画が出ませんでした")
+          print("::notice::Instagram reel", reels.ig_reel(url, f"{SITE}/sns/app-intro-2026-11.jpg", cap))
+          PY
+      - name: Save log
+        if: github.event.inputs.publish != 'none'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -qm "サイト紹介の投稿記録"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
