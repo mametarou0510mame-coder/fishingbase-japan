@@ -36,6 +36,8 @@ jobs:
           set -o pipefail
           trap 'echo "::error::失敗した行: $BASH_COMMAND"' ERR
           F=""; [ "${{ github.event.inputs.force }}" = "true" ] && F="--force"
+          # 続けて起動されたときに同じ動画を2回出さないよう、直前の投稿記録を取りこんでから選ぶ
+          sleep 20; git pull -q origin main || true
           S=$(python scripts/sns/yt_long.py next $F)
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
