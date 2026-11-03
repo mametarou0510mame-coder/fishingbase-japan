@@ -18,7 +18,7 @@ import discuss  # noqa: E402
 JST = timezone(timedelta(hours=9))
 WEEK = "月火水木金土日"
 LOG = "data/sns/reels-log.json"
-CREDIT = "音声合成：VOICEVOX:ずんだもん"
+CREDIT = "音声合成：VOICEVOX:四国めたん"  # 2026-11-03 から（それより前の動画は voice_credit.credit(slug) で ずんだもん）
 TAGS = "#関西釣り #釣り初心者 #大阪湾 #堤防釣り #海釣り公園 #釣果情報 #ツレドキ関西"
 END = {"type": "end", "lines": ["釣れる時間と、近くの釣り場は、ツレドキ関西でチェックしてください。"]}
 

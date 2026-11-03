@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from video_post import SITE  # noqa: E402
 import reels
 import yt_long  # noqa: E402
+import voice_credit  # noqa: E402
 
 
 def caption(src):
@@ -16,7 +17,7 @@ def caption(src):
         cap += ["▶ フル版はYouTubeで公開中", f"https://youtu.be/{full}", ""]
     else:
         cap += ["▶ フル版はYouTubeで公開中", "プロフィールのリンク →「YouTube」から見られます", ""]
-    cap += ["▼関西の釣果・潮・今日の釣れる時間", "・プロフィールのリンクから", SITE.replace("https://", ""), "", reels.CREDIT, "", reels.TAGS + " " + src["tags"]]
+    cap += ["▼関西の釣果・潮・今日の釣れる時間", "・プロフィールのリンクから", SITE.replace("https://", ""), "", voice_credit.credit(src.get("full")), "", reels.TAGS + " " + src["tags"]]
     return "\n".join(cap)
 
 

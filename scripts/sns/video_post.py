@@ -15,7 +15,8 @@ from datetime import datetime, timedelta, timezone
 SITE = os.environ.get("SITE_URL", "https://tsuredoki-kansai.mametarou0510mame.workers.dev")
 STATE = "data/sns/video-posts.json"
 JST = timezone(timedelta(hours=9))
-CREDIT = "音声合成：VOICEVOX:ずんだもん"
+import voice_credit  # noqa: E402
+CREDIT = "音声合成：VOICEVOX:四国めたん"  # 2026-11-03 から（それより前の動画は voice_credit.credit(slug) で ずんだもん）
 CIRCLED = "①②③④⑤⑥⑦⑧⑨"
 BASE_TAGS = ["釣り方", "釣り初心者", "関西釣り", "堤防釣り", "海釣り", "ツレドキ関西"]
 CAT_TAGS = {"エサ釣り": ["エサ釣り", "海釣り公園"], "ルアー": ["ルアー釣り", "ショアゲーム"], "基本": ["釣りの基本", "釣り安全"]}
@@ -83,7 +84,7 @@ def caption_instagram(g):
     lines += site_lead(f"/guide/{g['slug']}/", "道具リスト（初級・中級・上級）・向いている関西の釣り場・今日の釣れる時間")
     if g["slug"] in discuss.GUIDE:
         lines += discuss.caption(discuss.GUIDE[g["slug"]]) + [""]
-    lines += [CREDIT, "", " ".join("#" + w for w in tag_words(g))]
+    lines += [voice_credit.credit(g["slug"]), "", " ".join("#" + w for w in tag_words(g))]
     return "\n".join(lines)
 
 
@@ -96,7 +97,7 @@ def youtube_meta(g):
     desc += ["", "▼その日のパターン"]
     desc += [f"・{r['when']} → {r['do']}" for r in g["patterns"]["rows"][:4]]
     desc += ["", "道具リスト（初級・中級・上級）・向いている関西の釣り場はこちら", f"{SITE}/guide/{g['slug']}/", "",
-             "関西の釣果・潮・釣れる時間（ねらい目）をまとめてチェック", f"{SITE}/"] + (discuss.caption(discuss.GUIDE[g["slug"]]) if g["slug"] in discuss.GUIDE else []) + ["", CREDIT, "", " ".join("#" + w for w in tag_words(g)[:10])]
+             "関西の釣果・潮・釣れる時間（ねらい目）をまとめてチェック", f"{SITE}/"] + (discuss.caption(discuss.GUIDE[g["slug"]]) if g["slug"] in discuss.GUIDE else []) + ["", voice_credit.credit(g["slug"]), "", " ".join("#" + w for w in tag_words(g)[:10])]
     return {
         "snippet": {"title": title, "description": "\n".join(desc), "tags": tag_words(g), "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},

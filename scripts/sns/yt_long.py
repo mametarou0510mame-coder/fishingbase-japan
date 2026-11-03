@@ -5,10 +5,11 @@ import json, re, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from video_post import SITE, clean, http  # noqa: E402
 import discuss  # noqa: E402
+import voice_credit  # noqa: E402
 import affiliate  # noqa: E402
 from affiliate import tackle_lines  # noqa: E402
 
-CREDIT = "音声合成：VOICEVOX:ずんだもん"
+CREDIT = "音声合成：VOICEVOX:四国めたん"  # 2026-11-03 から（それより前の動画は voice_credit.credit(slug) で ずんだもん）
 
 
 ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "long-light-game", "long-ika-tako", "long-chinu", "long-big-game", "long-gomoku", "long-basics",
@@ -79,7 +80,7 @@ def main():
         desc += discuss.caption(discuss.LONG[slug])
     # 2026-11-02 オーナー判断：Amazon（もしも）の再申請に向けて表記は入れる（Amazon のリンクは YouTube の提携が承認されるまで出さない）
     desc += ["", "※このチャンネルはアフィリエイト広告（楽天アフィリエイト・Amazonアソシエイト）を掲載しています。Amazonのアソシエイトとして、当チャンネルは適格販売により収入を得ています。"]
-    desc += ["", CREDIT, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
+    desc += ["", voice_credit.credit(slug), "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {
         "snippet": {"title": yt_title(src["title"])[:100], "description": "\n".join(desc)[:4900], "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},

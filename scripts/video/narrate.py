@@ -11,9 +11,9 @@ import urllib.request
 import wave
 
 ENGINE = os.environ.get("VOICEVOX_URL", "http://127.0.0.1:50021")
-SPEAKER = int(os.environ.get("VOICEVOX_SPEAKER", "3"))  # 3 = ずんだもん（ノーマル）
+SPEAKER = int(os.environ.get("VOICEVOX_SPEAKER", "2"))  # 2 = 四国めたん（ノーマル）。2026-11-03 オーナー判断で ずんだもん(3) から変更
 SPEED = float(os.environ.get("VOICEVOX_SPEED", "1.15"))
-VOICE_CREDIT = os.environ.get("VOICEVOX_CREDIT", "VOICEVOX:ずんだもん")
+VOICE_CREDIT = os.environ.get("VOICEVOX_CREDIT", "VOICEVOX:四国めたん")
 
 # 読み間違えやすい語の読み（字幕はそのまま、音声だけ置き換える）
 READINGS = [
