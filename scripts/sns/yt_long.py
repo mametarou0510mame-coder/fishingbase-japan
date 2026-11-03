@@ -7,7 +7,7 @@ from video_post import SITE, clean, http  # noqa: E402
 import discuss  # noqa: E402
 import voice_credit  # noqa: E402
 import affiliate  # noqa: E402
-from affiliate import tackle_lines  # noqa: E402
+from affiliate import rakuten_search_url, tackle_lines  # noqa: E402
 
 CREDIT = "音声合成：VOICEVOX:四国めたん"  # 2026-11-03 から（それより前の動画は voice_credit.credit(slug) で ずんだもん）
 
@@ -66,11 +66,17 @@ def main():
     gs = [json.load(open(f"content/guides/{g}.json", encoding="utf-8")) for g in src.get("guides", [])]
     chapters = open(chap, encoding="utf-8").read().strip()
     desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
+    if src.get("pr"):  # 道具紹介の動画：冒頭で広告であることを示す（ステルスマーケティング規制）
+        desc = ["【PR】この動画は広告リンク（楽天アフィリエイト）を含みます。使ってみた感想ではなく、メーカーの公表している仕様をもとにした選び方と定番の紹介です。", ""] + desc
     gear = tackle_lines(gs)
+    if src.get("gear"):  # 動画で紹介した製品（content/long の gear）
+        gear = [f"・{g['name']}（{g['spec']}）\n楽天 {rakuten_search_url(g['keyword'])}" for g in src["gear"]]
     if gear:
         shops = "楽天市場"  # YouTube は Amazon（もしも）の提携が否認（2026-11-02）なので Amazon のリンクは出さない
         note = "※楽天アフィリエイトのリンクです。"
         desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + [note + "価格・在庫はリンク先でご確認ください。", ""]
+        if src.get("gear"):
+            desc += ["▼ほかのショップのリンク・選び方はサイトで（ツレドキ関西 おすすめ道具）", f"{SITE}/gear/shore-jigging/", ""]
     if gs:
         desc += ["▼くわしい解説・道具リスト（初級・中級・上級）"]
         desc += [f"・{g['title']}：{SITE}/guide/{g['slug']}/" for g in gs]

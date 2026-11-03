@@ -37,7 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.5,
     })),
-    ...["/links/", "/start/", "/map/", "/news/", "/aquarium/", "/request/", "/gear/", "/gear/sale/", "/safety/fish/", "/about/", "/pr-policy/", "/privacy/", "/terms/", "/disclaimer/", "/contact/"].map((p) => ({
+    ...["/links/", "/start/", "/map/", "/news/", "/aquarium/", "/request/", "/gear/", "/gear/shore-jigging/", "/gear/sale/", "/safety/fish/", "/about/", "/pr-policy/", "/privacy/", "/terms/", "/disclaimer/", "/contact/"].map((p) => ({
       url: u(p),
       lastModified: now,
       changeFrequency: "yearly" as const,

@@ -28,6 +28,9 @@ export default function GearPage() {
         関西の海釣り施設や堤防で使う道具を、はじめての1セットと魚種別にまとめました。
         商品は「使う場所のルールに合うか」と「初めてでも扱いやすいか」で選んでいます。
       </p>
+      <p className="small">
+        <Link href="/gear/shore-jigging/">ショアジギング（青物）のおすすめ道具 タックル・ルアー・便利グッズ →</Link>
+      </p>
       <p className="aff-label">
         <span className="pr">PR</span> {AFF_SHOPS}の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
         今どの道具が安いかは<Link href="/gear/sale/">セール・お得情報</Link>をご覧ください。

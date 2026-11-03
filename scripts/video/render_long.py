@@ -130,6 +130,15 @@ def base_frame(meta):
 
 
 def render_frame(meta, timeline, idx, tg, base):
+    img = _render_frame(meta, timeline, idx, tg, base)
+    if meta.get("pr"):  # 道具紹介の動画：全編の右上に PR の印（ステルスマーケティング規制）
+        d = ImageDraw.Draw(img, "RGBA")
+        d.rounded_rectangle([290, 30, 390, 82], radius=14, fill=(227, 65, 43, 235))
+        d.text((340, 56), "PR", font=F(FONT_BLACK, 34), fill=WHITE, anchor="mm")
+    return img
+
+
+def _render_frame(meta, timeline, idx, tg, base):
     item = timeline[idx]
     s = item["scene"]
     if s["type"] in LS.FULL:
@@ -219,8 +228,10 @@ def thumbnail(meta, path):
         pts = [(x, y + 18 * math.sin(x / 160 + k)) for x in range(0, 1281, 8)]
         d.polygon(pts + [(1280, 720), (0, 720)], fill=(24 + k * 8, 84 + k * 18, 132 + k * 18))
     logo(d, 50, 36, 64)
-    d.rounded_rectangle([50, 140, 50 + 260, 200], radius=30, fill=RED)
-    d.text((72, 146), "完全ガイド", font=F(FONT_BLACK, 40), fill=WHITE)
+    badge = "PR・おすすめ道具" if meta.get("pr") else "完全ガイド"
+    bw = d.textlength(badge, font=F(FONT_BLACK, 40)) + 44
+    d.rounded_rectangle([50, 140, 50 + bw, 200], radius=30, fill=RED)
+    d.text((72, 146), badge, font=F(FONT_BLACK, 40), fill=WHITE)
     ft = fit_font(d, meta["thumb"], FONT_BLACK, [110, 100, 90, 80], 1180)
     for i, ln in enumerate(wrap(d, meta["thumb"], ft, 1180)[:2]):
         d.text((50, 230 + i * (ft.size + 16)), ln, font=ft, fill=WHITE, stroke_width=4, stroke_fill=(8, 26, 48))
@@ -242,7 +253,7 @@ def main():
         ci = item["scene"].get("chapter", 0)
         if len(chapters) <= ci:
             chapters.append({"title": src["chapters"][ci], "time": fmt(item["start"]), "sec": item["start"]})
-    meta = {"title": tl["title"], "tag": src.get("tag"), "voice": tl.get("voice"), "chapters": chapters, "thumb": src.get("thumb", tl["title"]), "thumb_sub": src.get("thumb_sub", "")}
+    meta = {"title": tl["title"], "tag": src.get("tag"), "voice": tl.get("voice"), "chapters": chapters, "thumb": src.get("thumb", tl["title"]), "thumb_sub": src.get("thumb_sub", ""), "pr": src.get("pr")}
     try:
         meta["sprites"] = json.load(open("content/long-facts.json", encoding="utf-8")).get(slug, {}).get("sprites")
     except FileNotFoundError:
