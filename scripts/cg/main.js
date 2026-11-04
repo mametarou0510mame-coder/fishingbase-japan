@@ -4928,6 +4928,145 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 魚種別「このL字の堤防、どこに投げる？」（gs_*）2026-11-05
+// 前提（潮の流れ×魚のつきやすさで考えた一例）を、どのコマにも出す
+// =====================================================================
+function premiseTag(s) {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;left:${P ? 36 : 70}px;${P ? "top:150px" : "top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${P ? 28 : 26}px;z-index:5">潮の流れ×魚のつきやすさで考えた一例</div>`;
+}
+const fishName = (s) => s.fish || "青物";
+// 緑の線（壁ぎわにそって）
+function wallLine(pts3, a, t) {
+  if (a <= 0.01) return;
+  const pts = pts3.map((v) => { const q = project(v); return `${q.x.toFixed(1)},${q.y.toFixed(1)}`; }).join(" ");
+  lines += `<polyline points="${pts}" fill="none" stroke="rgba(46,204,113,${a})" stroke-width="${12 + 3 * Math.sin(t * 5)}" stroke-linecap="round"/>`;
+}
+// 投げる線（放物線の点線）と、巻いてくる道
+function castPath(P0, L0, ck, a = 1) {
+  const pts = Array.from({ length: 25 }, (_, i) => { const u = (i / 24) * ck; return V(lerp(P0.x, L0.x, u), lerp(P0.y, 0.5, u) + Math.sin(u * Math.PI) * 7, lerp(P0.z, L0.z, u)); });
+  const q = pts.map((v) => { const p = project(v); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`; }).join(" ");
+  if (ck > 0) lines += `<polyline points="${q}" fill="none" stroke="rgba(255,255,255,${0.9 * a})" stroke-width="4" stroke-dasharray="10 8"/>`;
+  return pts[24];
+}
+function lureDot(p) { const q = project(p); html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:#ffd166;border:5px solid #fff;box-shadow:0 0 18px #ffd166"></div>`; }
+// 研究・資料のカード（下に出典）
+function evidenceCard(s, a) {
+  const P = PORTRAIT;
+  html += acCard(`<div style="font-size:${P ? 30 : 28}px;font-weight:900;color:#e3412b">${s.kicker || "研究・資料では"}</div>
+    ${s.rows.map((r, i) => `<div style="font-size:${P ? 38 : 34}px;font-weight:900;color:#10345a;margin-top:12px;opacity:${clamp01(a * 2 - i * 0.4)}">${r}</div>`).join("")}
+    <div style="font-size:${P ? 22 : 21}px;color:#3a5a78;margin-top:14px;line-height:1.4">出典：${s.src}</div>`, a, P ? [50, 300, 980] : [360, 160, 1200]);
+}
+
+Object.assign(SHOTS, {
+  gs_hook(t, d, s) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 30);
+    jxView(12, 20, 50, t, d);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    bigText(PORTRAIT ? 0 : 20, PORTRAIT ? `このL字の堤防、<br><span style="color:#ffd166">${fishName(s)}</span>ならどこ？` : `このL字の堤防、<span style="color:#ffd166">${fishName(s)}</span>ならどこに投げる？`, "", a);
+    ["A", "B", "C"].forEach((n, i) => mapPin(LP_PINS[i], n, PORTRAIT ? 1 : clamp01((t - 0.8 - i * 0.3) / 0.3)));
+    if (!PORTRAIT) legend(LEG);
+    premiseTag(s);
+  },
+  // 研究・資料のカード。背景は魚の泳ぐ海の中
+  gs_card(t, d, s, k) {
+    base(0);
+    if (s.bg === "wall") { wallLife(t); look(V(-14, -5.2, 7), V(-22, -6.2, 0.5), 52); }
+    else if (s.bg === "night") { base(0.8); lamp.visible = true; midLife(t); look(path(V(-10, -5, 21), V(-14, -5.4, 19), ease(t / d)), V(-18, -5.6, 6), 50); }
+    else { const c = surfaceLife(t); look(V(c.x - 10, -2.6, c.z + 12), V(c.x + 1, -2.6, c.z - 2), 58); }
+    html += acDim(0.45);
+    evidenceCard(s, clamp01(t / 0.4));
+    premiseTag(s);
+  },
+  // 青物：先端の裏の潮目へ遠投して、速めに巻く
+  gs_ao(t, d, s, k) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 50, { focus: { x: LP_ANS2[0] + 2, z: LP_ANS2[1] + 4, r: 9, dim: 0.3 } });
+    jxView(PORTRAIT ? 24 : 18, 24, PORTRAIT ? 48 : 52, 0, 1);
+    const t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 0);
+    placeMan(man, 23.5, 22, Math.PI * 0.85);
+    const P0 = V(23.5, 4.5, 22), L0 = V(36, 0.5, 30);
+    target(L0.x - 2, L0.z - 3, 4.2, fadeIn(t0, 0.3), t);
+    label(V(L0.x - 2, 0.6, L0.z - 3), "ここ！ 先端の裏の潮目", "うずと本流がぶつかる", fadeIn(t0, 0.3), "gold ans", PORTRAIT ? -150 : 0, -110);
+    const ck = clamp01((t1 - 0.4) / 1.4);
+    if (k >= 1) {
+      const end = castPath(P0, L0, ck);
+      const u = clamp01((t1 - 2) / 3);
+      const lp = ck < 1 ? end : V(lerp(L0.x, P0.x, u), 0.5, lerp(L0.z, P0.z + 1, u));
+      lureDot(lp);
+      label(V(31, 0.5, 31), "遠くへ投げて、速めに巻く", "", fadeIn(t1, 1.8), "", PORTRAIT ? 100 : 260, -60);
+      if (u > 0.2) chase(t, V(lp.x + 2.6, -0.9, lp.z), 0, 0.4);
+    }
+    miniMap("lpier", [75, 51]);
+    legend(LEG);
+    premiseTag(s);
+  },
+  // シーバス：上流に投げて流れにのせ、角のヨレへ送りこむ（ドリフト）
+  gs_sb(t, d, s, k) {
+    jxBase();
+    show(lpier);
+    lpFlow(t + 60, { focus: { x: -7, z: 26, r: 8, dim: 0.35 } });
+    if (PORTRAIT) jxView(-6, 24, 36, 0, 1);
+    else jxView(-5, 25, 34, t, d);
+    const t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 0);
+    placeMan(man, -0.6, 22.6, Math.PI / 2 + 0.3);
+    target(LP_ANS[0], LP_ANS[1], 3.4, fadeIn(t0, 0.2), t);
+    label(V(LP_ANS[0], 0.6, LP_ANS[1]), "ここ！ 角のヨレ", "流れが曲がって、ゆるむところ", k === 0 ? fadeIn(t0, 0.2) : 0, "gold ans", PORTRAIT ? 150 : 300, -10);
+    const P0 = V(-0.6, 4.5, 22.6), L0 = V(-15, 0.5, 25), C = V(-7, 0.5, 32), E = V(-1.5, 0.5, 24.2);
+    const bez2 = (u) => V((1 - u) ** 2 * L0.x + 2 * u * (1 - u) * C.x + u * u * E.x, 0.5, (1 - u) ** 2 * L0.z + 2 * u * (1 - u) * C.z + u * u * E.z);
+    const pts = (arr) => arr.map((v) => { const q = project(v); return `${q.x.toFixed(1)},${q.y.toFixed(1)}`; }).join(" ");
+    if (k >= 1) {
+      const ck = clamp01((t1 - 0.3) / 1.2);
+      const end = castPath(P0, L0, ck, ck < 1 ? 1 : 0.4);
+      const ka = clamp01((t1 - 1.6) / 0.5);
+      if (ka > 0) lines += `<polyline points="${pts(Array.from({ length: 31 }, (_, i) => bez2(i / 30)))}" fill="none" stroke="rgba(255,209,102,${0.95 * ka})" stroke-width="7" stroke-dasharray="16 10"/>`;
+      const u = clamp01((t1 - 1.8) * 0.2);
+      lureDot(ck < 1 ? end : bez2(u));
+      label(L0, "上流に投げる", "", fadeIn(t1, 0.8), "gold", PORTRAIT ? 60 : -40, -90);
+      label(V(-8, 0.5, 30), "流れにのせて送りこむ（ドリフト）", "", fadeIn(t1, 2.2), "gold ans", PORTRAIT ? -40 : -300, -150);
+    }
+    miniMap("lpier", [27, 57]);
+    legend(LEG);
+    premiseTag(s);
+  },
+  // チヌ：k0 海の中の壁（貝がびっしり）→ k1 上から見て、内側の壁ぎわ
+  gs_ch(t, d, s, k) {
+    const t1 = t - (s._k1 ?? 0);
+    if (k === 0) {
+      base(0);
+      wallLife(t);
+      look(path(V(-14, -4.6, 6.5), V(-18, -5.2, 5.5), ease(t / Math.max(d, 1))), V(-24, -5.6, 0.4), 52);
+      label(V(-22, -2.6, 0.2), "壁にイガイ・フジツボ", "クロダイのえさになる", 1, "gold", PORTRAIT ? 0 : 260, -60);
+      label(V(-26, -6.5, 1.3), "チヌ（クロダイ）", "", fadeIn(t, 1.2), "", PORTRAIT ? 0 : -220, 110);
+    } else {
+      jxBase();
+      show(lpier);
+      lpFlow(t + 70, { alpha: 0.5 });
+      jxView(14, 16, PORTRAIT ? 50 : 46, 0, 1);
+      wallLine([V(2.2, 0.6, 4), V(2.2, 0.6, 19.6), V(25.8, 0.6, 19.6)], fadeIn(t1, 0.3), t);
+      label(V(14, 0.6, 19.4), "ここ！ 内側の足元の壁ぎわ", "遠くではなく、壁にそって落とす", fadeIn(t1, 0.3), "gold ans", PORTRAIT ? 0 : 0, 160);
+      placeMan(man, 12, 21.6, Math.PI);
+      noMark(LP_PINS[2], "C：遠投はしない", fadeIn(t1, 1.5));
+      miniMap("lpier", null);
+    }
+    premiseTag(s);
+  },
+  // 条件で変わること（カード）
+  gs_cond(t, d, s, k) {
+    base(s.night ? 0.8 : 0);
+    if (s.night) { lamp.visible = true; midLife(t); look(V(-10, -5, 21), V(-18, -5.6, 6), 50); }
+    else { const c = surfaceLife(t); look(V(c.x - 10, -2.6, c.z + 12), V(c.x + 1, -2.6, c.z - 2), 58); }
+    html += acDim(0.5);
+    const P = PORTRAIT;
+    html += acCard(`<div style="font-size:${P ? 34 : 32}px;font-weight:900;color:#10345a">${s.title}</div>${s.rows.map(([a1, b1], i) => `<div style="margin-top:14px;opacity:${k >= (s.rk ? s.rk[i] : 0) ? 1 : 0.2}"><b style="font-size:${P ? 32 : 30}px;color:#e3412b">${a1}</b><div style="font-size:${P ? 32 : 30}px;font-weight:800;color:#10345a">${b1}</div></div>`).join("")}${s.src ? `<div style="font-size:21px;color:#3a5a78;margin-top:14px">出典：${s.src}</div>` : ""}`, clamp01(t / 0.4), P ? [50, 300, 980] : [360, 160, 1200]);
+    premiseTag(s);
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
