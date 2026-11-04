@@ -77,7 +77,7 @@ def comment_text(src):
     out = ["【PR】この動画で紹介した道具（楽天市場・Amazon）", ""]
     for g in items:
         out += [f"■{g['name']}", f"楽天 {rakuten_search_url(g['keyword'])}", f"Amazon {amazon_search_url(g['keyword'], force=True, media='youtube')}", ""]
-    out += ["※アフィリエイトリンクです（楽天アフィリエイト・もしもアフィリエイト経由のAmazonアソシエイト）。価格・在庫はリンク先でご確認ください。"]
+    out += ["※アフィリエイトリンクです（楽天アフィリエイト・もしもアフィリエイト経由のAmazonアソシエイト）。番手・重さ・カラーはリンク先で選んでください。価格・在庫はリンク先でご確認ください。"]
     return "\n".join(out)
 
 
