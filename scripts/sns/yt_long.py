@@ -28,7 +28,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-iso", "cg-rantai",  # 2026-11-03 磯場・アカデミー R4 卵胎生（オーナー：即出し。今日の定時投稿はこの2本に置きかえ）
          "cg-jissen-katachi",  # 2026-11-03 見える化 実戦編（L字・船道）。定時タスクで force 投稿
          "cg-gashira", "cg-chinu",  # 2026-11-03 アカデミー R3・R2（オーナー OK、11/4 の 7:17 と 18:17）
-         "cg-gear-tackle", "cg-gear-lure", "cg-gear-goods",  # 2026-11-04 道具紹介【PR】（オーナー承認。1本目は 11/4 夜に force 投稿）
+         "cg-gear-tackle",  # 2026-11-04 道具紹介【PR】1本目（11/4 夜に force 投稿）。2・3本目は下の HOLD（2日に1本、時刻を決めて slug 指定で出す）
          # 第4弾（2026-11-02。書き出し済み）
          "long-aomono-end", "long-kiken10", "long-kinou", "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae"]
 REC = "data/sns/long-posts.json"
@@ -65,6 +65,10 @@ def desc_fit(desc, limit=4950):
     return "\n".join(desc)
 
 
+# 自動の列からは出さず、long-upload の slug 指定で出す動画（2026-11-05 オーナー：道具紹介は2日に1本）
+HOLD = {"cg-gear-lure", "cg-gear-goods"}
+
+
 def posted():
     try:
         return json.load(open(REC, encoding="utf-8"))
@@ -80,7 +84,7 @@ def main():
         if sum(v.get("at", "").startswith(today) for v in done.values()) >= PER_DAY and "--force" not in sys.argv:
             print("")
             return
-        print(next((s for s in ORDER if s not in done), ""))
+        print(next((s for s in ORDER if s not in done and s not in HOLD), ""))
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
     publish = "--publish" in sys.argv
