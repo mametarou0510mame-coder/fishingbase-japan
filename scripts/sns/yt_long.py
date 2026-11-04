@@ -90,7 +90,8 @@ def main():
     src = json.load(open(path, encoding="utf-8"))
     gs = [json.load(open(f"content/guides/{g}.json", encoding="utf-8")) for g in src.get("guides", [])]
     chapters = open(chap, encoding="utf-8").read().strip()
-    desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
+    # 2026-11-04 スマホのアプリでは、目次（0:00 …）から後ろの文が概要欄に出ないので、目次はいちばん最後に置く
+    desc = [" ".join(src["video"]["scenes"][0]["lines"]), ""]
     if src.get("pr"):  # 道具紹介の動画：冒頭で広告であることを示す（ステルスマーケティング規制）
         desc = ["【PR】この動画は広告リンクを含みます。", ""] + desc
     # 2026-11-04 YouTube も Amazon（もしも、a_id 5877693）の提携が承認されたので、楽天と Amazon の両方を出す
@@ -114,7 +115,7 @@ def main():
     if slug in discuss.LONG:
         desc += discuss.caption(discuss.LONG[slug])
     desc += ["", "※このチャンネルはアフィリエイト広告（楽天アフィリエイト・Amazonアソシエイト）を掲載しています。Amazonのアソシエイトとして、当チャンネルは適格販売により収入を得ています。"]
-    desc += ["", voice_credit.credit(slug), "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
+    desc += ["", voice_credit.credit(slug), "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西", "", "▼目次", chapters]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {
         "snippet": {"title": yt_title(src["title"])[:100], "description": desc_fit(desc), "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
