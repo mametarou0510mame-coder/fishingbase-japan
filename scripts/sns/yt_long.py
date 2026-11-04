@@ -7,7 +7,7 @@ from video_post import SITE, clean, http  # noqa: E402
 import discuss  # noqa: E402
 import voice_credit  # noqa: E402
 import affiliate  # noqa: E402
-from affiliate import rakuten_search_url, tackle_lines  # noqa: E402
+from affiliate import amazon_search_url, rakuten_search_url, tackle_lines  # noqa: E402
 
 CREDIT = "音声合成：VOICEVOX:四国めたん"  # 2026-11-03 から（それより前の動画は voice_credit.credit(slug) で ずんだもん）
 
@@ -40,6 +40,18 @@ def yt_title(t):
     return f"{m[2]}【{m[1]}】" if m else t
 
 
+def desc_fit(desc, limit=4900):
+    """概要欄は5000字まで。長すぎるときは、PR表記（最後の方）を残すために道具の行から削る"""
+    text = "\n".join(desc)
+    while len(text) > limit:
+        idx = [i for i, l in enumerate(desc) if l.startswith("・") and "\n楽天 " in l]
+        if not idx:
+            return text[:limit]
+        desc = desc[: idx[-1]] + desc[idx[-1] + 1 :]
+        text = "\n".join(desc)
+    return text
+
+
 def posted():
     try:
         return json.load(open(REC, encoding="utf-8"))
@@ -67,16 +79,19 @@ def main():
     chapters = open(chap, encoding="utf-8").read().strip()
     desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
     if src.get("pr"):  # 道具紹介の動画：冒頭で広告であることを示す（ステルスマーケティング規制）
-        desc = ["【PR】この動画は広告リンク（楽天アフィリエイト）を含みます。仕様はメーカーの公表値（2026年10月調べ）です。", ""] + desc
-    gear = tackle_lines(gs)
-    if src.get("gear"):  # 動画で紹介した製品（content/long の gear）
-        gear = [f"・{g['name']}（{g['spec']}）\n楽天 {rakuten_search_url(g['keyword'])}" for g in src["gear"]]
+        desc = ["【PR】この動画は広告リンク（楽天アフィリエイト・Amazonアソシエイト）を含みます。仕様はメーカーの公表値（2026年10月調べ）です。", ""] + desc
+    # 2026-11-04 YouTube も Amazon（もしも、a_id 5877693）の提携が承認されたので、楽天と Amazon の両方を出す
+    gear = tackle_lines(gs, amazon=True, media="youtube")
+    shops = "楽天市場・Amazon"
+    if src.get("gear"):  # 動画で紹介した製品（content/long・content/cg の gear）。概要欄は5000字までなので仕様は書かない
+        both = [f"・{g['name']}\n楽天 {rakuten_search_url(g['keyword'])}\nAmazon {amazon_search_url(g['keyword'], force=True, media='youtube')}" for g in src["gear"]]
+        # 楽天と Amazon の両方だと長すぎるとき（製品が多い動画）は、Amazon だけにして楽天はサイトのページへ
+        gear = both if sum(len(x) for x in both) < 3600 else [f"・{g['name']}\nAmazon {amazon_search_url(g['keyword'], force=True, media='youtube')}" for g in src["gear"]]
+        shops = "楽天市場・Amazon" if gear is both else "Amazon"
     if gear:
-        shops = "楽天市場"  # YouTube は Amazon（もしも）の提携が否認（2026-11-02）なので Amazon のリンクは出さない
-        note = "※楽天アフィリエイトのリンクです。"
-        desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + [note + "価格・在庫はリンク先でご確認ください。", ""]
+        desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + ["※アフィリエイト（楽天アフィリエイト・もしもアフィリエイト経由のAmazonアソシエイト）のリンクです。価格・在庫はリンク先でご確認ください。", ""]
         if src.get("gear"):
-            desc += ["▼ほかのショップのリンク・選び方はサイトで（ツレドキ関西 おすすめ道具）", f"{SITE}/gear/shore-jigging/", ""]
+            desc += [f"▼{'楽天市場のリンク・' if shops == 'Amazon' else ''}仕様と選び方はサイトで（ツレドキ関西 おすすめ道具）", f"{SITE}/gear/shore-jigging/", ""]
     if gs:
         desc += ["▼くわしい解説・道具リスト（初級・中級・上級）"]
         desc += [f"・{g['title']}：{SITE}/guide/{g['slug']}/" for g in gs]
@@ -85,12 +100,11 @@ def main():
     desc += ["", "▼関西の釣果・潮・今日の釣れる時間（ねらい目）", f"{SITE}/"]
     if slug in discuss.LONG:
         desc += discuss.caption(discuss.LONG[slug])
-    # 2026-11-02 オーナー判断：Amazon（もしも）の再申請に向けて表記は入れる（Amazon のリンクは YouTube の提携が承認されるまで出さない）
     desc += ["", "※このチャンネルはアフィリエイト広告（楽天アフィリエイト・Amazonアソシエイト）を掲載しています。Amazonのアソシエイトとして、当チャンネルは適格販売により収入を得ています。"]
     desc += ["", voice_credit.credit(slug), "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
     tags = ["釣り", "釣り初心者", "関西 釣り", "堤防釣り", "釣り方", "ツレドキ関西"] + [t for g in gs for t in g["targets"][:2]] + src.get("tags", [])
     meta = {
-        "snippet": {"title": yt_title(src["title"])[:100], "description": "\n".join(desc)[:4900], "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
+        "snippet": {"title": yt_title(src["title"])[:100], "description": desc_fit(desc), "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},
     }
     print(meta["snippet"]["title"])
