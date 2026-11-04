@@ -13,6 +13,10 @@ on:
         description: "今日すでに投稿していても、もう1本出す（true）"
         required: false
         default: "false"
+      slug:
+        description: "この動画を出す（空なら列の次。道具紹介など時刻を決めて出すとき）"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -38,7 +42,12 @@ jobs:
           F=""; [ "${{ github.event.inputs.force }}" = "true" ] && F="--force"
           # 続けて起動されたときに同じ動画を2回出さないよう、直前の投稿記録を取りこんでから選ぶ
           sleep 20; git pull -q origin main || true
-          S=$(python scripts/sns/yt_long.py next $F)
+          S="${{ github.event.inputs.slug }}"
+          if [ -n "$S" ]; then
+            python -c "import json,sys;sys.exit(0 if sys.argv[1] not in json.load(open('data/sns/long-posts.json')) else 1)" "$S" || { echo "::notice::$S は投稿済みです"; exit 0; }
+          else
+            S=$(python scripts/sns/yt_long.py next $F)
+          fi
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
           mkdir -p out
@@ -54,5 +63,5 @@ jobs:
           python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish 2>&1 | tee /tmp/up.log || { echo "::error::$(tail -c 600 /tmp/up.log | tr '\n' ' ')"; exit 1; }
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add data/sns/long-posts.json 2>/dev/null && git commit -qm "長尺動画の投稿記録: $S" || exit 0
+          git add data/sns/long-posts.json data/sns/yt-comments 2>/dev/null; git commit -qm "長尺動画の投稿記録: $S" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done

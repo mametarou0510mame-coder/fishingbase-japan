@@ -37,10 +37,21 @@ MOSHIMO_A_ID = {"instagram": "5858728", "youtube": "5877693"}
 AMAZON_TAG = ""  # 互換のため。サイトでの提携が承認されるまで空（空の間は Amazon のリンクを出さない）
 
 
+# 製品ページ（dp/ASIN）が確かめられたものは、検索ではなく製品ページへ（リンクが半分くらいの長さになる）
+# 2026-11-05 Amazon の検索結果で、題名に型番が出ているものだけ（ちがう番手・各種まとめのページは入れない）
+AMAZON_ASIN = {
+    "ダイワ ショアジギングX 96M": "B09SG5ZZ1V",
+    "メジャークラフト クロスライド XR3-962M": "B0FF8NXZRR",
+    "シマノ ナスキー C5000XG": "B0G4LYCZ58",
+    "シマノ ツインパワーSW 4000XG": "B08ZNS1KDB",
+}
+
+
 def amazon_search_url(keyword, force=False, media="instagram"):
     """もしもの「どこでもリンク」形式の Amazon 検索リンク。force=True は承認済みの媒体（media：instagram / youtube）用"""
     if not (AMAZON_TAG or force):
         return None
     m = dict(MOSHIMO_AMAZON, a_id=MOSHIMO_A_ID[media])
-    target = f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}"
+    asin = AMAZON_ASIN.get(keyword)
+    target = f"https://www.amazon.co.jp/dp/{asin}" if asin else f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}"
     return f"https://af.moshimo.com/af/c/click?a_id={m['a_id']}&p_id={m['p_id']}&pc_id={m['pc_id']}&pl_id={m['pl_id']}&url={urllib.parse.quote(target, safe='')}"

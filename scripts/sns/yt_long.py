@@ -69,6 +69,18 @@ def desc_fit(desc, limit=4950):
 HOLD = {"cg-gear-lure", "cg-gear-goods"}
 
 
+def comment_text(src):
+    """固定コメント用（オーナーが貼る）：紹介した製品ごとに楽天と Amazon のリンク。コメントは1万字まで"""
+    items = src.get("gear") or []
+    if not items:
+        return ""
+    out = ["【PR】この動画で紹介した道具（楽天市場・Amazon）", ""]
+    for g in items:
+        out += [f"■{g['name']}", f"楽天 {rakuten_search_url(g['keyword'])}", f"Amazon {amazon_search_url(g['keyword'], force=True, media='youtube')}", ""]
+    out += ["※アフィリエイトリンクです（楽天アフィリエイト・もしもアフィリエイト経由のAmazonアソシエイト）。価格・在庫はリンク先でご確認ください。"]
+    return "\n".join(out)
+
+
 def posted():
     try:
         return json.load(open(REC, encoding="utf-8"))
@@ -125,6 +137,12 @@ def main():
         "snippet": {"title": yt_title(src["title"])[:100], "description": desc_fit(desc), "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},
     }
+    com = comment_text(src)
+    if com:
+        os.makedirs("data/sns/yt-comments", exist_ok=True)
+        open(f"data/sns/yt-comments/{slug}.txt", "w", encoding="utf-8").write(com + "\n")
+        if os.environ.get("GITHUB_STEP_SUMMARY"):
+            open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8").write(f"## 固定コメント（貼りつけ用）\n```\n{com}\n```\n")
     print(meta["snippet"]["title"])
     print(meta["snippet"]["description"])
     if os.environ.get("GITHUB_STEP_SUMMARY"):
