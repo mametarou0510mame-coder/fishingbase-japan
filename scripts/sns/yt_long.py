@@ -41,16 +41,28 @@ def yt_title(t):
     return f"{m[2]}【{m[1]}】" if m else t
 
 
-def desc_fit(desc, limit=4900):
-    """概要欄は5000字まで。長すぎるときは、PR表記（最後の方）を残すために道具の行から削る"""
-    text = "\n".join(desc)
-    while len(text) > limit:
-        idx = [i for i, l in enumerate(desc) if l.startswith("・") and "\n楽天 " in l]
+def desc_fit(desc, limit=4950):
+    """概要欄は 5000 バイトまで（YouTube Data API。日本語は1文字3バイト）。PR表記を残すため、長すぎるときは
+    ①冒頭のあらすじ ②サイトのリンクのまとまり ③道具の行（後ろから）の順に削る"""
+    desc = list(desc)
+    size = lambda d: len("\n".join(d).encode("utf-8"))  # noqa: E731
+    if size(desc) > limit and desc and not desc[0].startswith(("【PR】", "▼")):
+        desc = desc[2:] if len(desc) > 2 and desc[1] == "" else desc[1:]
+    for head in ("▼この動画のくわしい情報", "▼関西の釣果・潮"):
+        if size(desc) <= limit:
+            break
+        if head in "\n".join(desc):
+            i = next(k for k, l in enumerate(desc) if l.startswith(head))
+            j = i + 1
+            while j < len(desc) and desc[j].startswith("http"):
+                j += 1
+            desc = desc[:i] + desc[j:]
+    while size(desc) > limit:
+        idx = [i for i, l in enumerate(desc) if l.startswith("・") and ("\n楽天 " in l or "\nAmazon " in l)]
         if not idx:
-            return text[:limit]
+            return "\n".join(desc).encode("utf-8")[:limit].decode("utf-8", "ignore")
         desc = desc[: idx[-1]] + desc[idx[-1] + 1 :]
-        text = "\n".join(desc)
-    return text
+    return "\n".join(desc)
 
 
 def posted():
@@ -80,17 +92,17 @@ def main():
     chapters = open(chap, encoding="utf-8").read().strip()
     desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
     if src.get("pr"):  # 道具紹介の動画：冒頭で広告であることを示す（ステルスマーケティング規制）
-        desc = ["【PR】この動画は広告リンク（楽天アフィリエイト・Amazonアソシエイト）を含みます。仕様はメーカーの公表値（2026年10月調べ）です。", ""] + desc
+        desc = ["【PR】この動画は広告リンクを含みます。", ""] + desc
     # 2026-11-04 YouTube も Amazon（もしも、a_id 5877693）の提携が承認されたので、楽天と Amazon の両方を出す
     gear = tackle_lines(gs, amazon=True, media="youtube")
     shops = "楽天市場・Amazon"
     if src.get("gear"):  # 動画で紹介した製品（content/long・content/cg の gear）。概要欄は5000字までなので仕様は書かない
         both = [f"・{g['name']}\n楽天 {rakuten_search_url(g['keyword'])}\nAmazon {amazon_search_url(g['keyword'], force=True, media='youtube')}" for g in src["gear"]]
         # 楽天と Amazon の両方だと長すぎるとき（製品が多い動画）は、Amazon だけにして楽天はサイトのページへ
-        gear = both if sum(len(x) for x in both) < 3600 else [f"・{g['name']}\nAmazon {amazon_search_url(g['keyword'], force=True, media='youtube')}" for g in src["gear"]]
+        gear = both if sum(len(x.encode("utf-8")) for x in both) < 3000 else [f"・{g['name']}\nAmazon {amazon_search_url(g['keyword'], force=True, media='youtube')}" for g in src["gear"]]
         shops = "楽天市場・Amazon" if gear is both else "Amazon"
     if gear:
-        desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + ["※アフィリエイト（楽天アフィリエイト・もしもアフィリエイト経由のAmazonアソシエイト）のリンクです。価格・在庫はリンク先でご確認ください。", ""]
+        desc += [f"▼この動画で紹介した道具（{shops}で探す）【PR】"] + gear + ["※アフィリエイトリンクです。価格・在庫はリンク先で。", ""]
         if src.get("gear"):
             desc += [f"▼{'楽天市場のリンク・' if shops == 'Amazon' else ''}仕様と選び方はサイトで（ツレドキ関西 おすすめ道具）", f"{SITE}/gear/shore-jigging/", ""]
     if gs:
