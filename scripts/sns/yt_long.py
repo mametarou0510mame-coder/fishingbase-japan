@@ -70,14 +70,14 @@ HOLD = {"cg-gear-lure", "cg-gear-goods"}
 
 
 def comment_text(src):
-    """固定コメント用（オーナーが貼る）：紹介した製品ごとに楽天と Amazon のリンク。コメントは1万字まで"""
+    """固定コメント用（オーナーが貼る）：紹介した製品ごとに Amazon のリンクだけ（2026-11-05 オーナー：楽天も入れると長すぎる）"""
     items = src.get("gear") or []
     if not items:
         return ""
-    out = ["【PR】この動画で紹介した道具（楽天市場・Amazon）", ""]
+    out = ["【PR】この動画で紹介した道具（Amazon）", ""]
     for g in items:
-        out += [f"■{g['name']}", f"楽天 {rakuten_search_url(g['keyword'])}", f"Amazon {amazon_search_url(g['keyword'], force=True, media='youtube')}", ""]
-    out += ["※アフィリエイトリンクです（楽天アフィリエイト・もしもアフィリエイト経由のAmazonアソシエイト）。番手・重さ・カラーはリンク先で選んでください。価格・在庫はリンク先でご確認ください。"]
+        out += [f"■{g['name']}", amazon_search_url(g["keyword"], force=True, media="youtube"), ""]
+    out += ["※アフィリエイトリンクです。番手・重さ・カラーはリンク先で選んでください。楽天市場のリンクはプロフィールのサイト「おすすめ道具」にあります。"]
     return "\n".join(out)
 
 
