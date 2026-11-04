@@ -67,7 +67,7 @@ def main():
     chapters = open(chap, encoding="utf-8").read().strip()
     desc = [" ".join(src["video"]["scenes"][0]["lines"]), "", "▼目次", chapters, ""]
     if src.get("pr"):  # 道具紹介の動画：冒頭で広告であることを示す（ステルスマーケティング規制）
-        desc = ["【PR】この動画は広告リンク（楽天アフィリエイト）を含みます。使ってみた感想ではなく、メーカーの公表している仕様をもとにした選び方と定番の紹介です。", ""] + desc
+        desc = ["【PR】この動画は広告リンク（楽天アフィリエイト）を含みます。仕様はメーカーの公表値（2026年10月調べ）です。", ""] + desc
     gear = tackle_lines(gs)
     if src.get("gear"):  # 動画で紹介した製品（content/long の gear）
         gear = [f"・{g['name']}（{g['spec']}）\n楽天 {rakuten_search_url(g['keyword'])}" for g in src["gear"]]

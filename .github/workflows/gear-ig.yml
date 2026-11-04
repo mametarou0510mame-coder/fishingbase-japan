@@ -1,0 +1,60 @@
+name: Gear carousel (Instagram)
+
+# ショアジギングのおすすめ道具のカルーセル（8枚）【PR】。確認用に long-media の preview/gear-ig/ へ保存し、publish=true で Instagram に投稿する。
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Instagram に投稿するか（true / false）"
+        required: true
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-cjk-extra > /dev/null
+          pip install --quiet pillow
+      - name: Make
+        run: python scripts/sns/gear_carousel.py make /tmp/gearig
+      - name: Save preview
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin long-media
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p preview/gear-ig && cp /tmp/gearig/0*.jpg preview/gear-ig/
+          git add -A && git commit -qm "gear carousel preview" || true
+          for i in 1 2 3 4 5; do git push origin long-media && break; sleep 15; git pull --rebase origin long-media; done
+      - name: Upload carousel images (sns-media)
+        if: github.event.inputs.publish == 'true'
+        run: |
+          git fetch origin sns-media
+          git worktree add /tmp/sm origin/sns-media && cd /tmp/sm && git checkout -B sns-media
+          STAMP=$(python -c "import json;print(json.load(open('/tmp/gearig/post.json'))['stamp'])")
+          for f in /tmp/gearig/0*.jpg; do cp "$f" "/tmp/sm/$STAMP-$(basename $f)"; done
+          git add -A && git commit -qm "gear carousel images" && git push -f origin sns-media
+          sleep 20
+      - name: Publish carousel
+        if: github.event.inputs.publish == 'true'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python scripts/sns/ig_images.py publish /tmp/gearig "https://raw.githubusercontent.com/${{ github.repository }}/sns-media"
+      - name: Save log
+        if: github.event.inputs.publish == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -qm "道具紹介カルーセルの投稿記録"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done

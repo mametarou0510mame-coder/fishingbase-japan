@@ -15,11 +15,11 @@ export default function ShoreJiggingGearPage() {
       <h1>ショアジギングのおすすめ道具</h1>
       <p className="lead">
         関西の堤防・沖堤防で、40g前後のジグでブリ・サゴシ・サワラを狙う人向けに、選び方の目安と定番の道具をまとめました。
-        YouTube の動画（タックル・ルアーとライン・便利グッズの3本）と同じ内容です。
+        YouTube の動画（タックルセット・ジグとライン・便利グッズの3本）と同じ内容です。
       </p>
       <p className="aff-label">
         <span className="pr">PR</span> {AFF_SHOPS}の広告リンクを含みます（<Link href="/pr-policy/">選定方針</Link>）。
-        運営が使ってみた感想ではなく、メーカーの公表している仕様をもとにした「選び方と定番」の紹介です。価格・在庫はリンク先でご確認ください。
+        仕様はメーカーの公表値（2026年10月調べ）です。価格・在庫はリンク先でご確認ください。
       </p>
       <nav className="small">
         {SJ_GROUPS.map((g) => (

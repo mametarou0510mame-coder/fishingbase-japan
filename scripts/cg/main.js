@@ -4540,6 +4540,394 @@ const POST = (() => {
   };
 })();
 
+// =====================================================================
+// 道具紹介（gt_ タックル／gl_ ジグ・ライン／gg_ 便利グッズ）2026-11-04
+// 動きはイメージ（CG）。数字はメーカー公表値・物性値（タングステンと鉛の密度）だけ
+// =====================================================================
+function makeJigModel(back, belly, rear = false, holo = 0) {
+  const g = new THREE.Group();
+  const prof = [];
+  for (let i = 0; i <= 24; i++) {
+    const f = i / 24; // 0=尾 1=頭
+    const bulge = rear ? Math.sin(Math.PI * Math.pow(f, 0.55)) * (1.05 - 0.3 * f) : Math.sin(Math.PI * f) * 0.95;
+    prof.push(new THREE.Vector2(Math.max(0.005, 0.04 + 0.2 * bulge), (f - 0.5) * 1.6));
+  }
+  const geo = new THREE.LatheGeometry(prof, 24);
+  geo.scale(1, 1, 0.42);
+  const body = new THREE.Mesh(geo, metalMat(back, belly, { holo }));
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+  eye.position.set(0, 0.6, 0.068);
+  const eye2 = eye.clone(); eye2.position.z = -0.068;
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.012, 6, 16, Math.PI * 1.3), shadedMat(0x777777, { rough: 0.05 }));
+  hook.position.set(0.04, 0.9, 0); hook.rotation.z = -1.0;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 14), shadedMat(0x999999, { rough: 0.05 }));
+  ring.position.set(0, 0.84, 0); ring.rotation.y = Math.PI / 2;
+  g.add(body, eye, eye2, hook, ring);
+  g.rotation.z = -Math.PI / 2;
+  const p = new THREE.Group();
+  p.add(g);
+  world.add(p);
+  extras.push(p);
+  return p;
+}
+const jigC = makeJigModel(0x1a4fd0, 0xd8dde4, false, 0.4); // センターバランス（青）
+const jigR = makeJigModel(0xd0306a, 0xf0e0e6, true, 0.4); // リアバランス（ピンク）
+const jigPb = makeJigModel(0x8f9aa6, 0xe6eaee, false, 0); // 鉛（銀）
+const jigW = makeJigModel(0xd9a21a, 0xc78a10, false, 0); // タングステン（金）
+const W_SCALE = Math.cbrt(11.34 / 19.3); // 同じ重さなら長さは約0.84倍（体積は約0.59倍）
+function makeTrail(rgb) {
+  const n = 70, g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute("a", new THREE.BufferAttribute(new Float32Array(n), 1));
+  const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute float a; varying float vA; void main(){ vA = a; vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = 0.12*900.0/-mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying float vA; void main(){ float d = length(gl_PointCoord-0.5); gl_FragColor = vec4(vec3(${rgb})*smoothstep(0.5,0.1,d)*vA, 1.0); }` });
+  const p = new THREE.Points(g, m);
+  p.frustumCulled = false;
+  world.add(p);
+  extras.push(p);
+  p.update = (fn, T, origin, span = 2) => {
+    p.visible = true;
+    const pos = g.attributes.position.array, a = g.attributes.a.array;
+    for (let i = 0; i < n; i++) {
+      const m2 = fn(Math.max(0, T - (i / n) * span));
+      pos[i * 3] = origin.x + m2.p.x; pos[i * 3 + 1] = origin.y + m2.p.y; pos[i * 3 + 2] = origin.z + m2.p.z;
+      a[i] = (1 - i / n) * 0.85;
+    }
+    g.attributes.position.needsUpdate = true;
+    g.attributes.a.needsUpdate = true;
+  };
+  return p;
+}
+const trailC = makeTrail("0.45,0.75,1.0"), trailR = makeTrail("1.0,0.45,0.7");
+// 落ち方（イメージ）。P 秒でくり返す
+const FALLS = {
+  center(T) { T %= 7; return { p: V(Math.sin(T * 2.2) * 0.45, -T * 0.75, Math.sin(T * 1.6) * 0.25), pitch: -0.15 + Math.sin(T * 4.4) * 0.5, roll: Math.sin(T * 5.5) * 1.15 }; },
+  rear(T) { T %= 3.5; return { p: V(Math.sin(T * 1.5) * 0.08, -T * 1.5, 0), pitch: 1.25 + Math.sin(T * 7) * 0.08, roll: Math.sin(T * 9) * 0.3 }; },
+};
+const GO = V(-20, -3.2, 20); // ジグの見せ場（沖）
+function imgNote(txt = "動きはイメージ（CG）") {
+  html += `<div style="position:absolute;right:${PORTRAIT ? 40 : 60}px;bottom:${PORTRAIT ? 380 : 150}px;color:#cfe6f5;font-size:24px;font-weight:700;opacity:.85">${txt}</div>`;
+}
+function twoFalls(t, which = 2) {
+  const dx = PORTRAIT ? 1.1 : 1.7;
+  const oC = V(GO.x - dx, GO.y + 2.2, GO.z), oR = V(GO.x + dx, GO.y + 2.2, GO.z);
+  if (which !== 1) { placeLure(jigC, FALLS.center(t), oC); trailC.update(FALLS.center, t, oC, 1.6); }
+  if (which !== 0) { placeLure(jigR, FALLS.rear(t), oR); trailR.update(FALLS.rear, t, oR, 1.0); }
+  return { oC, oR };
+}
+// 1匹だけの魚（大きさを本物に近くする場面用）
+const oneFish = fishMesh("ハマチ", 0.7, { amp: 0.12, freq: 9 });
+world.add(oneFish);
+extras.push(oneFish);
+// 糸（PE とリーダー）を太めのチューブで描く
+const peTube = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xffe14d }));
+const ldTube = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xbfefff, transparent: true, opacity: 0.85 }));
+world.add(peTube, ldTube);
+extras.push(peTube, ldTube);
+function setTube(mesh, pts, r) {
+  mesh.visible = true;
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, r, 6, false);
+}
+// タモ網：枠（直径60cm）・網・柄
+const tamo = new THREE.Group();
+{
+  const ringT = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.014, 6, 32), shadedMat(0x333a40));
+  ringT.rotation.x = Math.PI / 2;
+  const net = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.55, 18, 5, true), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.55 }));
+  net.rotation.x = Math.PI;
+  net.position.y = -0.27;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.024, 5, 8).translate(0, 2.5 + 0.3, 0), shadedMat(0x2b2f33));
+  pole.rotation.z = 0; // 柄は +y 方向
+  tamo.userData.pole = pole;
+  tamo.add(ringT, net);
+  const poleG = new THREE.Group();
+  poleG.add(pole);
+  tamo.add(poleG);
+  tamo.userData.poleG = poleG;
+}
+world.add(tamo);
+extras.push(tamo);
+function placeTamo(ring, handle) {
+  tamo.visible = true;
+  tamo.position.copy(ring);
+  const dir = handle.clone().sub(ring).normalize();
+  tamo.userData.poleG.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
+  tamo.userData.poleG.position.set(0, 0, 0);
+}
+function placeOne(p, yaw = 0, pitch = 0) {
+  oneFish.visible = true;
+  oneFish.position.copy(p);
+  oneFish.rotation.set(0, yaw, pitch, "YXZ");
+}
+const cardHtml = ([title, rows]) => `<div style="font-size:36px;font-weight:900;color:#10345a">${title}</div>${rows.map(([a1, b1]) => `<div style="font-size:30px;margin-top:10px">${a1 ? `<b style="color:#e3412b">${a1}</b>　` : ""}${b1}</div>`).join("")}`;
+function prCard(inner, a, pos) { html += acCard(inner, a, pos); }
+// タックルセットのカード
+function setBox(st, a, col) {
+  const P = PORTRAIT;
+  return `<div style="opacity:${a};transform:translateY(${(1 - a) * 20}px);background:#f4f7fa;border-radius:20px;padding:${P ? "18px 22px" : "18px 24px"};border-left:14px solid ${col};margin-top:16px">
+    <div style="font-size:${P ? 30 : 28}px;font-weight:900;color:${col}">${st.label}</div>
+    <div style="font-size:${P ? 38 : 36}px;font-weight:900;color:#10345a;margin-top:6px">ロッド：${st.rod}</div><div style="font-size:${P ? 28 : 26}px;color:#3a5a78">${st.rodSpec}</div>
+    <div style="font-size:${P ? 38 : 36}px;font-weight:900;color:#10345a;margin-top:8px">リール：${st.reel}</div><div style="font-size:${P ? 28 : 26}px;color:#3a5a78">${st.reelSpec}</div></div>`;
+}
+const TIER_COL = ["#2a9d5c", "#1f6fd1", "#c2410c"];
+function castMan(t, jigOut = true) {
+  placeMan(man, 0, -4, Math.PI);
+  const c = (t % 4) / 4;
+  const back = c < 0.45 ? smooth01(c / 0.45) : 1 - smooth01((c - 0.45) / 0.12);
+  const ang = lerp(-0.4, 1.35, back);
+  const base3 = V(0.3, 4.3, -4);
+  rod.visible = true;
+  rod.position.copy(base3);
+  rod.rotation.set(-ang, 0, 0);
+  const tip = V(0.3, 4.3 + Math.cos(ang) * 3, -4 - Math.sin(ang) * 3);
+  let lure;
+  if (c < 0.57) lure = V(tip.x, tip.y - 1.2 + back * 0.4, tip.z - back * 1.6);
+  else { const f = (c - 0.57) / 0.43; lure = V(tip.x, tip.y + Math.sin(f * Math.PI) * 5 - f * 3.5, tip.z + f * 30); }
+  const pts = []; for (let i = 0; i < 24; i++) { const f = i / 23; pts.push(V(lerp(tip.x, lure.x, f), lerp(tip.y, lure.y, f) - Math.sin(f * Math.PI) * 0.6, lerp(tip.z, lure.z, f))); }
+  fishLine.visible = true;
+  fishLine.geometry.setFromPoints(pts);
+  if (jigOut) { jigPivot.visible = true; jigPivot.scale.setScalar(0.4); jigPivot.position.copy(lure); jigPivot.rotation.set(0, Math.PI / 2, -1.2); }
+}
+function aboveWall(t) {
+  base(0.05);
+  sky.visible = true;
+  U.under.value = 0;
+}
+const prBadge = () => { html += `<div style="position:absolute;${PORTRAIT ? "right:40px;top:205px" : "right:250px;top:46px"};background:#e3412b;color:#fff;font-weight:900;font-size:${PORTRAIT ? 30 : 30}px;padding:4px 18px;border-radius:12px;z-index:6">PR</div>`; };
+
+Object.assign(SHOTS, {
+  // ---------- タックル ----------
+  gt_thumb(t, d, s) {
+    aboveWall(t);
+    castMan(1.9);
+    look(V(9, 5.2, 9), V(0, 5, -3), 52);
+    if (s.clean) return;
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1100px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:190px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div>
+      <div style="display:flex;gap:18px;margin-top:34px">${["初級", "中級", "上級"].map((x, i) => `<span style="background:${TIER_COL[i]};font-size:54px;padding:8px 30px;border-radius:18px">${x}</span>`).join("")}</div></div>`;
+  },
+  gt_hook(t, d, s) {
+    aboveWall(t);
+    castMan(t + 1.2);
+    const k = ease(t / d);
+    look(V(lerp(10, 7, k), 5.4, lerp(12, 8, k)), V(0, 5, -3), 52);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    bigText(PORTRAIT ? 1000 : 120, "ショアジギング、<br>何を買えばいい？", "初級・中級・上級のおすすめタックルセット", a);
+    if (!PORTRAIT) html += `<div style="position:absolute;left:0;right:0;top:560px;display:flex;gap:26px;justify-content:center">${["初級", "中級", "上級"].map((x, i) => `<span style="background:${TIER_COL[i]};color:#fff;font-weight:900;font-size:60px;padding:10px 38px;border-radius:20px;opacity:${clamp01((t - 0.8 - i * 0.35) / 0.3)}">${x}</span>`).join("")}</div>`;
+  },
+  gt_rod(t, d, s, k) {
+    aboveWall(t);
+    castMan(t);
+    const ang = 0.6 + t * 0.03;
+    look(V(Math.sin(ang) * 11, 6, -4 + Math.cos(ang) * 11), V(0, 5.6, -4), 50);
+    label(V(0.3, 6.5, -5.2), "9.6フィート＝約2.9m", "堤防・沖堤防で扱いやすい長さ", k >= 0 ? 1 : 0, "gold", PORTRAIT ? 0 : -320, -40);
+    prCard(`<div style="font-size:38px;font-weight:900;color:#10345a">ロッドの選び方</div>${[["長さ", "9.6フィート前後（遠投なら10フィート）"], ["硬さ", "ML〜M"], ["投げられるジグ", "上限50〜60g（40gが中心）"], ["重さ", "250g前後まで（1日投げても疲れにくい）"]].map(([a1, b1], i) => `<div style="font-size:30px;margin-top:12px;opacity:${k >= [0, 1, 1, 2][i] ? 1 : 0.2}"><b style="color:#e3412b">${a1}</b>　${b1}</div>`).join("")}`, 1, PORTRAIT ? [60, 120, 960] : [1060, 150, 780]);
+  },
+  gt_jigmax(t, d, s) {
+    base(0);
+    surfaceLife(t + 5);
+    look(V(-14, -3, 44), V(-6, -3, 26), 55);
+    html += acDim(0.45);
+    html += acCard(acBars("投げられるジグの重さ（上限）", s.rows.map(([lab, v], i) => [lab, v, i === s.hi ? "#e3412b" : "#1f6fd1", `${v}g`]), 75, t, { line: [40, "よく使う40g"], src: "各メーカーの公表値（2026年10月調べ）", note: s.note }), clamp01(t / 0.4));
+  },
+  gt_gear(t, d, s, k) {
+    base(0);
+    show(sardines);
+    const T = (t % 6);
+    const o = V(GO.x - 8, GO.y, GO.z);
+    const mN = { p: V(T * 1.9, Math.sin(T * 1.3) * 0.05 - 0.9, -1.4), pitch: 0, roll: Math.sin(T * 14) * 0.3 };
+    const mH = { p: V(T * 2.6, Math.sin(T * 1.2) * 0.05 + 0.5, 1.4), pitch: 0, roll: Math.sin(T * 14) * 0.3 };
+    placeLure(jigPb, mN, o);
+    placeLure(jigC, mH, o);
+    const cH = jigC.position.clone(), cN = jigPb.position.clone();
+    if (k >= 1) chase(t, cH, 2.2, 0.35);
+    const mid = cH.clone().add(cN).multiplyScalar(0.5);
+    look(V(mid.x - 3, mid.y + 1.6, mid.z + 8.5), V(mid.x + 0.5, mid.y, mid.z), 52);
+    label(cN, "ノーマルギア", "", 1, "", 0, 130);
+    label(cH, "ハイギア（XG・XH）", "ハンドル1回転で多く巻ける", 1, "gold", 0, -90);
+    if (k >= 1) label(V(cH.x - 2.4, cH.y, cH.z), "サゴシ・サワラ", "速い動きを追う", 1, "", -150, 110);
+    html += `<div class="big" style="top:${PORTRAIT ? 330 : 120}px;font-size:${PORTRAIT ? 56 : 50}px">同じ回数だけハンドルを回すと…</div>`;
+    if (k >= 2) prCard(`<div style="font-size:36px;font-weight:900;color:#10345a">リールの選び方</div><div style="font-size:30px;margin-top:10px"><b style="color:#e3412b">大きさ</b>　4000番〜C5000番</div><div style="font-size:30px;margin-top:8px"><b style="color:#e3412b">ギア</b>　ハイギア（XG・XH）</div><div style="font-size:30px;margin-top:8px"><b style="color:#e3412b">ほか</b>　軽さ・海水への強さ・ドラグ</div>`, 1, PORTRAIT ? [60, 120, 960] : [1080, 560, 760]);
+    imgNote();
+  },
+  gt_set(t, d, s, k) {
+    base(0);
+    const c = surfaceLife(t + 10 * s.tier);
+    look(V(c.x - 10, -2.6, c.z + 12), V(c.x + 1, -2.6, c.z - 2), 58);
+    html += acDim(0.5);
+    const col = TIER_COL[s.tier];
+    const inner = `<div style="display:flex;align-items:center;gap:20px"><span style="background:${col};color:#fff;font-weight:900;font-size:48px;padding:6px 30px;border-radius:16px">${["初級", "中級", "上級"][s.tier]}</span><span style="font-size:34px;font-weight:900;color:#10345a">${s.who}</span></div>
+      ${s.sets.map((st, i) => setBox(st, clamp01((t - 0.4) / 0.4) * (k >= i ? 1 : 0.15), col)).join("")}`;
+    html += acCard(inner, clamp01(t / 0.4), PORTRAIT ? [50, 330, 980] : [330, 105, 1260]);
+  },
+  gt_sum(t, d, s) {
+    base(0);
+    const c = surfaceLife(t);
+    look(V(c.x - 10, -2.6, c.z + 12), V(c.x + 1, -2.6, c.z - 2), 58);
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    html += `<div style="position:absolute;left:${P ? 50 : 140}px;right:${P ? 50 : 140}px;top:${P ? 330 : 140}px;display:flex;${P ? "flex-direction:column" : ""};gap:22px">${s.cols.map(([tier, a1, b1], i) => `<div style="flex:1;background:rgba(255,255,255,.95);border-radius:24px;padding:22px 26px;opacity:${clamp01((t - i * 0.3) / 0.4)};border-top:14px solid ${TIER_COL[i]}"><div style="font-size:48px;font-weight:900;color:${TIER_COL[i]}">${tier}</div><div style="font-size:34px;font-weight:900;color:#10345a;margin-top:10px">${a1}</div><div style="font-size:30px;color:#3a5a78;margin-top:8px">${b1}</div></div>`).join("")}</div>`;
+  },
+  // ---------- ジグ・ライン ----------
+  gl_thumb(t, d, s) {
+    base(0);
+    twoFalls(1.3);
+    look(V(GO.x, GO.y + 1.4, GO.z + 6.5), V(GO.x, GO.y + 1.4, GO.z), 50);
+    if (s.clean) return;
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1000px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:210px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  gl_hook(t, d, s) {
+    base(0);
+    const { oC, oR } = twoFalls(t);
+    look(V(GO.x, GO.y + 1.2, GO.z + (PORTRAIT ? 9 : 7.5)), V(GO.x, GO.y + 1.0, GO.z), 52);
+    if (!PORTRAIT) {
+      label(jigC.position, "センターバランス", "", 1, "", -200, -60);
+      label(jigR.position, "リアバランス", "", 1, "red", 200, -60);
+    }
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    bigText(PORTRAIT ? 1060 : 800, PORTRAIT ? "同じ40gでも、<br>落ち方がちがう" : "同じ40gでも、落ち方がちがう", "ジグとラインの選び方", a);
+    imgNote();
+  },
+  gl_balance(t, d, s, k) {
+    base(0);
+    twoFalls(t, k >= 2 ? 2 : k);
+    const tgt = k === 0 ? jigC.position : k === 1 ? jigR.position : GO;
+    look(V(tgt.x, GO.y + 0.4, GO.z + (k >= 2 ? 7.5 : 5)), V(tgt.x, GO.y + 0.3, GO.z), 52);
+    if (k !== 1) label(jigC.position, "センターバランス", "ひらひら・ゆっくり落ちる（万能）", 1, "", 0, -90);
+    if (k >= 1) label(jigR.position, "リアバランス", "まっすぐ速く沈む・よく飛ぶ", 1, "red", 0, -90);
+    imgNote();
+  },
+  gl_tg(t, d, s, k) {
+    base(0);
+    const o = V(GO.x, GO.y, GO.z);
+    const rot = { p: V(0, 0, 0), pitch: 0.1, roll: Math.sin(t * 0.6) * 0.5 };
+    const dx = PORTRAIT ? 0.9 : 1.2;
+    placeLure(jigPb, { ...rot, p: V(-dx, 0, 0) }, o);
+    placeLure(jigW, { ...rot, p: V(dx, 0, 0) }, o);
+    jigPb.scale.setScalar(1);
+    jigW.scale.setScalar(W_SCALE);
+    look(V(o.x + Math.sin(t * 0.15) * 1.5, o.y + 0.8, o.z + 4.6), o, 48);
+    label(jigPb.position, "鉛 40g", "", 1, "", 0, -90);
+    label(jigW.position, "タングステン 40g", "", 1, "gold", 0, -90);
+    if (k >= 1) prCard(`<div style="font-size:36px;font-weight:900;color:#10345a">タングステンは、鉛より約1.7倍重い金属</div><div style="font-size:30px;margin-top:10px">同じ重さなら、体積は<b style="color:#e3412b">約6割</b>（長さは約0.84倍）</div><div style="font-size:28px;margin-top:8px;color:#3a5a78">小さく見せたいとき・風や潮が強い日に</div><div style="font-size:21px;margin-top:8px;color:#3a5a78">密度：鉛 約11.3g/cm³、タングステン 約19.3g/cm³</div>`, 1, PORTRAIT ? [60, 120, 960] : [420, 690, 1080]);
+  },
+  gl_line(t, d, s, k) {
+    base(0);
+    // 堤防の壁ぎわで魚が走る：糸が壁のカキ殻にこすれる
+    const sw = Math.sin(t * 0.9);
+    const rub = V(-2 + sw * 0.25, -0.9, 0.08);
+    const fishP = V(rub.x + 2.4 + sw * 0.4, -2.2 + Math.sin(t * 1.7) * 0.15, 0.9);
+    placeOne(fishP, Math.PI, 0.2);
+    const up = V(rub.x - 0.4, 1.6, 0.6);
+    const lead = k >= 1;
+    const ptsPE = [V(up.x - 0.2, 4, 2.2), up, V(rub.x, rub.y + 0.6, 0.12), rub];
+    const mid = V(lerp(rub.x, fishP.x, 0.5), lerp(rub.y, fishP.y, 0.5) - 0.15, 0.5);
+    if (lead) {
+      setTube(peTube, ptsPE.slice(0, 3).concat([V(rub.x, rub.y + 0.8, 0.12)]), 0.012);
+      setTube(ldTube, [V(rub.x, rub.y + 0.8, 0.12), rub, mid, V(fishP.x - 0.3, fishP.y, fishP.z)], 0.028);
+    } else {
+      setTube(peTube, ptsPE.concat([mid, V(fishP.x - 0.3, fishP.y, fishP.z)]), 0.012);
+    }
+    look(V(rub.x + 1.5, -1.1, 5.2), V(rub.x + 0.9, -1.1, 0.4), 50);
+    if (!lead) { warnRing(rub, 1, ""); label(rub, "PEラインはこすれに弱い", "堤防のかど・カキ殻・魚のヒレや歯", 1, "red", PORTRAIT ? 0 : -260, -120); }
+    else label(rub, "リーダー（フロロカーボン）", "こすれに強い糸で守る", 1, "gold", PORTRAIT ? 0 : -260, -120);
+    if (s.card && k >= (s.cardK ?? 2)) prCard(cardHtml(s.card), 1, PORTRAIT ? [60, 120, 960] : [1000, 130, 820]);
+  },
+  gl_blade(t, d, s, k) {
+    base(0);
+    const T = t * 0.6;
+    const m = MOTIONS.tada(T % 8);
+    const o = V(GO.x - 9, GO.y + 0.5, GO.z);
+    placeLure(bladeGrp, m, o);
+    bladeGrp.rotation.x = 0;
+    bladeSpin.rotation.x = t * 22;
+    const lp = bladeGrp.position.clone();
+    chase(t, lp, lerp(4, 1.8, smooth01(t / 3)), 0.35);
+    look(V(lp.x - 1.6, lp.y + 0.5, lp.z + 4.6), V(lp.x - 0.6, lp.y, lp.z), 50);
+    label(V(lp.x - 1.15, lp.y + 0.1, lp.z), "回るブレード", "巻くだけでキラキラ光る", 1, "gold", 150, -110);
+    if (k >= 1) label(V(lp.x - 0.75, lp.y, lp.z), "ワイヤー入り", "サゴシの歯で切られにくい", 1, "", -170, 110);
+    imgNote();
+  },
+  gl_list(t, d, s, k) {
+    base(0);
+    const c = surfaceLife(t + 3);
+    look(V(c.x - 10, -2.6, c.z + 12), V(c.x + 1, -2.6, c.z - 2), 58);
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    const rows = s.rows.map(([when, name], i) => `<div style="display:flex;gap:18px;align-items:center;margin-top:12px;opacity:${clamp01((t - 0.3 - i * 0.25) / 0.3)}"><b style="flex:0 0 ${P ? 300 : 330}px;background:#10345a;color:#ffd166;font-size:${P ? 28 : 28}px;padding:8px 14px;border-radius:12px;text-align:center">${when}</b><span style="font-size:${P ? 32 : 32}px;font-weight:900;color:#10345a">${name}</span></div>`).join("");
+    html += acCard(`<div style="font-size:40px;font-weight:900;color:#10345a">${s.title}</div>${rows}`, clamp01(t / 0.4), P ? [40, 330, 1000] : [300, 110, 1320]);
+  },
+  // ---------- 便利グッズ ----------
+  gg_thumb(t, d, s) { SHOTS.gg_tamo(2.6, 6, s, 0, true); html = ""; if (s.clean) return; html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1000px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div><div style="position:absolute;left:70px;top:210px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:140px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`; },
+  gg_hook(t, d, s) {
+    base(0);
+    // 壁ぎわで暴れる魚と、上へのびる糸
+    const p = V(-2 + Math.sin(t * 2.2) * 0.4, -0.9 + Math.sin(t * 3.1) * 0.12, 1.2);
+    placeOne(p, Math.PI + Math.sin(t * 2.2) * 0.5, 0.35);
+    setTube(peTube, [V(p.x - 0.32, p.y + 0.05, p.z), V(p.x - 0.4, 0.5, 1.0), V(p.x - 0.4, 3, 1.5), V(p.x - 0.4, 6, 2)], 0.01);
+    look(V(p.x + 1.3, -1.3, 2.9), V(p.x - 0.1, -0.5, 1.0), 55);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    bigText(PORTRAIT ? 1060 : 110, "釣れた！<br>でも、どうやって上げる？", "あると便利な道具5つ", a);
+  },
+  gg_tamo(t, d, s, k, still) {
+    base(0);
+    // 0〜2秒：網が上から下りてくる → 2〜4秒：魚を頭から入れる → 4〜：網ごと引き上げる
+    const T = still ? t : t % 9;
+    const ringY = T < 2 ? lerp(1.4, -0.55, smooth01(T / 2)) : T < 5 ? -0.55 : lerp(-0.55, 0.9, smooth01((T - 5) / 2.5));
+    const ring = V(-1.2, ringY, 1.6);
+    placeTamo(ring, V(-1.2 - 1.2, 6, -0.6));
+    const inF = smooth01((T - 2) / 2.6);
+    const fp = T < 5 ? V(lerp(1.4, -0.95, inF), -0.6 + Math.sin(T * 3) * 0.05, 1.6) : V(-1.15, ringY - 0.2, 1.6);
+    placeOne(fp, Math.PI, T < 5 ? -0.05 : 1.1);
+    setTube(peTube, [V(fp.x - 0.32, fp.y, fp.z), V(fp.x - 0.2, 0.4, 1.4), V(-0.6, 3, 0.8), V(-0.4, 6, 0.4)], 0.01);
+    look(V(0.6, -0.9, 4.2), V(-0.5, -0.4, 1.4), 52);
+    if (still) return;
+    const lab = T < 2 ? ["網を先に沈めて待つ", ""] : T < 5 ? ["魚は頭から入れる", "追いかけてすくわない"] : ["網ごと、ゆっくり引き上げる", "柄を縮めながら"];
+    label(V(ring.x, ring.y + 0.3, ring.z), lab[0], lab[1], 1, "gold", PORTRAIT ? 0 : -330, -60);
+    if (k >= 1) prCard(`<div style="font-size:36px;font-weight:900;color:#10345a">タモ網の目安</div><div style="font-size:30px;margin-top:10px"><b style="color:#e3412b">長さ</b>　5m前後（高い堤防でも届く）</div><div style="font-size:30px;margin-top:8px"><b style="color:#e3412b">枠</b>　55〜60cm（大きな青物も入る）</div>`, 1, PORTRAIT ? [60, 120, 960] : [1060, 130, 760]);
+    imgNote();
+  },
+  gg_vest(t, d, s, k) {
+    aboveWall(t);
+    placeMan(man2, 0, -4, Math.PI * 0.85);
+    const ang = t * 0.25;
+    look(V(Math.sin(ang) * 4, 4.8, -4 + Math.cos(ang) * 4), V(0, 4.2, -4), 45);
+    label(V(0, 4.5, -4), "ライフジャケット", "", 1, "gold", PORTRAIT ? 0 : 260, -60);
+    prCard(`<div style="font-size:38px;font-weight:900;color:#10345a">桜マーク付き・タイプA</div>${[["桜マーク", "国の型式承認を受けたしるし"], ["タイプA", "すべての小型船舶で使えるタイプ"], ["", "浮力7.5kg以上・目立つ色・反射材と笛つき"], ["渡船", "決まりは乗る前に渡船店で確認"]].map(([a1, b1], i) => `<div style="font-size:30px;margin-top:10px;opacity:${k >= (i < 3 ? 0 : 1) ? 1 : 0.2}">${a1 ? `<b style="color:#e3412b">${a1}</b>　` : ""}${b1}</div>`).join("")}<div style="font-size:21px;margin-top:10px;color:#3a5a78">出典：国土交通省「ライフジャケットの種類と特徴」</div>`, 1, PORTRAIT ? [60, 120, 960] : [1040, 140, 800]);
+  },
+  gg_grip(t, d, s, k) {
+    base(0);
+    const p = V(-2 + Math.sin(t * 0.7) * 0.6, -1.4, 1.4);
+    placeOne(p, Math.PI + Math.sin(t * 0.7) * 0.3, 0);
+    look(V(p.x + 1.2, -1.3, 3.6), p, 50);
+    html += acDim(0.35);
+    const P = PORTRAIT;
+    const items = s.items.map(([n, a1, b1], i) => `<div style="flex:1;background:rgba(255,255,255,.95);border-radius:24px;padding:22px 26px;opacity:${k >= i ? 1 : 0.2}"><div style="font-size:30px;font-weight:900;color:#e3412b">${n}</div><div style="font-size:${P ? 40 : 38}px;font-weight:900;color:#10345a;margin-top:6px">${a1}</div><div style="font-size:${P ? 30 : 28}px;color:#3a5a78;margin-top:8px">${b1}</div></div>`).join("");
+    html += `<div style="position:absolute;left:${P ? 50 : 160}px;right:${P ? 50 : 160}px;top:${P ? 340 : 150}px;display:flex;${P ? "flex-direction:column" : ""};gap:24px">${items}</div>`;
+  },
+  gg_spare(t, d, s, k) {
+    base(0);
+    const o = V(GO.x, GO.y, GO.z);
+    jigPivot.scale.setScalar(1.5);
+    placeLure(jigPivot, { p: V(0, 0, 0), pitch: 0.15, roll: Math.sin(t * 0.5) * 0.5 }, o);
+    const ang = t * 0.2;
+    look(V(o.x + Math.sin(ang) * 3.2, o.y + 0.6, o.z + Math.cos(ang) * 3.2), o, 48);
+    label(V(o.x + 1.35, o.y + 0.1, o.z), "アシストフック", "針先がにぶったら交換", 1, "gold", PORTRAIT ? -120 : -280, -90);
+    if (k >= 1) label(V(o.x + 1.25, o.y, o.z), "スナップ", "ジグの交換が早くなる", 1, "", PORTRAIT ? 120 : 280, 140);
+  },
+  gg_steps(t, d, s, k) {
+    base(0);
+    const c = surfaceLife(t + 8);
+    look(V(c.x - 10, -2.6, c.z + 12), V(c.x + 1, -2.6, c.z - 2), 58);
+    html += acDim(0.55);
+    const P = PORTRAIT;
+    html += acCard(`<div style="font-size:40px;font-weight:900;color:#10345a">${s.title}</div>${s.steps.map((x, i) => `<div style="display:flex;align-items:center;gap:20px;margin-top:14px;opacity:${clamp01((t - 0.3 - i * 0.35) / 0.3)}"><b style="flex:0 0 64px;height:64px;border-radius:50%;background:#e3412b;color:#fff;font-size:36px;display:flex;align-items:center;justify-content:center">${i + 1}</b><span style="font-size:${P ? 36 : 36}px;font-weight:900;color:#10345a">${x}</span></div>`).join("")}`, clamp01(t / 0.4), P ? [50, 330, 980] : [360, 120, 1200]);
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
@@ -4564,6 +4952,7 @@ window.frame = function (o) {
   if (POST) POST.render();
   else renderer.render(scene, camera);
   drawBar(o.s);
+  if (o.s && o.s.pr) prBadge();
   if (o.chapter && !(PORTRAIT && o.s && o.s.bar)) html += `<div class="chapter"><b>${o.chapterNo ?? ""}</b><span>${o.chapter}</span></div>`;
   html += `<div class="logo">ツレドキ<i>関西</i></div>`;
   if (o.cap) html += `<div class="cap">${o.cap.replace(/\[\[(.+?)\]\]/g, '<em>$1</em>')}</div>`;
