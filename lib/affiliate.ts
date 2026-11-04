@@ -41,6 +41,8 @@ export const AMAZON_ASIN: Record<string, string> = {
   "メジャークラフト ランディングセット 500": "B0BDRL3VFK",
   "スミス イージーフィッシュグリップ22": "B085C8WL33",
   "スミス ロングフォーセップ 250mm": "B00IM3BI2Q",
+  "ダイワ カルディア LT4000-CXH": "B0DTYKNCLL",
+  "ショアジギング アシストフック": "B000AQZAYA",
 };
 
 export function amazonSearchUrl(keyword: string): string | null {
