@@ -30,7 +30,9 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-gashira", "cg-chinu",  # 2026-11-03 アカデミー R3・R2（オーナー OK、11/4 の 7:17 と 18:17）
          "cg-gear-tackle",  # 2026-11-04 道具紹介【PR】1本目（11/4 夜に force 投稿）。2・3本目は下の HOLD（2日に1本、時刻を決めて slug 指定で出す）
          # 第4弾（2026-11-02。書き出し済み）
-         "long-aomono-end", "long-kiken10", "long-kinou", "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae"]
+         "long-aomono-end", "long-kiken10", "long-kinou", "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae",
+         # 第6弾（2026-11-05。書き出し済み）
+         "long-hatsumono", "long-shokuchudoku", "long-kisetsu-quiz", "long-osaka-kobe", "long-nakama-quiz", "long-shurui", "long-yougo30"]
 REC = "data/sns/long-posts.json"
 PER_DAY = 2  # 1日に出す長尺の本数（07:17 と 18:17。出せなかった分は 21:17）
 
