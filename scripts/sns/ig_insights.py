@@ -15,6 +15,12 @@ API = "https://graph.facebook.com/v21.0"
 def main():
     uid, tok = clean(os.environ.get("IG_USER_ID")), clean(os.environ.get("IG_TOKEN"))
     out = {"at": datetime.now(JST).isoformat(timespec="minutes")}
+    try:  # 基本の数字（insights の権限がなくても取れる）
+        me = http("GET", f"{API}/{uid}?fields=followers_count,follows_count,media_count&access_token={tok}")
+        out["account"] = {k: me.get(k) for k in ("followers_count", "follows_count", "media_count")}
+        print(f"::notice::フォロワー {me.get('followers_count')}・投稿 {me.get('media_count')}")
+    except Exception as e:  # noqa: BLE001
+        print(f"::warning::アカウントの数字が取れません: {str(e)[:200]}")
     try:
         r = http("GET", f"{API}/{uid}/insights?metric=online_followers&period=lifetime&access_token={tok}")
         v = r["data"][0]["values"][-1]["value"]  # キーは UTC の時（0〜23）
@@ -24,7 +30,7 @@ def main():
         print("::notice::フォロワーがオンラインの多い時間（JST）: " + " / ".join(f"{h}時 {n}人" for h, n in top))
     except Exception as e:  # noqa: BLE001
         print(f"::warning::online_followers が取れません: {str(e)[:200]}")
-    media, url = [], f"{API}/{uid}/media?fields=id,timestamp,media_type,media_product_type,caption&limit=50&access_token={tok}"
+    media, url = [], f"{API}/{uid}/media?fields=id,timestamp,media_type,media_product_type,caption,like_count,comments_count&limit=50&access_token={tok}"
     while url and len(media) < 150:
         r = http("GET", url)
         media += r.get("data", [])
@@ -39,7 +45,7 @@ def main():
             vals = {"error": str(e)[:80]}
         t = datetime.strptime(m["timestamp"], "%Y-%m-%dT%H:%M:%S%z").astimezone(JST)
         rows.append({"at": t.isoformat(timespec="minutes"), "wd": "月火水木金土日"[t.weekday()], "h": t.hour, "type": m.get("media_product_type"),
-                     "cap": (m.get("caption") or "")[:30], **vals})
+                     "cap": (m.get("caption") or "")[:30], "likes": m.get("like_count"), "comments": m.get("comments_count"), **vals})
     out["media"] = rows
     by_h, by_wd = defaultdict(list), defaultdict(list)
     for r in rows:
@@ -51,6 +57,8 @@ def main():
     out["reach_by_weekday"] = {w: [avg(v), len(v)] for w, v in by_wd.items()}
     print("::notice::投稿した時刻ごとの平均リーチ（件数）: " + " / ".join(f"{h}時 {a}（{n}）" for h, (a, n) in out["reach_by_hour"].items()))
     print("::notice::曜日ごとの平均リーチ（件数）: " + " / ".join(f"{w} {a}（{n}）" for w, (a, n) in out["reach_by_weekday"].items()))
+    top = sorted([r for r in rows if isinstance(r.get("likes"), int)], key=lambda r: -r["likes"])[:8]
+    print("::notice::いいねが多い投稿: " + " / ".join(f"{r['at'][:10]} {r['cap'][:16]} ♥{r['likes']}" for r in top))
     os.makedirs("data/sns", exist_ok=True)
     json.dump(out, open("data/sns/ig-insights.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
