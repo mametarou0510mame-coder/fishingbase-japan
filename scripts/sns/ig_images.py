@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, os.path.dirname(__file__))
 import discuss  # noqa: E402
+import reels  # noqa: E402
 from draw import FONT_BLACK, FONT_BOLD, FONT_REG, GLOW, MUTED, NAVY, NAVY2, RED, TEAL, WHITE, font, logo, wave_fill  # noqa: E402
 from video_post import SITE, clean, http, site_lead  # noqa: E402
 
@@ -512,7 +513,7 @@ def publish(out, base):
     for f in p["files"]:
         c = http("POST", f"{api}/{uid}/media", {"image_url": f"{base}/{p['stamp']}-{f}", "is_carousel_item": "true", "access_token": tok})
         kids.append(c["id"])
-    parent = http("POST", f"{api}/{uid}/media", {"media_type": "CAROUSEL", "children": ",".join(kids), "caption": discuss.with_yt(p["caption"]), "access_token": tok})
+    parent = http("POST", f"{api}/{uid}/media", {"media_type": "CAROUSEL", "children": ",".join(kids), "caption": reels.cap_tags(discuss.with_yt(p["caption"])), "access_token": tok})
     for _ in range(30):
         st = http("GET", f"{api}/{parent['id']}?fields=status_code&access_token={tok}")
         if st.get("status_code") == "FINISHED":

@@ -21,7 +21,7 @@ TAGS = "#釣り #どこに投げる #堤防釣り #見える化 #3D #CG"
 
 
 def end(bar):
-    return {"type": "short_end", "nocap": True, "full": END_TEXT, "min": 4.5, "bar": bar, "lines": ["流れの見方は、フル版の動画で。あなたならどこに投げるか、コメントで教えてください。"]}
+    return {"type": "short_end", "nocap": True, "full": END_TEXT, "min": 3.5, "bar": bar, "lines": ["あなたならどこに投げる？ コメントで教えてください。釣り仲間にも送ってみてください。"]}
 
 
 def ao():
@@ -43,7 +43,7 @@ def ao():
     cap = ("このL字の堤防、青物ならどこに投げる？\n答えは「先端の裏の潮目」。うずを巻く流れと本流がぶつかるところへ遠投して、速めに巻く。\n"
            "研究では、流れがぶつかる潮目に、えさの生き物とそれを食べる魚が集まりやすいと示されています（Woodson & Litvin 2015, PNAS）。\n"
            "※潮の流れと魚のつきやすさから考えた一例です。小魚の有無・潮の動きで変わります。")
-    return "short-cg-sp-ao", bar, sc, cap, TAGS + " #青物 #ショアジギング #ハマチ #サゴシ #潮目"
+    return "short-cg-sp-ao", bar, sc, cap, "#青物 #ショアジギング #ハマチ #サゴシ #潮目 " + TAGS
 
 
 def sb():
@@ -66,7 +66,7 @@ def sb():
     cap = ("このL字の堤防、シーバスならどこに投げる？\n答えは「角のヨレ」。上流に投げてルアーを流れにのせ、ヨレへ送りこむ（ドリフト）。\n"
            "スズキに記録計をつけた研究では、えさを食べる動きは満潮〜下げ潮に多く、むだの少ない食べ方と考えられています（森友彦・東京大学 博士論文）。\n"
            "※潮の流れと魚のつきやすさから考えた一例です。時間帯・明かり・風で変わります。")
-    return "short-cg-sp-sb", bar, sc, cap, TAGS + " #シーバス #スズキ #ドリフト #常夜灯"
+    return "short-cg-sp-sb", bar, sc, cap, "#シーバス #スズキ #ドリフト #常夜灯 " + TAGS
 
 
 def ch():
@@ -88,13 +88,14 @@ def ch():
     cap = ("このL字の堤防、チヌならどこに投げる？\n答えは「足元の壁ぎわ」。遠投せず、流れのゆるい内側の壁にそって落としこむ。\n"
            "クロダイはムラサキイガイやフジツボを選んで食べるとされ、貝の着いた所がえさ場になることが報告されています（福岡県水産海洋技術センター研究報告26号ほか）。\n"
            "※潮の流れと魚のつきやすさから考えた一例です。")
-    return "short-cg-sp-ch", bar, sc, cap, TAGS + " #チヌ #クロダイ #落とし込み #ヘチ釣り"
+    return "short-cg-sp-ch", bar, sc, cap, "#チヌ #クロダイ #落とし込み #ヘチ釣り " + TAGS
 
 
 def main():
     for slug, bar, sc, cap, tags in (ao(), sb(), ch()):
         scenes = [dict(s, bar=bar) for s in sc]
-        doc = {"title": f"{bar.split('【')[0]} L字の堤防（魚種別・見える化）", "full": FULL, "caption": cap, "tags": tags, "video": {"scenes": scenes}}
+        doc = {"title": f"{bar.split('【')[0]} L字の堤防（魚種別・見える化）", "full": FULL, "caption": cap, "tags": tags,
+               "ask": "あなたなら、どこに投げますか？ コメントで教えてください。釣り仲間に送って、答え合わせもどうぞ。", "video": {"scenes": scenes}}
         json.dump(doc, open(f"content/cg/{slug}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         print(slug, sum(len(l) for s in scenes for l in s["lines"]), "chars")
 

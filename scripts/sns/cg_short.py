@@ -13,6 +13,8 @@ import voice_credit  # noqa: E402
 def caption(src):
     full = json.load(open("data/sns/long-posts.json", encoding="utf-8")).get(src["full"], {}).get("youtube")
     cap = [src["caption"], ""]
+    if src.get("ask"):  # コメントを呼ぶ問いかけ（保存・送る・コメントが、届く人数を増やす）
+        cap += [src["ask"], ""]
     if full:
         cap += ["▶ フル版はYouTubeで公開中", f"https://youtu.be/{full}", ""]
     else:
@@ -44,7 +46,7 @@ def main():
     rec = {"slot": "cg-short", "key": slug, "id": vid, "at": reels.now().isoformat(timespec="minutes")}
     failed = False
     try:
-        ig = reels.ig_reel(url, f"{SITE}/sns/{vid}.jpg", cap) if "instagram" in plats else None
+        ig = reels.ig_reel(url, f"{SITE}/sns/{vid}.jpg", cap, trial=bool(src.get("trial"))) if "instagram" in plats else None
         if ig:
             rec["instagram"] = ig
             print(f"::notice::instagram ok {ig}")

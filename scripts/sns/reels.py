@@ -8,7 +8,7 @@
 # 使い方:
 #   python scripts/sns/reels.py make <slot> <outdir>   動画の台本（JSON）と投稿文を作る
 #   python scripts/sns/reels.py publish <outdir>        作った動画を投稿する（動画はサイトに公開済みであること）
-import json, os, sys, time, urllib.request
+import json, re, os, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -414,6 +414,25 @@ def make(slot, outdir):
             f.write(f"## {g['title']}（{vid}）\n```\n{cap}\n```\n")
 
 
+# 2025-12-19 Instagram はハッシュタグを1投稿5個までに（@creators の発表。少なく具体的なタグのほうが届く）
+BASE_TAGS = ("#関西釣り", "#ツレドキ関西", "#釣り初心者", "#堤防釣り", "#大阪湾", "#海釣り公園", "#釣果情報")
+
+
+def cap_tags(caption, limit=5):
+    """キャプションのハッシュタグを5個までにする。#PR は必ず残し、次に投稿ごとの具体的なタグ、足りなければ共通のタグ"""
+    found = list(dict.fromkeys(re.findall(r"#[^\s#]+", caption)))
+    if len(found) <= limit:
+        return caption
+    pr = [t for t in found if t == "#PR"]
+    topic = [t for t in found if t != "#PR" and t not in BASE_TAGS]
+    base = [t for t in BASE_TAGS if t in found]
+    keep = (pr + topic + base)[:limit]
+    body = re.sub(r"#[^\s#]+", "", caption)
+    body = re.sub(r"[ \t]+\n", "\n", body).rstrip()
+    body = re.sub(r"\n{3,}", "\n\n", body)
+    return body + "\n\n" + " ".join(keep)
+
+
 def wait_url(url, minutes=15):
     for _ in range(minutes * 4):
         try:
@@ -427,12 +446,15 @@ def wait_url(url, minutes=15):
     return False
 
 
-def ig_reel(video_url, cover_url, caption):
+def ig_reel(video_url, cover_url, caption, trial=False):
     uid, token = clean(os.environ.get("IG_USER_ID")), clean(os.environ.get("IG_TOKEN"))
     if not uid or not token:
         return None
     api = "https://graph.facebook.com/v21.0"
-    c = http("POST", f"{api}/{uid}/media", {"media_type": "REELS", "video_url": video_url, "cover_url": cover_url, "caption": caption, "share_to_feed": "true", "access_token": token})
+    body = {"media_type": "REELS", "video_url": video_url, "cover_url": cover_url, "caption": cap_tags(caption), "share_to_feed": "true", "access_token": token}
+    if trial:  # 試験的なリール：まずフォロワー以外に見せ、反応がよければ自動でフォロワーにも（Meta の trial reels）
+        body["trial_params"] = json.dumps({"graduation_strategy": "SS_PERFORMANCE"})
+    c = http("POST", f"{api}/{uid}/media", body)
     for _ in range(40):
         time.sleep(15)
         st = http("GET", f"{api}/{c['id']}?fields=status_code,status&access_token={token}")
@@ -450,7 +472,7 @@ def yt_short(path, title, caption):
     if not (cid and csec and rtok):
         return None
     tok = http("POST", "https://oauth2.googleapis.com/token", {"client_id": cid, "client_secret": csec, "refresh_token": rtok, "grant_type": "refresh_token"})["access_token"]
-    desc = caption.replace("・プロフィールのリンクから\n", "").replace(SITE.replace("https://", ""), SITE)
+    desc = cap_tags(caption).replace("・プロフィールのリンクから\n", "").replace(SITE.replace("https://", ""), SITE)
     meta = {"snippet": {"title": f"{title}【ツレドキ関西】 #Shorts"[:100], "description": desc[:4900], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
             "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False}}
     size = os.path.getsize(path)
