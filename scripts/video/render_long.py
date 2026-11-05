@@ -228,7 +228,7 @@ def thumbnail(meta, path):
         pts = [(x, y + 18 * math.sin(x / 160 + k)) for x in range(0, 1281, 8)]
         d.polygon(pts + [(1280, 720), (0, 720)], fill=(24 + k * 8, 84 + k * 18, 132 + k * 18))
     logo(d, 50, 36, 64)
-    badge = "PR・おすすめ道具" if meta.get("pr") else "完全ガイド"
+    badge = "PR・おすすめ道具" if meta.get("pr") else meta.get("badge") or "完全ガイド"  # 2026-11-05 データ・クイズの動画は badge でシリーズ名を出す
     bw = d.textlength(badge, font=F(FONT_BLACK, 40)) + 44
     d.rounded_rectangle([50, 140, 50 + bw, 200], radius=30, fill=RED)
     d.text((72, 146), badge, font=F(FONT_BLACK, 40), fill=WHITE)
@@ -253,7 +253,7 @@ def main():
         ci = item["scene"].get("chapter", 0)
         if len(chapters) <= ci:
             chapters.append({"title": src["chapters"][ci], "time": fmt(item["start"]), "sec": item["start"]})
-    meta = {"title": tl["title"], "tag": src.get("tag"), "voice": tl.get("voice"), "chapters": chapters, "thumb": src.get("thumb", tl["title"]), "thumb_sub": src.get("thumb_sub", ""), "pr": src.get("pr")}
+    meta = {"title": tl["title"], "tag": src.get("tag"), "voice": tl.get("voice"), "chapters": chapters, "thumb": src.get("thumb", tl["title"]), "thumb_sub": src.get("thumb_sub", ""), "pr": src.get("pr"), "badge": src.get("badge")}
     try:
         meta["sprites"] = json.load(open("content/long-facts.json", encoding="utf-8")).get(slug, {}).get("sprites")
     except FileNotFoundError:
