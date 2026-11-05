@@ -5067,6 +5067,241 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 沖の一文字（ic_*）2026-11-05：岸と平行な2本の堤防と、そのあいだの切れ目（港の出入り口）
+// 横に流れる潮・満ち潮・引き潮で、答えが変わる。足元は捨て石マウンドを透かして見る
+// =====================================================================
+const IC = { l: { x0: -44, x1: -4, z0: 30, z1: 34 }, r: { x0: 4, x1: 44, z0: 30, z1: 34 } };
+const IC_EDDY = { x: 49, z: 26, r: 6.5 };
+const ichi = new THREE.Group();
+const icMound = new THREE.Group();
+{
+  const rockMat = shadedMat(0x5f6468, { rough: 0.25 });
+  for (const b of [IC.l, IC.r]) {
+    const w = b.x1 - b.x0, l = b.z1 - b.z0, cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, 8.8, l), concrete);
+    body.position.set(cx, -1.6, cz);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.6, l + 0.4), shadedMat(0xb8bec2, { rough: 0.1 }));
+    deck.position.set(cx, 2.8, cz);
+    ichi.add(body, deck);
+    // 捨て石マウンド（台形の断面を x 方向にのばす）
+    const sh = new THREE.Shape();
+    sh.moveTo(-11, -12.5); sh.lineTo(11, -12.5); sh.lineTo(4.2, -6); sh.lineTo(-4.2, -6); sh.lineTo(-11, -12.5);
+    const g = new THREE.ExtrudeGeometry(sh, { depth: w + 6, bevelEnabled: false });
+    const m = new THREE.Mesh(g, rockMat);
+    m.rotation.y = Math.PI / 2;
+    m.position.set(b.x0 - 3, 0, cz);
+    icMound.add(m);
+  }
+  // 石のでこぼこ
+  const r = rng(91);
+  const stones = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(0.9, 0), shadedMat(0x767b80, { rough: 0.3 }), 1400);
+  for (let i = 0; i < 1400; i++) {
+    const b = i % 2 ? IC.l : IC.r;
+    const x = lerp(b.x0 - 2, b.x1 + 2, r()), side = r() < 0.5 ? -1 : 1, u = r();
+    const zz = 32 + side * lerp(4.2, 11, u), yy = lerp(-6, -12.5, u) + 0.4;
+    const s = 0.5 + r() * 0.9;
+    _m.compose(V(x, yy, zz), new THREE.Quaternion().setFromEuler(new THREE.Euler(r() * 3, r() * 3, r() * 3)), V(s, s * 0.7, s));
+    stones.setMatrixAt(i, _m);
+  }
+  icMound.add(stones);
+  // 灯台（左が白・右が赤）
+  [[-5.5, 0xf2f2f2], [5.5, 0xd23a2a]].forEach(([x, c]) => {
+    const lh = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 5, 16), shadedMat(c, { rough: 0.05 }));
+    lh.position.set(x, 5.6, 32);
+    ichi.add(lh);
+  });
+}
+world.add(ichi, icMound);
+extras.push(ichi, icMound);
+const icSolid = (x, z) => inBox(IC.l, x, z) || inBox(IC.r, x, z);
+// 横に流れる潮（左→右）。堤防の内側（港の中）はゆるい。右端（下流）の裏にうず
+FIELDS.icSide = () => (x, z) => {
+  const inBay = (1 - smooth01((z - 30.5) / 4)) * (1 - smooth01((Math.abs(x) - 44) / 9));
+  let vx = lerp(1.1, 0.28, inBay), vz = 0;
+  // 堤防の外の面にそって少し速い
+  if (z > 34) vx += 0.25 * Math.exp(-(z - 34) / 4);
+  // 切れ目：外の速い流れと内のゆるい流れがこすれる（小さなうず）
+  const gw = Math.exp(-(x * x) / 10 - ((z - 29) ** 2) / 6);
+  vz += -0.15 * gw * Math.sign(x || 1) * 0;
+  const dx = x - IC_EDDY.x, dz = z - IC_EDDY.z;
+  const w = Math.exp(-(dx * dx + dz * dz) / (IC_EDDY.r * IC_EDDY.r));
+  vx = vx * (1 - w) + (dz / IC_EDDY.r) * 0.5 * w;
+  vz = vz * (1 - w) + (-dx / IC_EDDY.r) * 0.5 * w;
+  return [vx, vz];
+};
+// 満ち潮：外の水が切れ目に集まり、港の中へ噴き出す。噴き出す流れの両わきに、うず
+FIELDS.icIn = () => (x, z) => {
+  if (z > 34) {
+    const dx = x, dz = z - 32, r = Math.hypot(dx, dz) + 0.5;
+    const sp = 0.22 + 1.45 * Math.exp(-r / 10);
+    return [(-dx / r) * sp, (-dz / r) * sp];
+  }
+  if (z >= 30) return [-x * 0.1, -1.8];
+  const dd = 30 - z, sig = 2.2 + dd * 0.22;
+  const jet = 1.7 * Math.exp(-(x * x) / (2 * sig * sig)) * Math.exp(-dd / 20);
+  let vx = x * 0.02 * Math.exp(-dd / 20), vz = -jet - 0.05;
+  for (const sgn of [-1, 1]) {
+    const cx = sgn * 9, cz = 23, ex = x - cx, ez = z - cz;
+    const w = Math.exp(-(ex * ex + ez * ez) / 30);
+    vx = vx * (1 - w) + sgn * -(ez / 5.5) * 0.5 * w;
+    vz = vz * (1 - w) + sgn * (ex / 5.5) * 0.5 * w;
+  }
+  return [vx, vz];
+};
+// 引き潮：満ち潮の向きを反対に（堤防の中心 z=32 で上下を入れかえる）
+FIELDS.icOut = () => { const f = FIELDS.icIn(); return (x, z) => { const v = f(x, 64 - z); return [v[0], -v[1]]; }; };
+const icFlow = (kind, T, opts = {}) => { FIELD = FIELDS[kind](); updateFlow(T, { x0: -60, x1: 60, z0: 2, z1: 72, solid: icSolid, ...opts }); };
+const IC_PINS = [V(52, 0.4, 27), V(0, 0.4, 25), V(-24, 0.4, 40)]; // A=右端の裏、B=切れ目の内側、C=外の真ん中
+const icBase = () => { jxBase(); show(ichi); };
+function icPremise() {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;left:${P ? 36 : 70}px;${P ? "top:150px" : "top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${P ? 28 : 26}px;z-index:5">流れの形の一例（場所・潮・風で変わる）</div>`;
+}
+function icMini(hi, dir = "r") {
+  const P = PORTRAIT;
+  const L = P ? 40 : 70, T = P ? 230 : 190, S = P ? 250 : 260;
+  const arrowD = dir === "in" ? "M50 76 L50 50" : dir === "out" ? "M50 40 L50 66" : "M6 72 L26 72";
+  html += `<div style="position:absolute;left:${L}px;top:${T}px;width:${S}px;height:${S}px;background:rgba(255,255,255,.92);border-radius:22px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:${P ? 24 : 22}px;font-weight:900;color:#10345a;margin:0 0 4px 6px">全体図</div>
+    <svg viewBox="0 0 100 80" width="100%" height="${S - 60}px"><rect x="0" y="0" width="100" height="80" fill="#2b6f9e"/><rect x="0" y="0" width="100" height="14" fill="#9aa59a"/>
+    <rect x="6" y="40" width="40" height="5" fill="#c9ced2"/><rect x="54" y="40" width="40" height="5" fill="#c9ced2"/>
+    <path d="${arrowD}" stroke="#fff" stroke-width="2.5" marker-end="url(#ah2)"/><defs><marker id="ah2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#fff"/></marker></defs>
+    <text x="${dir === "r" ? 30 : 56}" y="${dir === "r" ? 75 : dir === "in" ? 70 : 60}" font-size="7" fill="#fff" font-weight="700">${dir === "in" ? "満ち潮" : dir === "out" ? "引き潮" : "潮の流れ"}</text>
+    ${hi ? `<circle cx="${hi[0]}" cy="${hi[1]}" r="8" fill="none" stroke="#2ecc71" stroke-width="3"/>` : ""}</svg></div>`;
+}
+const icView = (cx, cz, dist, t = 0, d = 1) => jxView(cx, cz, dist, t, d);
+// 全体を見る：縦画面は堤防が斜めに入るように、左手前の沖から見る
+const icWide = (t = 0, d = 1) => (PORTRAIT ? look(V(-40 + ease(t / Math.max(d, 1)) * 3, 62, 88), V(18, 0, 30), 52) : icView(4, 30, 66, t, d));
+
+Object.assign(SHOTS, {
+  ic_thumb(t, d, s) {
+    icBase();
+    icFlow("icIn", 40);
+    look(V(0, 62, 74), V(0, 0, 28), 50);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1000px;background:linear-gradient(90deg,rgba(2,14,28,.8),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:210px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+    mapPin(V(4.5, 0.4, 25), "？", 1, "#2ecc71");
+    mapPin(V(52, 0.4, 27), "？", 1, "#2ecc71");
+  },
+  ic_hook(t, d, s) {
+    icBase();
+    icFlow("icSide", t + 30);
+    icWide(t, d);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    if (PORTRAIT) bigText(0, "沖の一文字、<br>どこに投げる？", "流れが見えれば、答えがわかる", a);
+    else bigText(20, "沖の一文字、どこに投げる？", "流れが見えれば、答えがわかる", a);
+    ["A", "B", "C"].forEach((n, i) => mapPin(IC_PINS[i], n, PORTRAIT ? 1 : clamp01((t - 0.8 - i * 0.3) / 0.3)));
+    icPremise();
+  },
+  ic_rule(t, d, s, k) {
+    icBase();
+    icFlow("icSide", t + 40);
+    icWide(t, d);
+    label(V(-20, 0.6, 50), "水色＝速い流れ", "", fadeIn(t, 0.6), "", 0, -90);
+    label(V(-20, 0.6, 18), "オレンジ＝ゆるい流れ", "港の中", fadeIn(t, 2.0), "gold", 0, -70);
+    label(V(0, 3.2, 32), "切れ目（港の出入り口）", "", fadeIn(t, 3.4), "", PORTRAIT ? 0 : 200, -110);
+    legend(LEG);
+    icMini(null);
+    icPremise();
+  },
+  // 横に流れる潮：k0 外は速く内はゆるい → k1 答え 右端の裏 → k2 研究（剥離渦と湧昇） → k3 C はちがう
+  ic_side(t, d, s, k) {
+    icBase();
+    const focus = k === 1 || k === 2 ? { x: IC_EDDY.x, z: IC_EDDY.z + 2, r: 8, dim: 0.3 } : null;
+    icFlow("icSide", t + 50, { focus });
+    if (k === 1 || k === 2) icView(PORTRAIT ? 46 : 40, 30, PORTRAIT ? 44 : 46, 0, 1);
+    else icWide(0, 1);
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    if (k === 0) { arrow(0, -50, 46, -20, 46, "#4cc3ff", fadeIn(t, 0.2), 2.0); label(V(-20, 0.6, 20), "港の中はゆるい", "", fadeIn(t, 1.4), "gold", 0, -70); }
+    if (k >= 1) {
+      target(IC_PINS[0].x, IC_PINS[0].z, 4, k === 1 ? fadeIn(t1, 0.3) : 1, t);
+      label(V(IC_PINS[0].x, 0.6, IC_PINS[0].z), "ここ！ 下流側の端の裏", "うずと本流のさかい目", k <= 2 ? 1 : 0, "gold ans", PORTRAIT ? -120 : -320, -40);
+    }
+    if (k === 2) html += acCard(`<div style="font-size:${PORTRAIT ? 30 : 28}px;font-weight:900;color:#e3412b">研究では</div><div style="font-size:${PORTRAIT ? 36 : 32}px;font-weight:900;color:#10345a;margin-top:10px">流れの中の板の端にできるうず（剥離渦）が、底の水を持ち上げることが、水理実験で示されている</div><div style="font-size:21px;color:#3a5a78;margin-top:12px">出典：糸冽長敬ほか「岬による剥離渦の形成とそのSpin Downによる湧昇流」水産工学30(2) 1993</div>`, fadeIn(t2, 0.2), PORTRAIT ? [50, 1120, 980] : [110, 560, 900]);
+    if (k >= 3) { noMark(IC_PINS[2], "C：流れに変化がない", fadeIn(t3, 0.2)); }
+    icMini(k >= 1 ? [94, 46] : null);
+    legend(LEG);
+    icPremise();
+  },
+  // 満ち潮：k0 切れ目に集まって噴き出す → k1 答え 切れ目の内側の両わき → k2 真ん中は流されやすい
+  ic_in(t, d, s, k) {
+    icBase();
+    const focus = k >= 1 ? { x: 0, z: 25, r: 9, dim: 0.3 } : null;
+    icFlow("icIn", t + 20, { focus });
+    if (k >= 1) icView(0, 27, PORTRAIT ? 42 : 40, 0, 1);
+    else icView(0, 30, PORTRAIT ? 60 : 56, 0, 1);
+    const t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    if (k === 0) {
+      arrow(0, -18, 50, -4, 36, "#4cc3ff", fadeIn(t0, 0.2), 1.5);
+      arrow(1, 18, 50, 4, 36, "#4cc3ff", fadeIn(t0, 0.2), 1.5);
+      arrow(2, 0, 30, 0, 16, "#4cc3ff", fadeIn(t0, 1.0), 2.0);
+      label(V(0, 0.6, 18), "切れ目から港の中へ噴き出す", "", fadeIn(t0, 1.4), "", PORTRAIT ? 0 : 260, 40);
+    }
+    if (k >= 1) {
+      target(-4.8, 25, 2.6, k === 1 ? fadeIn(t1, 0.3) : 1, t);
+      target2(4.8, 25, 2.6, k === 1 ? fadeIn(t1, 0.6) : 1, t);
+      label(V(4.8, 0.6, 25), "ここ！ 切れ目の内側の両わき", "噴き出す流れのさかい目", k === 1 ? fadeIn(t1, 0.3) : 1, "gold ans", PORTRAIT ? 0 : 300, -60);
+    }
+    if (k >= 2) label(V(0, 0.6, 20), "真ん中は速くて流されやすい", "", fadeIn(t2, 0.3), "", PORTRAIT ? 0 : -300, 80);
+    icMini(k >= 1 ? [50, 50] : null, "in");
+    legend(LEG);
+    icPremise();
+  },
+  // 引き潮のクイズ：k0 問い → k1 A・B・C → k2 答え（切れ目の外側の両わき）
+  ic_quiz(t, d, s, k) {
+    icBase();
+    icFlow("icOut", t + 20, { alpha: k >= 2 ? 1 : 0.85 });
+    icView(0, 32, PORTRAIT ? 56 : 52, 0, 1);
+    const t2 = t - (s._k2 ?? 0);
+    const Q = [V(-4.8, 0.4, 25), V(-4.8, 0.4, 39), V(52, 0.4, 27)];
+    if (k <= 1) {
+      ["A", "B", "C"].forEach((n, i) => mapPin(Q[i], n, k === 1 ? fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.3) : 0));
+      html += `<div class="big" style="top:${PORTRAIT ? 1060 : 120}px;font-size:${PORTRAIT ? 64 : 56}px">引き潮になったら、どこ？</div>`;
+    } else {
+      target(-4.8, 39, 2.6, fadeIn(t2, 0.3), t);
+      target2(4.8, 39, 2.6, fadeIn(t2, 0.6), t);
+      label(V(-4.8, 0.6, 39), "答え B：切れ目の外側", "流れが外へ噴き出す", fadeIn(t2, 0.3), "gold ans", PORTRAIT ? 0 : -300, -60);
+    }
+    icMini(k >= 2 ? [50, 32] : null, "out");
+    legend(LEG);
+    icPremise();
+  },
+  // 足元を透かして見る：捨て石のマウンドと、すそのかけあがり
+  ic_xray(t, d, s, k) {
+    base(0);
+    show(ichi, icMound);
+    wall.visible = top.visible = false;
+    if (WALL_BAR) WALL_BAR.visible = false;
+    isoXray();
+    show(acGas, acMeb);
+    updateSchool(acMeb, t * 0.4, V(-18, -7, 41), V(4, 0.8, 1.5), 1);
+    updateSchool(acGas, t * 0.15, V(-22, -10.6, 43.5), V(4, 0.1, 0.6), 1);
+    const ang = 0.15 + t * 0.012;
+    look(V(-18 + Math.sin(ang) * 6, -4.5, 62), V(-20, -8.2, 34), PORTRAIT ? 58 : 52);
+    const t1 = t - (s._k1 ?? 0);
+    label(V(-22, 0.5, 32), "一文字（ケーソン）", "", 1, "", PORTRAIT ? 0 : -200, -70);
+    label(V(-24, -8, 38.5), "捨て石（石の山）", "ケーソンの土台", fadeIn(t, 0.8), "gold", PORTRAIT ? 0 : -260, -40);
+    if (k >= 1) {
+      wallLine([V(-44, -11.6, 43), V(-30, -11.6, 43), V(-14, -11.6, 43), V(-4, -11.6, 43)], fadeIn(t1, 0.3), t);
+      label(V(-16, -11.6, 43), "すそ＝かけあがり", "深さが変わるさかい目", fadeIn(t1, 0.3), "gold ans", PORTRAIT ? 0 : 240, 60);
+    }
+    icPremise();
+  },
+  // 潮の向きは時間で変わる（潮見表へ）
+  ic_tide(t, d, s, k) {
+    icBase();
+    icFlow(Math.floor(t / 4) % 2 ? "icOut" : "icIn", t + 10);
+    icView(0, 32, PORTRAIT ? 56 : 52, 0, 1);
+    html += acDim(0.35);
+    const P = PORTRAIT;
+    html += acCard(`<div style="font-size:${P ? 36 : 34}px;font-weight:900;color:#10345a">潮の向きで、答えが入れかわる</div>
+      <div style="display:flex;gap:16px;margin-top:16px;${P ? "flex-direction:column" : ""}">${[["満ち潮（上げ潮）", "切れ目の内側"], ["引き潮（下げ潮）", "切れ目の外側"], ["横に流れる潮", "下流側の端の裏"]].map(([a1, b1], i) => `<div style="flex:1;background:#f4f7fa;border-radius:18px;padding:14px 18px;opacity:${k >= Math.min(i, 1) ? 1 : 0.25}"><b style="font-size:${P ? 30 : 28}px;color:#e3412b">${a1}</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;color:#10345a;margin-top:6px">${b1}</div></div>`).join("")}</div>
+      <div style="font-size:${P ? 30 : 28}px;font-weight:800;color:#10345a;margin-top:16px;opacity:${k >= 1 ? 1 : 0.25}">上げか下げかは、潮見表でチェック（ツレドキ関西・全国239地点）</div>`, fadeIn(t, 0.2), P ? [50, 300, 980] : [260, 150, 1400]);
+    icPremise();
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
