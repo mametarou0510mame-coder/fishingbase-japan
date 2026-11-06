@@ -5521,11 +5521,11 @@ function mhCam(cx = 2, cy = -3.5, dist = 40, t = 0) {
   look(MHp(X + 5 + Math.sin(t * 0.08) * 1.2, Y + Dd * 0.18, Dd), MHp(X, Y, 0), 45);
 }
 // 水位の線（満潮・干潮）
-function mhLine(y, txt, color, a = 1, x0 = MH_WALL - 1, x1 = MH_X1) {
+function mhLine(y, txt, color, a = 1, x0 = MH_WALL - 1, x1 = MH_X1, ty = -50) {
   if (a <= 0.01) return;
   const p0 = project(MHp(x0, y, MH_DZ / 2)), p1 = project(MHp(x1, y, MH_DZ / 2));
   lines += `<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="${color}" stroke-opacity="${a}" stroke-width="5" stroke-dasharray="18 12"/>`;
-  if (txt) html += `<div style="position:absolute;left:${Math.min(p1.x - 12, W - 40)}px;top:${p1.y}px;transform:translate(-100%,-50%);opacity:${a};background:${color};color:#06213a;font-weight:900;font-size:${PORTRAIT ? 30 : 30}px;padding:4px 16px;border-radius:12px;white-space:nowrap">${txt}</div>`;
+  if (txt) html += `<div style="position:absolute;left:${Math.min(p1.x - 12, W - 40)}px;top:${p1.y}px;transform:translate(-100%,${ty}%);opacity:${a};background:${color};color:#06213a;font-weight:900;font-size:${PORTRAIT ? 30 : 30}px;padding:4px 16px;border-radius:12px;white-space:nowrap">${txt}</div>`;
 }
 // 高さの差（たての矢印と数字）
 function mhSpan(x, y0, y1, txt, a = 1) {
@@ -5613,8 +5613,8 @@ Object.assign(SHOTS, {
       html += acCard(`<div style="font-size:${PORTRAIT ? 30 : 28}px;font-weight:900;color:#10345a">大阪・11月で差がいちばん大きい日（26日）</div><div style="font-size:21px;color:#3a5a78;margin-top:6px">出典：気象庁「潮位表」</div>`, fadeIn(t1, 0.6), PORTRAIT ? [70, 1080, 940] : [600, 120, 760]);
     }
     if (k === 2) {
-      mhLine(0.3, "満潮", "#4cc3ff", 1);
-      mhLine(-0.3, "干潮", "#ff9f40", 1);
+      mhLine(0.3, "満潮", "#4cc3ff", 1, MH_WALL - 1, MH_X1, -115);
+      mhLine(-0.3, "干潮", "#ff9f40", 1, MH_WALL - 1, MH_X1, 15);
       mhSpan(PORTRAIT ? -8 : 2, -0.3, 0.3, "約60cm", fadeIn(t2, 0.4));
       html += acCard(`<div style="font-size:${PORTRAIT ? 30 : 28}px;font-weight:900;color:#10345a">同じ11月でも、差が小さい日（8日）</div><div style="font-size:21px;color:#3a5a78;margin-top:6px">出典：気象庁「潮位表」</div>`, fadeIn(t2, 0.3), PORTRAIT ? [70, 1080, 940] : [600, 120, 760]);
     }
@@ -5671,7 +5671,7 @@ Object.assign(SHOTS, {
       label(MHp(-11.5, h + 0.4, MH_DZ / 2), "水位が上がる", "", fadeIn(t, 1.2), "gold", PORTRAIT ? 80 : 160, -80);
     }
     if (k >= 1) label(MHp(-7.6, mhGround(-7.6) + 0.2, 2.8), "エサ（カニ・エビなど）", "", k === 1 ? fadeIn(t1, 0.3) : 0.6, "", PORTRAIT ? 60 : 200, 170);
-    if (k === 1) label(MHp(-11, h, MH_DZ / 2), "浅い所に水がかぶる", "", fadeIn(t1, 0.6), "gold", PORTRAIT ? 0 : -60, -100);
+    if (k === 1) label(MHp(-7.5, h, MH_DZ / 2), "浅い所に水がかぶる", "", fadeIn(t1, 0.6), "gold", PORTRAIT ? 0 : 160, -100);
     if (k >= 2) {
       mhRing(0, -9.5, Math.min(0.25, h - 0.5), 2.6, fadeIn(t2, 0.3), t);
       label(MHp(-9.5, h, MH_DZ / 2), "ここ！ 足元の浅い所", "エサを探しに寄ると言われる", fadeIn(t2, 0.3), "gold ans", PORTRAIT ? 60 : 140, -110);
