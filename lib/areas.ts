@@ -79,8 +79,8 @@ export const AREAS: Area[] = [
   {
     slug: "tokyo-bay",
     name: "東京湾（横浜・東京・千葉）",
-    region: "横浜市・東京都江東区・千葉県市原市",
-    spots: ["honmoku-umizuri-shisetsu", "daikoku-umizuri-shisetsu", "isogo-umizuri-shisetsu", "wakasu-kaihin-koen-umizuri", "ichihara-umizuri-koen"],
+    region: "横浜市・川崎市・横須賀市・東京都江東区・千葉県市原市",
+    spots: ["honmoku-umizuri-shisetsu", "daikoku-umizuri-shisetsu", "isogo-umizuri-shisetsu", "higashi-ogishima-nishi-koen", "yokosuka-umibe-tsuri-koen", "wakasu-kaihin-koen-umizuri", "ichihara-umizuri-koen"],
     intro: "東京湾に面した関東のエリアです。横浜市の3つの海づり施設、東京都の若洲海浜公園、市原市の海づり公園など、公共の海釣り施設が集まっています。",
   },
   {
@@ -103,6 +103,48 @@ export const AREAS: Area[] = [
     region: "鹿児島市（市街地・桜島）",
     spots: ["kamoike-umizuri-koen", "sakurajima-umizuri-koen"],
     intro: "桜島を望む錦江湾のエリアです。鹿児島市の海づり公園が、市街地と桜島に1か所ずつあります。",
+  },
+  {
+    slug: "hokkaido",
+    name: "北海道",
+    region: "苫小牧市",
+    spots: ["tomakomai-ippon-bohatei"],
+    intro: "太平洋に面した北海道のエリアです。苫小牧港の防波堤が、春から秋の週末に釣り場として開放されています。",
+  },
+  {
+    slug: "tohoku",
+    name: "東北（青森・福島）",
+    region: "青森市浅虫・福島県新地町",
+    spots: ["asamushi-umizuri-koen", "shinchi-umitsuri-koen"],
+    intro: "陸奥湾と福島の浜通りのエリアです。冬は休む施設もあるので、営業期間を確かめてから出かけましょう。",
+  },
+  {
+    slug: "ibaraki-kashima",
+    name: "茨城・鹿島",
+    region: "茨城県鹿嶋市",
+    spots: ["kashimako-uotsurien"],
+    intro: "太平洋の鹿島灘に面したエリアです。鹿島港の中に、市の海釣り施設があります。",
+  },
+  {
+    slug: "aichi-mikawa",
+    name: "愛知・衣浦湾",
+    region: "愛知県碧南市",
+    spots: ["hekinan-tsuri-hiroba"],
+    intro: "三河湾の奥、衣浦湾の入口のエリアです。無料で使える岸壁の釣り広場があります。",
+  },
+  {
+    slug: "hiroshima",
+    name: "広島湾",
+    region: "広島市西区",
+    spots: ["kannon-higashi-bohatei"],
+    intro: "瀬戸内海の広島湾のエリアです。市街地の近くで、県が開放している防波堤から釣りができます。",
+  },
+  {
+    slug: "nagasaki",
+    name: "長崎",
+    region: "長崎市高島町",
+    spots: ["takashima-tobishima-isotsuri-koen"],
+    intro: "長崎港の沖、外海に面したエリアです。島の磯を整備した釣り公園があります。",
   },
 ];
 

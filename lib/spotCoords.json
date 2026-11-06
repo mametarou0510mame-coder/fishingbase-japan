@@ -386,5 +386,13 @@
   "address": "鹿児島県鹿児島市桜島横山町1722-3",
   "matched": "鹿児島県鹿児島市桜島横山町",
   "rough": false
+ },
+ "tomakomai-ippon-bohatei": {
+  "lat": 42.59,
+  "lon": 141.83,
+  "address": "北海道苫小牧市字弁天（苫小牧港東港区の防波堤）",
+  "matched": "北海道苫小牧市",
+  "rough": true,
+  "manual": true
  }
 }

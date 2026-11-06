@@ -2,6 +2,69 @@
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
   {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "yokosuka-umibe-tsuri-koen",
+   "text": "海辺つり公園（横須賀市平成町）を掲載しました。入園無料で、5:00〜22:00に使えます。遠投・ひしゃくでのまき餌は禁止です。",
+   "source": "https://www.kanagawaparks.com/umibeturi/about.html"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "higashi-ogishima-nishi-koen",
+   "text": "東扇島西公園（川崎市川崎区）を掲載しました。川崎市観光協会が「海釣りもできる公園」と案内しています。",
+   "source": "https://www.k-kankou.jp/spot/play/detail.html?CN=53745"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "kashimako-uotsurien",
+   "text": "鹿島港魚釣園（茨城県鹿嶋市）を掲載しました。ライフジャケットの着用が必要です。",
+   "source": "https://city.kashima.ibaraki.jp/site/kankou/52891.html"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "asamushi-umizuri-koen",
+   "text": "浅虫海づり公園（青森市）を掲載しました。2026年の営業は10月12日で終わり、次は春からです。",
+   "source": "https://www.city.aomori.aomori.jp/sangyo_koyou/nourinsuisangyou/1004278/1004288.html"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "hekinan-tsuri-hiroba",
+   "text": "碧南釣り広場（愛知県碧南市）を掲載しました。無料・年中無休の岸壁の釣り場です。",
+   "source": "https://nishimikawanavi.jp/spots/detail/579/"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "shinchi-umitsuri-koen",
+   "text": "新地町海釣り公園（福島県新地町）を掲載しました。半日ごとの事前申し込み制です。",
+   "source": "https://www.fukushima-dc-cp.jp/spot/%E6%96%B0%E5%9C%B0%E7%94%BA%E6%B5%B7%E9%87%A3%E3%82%8A%E5%85%AC%E5%9C%92/"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "tomakomai-ippon-bohatei",
+   "text": "苫小牧港海釣り施設「一本防波堤」（北海道苫小牧市）を掲載しました。2026年のシーズンは11月3日で終わりました。",
+   "source": "https://ippon-b.com/"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "kannon-higashi-bohatei",
+   "text": "観音東防波堤（広島市西区）を掲載しました。入場無料です。投げ釣り・まき餌釣りは禁止です。",
+   "source": "https://www.pref.hiroshima.lg.jp/soshiki/221/park-park03.html"
+  },
+  {
+   "date": "2026-11-06",
+   "kind": "新規掲載",
+   "spot": "takashima-tobishima-isotsuri-koen",
+   "text": "高島飛島磯釣り公園（長崎市高島町）を掲載しました。竿を借りられます。",
+   "source": "https://www.at-nagasaki.jp/spot/399"
+  },
+  {
    "date": "2026-10-30",
    "kind": "新規掲載",
    "spot": "honmoku-umizuri-shisetsu",
