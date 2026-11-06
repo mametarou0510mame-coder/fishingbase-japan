@@ -5302,6 +5302,443 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 潮の満ち引き（cg-michihiki）：堤防の断面で、水位・流れ・魚の動きを見る（模式図）
+// 1 単位 ≒ 1m。水位は ±0.95（差 1.9m：大阪 2026-11-26 の満潮と干潮の差、気象庁の潮位表）
+// =====================================================================
+const MH = V(0, 0, -900);
+const MHp = (x, y, z = 0) => V(MH.x + x, MH.y + y, MH.z + z);
+const MH_WALL = -14, MH_X1 = 24, MH_BOT = -12, MH_DZ = 12, MH_A = 0.95;
+function mhGround(x) {
+  // 足元の浅い所（捨て石）→ かけあがり → 沖の底
+  const wig = 0.16 * Math.sin(x * 1.7) + 0.08 * Math.sin(x * 3.3);
+  const shelf = -0.45 + wig;
+  return lerp(shelf, -9 + wig * 0.5, smooth01((x + 6) / 10));
+}
+// 潮の位相 p（0=干潮 → 0.5=満潮 → 1=干潮）から水位と上がる速さ（上げ=+1）
+const mhLevel = (p, A = MH_A) => -A * Math.cos(p * Math.PI * 2);
+const mhRate = (p) => Math.sin(p * Math.PI * 2);
+const mhGrp = new THREE.Group();
+world.add(mhGrp);
+extras.push(mhGrp);
+const MH_WU = { lv: { value: 0 }, time: U.time };
+{
+  // 背景（上は空、下は深い青）
+  const bd = new THREE.Mesh(new THREE.SphereGeometry(120, 32, 16), new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c = mix(vec3(0.04,0.13,0.22), vec3(0.55,0.75,0.9), smoothstep(-0.05,0.45,h)); gl_FragColor = vec4(c,1.); }`,
+  }));
+  bd.position.copy(MH);
+  mhGrp.add(bd);
+  // 海底の断面
+  const sh = new THREE.Shape();
+  sh.moveTo(MH_WALL - 0.5, MH_BOT);
+  sh.lineTo(MH_X1, MH_BOT);
+  for (let i = 160; i >= 0; i--) { const x = MH_WALL - 0.5 + (MH_X1 - MH_WALL + 0.5) * i / 160; sh.lineTo(x, mhGround(x)); }
+  const g = new THREE.ExtrudeGeometry(sh, { depth: MH_DZ, bevelEnabled: false, steps: 1, curveSegments: 1 });
+  g.translate(0, 0, -MH_DZ / 2);
+  const ground = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; float hash(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719)))*43758.5453); }
+      void main(){ float n = hash(floor(vL*5.0));
+        vec3 sand = vec3(0.84,0.76,0.58)*(0.86+0.14*n);
+        vec3 soil = mix(vec3(0.36,0.27,0.18), vec3(0.54,0.43,0.3), 0.5+0.5*sin(vL.y*2.3 + sin(vL.x*0.45)*1.6)) * (0.86+0.14*n);
+        vec3 c = vN.y > 0.3 ? sand : soil;
+        float diff = clamp(dot(normalize(vN), normalize(vec3(0.3,1.0,0.55))),0.,1.);
+        c *= 0.55 + 0.6*diff; gl_FragColor = vec4(c,1.); }`,
+  }));
+  ground.position.copy(MH);
+  mhGrp.add(ground);
+  // 堤防（コンクリートの壁）と上の通路
+  const wl = new THREE.Mesh(new THREE.BoxGeometry(12, 15.2, MH_DZ), concrete);
+  wl.position.copy(MHp(MH_WALL - 6, MH_BOT + 7.6));
+  const dk = new THREE.Mesh(new THREE.BoxGeometry(12.4, 0.5, MH_DZ + 0.4), shadedMat(0xb8bec2, { rough: 0.1 }));
+  dk.position.copy(MHp(MH_WALL - 6.2, 3.45));
+  mhGrp.add(wl, dk);
+  // 足元の捨て石
+  const r = rng(951), mat = shadedMat(0x6d675e, { rough: 0.3 });
+  for (let i = 0; i < 34; i++) {
+    const x = lerp(MH_WALL + 0.6, -5, r()), z = lerp(-5.4, 5.4, r()), s = 0.45 + r() * 0.55;
+    const m = new THREE.Mesh(makeRock(s, 950 + i), mat);
+    m.position.copy(MHp(x, mhGround(x) - 0.12, z));
+    m.rotation.set(r() * 3, r() * 3, r() * 3);
+    mhGrp.add(m);
+  }
+  // 壁のカキ殻・フジツボ（満潮と干潮のあいだに多い）
+  const bar = new THREE.InstancedMesh(new THREE.ConeGeometry(0.07, 0.1, 7).rotateZ(-Math.PI / 2), shadedMat(0xe0d8c8, { rough: 0.3 }), 2600);
+  for (let i = 0; i < 2600; i++) {
+    const y = lerp(-MH_A, MH_A * 0.9, Math.pow(r(), 0.8)), s = 0.7 + r() * 1.0;
+    _m.compose(MHp(MH_WALL + 0.03, y, lerp(-5.9, 5.9, r())), new THREE.Quaternion(), V(s, s, s));
+    bar.setMatrixAt(i, _m);
+  }
+  mhGrp.add(bar);
+  // 水（断面）：水位 lv まで。浅いところは明るく
+  const wg = new THREE.BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0);
+  const water = new THREE.Mesh(wg, new THREE.ShaderMaterial({
+    uniforms: MH_WU, transparent: true, depthWrite: false,
+    vertexShader: `varying vec3 vW; varying vec3 vN; void main(){ vN = normal; vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform float lv; uniform float time; varying vec3 vW; varying vec3 vN;
+      void main(){ float dep = clamp((lv - vW.y)/11.0, 0.0, 1.0);
+        vec3 c = mix(vec3(0.36,0.78,0.98), vec3(0.04,0.28,0.55), dep); float a = 0.42;
+        if (vN.y > 0.5) { c = mix(vec3(0.55,0.86,1.0), vec3(0.95,1.0,1.0), 0.35*pow(abs(sin(vW.x*1.1+time)*sin(vW.z*1.5-time*0.8)),4.0)); a = 0.6; }
+        gl_FragColor = vec4(c, a); }`,
+  }));
+  water.renderOrder = 8;
+  water.userData.isWater = true;
+  mhGrp.add(water);
+  mhGrp.userData.water = water;
+}
+// エサ（カニ・エビなど）：浅い所の石の上
+const mhCrabs = (() => {
+  const g = new THREE.InstancedMesh(new THREE.SphereGeometry(0.16, 10, 6).scale(1.4, 0.55, 1), shadedMat(0xe0662a, { rough: 0.1 }), 10);
+  g.userData.xs = [-13.2, -12.1, -11.0, -10.2, -9.3, -8.4, -7.6, -12.6, -9.9, -7.1];
+  g.userData.zs = [3.5, 1.2, 4.6, 2.4, 5.0, 1.8, 3.9, 5.3, 0.9, 2.8];
+  return g;
+})();
+mhGrp.add(mhCrabs);
+const mhChinu = school("チヌ", 5, 2.1, 961, { freq: 6 });
+mhChinu.material.uniforms.bright.value = 1.5;
+world.add(mhChinu);
+extras.push(mhChinu);
+const mhMan = mannequin(0x7d8a96, true);
+mhGrp.add(mhMan);
+// 光る粒（海の水の動き）。上げ潮は岸（左）へ、下げ潮は沖（右）へ。速い=水色、ゆるい=オレンジ
+const MH_HEADS = 420, MH_TR = 6;
+const mhDots = (() => {
+  const n = MH_HEADS * MH_TR, g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute("col", new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute vec4 col; varying vec4 vC; void main(){ vC = col; vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = (0.2 + 0.32*col.a) * 900.0 / -mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying vec4 vC; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.1,d)*vC.a; gl_FragColor = vec4(vC.rgb*a, 1.0); }`,
+  });
+  const p = new THREE.Points(g, m);
+  p.frustumCulled = false;
+  p.renderOrder = 12;
+  return p;
+})();
+world.add(mhDots);
+extras.push(mhDots);
+function mhDotsUpdate(T, h, rate, opts = {}) {
+  mhDots.visible = true;
+  const pos = mhDots.geometry.attributes.position.array, col = mhDots.geometry.attributes.col.array;
+  const sp = Math.abs(rate), kf = smooth01((sp - 0.15) / 0.6), dir = Math.sign(rate) || 1;
+  const r = lerp(1.0, 0.35, kf), g = lerp(0.62, 0.9, kf), b = lerp(0.2, 1.0, kf);
+  const x0 = MH_WALL + 0.4, span = MH_X1 - x0, C = opts.C ?? 9;
+  let o = 0, oc = 0;
+  for (let i = 0; i < MH_HEADS; i++) {
+    const u = _fh(i * 1.7 + 0.1), vy = _fh(i * 3.1 + 0.2), z = lerp(-5.4, 5.4, _fh(i * 5.3 + 0.4));
+    let xr = u * span - C * (h + MH_A) + 0.25 * Math.sin(T * 0.7 + i);
+    xr = ((xr % span) + span) % span;
+    const x = x0 + xr, gy = mhGround(x), top = h - 0.12;
+    const y = lerp(gy + 0.25, top, vy);
+    let a = top > gy + 0.3 ? 1 : 0;
+    a *= smooth01((x - x0) / 2.5) * smooth01((MH_X1 - x) / 2.5) * (opts.alpha ?? 1) * (0.45 + 0.55 * kf);
+    if (opts.focus) a *= lerp(opts.focus.dim ?? 0.25, 1, smooth01(1 - (Math.hypot(x - opts.focus.x, y - opts.focus.y) - opts.focus.r) / 4));
+    for (let j = 0; j < MH_TR; j++) {
+      const xx = x + j * 0.2 * dir * (0.25 + 1.2 * kf);
+      const p = MHp(xx, y, z);
+      pos[o++] = p.x; pos[o++] = p.y; pos[o++] = p.z;
+      col[oc++] = r; col[oc++] = g; col[oc++] = b; col[oc++] = a * (1 - j / MH_TR);
+    }
+  }
+  mhDots.geometry.attributes.position.needsUpdate = true;
+  mhDots.geometry.attributes.col.needsUpdate = true;
+}
+// 断面に立てる矢印・円（画面に向いた向き）
+function mhMakeArrow() {
+  const sh = new THREE.Shape();
+  sh.moveTo(0, -0.35); sh.lineTo(1.0, -0.35); sh.lineTo(1.0, -0.8); sh.lineTo(1.7, 0); sh.lineTo(1.0, 0.8); sh.lineTo(1.0, 0.35); sh.lineTo(0, 0.35); sh.closePath();
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthTest: false, side: THREE.DoubleSide }));
+  m.renderOrder = 30;
+  return m;
+}
+const MH_ARROWS = [0, 1, 2].map(() => { const a = mhMakeArrow(); world.add(a); extras.push(a); return a; });
+function mhArrow(i, x0, y0, x1, y1, color, a = 1, w = 1) {
+  const m = MH_ARROWS[i];
+  m.visible = a > 0.01;
+  m.position.copy(MHp(x0, y0, MH_DZ / 2 + 0.2));
+  m.rotation.set(0, 0, Math.atan2(y1 - y0, x1 - x0));
+  m.scale.set(Math.hypot(x1 - x0, y1 - y0) / 1.7, w, 1);
+  m.material.color.set(color);
+  m.material.opacity = 0.95 * a;
+}
+const MH_RINGS = [0, 1].map(() => {
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.86, 1, 48), new THREE.MeshBasicMaterial({ color: 0x2ecc71, transparent: true, depthTest: false, side: THREE.DoubleSide }));
+  const fill = new THREE.Mesh(new THREE.CircleGeometry(0.86, 48), new THREE.MeshBasicMaterial({ color: 0x2ecc71, transparent: true, depthTest: false, side: THREE.DoubleSide }));
+  ring.renderOrder = fill.renderOrder = 31;
+  world.add(ring, fill);
+  extras.push(ring, fill);
+  return [ring, fill];
+});
+function mhRing(i, x, y, r, a, t, color = 0x2ecc71) {
+  MH_RINGS[i].forEach((m, j) => {
+    m.visible = a > 0.01;
+    m.position.copy(MHp(x, y, MH_DZ / 2 + 0.3));
+    m.scale.set(r * 1.25 * (1 + 0.06 * Math.sin(t * 5 + i)), r * (1 + 0.06 * Math.sin(t * 5 + i)), 1);
+    m.material.color.set(color);
+    m.material.opacity = j ? 0.22 * a : a;
+  });
+}
+// 1つの場面の状態をまとめて決める
+function mhScene(T, p, opts = {}) {
+  base(0);
+  U.under.value = 0;
+  show(mhGrp);
+  const A = opts.A ?? MH_A;
+  const h = opts.h ?? mhLevel(p, A), rate = opts.rate ?? mhRate(p) * (A / MH_A);
+  const water = mhGrp.userData.water;
+  water.position.copy(MHp(MH_WALL, MH_BOT, 0));
+  water.scale.set(MH_X1 - MH_WALL, h - MH_BOT, MH_DZ - 0.1);
+  MH_WU.lv.value = h;
+  if (opts.dots !== false) mhDotsUpdate(T, h, rate, opts);
+  // カニ：水につかると少し動く
+  const cr = mhCrabs.userData;
+  for (let i = 0; i < cr.xs.length; i++) {
+    const x = cr.xs[i], gy = mhGround(x), wet = h > gy + 0.1 ? 1 : 0;
+    _m.compose(MHp(x + wet * 0.15 * Math.sin(T * 1.3 + i * 2), gy + 0.12, cr.zs[i]), _q.setFromEuler(new THREE.Euler(0, i + wet * 0.3 * Math.sin(T + i), 0)), V(1, 1, 1));
+    mhCrabs.setMatrixAt(i, _m);
+  }
+  mhCrabs.instanceMatrix.needsUpdate = true;
+  // チヌ：水位が高いほど浅い所へ（模式）
+  if (opts.fish !== false) {
+    const kf = opts.fishK ?? smooth01((h + 0.25) / 1.0);
+    show(mhChinu);
+    const c = MHp(lerp(-0.5, -9.5, kf), lerp(-5.6, Math.min(0.2, h - 0.55), kf), 2.2);
+    updateSchool(mhChinu, T * 0.6, c, V(lerp(2.2, 2.6, kf), lerp(0.7, 0.18, kf), 1.4), rate >= 0 ? -1 : 1);
+  }
+  mhMan.position.copy(MHp(-17.5, 3.7, 1.5));
+  mhMan.rotation.set(0, Math.PI / 2, 0);
+  return { h, rate };
+}
+// カメラ：断面を少し右上から。縦画面は足元〜かけあがりに寄せる
+function mhCam(cx = 2, cy = -3.5, dist = 40, t = 0) {
+  if (cx === 2 && cy === -3.5 && dist === 40) { cx = -1; cy = -4.6; dist = 43; }
+  const P = PORTRAIT;
+  const X = P ? (cx < -5 ? cx : -4) : cx, Dd = P ? dist * 0.95 : dist, Y = P ? cy + (dist >= 36 ? 2.5 : 0.8) : cy;
+  look(MHp(X + 5 + Math.sin(t * 0.08) * 1.2, Y + Dd * 0.18, Dd), MHp(X, Y, 0), 45);
+}
+// 水位の線（満潮・干潮）
+function mhLine(y, txt, color, a = 1, x0 = MH_WALL - 1, x1 = MH_X1) {
+  if (a <= 0.01) return;
+  const p0 = project(MHp(x0, y, MH_DZ / 2)), p1 = project(MHp(x1, y, MH_DZ / 2));
+  lines += `<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="${color}" stroke-opacity="${a}" stroke-width="5" stroke-dasharray="18 12"/>`;
+  if (txt) html += `<div style="position:absolute;left:${Math.min(p1.x - 12, W - 40)}px;top:${p1.y}px;transform:translate(-100%,-50%);opacity:${a};background:${color};color:#06213a;font-weight:900;font-size:${PORTRAIT ? 30 : 30}px;padding:4px 16px;border-radius:12px;white-space:nowrap">${txt}</div>`;
+}
+// 高さの差（たての矢印と数字）
+function mhSpan(x, y0, y1, txt, a = 1) {
+  if (a <= 0.01) return;
+  const p0 = project(MHp(x, y0, MH_DZ / 2)), p1 = project(MHp(x, y1, MH_DZ / 2));
+  lines += `<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="#ffd166" stroke-opacity="${a}" stroke-width="8"/><polygon points="${p1.x - 16},${p1.y + 20} ${p1.x + 16},${p1.y + 20} ${p1.x},${p1.y - 4}" fill="#ffd166" fill-opacity="${a}"/><polygon points="${p0.x - 16},${p0.y - 20} ${p0.x + 16},${p0.y - 20} ${p0.x},${p0.y + 4}" fill="#ffd166" fill-opacity="${a}"/>`;
+  html += `<div style="position:absolute;left:${p0.x + 26}px;top:${(p0.y + p1.y) / 2}px;transform:translateY(-50%);opacity:${a};background:#ffd166;color:#06213a;font-weight:900;font-size:${PORTRAIT ? 44 : 48}px;padding:4px 20px;border-radius:14px;white-space:nowrap">${txt}</div>`;
+}
+// 左上：いまの潮（干潮→満潮→干潮の曲線と点）
+function mhClock(p, a = 1, A = 1) {
+  const P = PORTRAIT;
+  const L = P ? 40 : 70, T = P ? 230 : 130, Wd = P ? 330 : 360;
+  const pts = Array.from({ length: 41 }, (_, i) => { const q = i / 40; return `${(8 + q * 84).toFixed(1)},${(40 + 26 * A * Math.cos(q * Math.PI * 2)).toFixed(1)}`; }).join(" ");
+  const pp = ((p % 1) + 1) % 1, cx = 8 + pp * 84, cy = 40 + 26 * A * Math.cos(pp * Math.PI * 2);
+  const up = mhRate(pp) >= 0;
+  html += `<div style="position:absolute;left:${L}px;top:${T}px;width:${Wd}px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:${P ? 26 : 24}px;font-weight:900;color:#10345a;margin:0 0 2px 6px">いまの潮：<span style="color:${up ? "#1f6fd1" : "#c2410c"}">${Math.abs(mhRate(pp)) < 0.2 ? (Math.cos(pp * Math.PI * 2) > 0 ? "干潮のころ" : "満潮のころ") : up ? "上げ潮" : "下げ潮"}</span></div>
+    <svg viewBox="0 0 100 80" width="100%" height="${P ? 230 : 250}px"><line x1="4" y1="40" x2="96" y2="40" stroke="#c9d6e2" stroke-width="1"/>
+    <polyline points="${pts}" fill="none" stroke="#1f6fb2" stroke-width="3"/>
+    <text x="8" y="78" font-size="8" fill="#10345a" font-weight="700">干潮</text><text x="42" y="10" font-size="8" fill="#10345a" font-weight="700">満潮</text><text x="80" y="78" font-size="8" fill="#10345a" font-weight="700">干潮</text>
+    <circle cx="${cx}" cy="${cy}" r="6" fill="#e3412b" stroke="#fff" stroke-width="2"/></svg></div>`;
+}
+function mhPremise() {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;${P ? "left:36px;top:150px" : "right:60px;top:300px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${P ? 26 : 24}px;z-index:4">模式図（形・深さは場所で変わる）</div>`;
+}
+const MH_LEG = [["#4cc3ff", "速い流れ"], ["#ff9f40", "ゆるい流れ"], ["#2ecc71", "ねらう場所"]];
+const MH_PINS = [[-10, 0.5], [-1, -4.2], [16, -8]]; // A=足元の浅い所、B=かけあがり、C=沖の底
+const mhPin = (i, txt, a) => mapPin(MHp(MH_PINS[i][0], MH_PINS[i][1], MH_DZ / 2), txt, a);
+// 大阪 2026-11-26（気象庁の潮位表）：1時間ごとに上がった高さ（2〜8時）
+const MH_RISE = [["2〜3時", 15], ["3〜4時", 25], ["4〜5時", 37], ["5〜6時", 46], ["6〜7時", 42], ["7〜8時", 19]];
+
+Object.assign(SHOTS, {
+  mh_thumb(t, d, s) {
+    mhScene(20, 0.42, { fishK: 1 });
+    look(MHp(-10, 2.8, 26), MHp(-15.5, -1.8, 0), 45);
+    mhRing(0, -9.5, 0.1, 3.2, 1, 0);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1100px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  // つかみ：最初から水位が動く。問いと A・B・C
+  mh_hook(t, d, s) {
+    const p = 0.02 + 0.46 * ease(t / Math.max(1, d - 1));
+    mhScene(t + 10, p, { C: 12 });
+    mhCam(2, -3.5, 40, t);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    if (PORTRAIT) bigText(0, "潮が満ちると、<br>魚はどこへ？", "堤防の下を見える化", a);
+    else bigText(10, "潮が満ちると、魚はどこへ？", "堤防の下を断面で見える化", a);
+    ["A", "B", "C"].forEach((n, i) => mhPin(i, n, PORTRAIT ? 1 : clamp01((t - 0.8 - i * 0.3) / 0.3)));
+    if (!PORTRAIT) mhClock(p);
+    mhPremise();
+  },
+  // 見方
+  mh_rule(t, d, s, k) {
+    const p = 0.22 + t * 0.006;
+    mhScene(t + 30, p, { fish: false });
+    mhCam(2, -3.5, 40, t);
+    label(MHp(-15, 3.7, MH_DZ / 2), "堤防", "", fadeIn(t, 0.3), "", PORTRAIT ? 60 : 140, -60);
+    label(MHp(-10, -0.4, MH_DZ / 2), "足元の浅い所", "捨て石", fadeIn(t, 0.9), "gold", PORTRAIT ? 40 : 0, 150);
+    label(MHp(-1, -4.5, MH_DZ / 2), "かけあがり", "深さが変わるさかい目", fadeIn(t, 1.6), "gold", PORTRAIT ? 60 : 120, 150);
+    label(MHp(15, -8.8, MH_DZ / 2), "沖の底", "", fadeIn(t, 2.3), "", 0, 120);
+    if (k >= 1) label(MHp(6, -2.2, MH_DZ / 2), "光る粒＝海の水の動き", "水色は速い・オレンジはゆるい", fadeIn(t - (s._k1 ?? 0), 0.2), "", 0, -150);
+    legend(MH_LEG);
+    mhClock(p);
+    mhPremise();
+  },
+  // どれだけ変わる？ k0 1日2回 → k1 大阪の差 1.9m → k2 小さい日 60cm → k3 カキ殻の帯
+  mh_level(t, d, s, k) {
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    let p, A = MH_A;
+    if (k === 0) p = t / 6;
+    else if (k === 1) p = 0.02 + 0.46 * ease(t1 / 4);
+    else if (k === 2) { A = 0.3; p = 0.5 + t2 / 5; }
+    else p = 0.25 + t3 * 0.01;
+    mhScene(t + 40, p, { A, fish: false, C: 7 });
+    if (k === 3) mhCam(-9, -0.5, 20, t);
+    else mhCam(2, -2.5, 36, t);
+    if (k === 0) {
+      html += acCard(`<div style="font-size:${PORTRAIT ? 40 : 38}px;font-weight:900;color:#10345a">多くの場所で、1日におよそ2回<br><span style="color:#1f6fd1">満潮</span>と<span style="color:#c2410c">干潮</span></div><div style="font-size:21px;color:#3a5a78;margin-top:10px">出典：気象庁「潮汐・海面水位の知識」</div>`, fadeIn(t, 0.3), PORTRAIT ? [70, 1100, 940] : [600, 120, 760]);
+    }
+    if (k === 1) {
+      mhLine(MH_A, "満潮", "#4cc3ff", fadeIn(t1, 0.2));
+      mhLine(-MH_A, "干潮", "#ff9f40", fadeIn(t1, 0.2));
+      mhSpan(PORTRAIT ? -8 : 2, -MH_A, MH_A, "約1.9m", fadeIn(t1, 1.4));
+      html += acCard(`<div style="font-size:${PORTRAIT ? 30 : 28}px;font-weight:900;color:#10345a">大阪・11月で差がいちばん大きい日（26日）</div><div style="font-size:21px;color:#3a5a78;margin-top:6px">出典：気象庁「潮位表」</div>`, fadeIn(t1, 0.6), PORTRAIT ? [70, 1080, 940] : [600, 120, 760]);
+    }
+    if (k === 2) {
+      mhLine(0.3, "満潮", "#4cc3ff", 1);
+      mhLine(-0.3, "干潮", "#ff9f40", 1);
+      mhSpan(PORTRAIT ? -8 : 2, -0.3, 0.3, "約60cm", fadeIn(t2, 0.4));
+      html += acCard(`<div style="font-size:${PORTRAIT ? 30 : 28}px;font-weight:900;color:#10345a">同じ11月でも、差が小さい日（8日）</div><div style="font-size:21px;color:#3a5a78;margin-top:6px">出典：気象庁「潮位表」</div>`, fadeIn(t2, 0.3), PORTRAIT ? [70, 1080, 940] : [600, 120, 760]);
+    }
+    if (k === 3) {
+      label(MHp(MH_WALL, 0.6, 3), "カキ・フジツボの帯", "満ち引きする高さの目印", fadeIn(t3, 0.3), "gold", PORTRAIT ? 120 : 330, -40);
+      mhLine(MH_A, "", "#4cc3ff", fadeIn(t3, 0.3), MH_WALL - 1, -4);
+      mhLine(-MH_A, "", "#ff9f40", fadeIn(t3, 0.3), MH_WALL - 1, -4);
+    }
+    if (k !== 3) mhClock(p, 1, A / MH_A);
+    mhPremise();
+  },
+  // クイズ：水位がいちばん速く上がるのは？ k0 問い k1 選択肢 k2 答え k3 データ
+  mh_quiz(t, d, s, k) {
+    const t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    const p = k >= 2 ? 0.25 + Math.sin(t2 * 0.4) * 0.01 : 0.03 + (t % 9) / 9 * 0.44;
+    mhScene(t + 50, p, { fish: false });
+    mhCam(2, -3.5, 40, t);
+    const P = PORTRAIT;
+    if (k <= 1) {
+      html += acDim(0.25);
+      html += `<div class="big" style="top:${P ? 900 : 150}px;font-size:${P ? 64 : 60}px">水位がいちばん速く上がるのは？</div>`;
+      if (k === 1) {
+        const o = [["A", "干潮のすぐあと"], ["B", "干潮と満潮のまん中"], ["C", "満潮のすぐ前"]];
+        html += `<div style="position:absolute;left:${P ? 90 : 560}px;top:${P ? 1060 : 280}px;width:${P ? 900 : 800}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else if (k === 2) {
+      label(MHp(8, -3, MH_DZ / 2), "答え B：まん中", "水の動きもいちばん速い", fadeIn(t2, 0.2), "gold ans", P ? 0 : 120, -160);
+      mhArrow(0, 18, -3, 6, -3, "#4cc3ff", fadeIn(t2, 0.5), 1.4);
+    } else {
+      html += acDim(0.45);
+      const max = 46;
+      html += acCard(`<div style="font-size:${P ? 32 : 32}px;font-weight:900;color:#10345a">大阪・11月26日　1時間に上がった高さ</div>
+        <div style="display:flex;align-items:flex-end;gap:${P ? 14 : 22}px;height:${P ? 360 : 330}px;margin-top:18px">${MH_RISE.map(([lb, v], i) => {
+          const a = fadeIn(t3, 0.2 + i * 0.25), hi = v >= 37;
+          return `<div style="flex:1;text-align:center;opacity:${a}"><div style="font-size:${P ? 30 : 32}px;font-weight:900;color:${hi ? "#1f6fd1" : "#10345a"}">${v}cm</div><div style="height:${(v / max) * (P ? 250 : 220)}px;background:${hi ? "#4cc3ff" : "#ffb070"};border-radius:10px 10px 0 0"></div><div style="font-size:${P ? 22 : 24}px;font-weight:800;color:#3a5a78;margin-top:6px">${lb}</div></div>`;
+        }).join("")}</div>
+        <div style="font-size:${P ? 26 : 26}px;font-weight:800;color:#10345a;margin-top:12px">干潮 1:37 → 満潮 8:17。まん中の時間がいちばん速い</div>
+        <div style="font-size:21px;color:#3a5a78;margin-top:6px">出典：気象庁「潮位表」（大阪）</div>`, fadeIn(t3, 0.1), P ? [50, 820, 980] : [360, 110, 1200]);
+    }
+    if (k <= 2) { mhClock(p); legend(MH_LEG); }
+  },
+  // 満ち潮：k0 水が岸へ・水位が上がる → k1 浅い所に水がかぶる・エサ → k2 答え A
+  mh_in(t, d, s, k) {
+    const p = 0.08 + 0.4 * clamp01(t / d);
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    const focus = k >= 1 ? { x: -9.5, y: 0, r: 4.5, dim: 0.3 } : null;
+    const { h } = mhScene(t + 60, p, { focus, fishK: k >= 2 ? lerp(0.35, 1, ease(t2 / 2.5)) : 0.1 });
+    if (k >= 1) mhCam(-8, -1.5, 22, t);
+    else mhCam(2, -3.5, 40, t);
+    if (k === 0) {
+      mhArrow(0, 18, -3.5, 6, -3.5, "#4cc3ff", fadeIn(t, 0.2), 1.4);
+      mhArrow(1, -11.5, h - 2.6, -11.5, h + 0.2, "#ffd166", fadeIn(t, 0.8), 1.0);
+      label(MHp(10, -3.5, MH_DZ / 2), "海の水が岸のほうへ", "", fadeIn(t, 0.5), "", 0, 150);
+      label(MHp(-11.5, h + 0.4, MH_DZ / 2), "水位が上がる", "", fadeIn(t, 1.2), "gold", PORTRAIT ? 80 : 160, -80);
+    }
+    if (k >= 1) label(MHp(-7.6, mhGround(-7.6) + 0.2, 2.8), "エサ（カニ・エビなど）", "", k === 1 ? fadeIn(t1, 0.3) : 0.6, "", PORTRAIT ? 60 : 200, 170);
+    if (k === 1) label(MHp(-11, h, MH_DZ / 2), "浅い所に水がかぶる", "", fadeIn(t1, 0.6), "gold", PORTRAIT ? 0 : -60, -100);
+    if (k >= 2) {
+      mhRing(0, -9.5, Math.min(0.25, h - 0.5), 2.6, fadeIn(t2, 0.3), t);
+      label(MHp(-9.5, h, MH_DZ / 2), "ここ！ 足元の浅い所", "エサを探しに寄ると言われる", fadeIn(t2, 0.3), "gold ans", PORTRAIT ? 60 : 140, -110);
+    }
+    mhClock(p);
+    legend(MH_LEG);
+    mhPremise();
+  },
+  // 引き潮：k0 水が沖へ・水位が下がる → k1 浅い所は水が少なくなる → k2 答え B
+  mh_out(t, d, s, k) {
+    const p = 0.55 + 0.42 * clamp01(t / d);
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    const focus = k >= 2 ? { x: -1, y: -4.5, r: 4.5, dim: 0.3 } : k === 1 ? { x: -9.5, y: -0.3, r: 4.5, dim: 0.3 } : null;
+    const { h } = mhScene(t + 70, p, { focus });
+    if (k >= 2) mhCam(-3, PORTRAIT ? -5.5 : -3.5, 26, t);
+    else if (k === 1) mhCam(-8, -1.5, 22, t);
+    else mhCam(2, -3.5, 40, t);
+    if (k === 0) {
+      mhArrow(0, 6, -3.5, 18, -3.5, "#4cc3ff", fadeIn(t, 0.2), 1.4);
+      mhArrow(1, -11.5, h + 0.6, -11.5, h - 2.2, "#ffd166", fadeIn(t, 0.8), 1.0);
+      label(MHp(12, -3.5, MH_DZ / 2), "海の水が沖のほうへ", "", fadeIn(t, 0.5), "", 0, 150);
+      label(MHp(-11.5, h - 2.2, MH_DZ / 2), "水位が下がる", "", fadeIn(t, 1.2), "gold", PORTRAIT ? 80 : 160, 120);
+    }
+    if (k === 1) label(MHp(-10, h, MH_DZ / 2), "浅い所は水が少なくなる", "", fadeIn(t1, 0.3), "gold", PORTRAIT ? 0 : 60, -100);
+    if (k >= 2) {
+      mhRing(0, -1, -4.6, 2.8, fadeIn(t2, 0.3), t);
+      label(MHp(-1, -3, MH_DZ / 2), "ここ！ かけあがり", "深い所へ移ると言われる", fadeIn(t2, 0.3), "gold ans", PORTRAIT ? 60 : 110, -150);
+    }
+    mhClock(p);
+    legend(MH_LEG);
+    mhPremise();
+  },
+  // 干潮は下見のチャンス／出た石の上に降りない
+  mh_safe(t, d, s, k) {
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    const p = k === 0 ? 0.0 : k === 1 ? 0.02 + 0.3 * ease(t1 / 5) : 0.98 + t2 * 0.002;
+    mhScene(t + 80, p, { fish: false });
+    mhCam(-7, -1.5, 24, t);
+    if (k === 0 || k === 2) {
+      label(MHp(-9.5, 0, MH_DZ / 2), "干潮：足元の石が見える", "根がかりしやすい所を覚えておく", k === 0 ? fadeIn(t, 0.3) : fadeIn(t2, 0.3), "gold", PORTRAIT ? 40 : 120, -120);
+    }
+    if (k === 1) {
+      mhRing(0, -10, 0.2, 2.6, fadeIn(t1, 0.2), t, 0xff5a4a);
+      label(MHp(-10, 0.6, MH_DZ / 2), "出た石の上に降りない", "満ちてくると戻れなくなることも", fadeIn(t1, 0.3), "red", PORTRAIT ? 40 : 150, -120);
+    }
+    if (k === 2) {
+      html += acCard(`<div style="font-size:${PORTRAIT ? 34 : 32}px;font-weight:900;color:#10345a">満潮・干潮の時刻は、潮見表でチェック</div><div style="font-size:${PORTRAIT ? 26 : 26}px;font-weight:800;color:#3a5a78;margin-top:8px">ツレドキ関西・全国239地点（気象庁の潮位表から）</div>`, fadeIn(t2, 0.8), PORTRAIT ? [60, 1080, 960] : [560, 120, 1000]);
+    }
+    mhClock(p);
+    legend([["#2ecc71", "ねらう場所"], ["#ff5a4a", "危険"]]);
+    mhPremise();
+  },
+  mh_sum(t, d, s, k) {
+    const p = 0.1 + (t / 12) % 1;
+    mhScene(t + 90, p, {});
+    mhCam(2, -3.5, 40, t);
+    html += acDim(0.45);
+    const P = PORTRAIT;
+    const rows = [["満ち潮", "足元の浅い所", "エサを探しに寄ると言われる", "#1f6fd1"], ["引き潮", "かけあがり・深い所", "水が少なくなる浅い所から移る", "#c2410c"], ["いちばん動く", "干潮と満潮のまん中", "時刻は潮見表で", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">潮の満ち引き まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 230 : 250}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 42 : 46}px;font-weight:900">${b1}</div><div style="font-size:${P ? 28 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
