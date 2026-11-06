@@ -394,5 +394,61 @@
   "matched": "北海道苫小牧市",
   "rough": true,
   "manual": true
+ },
+ "yokosuka-umibe-tsuri-koen": {
+  "lat": 35.2665,
+  "lon": 139.6906,
+  "address": "神奈川県横須賀市平成町3-1",
+  "matched": "神奈川県横須賀市平成町三丁目１番",
+  "rough": false
+ },
+ "higashi-ogishima-nishi-koen": {
+  "lat": 35.4879,
+  "lon": 139.7481,
+  "address": "神奈川県川崎市川崎区東扇島94-1",
+  "matched": "神奈川県川崎市川崎区東扇島９４番地",
+  "rough": false
+ },
+ "kashimako-uotsurien": {
+  "lat": 35.9462,
+  "lon": 140.6901,
+  "address": "茨城県鹿嶋市新浜11",
+  "matched": "茨城県鹿嶋市新浜",
+  "rough": false
+ },
+ "asamushi-umizuri-koen": {
+  "lat": 40.8925,
+  "lon": 140.8751,
+  "address": "青森県青森市浅虫",
+  "matched": "青森県青森市浅虫",
+  "rough": false
+ },
+ "hekinan-tsuri-hiroba": {
+  "lat": 34.8505,
+  "lon": 136.9657,
+  "address": "愛知県碧南市港南町",
+  "matched": "愛知県碧南市港南町",
+  "rough": false
+ },
+ "shinchi-umitsuri-koen": {
+  "lat": 37.8545,
+  "lon": 140.9333,
+  "address": "福島県相馬郡新地町今泉",
+  "matched": "福島県新地町今泉",
+  "rough": false
+ },
+ "kannon-higashi-bohatei": {
+  "lat": 34.3661,
+  "lon": 132.4162,
+  "address": "広島県広島市西区観音新町四丁目",
+  "matched": "広島県広島市西区観音新町四丁目",
+  "rough": false
+ },
+ "takashima-tobishima-isotsuri-koen": {
+  "lat": 32.6579,
+  "lon": 129.7529,
+  "address": "長崎県長崎市高島町1726",
+  "matched": "長崎県長崎市高島町",
+  "rough": false
  }
 }
