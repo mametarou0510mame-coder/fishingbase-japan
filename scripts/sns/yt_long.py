@@ -98,7 +98,9 @@ def main():
         if sum(v.get("at", "").startswith(today) for v in done.values()) >= PER_DAY and "--force" not in sys.argv:
             print("")
             return
-        print(next((s for s in ORDER if s not in done and s not in HOLD), ""))
+        left = [s for s in ORDER if s not in done and s not in HOLD]
+        # 2026-11-06 オーナー：3DCG（cg-*）を優先して投稿する。残っていれば通常の長尺より先に出す
+        print(next((s for s in left if s.startswith("cg-")), left[0] if left else ""))
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
     publish = "--publish" in sys.argv
