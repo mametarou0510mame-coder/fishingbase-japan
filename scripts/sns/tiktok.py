@@ -140,12 +140,19 @@ def cmd_check():
 def cmd_post(path, caption, privacy="SELF_ONLY"):
     at = access_token()
     info = creator_info(at)
-    if privacy not in info.get("privacy_level_options", []):
+    draft = privacy == "DRAFT"
+    if not draft and privacy not in info.get("privacy_level_options", []):
         sys.exit(f"公開範囲 {privacy} は選べません（選べるのは {info.get('privacy_level_options')}）")
     size = os.path.getsize(path)
     chunk = size if size <= 64 * 1024 * 1024 else 10 * 1024 * 1024
     count = 1 if chunk == size else size // chunk
-    r = http("POST", f"{API}/post/publish/video/init/", {
+    source = {"source": "FILE_UPLOAD", "video_size": size,
+              "chunk_size": chunk, "total_chunk_count": count}
+    if draft:  # 下書きとして TikTok アプリの受信箱に送る（投稿はアプリでオーナーが行う）
+        r = http("POST", f"{API}/post/publish/inbox/video/init/", {"source_info": source},
+                 {"Authorization": f"Bearer {at}"})
+    else:
+      r = http("POST", f"{API}/post/publish/video/init/", {
         "post_info": {
             "title": caption[:2200],
             "privacy_level": privacy,
@@ -153,9 +160,8 @@ def cmd_post(path, caption, privacy="SELF_ONLY"):
             "disable_duet": False,
             "disable_stitch": False,
         },
-        "source_info": {"source": "FILE_UPLOAD", "video_size": size,
-                        "chunk_size": chunk, "total_chunk_count": count},
-    }, {"Authorization": f"Bearer {at}"})
+        "source_info": source,
+      }, {"Authorization": f"Bearer {at}"})
     if r.get("error", {}).get("code") != "ok":
         sys.exit(f"投稿の準備でエラー：{r.get('error')}")
     pid, url = r["data"]["publish_id"], r["data"]["upload_url"]
@@ -176,10 +182,10 @@ def cmd_post(path, caption, privacy="SELF_ONLY"):
         s = http("POST", f"{API}/post/publish/status/fetch/", {"publish_id": pid},
                  {"Authorization": f"Bearer {at}"})
         st = s.get("data", {}).get("status")
-        if st in ("PUBLISH_COMPLETE", "FAILED"):
+        if st in ("PUBLISH_COMPLETE", "SEND_TO_USER_INBOX", "FAILED"):
             break
     summary(f"TikTok：{st}（publish_id {pid}、公開範囲 {privacy}）")
-    if st != "PUBLISH_COMPLETE":
+    if st not in ("PUBLISH_COMPLETE", "SEND_TO_USER_INBOX"):
         sys.exit(f"投稿できませんでした：{s.get('data', {}).get('fail_reason')}")
 
 
