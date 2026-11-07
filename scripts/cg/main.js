@@ -5739,6 +5739,273 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 河口を見える化（km_*）2026-11-07：川の水（オレンジ）と海の水（青）のさかい目＝潮目。断面では塩水くさび
+// 出典：国交省 江戸川河川事務所（塩水くさび）／Morgan et al. 2005 MEPS 299（河川プルームの前線でプランクトン量 4〜47倍）
+//       Axler et al. 2020 MEPS 650（風が弱い日は前線に仔魚とプランクトンが集まる）／渡部ほか 2020 水環境学会誌 43(3)（淀川河口の汽水域）
+//       茨城県「いばらき魚顔帳」スズキ（春〜秋は内湾や川、冬は海で産卵）
+// =====================================================================
+const KM = { w: 14, jx: 8.6, jz: 12 }; // 川幅、導流堤の位置（x=±8.6、z=0〜12）
+const kmGrp = new THREE.Group();
+{
+  const land = shadedMat(0x8f9a7e, { rough: 0.3 });
+  for (const sg of [-1, 1]) {
+    const bank = new THREE.Mesh(new THREE.BoxGeometry(80, 9, 60), land);
+    bank.position.set(sg * (KM.w / 2 + 40), -1.7, -30);
+    const jetty = new THREE.Mesh(new THREE.BoxGeometry(1.6, 9, KM.jz), concrete);
+    jetty.position.set(sg * (KM.jx), -1.7, KM.jz / 2);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.5, KM.jz + 0.4), shadedMat(0xb8bec2, { rough: 0.1 }));
+    deck.position.set(sg * KM.jx, 2.95, KM.jz / 2);
+    kmGrp.add(bank, jetty, deck);
+  }
+  // 川の水面（少し茶色）
+  const rv = new THREE.Mesh(new THREE.PlaneGeometry(KM.w, 60).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x6f6a4a, transparent: true, opacity: 0.55 }));
+  rv.position.set(0, 0.08, -30);
+  kmGrp.add(rv);
+}
+world.add(kmGrp);
+extras.push(kmGrp);
+const kmSolid = (x, z) => (z < 0 && Math.abs(x) > KM.w / 2) || (z < KM.jz && Math.abs(Math.abs(x) - KM.jx) < 0.9);
+// 下げ潮（ふだんの流れ）：川の水が河口から扇のように広がる。沖の流れ（左→右）に押されて右へ
+// 満ち潮：川の水の広がりが小さくなり、さかい目が河口に近づく
+function kmField(flood) {
+  const ch = flood ? 0.5 : 1.7, amp = flood ? 0.6 : 1.6, R = flood ? 8 : 20, sea = 0.5;
+  return (x, z) => {
+    if (z < KM.jz && Math.abs(x) < KM.w / 2) return [0, ch];
+    const dx = x, dz = z - (KM.jz - 7), r = Math.hypot(dx, dz) + 0.6;
+    const rr = Math.max(0, r - 7);
+    const w = Math.exp(-((rr / R) ** 2));
+    const u = amp * Math.exp(-rr / (R * 0.9));
+    let vx = (dx / r) * u * 0.9 + sea * (0.25 + 0.75 * (1 - w)), vz = (dz / r) * u * 1.15;
+    if (flood) { const c = 0.35 * Math.exp(-rr / 16) * (1 - w); vx -= (dx / r) * c; vz -= (dz / r) * c; }
+    return [vx, vz];
+  };
+}
+FIELDS.kmOut = () => kmField(false);
+FIELDS.kmIn = () => kmField(true);
+const kmFlow = (kind, T, opts = {}) => { FIELD = FIELDS[kind](); updateFlow(T, { x0: -60, x1: 60, z0: 2, z1: 70, color: "river", river: { x: 0, w: KM.w - 1, share: 0.55 }, solid: kmSolid, ...opts }); };
+const KM_FRONT = { out: [12, 27], in: [6, 19] }; // さかい目（潮目）の目印
+const KM_PINS = [V(12, 0.4, 27), V(0, 0.4, 6), V(-34, 0.4, 44)]; // A=さかい目、B=河口の真ん中、C=沖
+const kmBase = () => { jxBase(); show(kmGrp); wall.visible = top.visible = false; if (WALL_BAR) WALL_BAR.visible = false; };
+const kmWide = (t = 0, d = 1) => (PORTRAIT ? look(V(-18 + ease(t / Math.max(d, 1)) * 3, 84, 66), V(4, 0, 18), 52) : jxView(2, 22, 64, t, d));
+const KM_LEG = [["#4cc3ff", "海の水"], ["#f2b35a", "川の水"], ["#2ecc71", "投げる場所"]];
+function kmPremise() {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;left:${P ? 36 : 70}px;${P ? "top:150px" : "top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${P ? 28 : 26}px;z-index:5">流れの形の一例（川の水の量・潮・風で変わる）</div>`;
+}
+function kmMini(hi, flood = false) {
+  const P = PORTRAIT;
+  const L = P ? 40 : 70, T = P ? 230 : 190, S = P ? 250 : 260;
+  html += `<div style="position:absolute;left:${L}px;top:${T}px;width:${S}px;height:${S}px;background:rgba(255,255,255,.92);border-radius:22px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:${P ? 24 : 22}px;font-weight:900;color:#10345a;margin:0 0 4px 6px">全体図</div>
+    <svg viewBox="0 0 100 80" width="100%" height="${S - 60}px"><rect width="100" height="80" fill="#2b6f9e"/><rect width="100" height="20" fill="#9aa59a"/><rect x="43" y="0" width="14" height="20" fill="#6f6a4a"/>
+    <rect x="41" y="20" width="2" height="12" fill="#c9ced2"/><rect x="57" y="20" width="2" height="12" fill="#c9ced2"/>
+    <path d="${flood ? "M38 32 Q50 46 66 36" : "M30 32 Q50 66 80 40"}" fill="rgba(242,179,90,.55)" stroke="#f2b35a" stroke-width="1.5"/>
+    <text x="4" y="76" font-size="7" fill="#fff" font-weight="700">${flood ? "満ち潮" : "下げ潮"}</text>
+    ${hi ? `<circle cx="${hi[0]}" cy="${hi[1]}" r="8" fill="none" stroke="#2ecc71" stroke-width="3"/>` : ""}</svg></div>`;
+}
+
+// ---- 断面（塩水くさび）：川の真ん中を縦に切って横から見る。右が海、左が上流 ----
+const KW = V(0, 0, -1300);
+const KWp = (x, y, z = 0) => V(KW.x + x, KW.y + y, KW.z + z);
+const KW_X0 = -30, KW_X1 = 30, KW_DZ = 10;
+const kwBed = (x) => -7.5 - 0.06 * (x - KW_X0) + 0.25 * Math.sin(x * 0.7);
+const KW_U = { tip: { value: -10 }, time: U.time };
+const kwGrp = new THREE.Group();
+world.add(kwGrp);
+extras.push(kwGrp);
+{
+  const bd = new THREE.Mesh(new THREE.SphereGeometry(120, 32, 16), new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c = mix(vec3(0.04,0.13,0.22), vec3(0.55,0.75,0.9), smoothstep(-0.05,0.45,h)); gl_FragColor = vec4(c,1.); }`,
+  }));
+  bd.position.copy(KW);
+  kwGrp.add(bd);
+  const sh = new THREE.Shape();
+  sh.moveTo(KW_X0, -14);
+  sh.lineTo(KW_X1, -14);
+  for (let i = 120; i >= 0; i--) { const x = KW_X0 + (KW_X1 - KW_X0) * i / 120; sh.lineTo(x, kwBed(x)); }
+  const g = new THREE.ExtrudeGeometry(sh, { depth: KW_DZ, bevelEnabled: false, steps: 1, curveSegments: 1 });
+  g.translate(0, 0, -KW_DZ / 2);
+  const ground = new THREE.Mesh(g, shadedMat(0x6b5a44, { rough: 0.4 }));
+  ground.position.copy(KW);
+  kwGrp.add(ground);
+  // 水（断面）：くさびの先 tip より海側の底に塩水（青）、上は川の水（茶色っぽい）
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(KW_X1 - KW_X0, 16, 1, 1), new THREE.ShaderMaterial({
+    uniforms: KW_U, transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float tip; uniform float time; varying vec2 vP;
+      void main(){ float x = vP.x, y = vP.y + 8.0 - 8.0; if (y > 0.0) discard;
+        float bed = -7.5 - 0.06*(x + 30.0) + 0.25*sin(x*0.7); if (y < bed) discard;
+        float k = clamp((x - tip) / (30.0 - tip), 0.0, 1.0);
+        float iface = bed + (-bed - 1.2) * pow(k, 0.55) * 0.9 + 0.12*sin(x*0.9 - time*1.5);
+        float s = smoothstep(iface + 0.35, iface - 0.35, y);
+        vec3 fresh = vec3(0.62,0.52,0.30), salt = vec3(0.10,0.42,0.78);
+        vec3 c = mix(fresh, salt, s);
+        gl_FragColor = vec4(c, 0.78); }`,
+  }));
+  water.position.copy(KWp(0, 0, KW_DZ / 2 + 0.05));
+  water.renderOrder = 8;
+  kwGrp.add(water);
+}
+// 粒：上の川の水は海へ（右へ）、下の塩水は満ち潮で上流へ（左へ）
+const KW_N = 360, KW_TR = 6;
+const kwDots = (() => {
+  const n = KW_N * KW_TR, g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.setAttribute("col", new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute vec4 col; varying vec4 vC; void main(){ vC = col; vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = (0.2 + 0.32*col.a) * 900.0 / -mv.z; gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying vec4 vC; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.1,d)*vC.a; gl_FragColor = vec4(vC.rgb*a, 1.0); }`,
+  });
+  const p = new THREE.Points(g, m);
+  p.frustumCulled = false;
+  p.renderOrder = 12;
+  return p;
+})();
+world.add(kwDots);
+extras.push(kwDots);
+const kwIface = (x, tip) => { const bed = kwBed(x), k = clamp01((x - tip) / (KW_X1 - tip)); return bed + (-bed - 1.2) * Math.pow(k, 0.55) * 0.9; };
+function kwUpdate(T, tip, flood, opts = {}) {
+  KW_U.tip.value = tip;
+  kwDots.visible = true;
+  const pos = kwDots.geometry.attributes.position.array, col = kwDots.geometry.attributes.col.array;
+  const span = KW_X1 - KW_X0;
+  let o = 0, oc = 0;
+  for (let i = 0; i < KW_N; i++) {
+    const salt = i % 3 === 0, u = _fh(i * 1.7 + 0.1), vy = _fh(i * 3.1 + 0.2), z = lerp(-4, 4, _fh(i * 5.3 + 0.4));
+    const v = salt ? (flood ? -0.9 : 0.25) : 1.3, dir = Math.sign(v);
+    let x = KW_X0 + ((((u * span + v * T * 1.6) % span) + span) % span);
+    const bed = kwBed(x), ifc = kwIface(x, tip);
+    let y, a = 1;
+    if (salt) { if (ifc - bed < 0.4) a = 0; y = lerp(bed + 0.2, ifc - 0.2, vy); }
+    else { const lo = Math.max(ifc, bed) + 0.25; y = lerp(lo, -0.3, vy); }
+    a *= smooth01((x - KW_X0) / 2) * smooth01((KW_X1 - x) / 2) * (opts.alpha ?? 1);
+    const [r, g, b] = salt ? [0.35, 0.8, 1.0] : [1.0, 0.75, 0.38];
+    for (let j = 0; j < KW_TR; j++) {
+      const p = KWp(x - j * 0.25 * dir, y, z);
+      pos[o++] = p.x; pos[o++] = p.y; pos[o++] = p.z;
+      col[oc++] = r; col[oc++] = g; col[oc++] = b; col[oc++] = a * (1 - j / KW_TR);
+    }
+  }
+  kwDots.geometry.attributes.position.needsUpdate = true;
+  kwDots.geometry.attributes.col.needsUpdate = true;
+}
+const kwView = () => (PORTRAIT ? look(KWp(6, -6, 34), KWp(6, -5.5, 0), 50) : look(KWp(0, -3, 44), KWp(0, -4, 0), 46));
+const kmSrc = (t) => `<div style="font-size:21px;color:#3a5a78;margin-top:12px">出典：${t}</div>`;
+
+Object.assign(SHOTS, {
+  km_thumb(t, d, s) {
+    kmBase();
+    kmFlow("kmOut", 40);
+    look(V(-4, 64, 78), V(4, 0, 22), 50);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1000px;background:linear-gradient(90deg,rgba(2,14,28,.8),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:210px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+    mapPin(KM_PINS[0], "？", 1, "#2ecc71");
+  },
+  km_hook(t, d, s) {
+    kmBase();
+    kmFlow("kmOut", t + 30);
+    kmWide(t, d);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    if (PORTRAIT) bigText(0, "河口、<br>どこに投げる？", "川の水と海の水を色で見る", a);
+    else bigText(20, "河口、どこに投げる？", "川の水と海の水を色で見る", a);
+    ["A", "B", "C"].forEach((n, i) => mapPin(KM_PINS[i], n, PORTRAIT ? 1 : clamp01((t - 0.8 - i * 0.3) / 0.3)));
+    kmPremise();
+  },
+  km_rule(t, d, s, k) {
+    kmBase();
+    kmFlow("kmOut", t + 40);
+    kmWide(t, d);
+    label(V(-30, 0.6, 48), "青い粒＝海の水", "", fadeIn(t, 0.6), "", 0, -90);
+    label(V(0, 0.6, 2), "オレンジの粒＝川の水", "海へ出ていく", fadeIn(t, 2.0), "gold", PORTRAIT ? 0 : 260, -40);
+    legend(KM_LEG);
+    kmMini(null);
+    kmPremise();
+  },
+  // k0 川の水が扇のように広がる → k1 答え：さかい目 → k2 研究（前線のプランクトン 4〜47倍）→ k3 B・C はちがう
+  km_front(t, d, s, k) {
+    kmBase();
+    const [fx, fz] = KM_FRONT.out;
+    const focus = k === 1 || k === 2 ? { x: fx, z: fz, r: 9, dim: 0.35 } : null;
+    kmFlow("kmOut", t + 50, { focus });
+    if (k === 1 || k === 2) jxView(fx - 2, fz - 4, PORTRAIT ? 46 : 44, 0, 1);
+    else kmWide(0, 1);
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0), t3 = t - (s._k3 ?? 0);
+    if (k === 0) { arrow(0, 0, 4, 0, 18, "#f2b35a", fadeIn(t, 0.2), 1.6); label(V(0, 0.6, 22), "川の水が扇のように広がる", "", fadeIn(t, 1.0), "gold", PORTRAIT ? 0 : 280, -60); }
+    if (k >= 1) {
+      target(fx, fz, 4, k === 1 ? fadeIn(t1, 0.3) : 1, t);
+      if (!(PORTRAIT && k === 2)) label(V(fx, 0.6, fz), "ここ！ 川の水と海の水のさかい目", "泡や色の筋が出る「潮目」", k <= 2 ? 1 : 0, "gold ans", PORTRAIT ? 0 : 320, -60);
+    }
+    if (k === 2) html += acCard(`<div style="font-size:${PORTRAIT ? 30 : 28}px;font-weight:900;color:#e3412b">研究では</div><div style="font-size:${PORTRAIT ? 36 : 32}px;font-weight:900;color:#10345a;margin-top:10px">川の水が海へ広がる先のさかい目（前線）では、プランクトンの量がまわりの4〜47倍だった</div>${kmSrc("Morgan et al. 2005, Marine Ecology Progress Series 299（米コロンビア川）")}`, fadeIn(t2, 0.2), PORTRAIT ? [50, 520, 980] : [110, 560, 900]);
+    if (k >= 3) { noMark(KM_PINS[1], "B：河口の真ん中は流れが速い", fadeIn(t3, 0.2)); noMark(KM_PINS[2], "C：沖は変化がない", fadeIn(t3, 0.5)); }
+    kmMini(k >= 1 ? [66, 52] : null);
+    legend(KM_LEG);
+    kmPremise();
+  },
+  // 断面：k0 上は川の水、下は海の水 → k1 満ち潮で塩水がくさびのように上流へ → k2 引き潮で戻る
+  km_wedge(t, d, s, k) {
+    base(0);
+    show(kwGrp);
+    wall.visible = top.visible = false;
+    if (WALL_BAR) WALL_BAR.visible = false;
+    hideSurface = true;
+    U.under.value = 0;
+    const t1 = t - (s._k1 ?? 0), t2 = t - (s._k2 ?? 0);
+    let tip = -2, flood = false;
+    if (k === 1) { tip = lerp(-2, -24, ease(t1 / 5)); flood = true; }
+    if (k >= 2) { tip = lerp(-24, -2, ease(t2 / 5)); }
+    kwUpdate(t, tip, flood);
+    kwView();
+    label(KWp(-26, 1.2, 5), "上流（川）", "", 1, "", 0, -40);
+    label(KWp(26, 1.2, 5), "海", "", 1, "", 0, -40);
+    label(KWp(-12, -1.5, 5), "川の水（軽い）", "上を海へ流れる", fadeIn(t, 0.6), "gold", PORTRAIT ? 0 : -160, -60);
+    label(KWp(20, -6.5, 5), "海の水（塩水・重い）", "下にもぐりこむ", fadeIn(t, 1.4), "", PORTRAIT ? 0 : 160, 120);
+    if (k === 1 && !PORTRAIT) label(KWp(tip + 2, kwBed(tip + 2) + 0.6, 5), "満ち潮：塩水がくさびのように上流へ", "", fadeIn(t1, 0.3), "gold ans", PORTRAIT ? 330 : -120, 150);
+    if (k >= 2 && !PORTRAIT) label(KWp(tip + 2, kwBed(tip + 2) + 0.6, 5), "引き潮：塩水のくさびは海へもどる", "", fadeIn(t2, 0.3), "gold ans", PORTRAIT ? 330 : 120, 150);
+    html += `<div style="position:absolute;left:${PORTRAIT ? 36 : 70}px;${PORTRAIT ? "top:150px" : "top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${PORTRAIT ? 28 : 26}px;z-index:5">川の真ん中を縦に切った断面（模式図）</div>`;
+    if (k >= 0) html += `<div style="position:absolute;right:${PORTRAIT ? 40 : 60}px;bottom:${PORTRAIT ? 330 : 150}px;font-size:21px;color:#dfe8f0;background:rgba(6,22,42,.7);padding:6px 12px;border-radius:10px">出典：国土交通省 関東地方整備局 江戸川河川事務所（塩水くさび）</div>`;
+  },
+  // 満ち潮の上から見た図：さかい目が河口に近づく
+  km_tide(t, d, s, k) {
+    kmBase();
+    const flood = k === 0;
+    const [fx, fz] = flood ? KM_FRONT.in : KM_FRONT.out;
+    kmFlow(flood ? "kmIn" : "kmOut", t + 20, { focus: { x: fx, z: fz, r: 8, dim: 0.4 } });
+    jxView(4, 18, PORTRAIT ? 54 : 50, 0, 1);
+    const t1 = t - (s._k1 ?? 0);
+    target(fx, fz, 3.6, k === 0 ? fadeIn(t, 0.4) : fadeIn(t1, 0.3), t);
+    label(V(fx, 0.6, fz), flood ? "満ち潮：さかい目は河口の近くへ" : "下げ潮：さかい目は沖へ広がる", "", k === 0 ? fadeIn(t, 0.4) : fadeIn(t1, 0.3), "gold ans", PORTRAIT ? 0 : 300, -60);
+    kmMini(flood ? [56, 40] : [66, 52], flood);
+    legend(KM_LEG);
+    kmPremise();
+  },
+  // 魚とえさ：k0 汽水域はえさが多い（淀川）→ k1 スズキは春〜秋に川や内湾、冬は海で産卵
+  km_fish(t, d, s, k) {
+    kmBase();
+    kmFlow("kmOut", t + 60, { alpha: 0.7 });
+    kmWide(0, 1);
+    html += acDim(0.35);
+    const P = PORTRAIT;
+    const rows = [
+      ["川と海の水がまじる所（汽水域）", "淀川の河口では、水の中の有機物（えさのもと）が、川の上流や海よりずっと多かった", "渡部ほか 2020 水環境学会誌 43(3)"],
+      ["スズキ（シーバス）", "春〜秋は内湾や川で過ごし、冬は海で卵を産む。若い魚は秋に海へ向かう", "茨城県「いばらき魚顔帳」スズキ"],
+    ];
+    html += acCard(rows.map(([a1, b1, c1], i) => `<div style="margin-top:${i ? 20 : 0}px;opacity:${k >= i ? 1 : 0.2}"><b style="font-size:${P ? 30 : 28}px;color:#e3412b">${a1}</b><div style="font-size:${P ? 32 : 30}px;font-weight:800;color:#10345a;margin-top:6px">${b1}</div><div style="font-size:21px;color:#3a5a78;margin-top:6px">出典：${c1}</div></div>`).join(""), fadeIn(t, 0.2), P ? [50, 300, 980] : [360, 150, 1200]);
+  },
+  // 安全
+  km_safe(t, d, s, k) {
+    kmBase();
+    kmFlow("kmOut", t + 70, { alpha: 0.6 });
+    kmWide(0, 1);
+    html += acDim(0.4);
+    const P = PORTRAIT;
+    html += acCard(`<div style="font-size:${P ? 36 : 34}px;font-weight:900;color:#c62828">⚠ 河口で気をつけること</div>${["雨のあと、川の水が増えているときは近づかない", "立入禁止の場所・導流堤の先には入らない", "ライフジャケットを必ず着ける"].map((x, i) => `<div style="font-size:${P ? 32 : 30}px;font-weight:800;color:#10345a;margin-top:14px;opacity:${k >= Math.min(i, 1) ? 1 : 0.25}">・${x}</div>`).join("")}`, fadeIn(t, 0.2), P ? [50, 300, 980] : [360, 150, 1200]);
+  },
+});
+
 // ---------- 1フレーム描く ----------
 let lastShot = null;
 window.ready = Promise.all(pending);
