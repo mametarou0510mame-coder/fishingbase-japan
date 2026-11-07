@@ -1,0 +1,44 @@
+name: TikTok 連携
+
+# 1) action=auth-url で許可ページの URL を出す → オーナーが開いて「許可」
+# 2) 戻り先ページに出たコードを code に貼って action=exchange → トークンを暗号化して保存
+# 3) action=check で、つないだアカウントと選べる公開範囲を確認
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "auth-url / exchange / check"
+        required: true
+        default: "auth-url"
+        type: choice
+        options: [auth-url, exchange, check]
+      code:
+        description: "exchange のとき：戻り先ページに出たコード"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          ACTION: ${{ github.event.inputs.action }}
+          CODE: ${{ github.event.inputs.code }}
+        run: |
+          echo "::add-mask::$CODE"
+          if [ "$ACTION" = exchange ]; then python scripts/sns/tiktok.py exchange "$CODE"
+          else python scripts/sns/tiktok.py "$ACTION"; fi
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns/tiktok-token.enc 2>/dev/null && git commit -qm "TikTok のトークン（暗号化）を更新" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
