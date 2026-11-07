@@ -76,6 +76,12 @@ robots.txt の確認結果（2026-10-20、オーナー承認後）:
 | 施設 | URL | 結果 |
 |---|---|---|
 | 淡路じゃのひれ フィッシングパーク | https://janohire.co.jp/robots.txt | 管理画面（/wp/wp-admin/）など以外は許可。利用規約のページは見当たらない（プライバシーポリシーのみ）。釣果は /news_cat/fishing-report/ に毎日の記事（/news/{ID}/）として出ている。記事本文の書き方を確かめてから fetch-catches.mjs に足す。本文確認用に記事URL（例: https://janohire.co.jp/news/3923/）の承認が必要 |
+| 一本防波堤（苫小牧） | https://ippon-b.com/robots.txt | 2026-11-07 確認。/cms/wp-admin/ 以外は許可。釣果カテゴリーのRSS https://ippon-b.com/category/choka/feed/ から取得 |
+| 海辺つり公園（横須賀） | https://www.kanagawaparks.com/robots.txt | 2026-11-07 確認。/wp-admin/ 以外は許可。/umibeturi/fishing/ から取得 |
+| 鹿島港魚釣園 | https://kashima-fa.com/robots.txt | 2026-11-07 確認。/wp-admin/ 以外は許可。RSS https://kashima-fa.com/feed/ の月ごとの記事から取得 |
+| 市原海づり公園 | https://ichihara-umizuri.com/robots.txt | 2026-11-07 確認。/wp-admin/ 以外は許可。/fishing/ の一覧と詳細ページから取得 |
+| 横浜の海づり施設 | https://yokohama-fishingpiers.jp/robots.txt | 2026-11-07：robots.txt なし（404）。サイトは AWS AppSync の非公開APIで表示しているため、取得しない |
+| 飛島磯釣り公園（長崎） | http://www.tobishima.net/ | 2026-11-07：接続できず |
 | 和歌山北港海つり公園 | https://wakayama-fising.jp/robots.txt | 承認後も読み込みエラーで確認できず。公式の釣果ページもないため、自動取得はしない |
 
 ## 次回の候補（公式ページは見つかっている）
