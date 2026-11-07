@@ -266,7 +266,7 @@ function ObsRow({ obs }: { obs: NonNullable<TodayObs> }) {
   if (nowH - obs.lastH > 3) return null; // 3時間以上前の観測は「いま」として出さない
   return (
     <tr className="obs-row">
-      <th>いまの潮位（実測）</th>
+      <th>いまの実測</th>
       <td>
         {Math.round(last.cm)}cm（{hh}:{mm}）　予報より{dev >= 0 ? "+" : ""}
         {dev}cm{Math.abs(dev) >= 20 && <b>　{dev > 0 ? "予報より高め" : "予報より低め"}</b>}
