@@ -130,6 +130,7 @@ export default async function SpotPage({ params }: { params: Promise<Params> }) 
         pageUrl={`${SITE.url}${spotHref(spot)}`}
         openByMonth={spot.openHourByMonth}
         closeByMonth={spot.closeHourByMonth}
+        season={spot.season}
       />
 
       <h3>3日間の天気（{forecast.label}）</h3>

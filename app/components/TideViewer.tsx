@@ -17,7 +17,7 @@ export type ViewerStation = {
 };
 
 type ObsPoint = { h: number; cm: number };
-type Obs = { pts: ObsPoint[]; source: "realtime" | "hourly"; lastDev: number | null; lastH: number | null; by?: string } | null;
+type Obs = { pts: ObsPoint[]; source: "realtime" | "hourly"; lastDev: number | null; lastH: number | null; by?: string; near?: { name: string; km: number | null } } | null;
 
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
 const dayLabel = (date: string) => {
@@ -60,6 +60,22 @@ function useObs(st: ViewerStation, date: string, days: Map<string, TideDay>, tic
       const points = await loadPoints();
       const pt = points?.find((p) => p.code === st.code);
       const ageDays = (Date.parse(jstToday()) - Date.parse(date)) / 86400e3;
+      // 近くの観測地点の潮位偏差を借りる地点（near）は、その地点の毎時の実測があればそちらを先に使う
+      const hourly = async () => {
+        if (st.obsOffset == null) return false;
+        const [y, m] = date.split("-").map(Number);
+        const month = await loadHourlyMonth(st.code, y, m, st.obsOffset);
+        const row = month?.find((d) => d.date === date);
+        if (!row || !alive) return false;
+        const pts: ObsPoint[] = [];
+        row.level.forEach((v, h) => v != null && pts.push({ h, cm: v }));
+        if (!pts.length) return false;
+        const last = pts[pts.length - 1];
+        const pl = predictedAt(days, date, last.h);
+        setObs({ pts, source: "hourly", lastDev: pl == null ? null : last.cm - pl, lastH: last.h });
+        return true;
+      };
+      if (pt?.near && (await hourly())) return;
       if (pt && ageDays <= 30) {
         const r = await loadRealtime(pt.point, date);
         if (r && alive) {
@@ -69,22 +85,12 @@ function useObs(st: ViewerStation, date: string, days: Map<string, TideDay>, tic
             if (p != null) pts.push({ h, cm: p + r.dev[i] });
           });
           if (pts.length) {
-            setObs({ pts, source: "realtime", lastDev: r.dev[r.dev.length - 1], lastH: r.h[r.h.length - 1], by: pt.name });
+            setObs({ pts, source: "realtime", lastDev: r.dev[r.dev.length - 1], lastH: r.h[r.h.length - 1], by: pt.name, near: pt.near ? { name: pt.name, km: pt.km ?? null } : undefined });
             return;
           }
         }
       }
-      if (st.obsOffset == null) return;
-      const [y, m] = date.split("-").map(Number);
-      const month = await loadHourlyMonth(st.code, y, m, st.obsOffset);
-      const row = month?.find((d) => d.date === date);
-      if (!row || !alive) return;
-      const pts: ObsPoint[] = [];
-      row.level.forEach((v, h) => v != null && pts.push({ h, cm: v }));
-      if (!pts.length) return;
-      const last = pts[pts.length - 1];
-      const pl = predictedAt(days, date, last.h);
-      setObs({ pts, source: "hourly", lastDev: pl == null ? null : last.cm - pl, lastH: last.h });
+      if (!pt?.near) await hourly();
     })();
     return () => {
       alive = false;
@@ -294,6 +300,11 @@ function Graph({ st, date, days, obs, nowH }: { st: ViewerStation; date: string;
           <i className="tv-l-obs" />
           実測潮位{obs ? (obs.source === "realtime" ? "（5分ごと）" : "（毎時）") : "（なし）"}
         </li>
+        {obs?.near && (
+          <li className="tv-near">
+            ※近くに観測地点がないため、{obs.near.name}{obs.near.km != null ? `（約${Math.round(obs.near.km)}km）` : ""}の観測の「ずれ」を推算潮位に足した推定です
+          </li>
+        )}
         {corr.length > 1 && (
           <li>
             <i className="tv-l-corr" />

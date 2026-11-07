@@ -7,6 +7,7 @@ import { moonInfo } from "@/lib/moon";
 import { hm, sunTimes } from "@/lib/sun";
 import type { WeatherArea } from "@/lib/weather";
 import { useTodayObs, type TodayObs } from "@/app/components/useTodayObs";
+import { inSeason, offSeasonNote, type Season } from "@/lib/season";
 
 type TideEvent = { time: string; cm: number };
 type TideDay = { date: string; hourly: (number | null)[]; high: TideEvent[]; low: TideEvent[] };
@@ -178,7 +179,7 @@ function TideChart({
       <polyline points={points} className="line" fill="none" />
       {isToday && obs && obs.pts.length > 1 && (
         <polyline points={obs.pts.map((p) => `${x(p.h).toFixed(1)},${Math.min(TOP + CH, Math.max(TOP, y(p.cm))).toFixed(1)}`).join(" ")} className="obsline" fill="none">
-          <title>実測潮位（気象庁「潮位観測情報」{obs.name}）</title>
+          <title>{obs.near ? `実測潮位の推定（近くの${obs.name}の観測から）` : `実測潮位（気象庁「潮位観測情報」${obs.name}）`}</title>
         </polyline>
       )}
       {marks.map((m) => (
@@ -248,10 +249,32 @@ function TideChart({
       {isToday && obs && (
         <>
           <line x1={W - R - 58} x2={W - R - 48} y1={TOP + 5} y2={TOP + 5} className="obsline" />
-          <text x={W - R - 45} y={TOP + 8} className="axis">実測潮位</text>
+          <text x={W - R - 45} y={TOP + 8} className="axis">{obs.near ? "実測(推定)" : "実測潮位"}</text>
         </>
       )}
     </svg>
+  );
+}
+
+// いまの実測潮位（気象庁「潮位観測情報」）。予報（推算潮位）との差も出す
+function ObsRow({ obs }: { obs: NonNullable<TodayObs> }) {
+  const last = obs.pts[obs.pts.length - 1];
+  const hh = Math.floor(obs.lastH);
+  const mm = String(Math.round((obs.lastH - hh) * 60)).padStart(2, "0");
+  const dev = Math.round(obs.lastDev);
+  const nowH = (Date.now() / 3600e3 + 9) % 24;
+  if (nowH - obs.lastH > 3) return null; // 3時間以上前の観測は「いま」として出さない
+  return (
+    <tr className="obs-row">
+      <th>いまの潮位（実測）</th>
+      <td>
+        {Math.round(last.cm)}cm（{hh}:{mm}）　予報より{dev >= 0 ? "+" : ""}
+        {dev}cm{Math.abs(dev) >= 20 && <b>　{dev > 0 ? "予報より高め" : "予報より低め"}</b>}
+        <span className="small">
+          　{obs.near ? `近くの${obs.name}${obs.km != null ? `（約${Math.round(obs.km)}km）` : ""}の観測から推定` : `気象庁「潮位観測情報」${obs.name}`}
+        </span>
+      </td>
+    </tr>
   );
 }
 
@@ -380,6 +403,7 @@ export default function TideWidget({
   weather,
   openByMonth,
   closeByMonth,
+  season,
   spotName,
   pageUrl,
 }: {
@@ -391,6 +415,7 @@ export default function TideWidget({
   weather?: WeatherArea | null;
   openByMonth?: (number | null)[];
   closeByMonth?: (number | null)[];
+  season?: Season;
 }) {
   const [days, setDays] = useState<TideDay[] | null>(null);
   const [offset, setOffset] = useState(0);
@@ -406,7 +431,8 @@ export default function TideWidget({
   const sun = coords ? sunTimes(dates[offset], coords.lat, coords.lon) : null;
   const slots = slotsFor(dates[offset], weather ?? null);
   const month = Number(dates[offset].slice(5, 7));
-  const jiai = day
+  const open = inSeason(season, dates[offset]);
+  const jiai0 = day
     ? computeJiai({
         tide: day.hourly,
         sun,
@@ -415,6 +441,8 @@ export default function TideWidget({
         windMaxAt: windLookup(weather?.hourly, dates[offset]),
       })
     : null;
+  // 季節営業の施設は、営業期間外の日に「ねらい目」を出さない
+  const jiai = jiai0 && !open && season ? { ...jiai0, windows: [], note: offSeasonNote(season) } : jiai0;
 
   return (
     <section className="tide">
@@ -454,6 +482,7 @@ export default function TideWidget({
                   </td>
                 </tr>
               )}
+              {offset === 0 && obs && <ObsRow obs={obs} />}
               <tr>
                 <th>満潮</th>
                 <td>{day.high.length ? day.high.map((e) => `${e.time}（${e.cm}cm）`).join("　") : "なし"}</td>

@@ -1,6 +1,7 @@
 import type { Restriction } from "@/lib/gear";
 // 釣り場データ。公式情報で確認できたものだけ published: true にする（要件定義のルール）。
 import type { PrefSlug } from "@/lib/prefs";
+import type { Season } from "@/lib/season";
 export { PREF_LABEL, KANSAI_PREFS, isKansai, spotHref, type PrefSlug } from "@/lib/prefs";
 
 export type Spot = {
@@ -20,6 +21,7 @@ export type Spot = {
   openHourByMonth?: (number | null)[]; // 1〜12月の開園時刻（時）。null・未設定は不明
   closeHourByMonth?: (number | null)[]; // 1〜12月の閉園時刻（時）。null・未設定は不明。道具のおすすめ（夜釣り向けの魚を出すか）に使う
   closed: string;
+  season?: Season; // 季節営業の施設の営業期間（期間外は「ねらい目」を出さない）
   fees: { label: string; value: string }[];
   parking: string;
   rentals: string;
@@ -2061,6 +2063,7 @@ export const SPOTS: Spot[] = [
     openHourByMonth: [null, null, null, 9, 9, 9, 9, 9, 9, 9, null, null],
     closeHourByMonth: [null, null, null, 17, 17, 17, 17, 17, 17, 16, null, null],
     closed: "火曜（祝日のときは翌平日）、営業期間外（10月13日〜4月28日ごろ）、荒天時",
+    season: { from: "04-29", to: "10-12", note: "期間は毎年青森市が発表" },
     fees: [
       { label: "入園料（大人／小人）", value: "150円／70円" },
       { label: "つり台（入園料込み、大人／小人）", value: "700円／500円" },
@@ -2161,6 +2164,7 @@ export const SPOTS: Spot[] = [
     sourceUrls: ["https://ippon-b.com/"],
     hours: "4〜10月の土・日・祝日に開放（予定。時間は公式サイトで確認）",
     closed: "開放日以外（平日、11〜3月）",
+    season: { from: "04-01", to: "10-31", note: "土・日・祝日のみ開放。日程は公式サイトで発表" },
     fees: [
       { label: "入場（高校生以上）", value: "1,500円" },
       { label: "入場（中学生）", value: "1,000円" },
