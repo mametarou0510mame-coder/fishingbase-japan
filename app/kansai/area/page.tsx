@@ -4,8 +4,8 @@ import { AREAS } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 
 export const metadata: Metadata = {
-  title: "関西のエリア別 釣り情報",
-  description: "関西の釣り場をエリアごとにまとめ、最近釣れている魚を施設の公式釣果から集計しています。",
+  title: "エリア別 釣り情報（関西・全国）",
+  description: "関西と全国の釣り場をエリアごとにまとめ、最近釣れている魚を施設の公式釣果から集計しています。",
 };
 
 export default function AreaIndex() {

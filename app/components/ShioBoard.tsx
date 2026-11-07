@@ -354,7 +354,7 @@ function Timeline({ days, nowX, scroller, obs }: { days: DayResult[]; nowX: numb
               strokeWidth={2}
               strokeLinejoin="round"
             >
-              <title>実測潮位（気象庁「潮位観測情報」{obs.name}）</title>
+              <title>{obs.near ? `実測潮位の推定（近くの${obs.name}の観測から）` : `実測潮位（気象庁「潮位観測情報」${obs.name}）`}</title>
             </polyline>
           )}
           {nowX != null && (
@@ -564,7 +564,7 @@ export default function ShioBoard({ spotName, spotType, days: allDays, tips, rec
         {obs && isToday && (
           <li>
             <i style={{ background: "#f08a24", height: 3 }} />
-            実測潮位（今日）
+            {obs.near ? `実測潮位（今日・近くの${obs.name}の観測から推定）` : "実測潮位（今日）"}
           </li>
         )}
         <li>風はm/s・波はm。「≧」「約」は見積もり、「－」は予報前</li>

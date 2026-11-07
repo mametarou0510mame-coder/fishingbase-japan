@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { jstToday, predictedAt, type TideDay } from "@/lib/tideCalc";
 import { loadPoints, loadRealtime } from "@/lib/tideObs";
 
-export type TodayObs = { pts: { h: number; cm: number }[]; lastDev: number; name: string } | null;
+// near: 近くの観測地点（km 先）の潮位偏差を借りた推定。lastH: 最後の観測の時刻（0時からの時間）
+export type TodayObs = { pts: { h: number; cm: number }[]; lastDev: number; lastH: number; name: string; near: boolean; km: number | null } | null;
 
 export function useTodayObs(code: string | undefined, days: { date: string; hourly: (number | null)[]; high: TideDay["high"]; low: TideDay["low"] }[] | null): TodayObs {
   const [obs, setObs] = useState<TodayObs>(null);
@@ -31,7 +32,7 @@ export function useTodayObs(code: string | undefined, days: { date: string; hour
         const p = predictedAt(map, today, h);
         if (p != null) pts.push({ h, cm: p + r.dev[i] });
       });
-      if (pts.length) setObs({ pts, lastDev: r.dev[r.dev.length - 1], name: pt.name });
+      if (pts.length) setObs({ pts, lastDev: r.dev[r.dev.length - 1], lastH: r.h[r.h.length - 1], name: pt.name, near: !!pt.near, km: pt.km ?? null });
     })();
     return () => {
       alive = false;

@@ -2,6 +2,7 @@
 // サイトは天気の更新（1日3回）ごとに作り直されるため、表示はそのたびに新しくなる。
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { inSeason } from "@/lib/season";
 import { areaOfSpot } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 import { computeJiai, windLookup, type JiaiWindow } from "@/lib/jiai";
@@ -52,6 +53,10 @@ export function buildJiai(): { dates: string[]; spots: SpotJiai[] } {
       for (const date of dates) {
         const tide = tideDays(spot.tideStation.code, Number(date.slice(0, 4))).find((d) => d.date === date);
         if (!tide) continue;
+        if (!inSeason(spot.season, date)) {
+          days[date] = { windows: [], note: "営業期間外", maxWind: null };
+          continue;
+        }
         const m = Number(date.slice(5, 7));
         const wind = windLookup(forecast?.hourly, date);
         const r = computeJiai({

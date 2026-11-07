@@ -19,6 +19,13 @@ import {
   parseShimotsuPost,
   parseAtomEntries,
   storeBlogReports,
+  parseRssFull,
+  mdToDate,
+  parseFreeTextCatches,
+  parseUmibeFishing,
+  parseKashimaMonthly,
+  parseIchiharaList,
+  parseIchiharaDetail,
 } from "./catch-parsers.mjs";
 
 const OUT = new URL("../public/data/catches.json", import.meta.url);
@@ -120,13 +127,64 @@ async function amagasaki() {
   return { reports, monthly: null };
 }
 
-// 釣具のポイント（関西エリアのお持込釣果）。釣場の書き方から当サイトの釣り場に結び付くものだけ。
-async function pointKansai() {
+// 釣具のポイント（お持込釣果）。釣場の書き方から当サイトの釣り場に結び付くものだけ。
+// area_id: 94 関西 / 72 関東 / 92 広島 / 91 山口 / 76 北九州・大分 / 79 長崎 / 82 鹿児島
+const pointArea = (areaId, pages) => async () => {
   const reports = [];
-  for (const page of [1, 2, 3, 4, 5]) {
-    const html = await get(`https://www.point-i.jp/fishing_infos?area_id=94&shop_id=0&page=${page}`);
+  for (let page = 1; page <= pages; page++) {
+    const html = await get(`https://www.point-i.jp/fishing_infos?area_id=${areaId}&shop_id=0&page=${page}`);
     if (!html.includes("/fishing_infos/")) break;
     reports.push(...parsePointList(html));
+  }
+  return { reports, monthly: null };
+};
+
+// ---- 関西以外の施設（2026-11-07 追加。robots.txt で許可されていることを確認済み）----
+
+// 苫小牧港「一本防波堤」：釣果情報カテゴリーのRSS（本文に魚種・サイズ・尾数が文で書かれている）
+async function ipponBohatei() {
+  const xml = await get("https://ippon-b.com/category/choka/feed/");
+  const reports = [];
+  for (const item of parseRssFull(xml).slice(0, 15)) {
+    if (!/釣果/.test(item.title)) continue;
+    const date = mdToDate(item.title, rssDateToJst(item.pubDate)) ?? rssDateToJst(item.pubDate);
+    if (!date) continue;
+    parseFreeTextCatches(item.content).forEach((r, i) => reports.push({ id: `${item.link}#${i}`, date, ...r, url: item.link }));
+  }
+  return { reports, monthly: null };
+}
+
+// 横須賀市 海辺つり公園：「釣場情報・釣果状況」（毎朝、前日に釣れた魚種を配信）
+async function umibeTsuriKoen() {
+  const html = await get("https://www.kanagawaparks.com/umibeturi/fishing/");
+  const reports = parseUmibeFishing(html).map((r) => ({ id: `umibe-${r.date}-${r.species}`, ...r, url: "https://www.kanagawaparks.com/umibeturi/fishing/" }));
+  return { reports, monthly: null };
+}
+
+// 鹿島港魚釣園：月ごとの釣果の記事（RSS の本文に日ごとの魚種）
+async function kashimaUotsurien() {
+  const xml = await get("https://kashima-fa.com/feed/");
+  const reports = [];
+  for (const item of parseRssFull(xml).slice(0, 10)) {
+    if (!/最新更新日|釣果/.test(item.title + item.content.slice(0, 300))) continue;
+    parseKashimaMonthly(item.content, rssDateToJst(item.pubDate)).forEach((r) =>
+      reports.push({ id: `kashima-${r.date}-${r.species}`, ...r, url: item.link }),
+    );
+  }
+  return { reports, monthly: null };
+}
+
+// オリジナルメーカー海づり公園（市原市）：一覧から日ごとの詳細ページを開く
+async function ichiharaUmizuri() {
+  const list = parseIchiharaList(await get("https://ichihara-umizuri.com/fishing/"));
+  const reports = [];
+  for (const d of list.slice(0, 5)) {
+    try {
+      const { date, reports: rs } = parseIchiharaDetail(await get(d.url));
+      rs.forEach((r, i) => reports.push({ id: `${d.url}#${i}`, date: date ?? d.date, ...r, url: d.url }));
+    } catch (e) {
+      console.log(`::warning::[catches] ichihara 詳細ページ失敗: ${e.message}`);
+    }
   }
   return { reports, monthly: null };
 }
@@ -228,7 +286,30 @@ const SOURCES = [
     url: `https://anglers.lekumo.biz/${store}/`,
     run: maruhaBlog(store),
   })),
-  { spot: null, key: "point-kansai", idPrefix: "point-", name: "釣具のポイント お持込釣果", url: "https://www.point-i.jp/fishing_infos?area_id=94", run: pointKansai },
+  { spot: "tomakomai-ippon-bohatei", name: "苫小牧港海釣り施設「一本防波堤」 釣果情報", url: "https://ippon-b.com/choka/", run: ipponBohatei },
+  { spot: "yokosuka-umibe-tsuri-koen", name: "横須賀市 海辺つり公園 釣場情報・釣果状況", url: "https://www.kanagawaparks.com/umibeturi/fishing/", run: umibeTsuriKoen },
+  { spot: "kashimako-uotsurien", name: "鹿島港魚釣園 釣果ブログ", url: "https://kashima-fa.com/blog/", run: kashimaUotsurien },
+  { spot: "ichihara-umizuri-koen", name: "オリジナルメーカー海づり公園 釣果情報", url: "https://ichihara-umizuri.com/fishing/", run: ichiharaUmizuri },
+  { spot: null, key: "point-kansai", idPrefix: "point-", name: "釣具のポイント お持込釣果", url: "https://www.point-i.jp/fishing_infos?area_id=94", run: pointArea(94, 5) },
+  // 関西以外の地域。釣り場の名前が書かれた釣果だけを使う（ほとんどは船釣りや地名だけなので、件数は少ない）
+  ...[
+    [72, "関東"],
+    [92, "広島"],
+    [91, "山口"],
+    [76, "北九州・大分"],
+    [79, "長崎"],
+    [82, "鹿児島"],
+  ].map(([id, label]) => ({
+    spot: null,
+    key: `point-${id}`,
+    idPrefix: `pt${id}-`,
+    name: `釣具のポイント お持込釣果（${label}）`,
+    url: `https://www.point-i.jp/fishing_infos?area_id=${id}`,
+    run: async () => {
+      const { reports } = await pointArea(id, 2)();
+      return { reports: reports.map((r) => ({ ...r, id: r.id.replace(/^point-/, `pt${id}-`) })), monthly: null };
+    },
+  })),
   { spot: null, key: "user-posts", idPrefix: "user-", name: "ツレドキ関西 みんなの釣果投稿", url: "https://tsuredoki-kansai.mametarou0510mame.workers.dev/post/", run: userPosts },
 ];
 

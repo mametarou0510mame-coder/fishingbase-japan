@@ -7,22 +7,26 @@
 export const SPECIES_DICT = [
   ["アジ・サバ・イワシ", "アジ/サバ/イワシ", "アジ・サバ・イワシ"],
   ["青物（種類不明）", "青物"],
-  ["アジ", "マアジ", "小アジ", "豆アジ", "アジ"],
-  ["サバ", "マサバ", "ゴマサバ", "小サバ", "サバ"],
+  ["シマアジ", "シマアジ"],
+  ["イトヒキアジ", "イトヒキアジ"],
+  ["アジ", "マアジ", "小アジ", "豆アジ", "鯵", "アジ"],
+  ["サバ", "マサバ", "ゴマサバ", "小サバ", "小鯖", "鯖", "サバ"],
   ["イワシ", "カタクチイワシ", "マイワシ", "ウルメイワシ", "イワシ"],
   ["タチウオ", "太刀魚", "タチウオ"],
   ["チヌ（クロダイ）", "クロダイ", "黒鯛", "チヌ"],
-  ["ハマチ・ブリ", "ツバス", "ハマチ", "メジロ", "ワラサ", "ブリ"],
+  ["ヒラマサ", "ヒラマサ"],
+  ["ハマチ・ブリ", "ツバス", "ハマチ", "メジロ", "ワラサ", "イナダ", "ワカシ", "フクラギ", "ブリ"],
   ["サゴシ（サワラ）", "サゴシ", "サワラ"],
-  ["シオ（カンパチ）", "カンパチ", "シオ"],
+  ["シオ（カンパチ）", "カンパチ", "ショゴ", "シオ"],
   ["メバル", "メバル"],
+  ["オニカサゴ", "オニカサゴ"],
   ["ガシラ（カサゴ）", "カサゴ", "ガシラ"],
   ["アコウ（キジハタ）", "キジハタ", "アコウ"],
   ["グレ（メジナ）", "メジナ", "グレ"],
   ["マダイ", "マダイ", "真鯛", "チャリコ", "小鯛"],
   ["ヘダイ", "ヘダイ"],
-  ["コブダイ", "コブダイ"],
-  ["ウミタナゴ", "ウミタナゴ"],
+  ["コブダイ", "カンダイ", "コブダイ"],
+  ["ウミタナゴ", "海タナゴ", "ウミタナゴ"],
   ["ベラ", "キュウセン", "ギザミ", "ベラ"],
   ["カワハギ", "マルハギ", "丸ハゲ", "カワハギ"],
   ["ウマヅラハギ", "長ハゲ", "ウマヅラハギ"],
@@ -31,13 +35,13 @@ export const SPECIES_DICT = [
   ["アオリイカ", "アオリイカ"],
   ["タコ", "マダコ", "イイダコ", "タコ"],
   ["キス", "シロギス", "キス"],
-  ["カレイ", "マコガレイ", "カレイ"],
+  ["カレイ", "マコガレイ", "クロガシラ", "マガレイ", "イシガレイ", "スナガレイ", "マツカワ", "カレイ"],
   ["ヒラメ", "ヒラメ"],
-  ["アイナメ", "アイナメ"],
+  ["アイナメ", "アブラコ", "アイナメ"],
   ["ハゼ", "ハゼ"],
   ["ボラ", "ボラ"],
   ["コノシロ", "コノシロ"],
-  ["イシダイ", "石鯛", "サンバソウ", "イシダイ"],
+  ["イシダイ", "石鯛", "サンバソウ", "シマダイ", "イシダイ"],
   ["イシガキダイ", "イシガキダイ"],
   ["ハオコゼ", "ハオコゼ"],
   ["イサキ", "ウリボウ", "イサキ"],
@@ -48,6 +52,25 @@ export const SPECIES_DICT = [
   ["フグ", "クサフグ", "フグ"],
   ["アイゴ", "バリ", "アイゴ"],
   ["クエ", "クエ"],
+  // 関西以外の釣り場でよく出る魚（2026-11-07 全国の釣果を集めるため追加）
+  ["ソイ", "クロソイ", "シマゾイ", "ムラソイ", "ソイ"],
+  ["カジカ", "トウベツカジカ", "カジカ"],
+  ["ガヤ（エゾメバル）", "エゾメバル", "ガヤ"],
+  ["ホッケ", "ホッケ"],
+  ["ニシン", "ニシン"],
+  ["サケ", "アキアジ", "サケ"],
+  ["チカ", "チカ"],
+  ["ハタハタ", "ハタハタ"],
+  ["アナゴ", "アナゴ"],
+  ["ソウダガツオ", "ソーダカツオ", "ソータカツオ", "ソウダガツオ", "ソーダガツオ"],
+  ["ウスバハギ", "ウスバハギ"],
+  ["タカノハダイ", "タカノハダイ"],
+  ["ホウボウ", "ホウボウ"],
+  ["マゴチ", "マゴチ"],
+  ["ダツ", "ダツ"],
+  ["チダイ", "チダイ"],
+  ["クロムツ", "クロムツ"],
+  ["メッキ", "メッキ"],
 ];
 const ALIASES = SPECIES_DICT.flatMap(([canon, ...aliases]) => aliases.map((a) => [a, canon])).sort(
   (a, b) => b[0].length - a[0].length,
@@ -288,6 +311,23 @@ export const PLACE_RULES = [
   [/大蔵海岸/, "okura-kaigan-higashi"],
   [/中崎.*(護岸|ベランダ)|ベランダ護岸/, "nakasaki-veranda-gogan"],
   [/下津ピアーランド|シモツピアーランド/, "shimotsu-pialand"],
+  // 関西以外（釣具のポイントの「釣場」欄などで、施設の名前が書かれているものだけ）
+  [/光フィッシングパーク|フィッシングパーク光|光市.*海釣り/, "fishing-park-hikari"],
+  [/脇田.*(桟橋|海釣り)|脇田海釣/, "wakita-umizuri-sanbashi"],
+  [/鴨池海づり|鴨池海釣り/, "kamoike-umizuri-koen"],
+  [/桜島海づり|桜島海釣り/, "sakurajima-umizuri-koen"],
+  [/観音東防波堤|観音マリーナ/, "kannon-higashi-bohatei"],
+  [/飛島磯釣り|高島.*磯釣り/, "takashima-tobishima-isotsuri-koen"],
+  [/本牧海づり|本牧海釣り/, "honmoku-umizuri-shisetsu"],
+  [/大黒海づり|大黒海釣り/, "daikoku-umizuri-shisetsu"],
+  [/磯子海づり|磯子海釣り/, "isogo-umizuri-shisetsu"],
+  [/海辺つり公園|海辺釣り公園/, "yokosuka-umibe-tsuri-koen"],
+  [/東扇島西公園/, "higashi-ogishima-nishi-koen"],
+  [/若洲.*(海釣り|海づり|釣り施設)/, "wakasu-kaihin-koen-umizuri"],
+  [/市原.*(海づり|海釣り)|オリジナルメーカー海づり/, "ichihara-umizuri-koen"],
+  [/清水港海づり|清水港海釣り/, "shimizuko-umizuri-koen"],
+  [/鹿島港魚釣園/, "kashimako-uotsurien"],
+  [/碧南(海)?釣り広場/, "hekinan-tsuri-hiroba"],
 ];
 export const POINT_PLACE_RULES = PLACE_RULES;
 export function matchPlace(text) {
@@ -395,4 +435,144 @@ export function storeBlogReports(entries, idPrefix) {
     );
   }
   return out;
+}
+
+
+// ---- 関西以外の施設（2026-11-07 追加）----
+
+// 苫小牧港「一本防波堤」：釣果報告の本文（自由な文）から魚種・サイズ・尾数を読む
+// 例: "釣果はソイ（３０〜３９ｃｍ）４尾、ブブラコ３８ｃｍ１尾、クロガシラ４４ｃｍ１尾、サバ２０ｃｍ３尾でした。"
+// かっこの中の「、」では区切らない。
+export function parseFreeTextCatches(text) {
+  const t = toHalf(decodeEntities(stripTags(text)));
+  const parts = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of t) {
+    if (ch === "(" || ch === "（") depth++;
+    if (ch === ")" || ch === "）") depth = Math.max(0, depth - 1);
+    if (depth === 0 && /[、，,。\n]/.test(ch)) {
+      parts.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  parts.push(cur);
+  const out = [];
+  for (const p of parts) {
+    const sp = findSpecies(p.replace(/[(（][^)）]*[)）]/g, ""))[0] ?? findSpecies(p)[0];
+    if (!sp) continue;
+    if (!/\d/.test(p)) continue; // 数字（サイズ・尾数）のない文は、天気などの説明の可能性があるので使わない
+    if (out.some((r) => r.species === sp)) continue;
+    out.push({ species: sp, sizeCm: parseMaxSizeCm(p), count: parseCount(p), method: null, time: null });
+  }
+  return out;
+}
+
+// RSS の本文（content:encoded）つきの項目
+export function parseRssFull(xml) {
+  const items = [];
+  for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+    const body = m[1];
+    const tag = (name) => {
+      const r = body.match(new RegExp(`<${name}>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</${name}>`));
+      return r ? r[1].trim() : "";
+    };
+    items.push({ title: decodeEntities(tag("title")), link: decodeEntities(tag("link")), pubDate: tag("pubDate"), content: tag("content:encoded") });
+  }
+  return items;
+}
+
+// 見出しの「10月31日」と公開日の年から日付を作る（年をまたぐときは前の年）
+export function mdToDate(text, pubJst) {
+  const m = toHalf(text).match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+  if (!m || !pubJst) return null;
+  let y = Number(pubJst.slice(0, 4));
+  const mm = Number(m[1]);
+  if (mm > Number(pubJst.slice(5, 7)) + 1) y -= 1;
+  return `${y}-${String(mm).padStart(2, "0")}-${String(Number(m[2])).padStart(2, "0")}`;
+}
+
+// 横須賀市 海辺つり公園「釣場情報・釣果状況」：毎朝の配信の「昨日、11月4日の釣果」のあとに、魚種が1行ずつ並ぶ
+export function parseUmibeFishing(html) {
+  const out = [];
+  for (const block of html.split(/<h2[^>]*>/).slice(1)) {
+    const text = decodeEntities(block.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|li)>/gi, "\n").replace(/<[^>]+>/g, ""));
+    const pub = toHalf(text).match(/配信日:\s*(\d{4})年(\d{1,2})月(\d{1,2})日/);
+    const head = toHalf(text).match(/昨日、?\s*(\d{1,2})月(\d{1,2})日の釣果/);
+    if (!pub || !head) continue;
+    let y = Number(pub[1]);
+    if (Number(head[1]) > Number(pub[2])) y -= 1; // 1月1日の配信で「12月31日の釣果」
+    const date = `${y}-${head[1].padStart(2, "0")}-${head[2].padStart(2, "0")}`;
+    const after = text.slice(text.indexOf("の釣果") + 3);
+    const end = after.search(/昨日の目立った|昨日の魚の活性|活性度|配信日/);
+    const lines = (end >= 0 ? after.slice(0, end) : after).split(/\n/).map((l) => l.trim()).filter(Boolean);
+    const seen = new Set();
+    for (const l of lines) {
+      const sp = findSpecies(l.replace(/[(（][^)）]*[)）]/g, ""))[0];
+      if (!sp || seen.has(sp)) continue;
+      seen.add(sp);
+      out.push({ date, species: sp, sizeCm: parseMaxSizeCm(l), count: null, method: null, time: null });
+    }
+  }
+  return out;
+}
+
+// 鹿島港魚釣園：月ごとの記事の本文に「11月6日(金) 晴れ時々曇り 水温20.5度 タコ ウスバハギ …」が日ごとに並ぶ
+// 「休園」「閉園」とだけある日は飛ばす
+export function parseKashimaMonthly(content, pubJst) {
+  const text = toHalf(decodeEntities(stripTags(content)));
+  const out = [];
+  const re = /(\d{1,2})月(\d{1,2})日\s*[(（][日月火水木金土祝・]+[)）]/g;
+  const hits = [...text.matchAll(re)];
+  hits.forEach((m, i) => {
+    const seg = text.slice(m.index + m[0].length, i + 1 < hits.length ? hits[i + 1].index : text.length);
+    if (/終日休園|定休日のため休園|休園$/.test(seg.trim()) && !/水温/.test(seg)) return;
+    const body = seg.includes("水温") ? seg.slice(seg.indexOf("水温")).replace(/^水温[\d.]+度/, "") : seg;
+    const date = mdToDate(m[0], pubJst);
+    if (!date) return;
+    for (const sp of findSpecies(body.replace(/\d{1,2}:\d{2}\s*強風のため閉園/g, ""))) out.push({ date, species: sp, sizeCm: null, count: null, method: null, time: null });
+  });
+  return out;
+}
+
+// オリジナルメーカー海づり公園（市原市）：釣果の一覧（日付と詳細ページへのリンク）
+export function parseIchiharaList(html) {
+  const out = [];
+  const seen = new Set();
+  // 詳細ページへのリンクごとに、その前にある直近の日付を使う
+  for (const m of html.matchAll(/href="(https:\/\/ichihara-umizuri\.com\/fishing\/\d+)\/?"/g)) {
+    if (seen.has(m[1])) continue;
+    const before = html.slice(Math.max(0, m.index - 30000), m.index);
+    const ds = [...before.matchAll(/(\d{4})年(\d{2})月(\d{2})日/g)];
+    const d = ds[ds.length - 1];
+    if (!d) continue;
+    seen.add(m[1]);
+    out.push({ date: `${d[1]}-${d[2]}-${d[3]}`, url: m[1] });
+  }
+  return out;
+}
+
+// 詳細ページ：「釣果」の見出しのあとに「魚種 / 15.0cm～20.0cm / 合計 70匹」が並ぶ
+export function parseIchiharaDetail(html) {
+  const main = html.slice(Math.max(0, html.indexOf("<main")));
+  const lines = decodeEntities(main.replace(/<(script|style)[\s\S]*?<\/\1>/g, "").replace(/<[^>]+>/g, "\n"))
+    .split("\n")
+    .map((l) => toHalf(l).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const d = lines.join(" ").match(/(\d{4})年(\d{2})月(\d{2})日/);
+  const start = lines.indexOf("釣果");
+  if (!d || start < 0) return { date: null, reports: [] };
+  const reports = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    const l = lines[i];
+    if (/一覧にもどる/.test(l)) break;
+    const sp = findSpecies(l)[0];
+    if (!sp || /cm|合計/.test(l)) continue;
+    const size = /cm/i.test(lines[i + 1] ?? "") ? lines[i + 1] : "";
+    const total = [lines[i + 1], lines[i + 2]].find((x) => /合計/.test(x ?? "")) ?? "";
+    if (!size && !total) continue; // 末尾の魚種だけの一覧（重複）は飛ばす
+    if (reports.some((r) => r.species === sp && r.sizeCm === parseMaxSizeCm(size))) continue;
+    reports.push({ species: sp, sizeCm: parseMaxSizeCm(size), count: parseCount(total.replace(/合計\s*/, "")), method: null, time: null });
+  }
+  return { date: `${d[1]}-${d[2]}-${d[3]}`, reports };
 }

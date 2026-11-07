@@ -1,4 +1,5 @@
 // 潮・海況ボードのデータをビルド時に組み立てる（気象庁の潮位表・天気予報、ECMWF の波浪予報、釣果の指数）。
+import { inSeason } from "@/lib/season";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { indexFor } from "@/lib/fishingIndex";
@@ -167,7 +168,9 @@ export function buildBoard(spot: Spot): Board {
       slots: buildSlots(date, weather, mp, m?.run ?? null),
       waveFar: (mp?.distKm ?? 0) > 5,
     };
-    days.push(evaluateDay(input, spot.type as SpotType));
+    const ev = evaluateDay(input, spot.type as SpotType);
+    // 季節営業の施設は、営業期間外の日を「営業期間外」にする（釣りどき指数・ねらい目を出さない）
+    days.push(inSeason(spot.season, date) ? ev : { ...ev, score: null, windows: [], grade: { mark: "休", label: "営業期間外", tone: "stop" } });
   }
   return {
     today,
