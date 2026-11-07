@@ -103,7 +103,68 @@
 - 大阪（気象庁の潮位表 2026年、public/data/tides/OS-2026.json）：11月で満潮と干潮の差がいちばん大きいのは26日（干潮1:37 −23cm → 満潮8:17 163cm、差186cm）。小さいのは8日（約59cm）。26日の1時間ごとの上昇は 2〜3時15cm・3〜4時25cm・4〜5時37cm・5〜6時46cm・6〜7時42cm・7〜8時19cm（まん中がいちばん速い）。
   ※「満ち潮で魚が浅い所へ寄る」「引き潮でかけあがりへ移る」は釣りの通説。動画では「〜と言われます」とした。
 
+## 側線と魚の聴覚・水中の音（2026-11-07 調査。A2 ルアーの波動・A4 足音と話し声 用）
+- 魚には水の流れを感じる「側線」という感覚器がある（「第六番目の感覚」）。
+  出典：国立科学博物館 中江雅典「魚の"第六感" 側線の研究」 https://web.kahaku.go.jp/research/researcher/my_research/zoology/nakae/download/nakae01.pdf
+- 側線は一方向の水流と、0〜約200Hzの低い振動を、体長の1〜2倍ほどの距離で感じる。
+  出典：DOSITS（ロードアイランド大学ほか）"How do fish detect sound?" https://dosits.org/animals/sound-reception/how-do-fish-hear/
+- コイの側線は200Hz以下で感度が高い。
+  出典：渡邉健二・安樂和彦「遊泳運動により誘発される側線神経の活動」日本水産学会誌73(6) 2007 https://www.miyagi.kopas.co.jp/JSFS/jsfs-english/E-PUB/73-6/p1096.html
+- 魚の音の感覚器は内耳と体側の側線器の2つ。内耳には炭酸カルシウムの耳石がある。
+  出典：水産総合研究センター研究報告28号「魚類の聴性誘発反応に関する基礎的研究」2009 https://fra.repo.nii.ac.jp/record/2010887/files/fra_k_28_115.pdf
+- 夜に狩りをするナマズは、泳ぐ獲物の後流（水の乱れ）を側線でたどる。側線が働かないと追えない。10秒前の後流も使った。
+  出典：Pohlmann, Atema, Breithaupt (2004) J. Exp. Biol. 207:2971 https://cob.silverchair.com/jeb/article-pdf/207/17/2971/1556694/2971.pdf
+- うきぶくろは音で体積が変わり、音を伝え直す。うきぶくろの無い魚（サメ・エイ、カレイ・ヒラメ類）は感度が低い。キンギョは3kHzまで（よく聞こえるのは500〜800Hz）、うきぶくろと耳がつながっていない魚（マグロなど）は1kHzより上はふつう聞こえない。出典：DOSITS（同上）
+- マダイがいちばんよく聞こえるのは0・1歳で約300Hz、2歳で約200Hz。成長すると耳がよくなる。
+  出典：岩下ほか 日本水産学会誌65(5) 1999 https://www.miyagi.kopas.co.jp/JSFS/jsfs-english/E-PUB/65-5/p833.html
+- マコガレイは60〜1,000Hz（張ほか 日本水産学会誌64(2) 1998 https://www.jstage.jst.go.jp/article/suisan1932/64/2/64_2_211/_article/-char/ja）、ヒラメは上限500Hz未満（藤枝 Fisheries Science 64(6) 1998 https://www.jstage.jst.go.jp/article/fishsci1994/64/6/64_6_870/_article/-char/ja）、マイワシは約1kHzに感度（赤松ほか Fisheries Science 69(2) 2003 https://www.jstage.jst.go.jp/article/fishsci1994/69/2/69_2_348/_article/-char/en）。
+- 水中の音速は約1500m/s（JAMSTEC https://www.jamstec.go.jp/engd/j/uatrg.html）。空気中は約340m/s（イリノイ大学 https://van.physics.illinois.edu/ask/listing/12487）。比は「4〜5倍」と言う（4.4倍は計算値）。
+- 空気と水の境目では音のほとんどが反射し、通るのはエネルギーの約0.1%（Physics World 2018 延世大学・北海道大学の研究紹介 https://physicsworld.com/cws/article/news/2018/jan/31/how-to-eavesdrop-on-underwater-conversations）。真上に近い向き（垂直から約15°以内）の音しか水に入らない（DOSITS https://dosits.org/science/movement/how-does-sound-propagate-from-air-into-water/）。
+- 水中と空気中ではdBの基準が違い、単純に比べられない。うきぶくろを持つ魚は音の影響を受けやすい。
+  出典：国土交通省 港湾局 掲載資料「洋上風力の魚類等への影響について」 https://www.mlit.go.jp/kowan/content/001735882.pdf
+- 海底を伝わる振動は大きな粒子の揺れを生み、魚は主に粒子の揺れを感じる。地面を伝わる振動の魚への影響は研究がまだ少ない。
+  出典：PNNL Tethys https://tethys.pnnl.gov/publications/substrate-vibrations-their-potential-effects-upon-fishes-invertebrates ・ https://www.pnnl.gov/publications/approaches-understanding-effects-particle-motion-and-substrate-borne-vibration-fishes
+- 海洋牧場では、餌と人工音（300Hz）を組み合わせて魚に覚えさせる方法（音響馴致）が使われた。本物の摂餌音が最も強く魚を寄せた。
+  出典：長崎大学水産学部研究報告63号 1988 https://nagasaki-u.repo.nii.ac.jp/record/9618/files/suisan63_001.pdf
+- 使わないこと：ルアーごとの波動の数値・比較、「波動が強いほど釣れる」、側線と内耳の担当が何Hzで切り替わるか、堤防の足音が水中へ何倍伝わるか、「話し声は絶対に届かない」。CGの振動の絵は「イメージ」と明記。
+
+## 魚の視覚（2026-11-07 調査。A3 魚の視界 用）
+- 魚の視力は0.1〜0.4程度で「近視」。とても澄んだ所でも、大きな物体が見えるのはせいぜい40m。
+  出典：三重大学 宮﨑多惠子「魚の知られざる行動や生態を目の機能からさぐる！」 https://www.mie-u.ac.jp/about/pr/item/vol037_13_14.pdf
+- マダイの視力は明るさで変わる：500lxで0.24、100lxで0.19、10lxで0.15、1〜0.1lxで0.10。
+  出典：塩原・有元 日本水産学会誌69(4) 2003 https://www.miyagi.kopas.co.jp/JSFS/jsfs-english/E-PUB/69-4/632.html
+- ブリの視力は体長15mmで0.04、390mmで0.23（成長で上がる）。宮城・秋山・有元 日本水産学会誌67(3) 2001 https://www.miyagi.kopas.co.jp/JSFS/jsfs-english/E-PUB/67-3/p455.html
+- マグロ・カジキ類0.3〜0.5（川村ほか 鹿児島大学 1981 https://ir.kagoshima-u.ac.jp/records/2516）、クロソイ0.09〜0.11（鳥澤ほか Fisheries Science 68(5) 2002 https://www.jstage.jst.go.jp/article/fishsci1994/68/5/68_5_984/_article/-char/en）。
+- マダイは正面を両目で見ていて、鼻先の真下あたりに死角がある（目が体の軸に対して傾いているため）。いちばんよく見える方向はマダイは前下方、クロマグロは前方斜め上。
+  出典：塩原・有元 日本水産学会誌65(4) 1999 https://www.miyagi.kopas.co.jp/JSFS/jsfs-english/E-PUB/65-4/p728.html ・ 三重大学 宮﨑（同上）
+- 片目の視野は広く、両目で見える範囲は前の狭い範囲、後ろに死角：数値はサメの例だけ（レモンザメ 片眼159°・両眼10°・死角52°）。McComb ほか J. Exp. Biol. 2009 https://www.fau.edu/science/documents/mtk09.pdf
+- 色が見える魚がいる：メジナ（行動実験 魚類学雑誌52(2) 2005 https://www.jstage.jst.go.jp/article/jji1950/52/2/52_2_141/_article/-char/en）、オオクチバス、ホッケ、マコガレイ。色覚がない・乏しいとされる魚：マグロ類、クロソイ。紫外線が見える魚もいる（マイワシ、マダイの紫外線への反応 Fisheries Science 63(2) 1997）。
+- 透明度は白い円板を沈めて見えなくなる深さ（m）。沿岸は川の土砂、沖は植物プランクトンの量に左右される。
+  出典：北海道立総合研究機構 稚内水産試験場「試験研究は今 No.968」 https://www.hro.or.jp/upload/41597/ima968.pdf
+- 懸濁物が多いと、糸や餌の水中での見え方（視程）は大きく落ちる。
+  出典：川村・有馬 鹿児島大学水産学部紀要58 2009 https://ir.kagoshima-u.ac.jp/record/10344/files/5Kawamura.pdf
+- 使わないこと：真骨魚の視野の度数、「真後ろは見えない」（マダイでは未確認）、クロダイの視力、透明度から魚の見える距離への換算、「魚はみんな色が見える／見えない」。
+
+## 水中の光と色（2026-11-07 調査。R10 赤は消える？ 用。「光と色」の続き）
+- 水は赤い光を吸収する。数m〜数十mで白い光は水色になっていく（大阪大学理学研究科 https://www.sci.osaka-u.ac.jp/ja/wp-content/themes/rigaku/qa-pdf/qa12.pdf）。2〜3mでも少し青みがかる（大阪市立科学館 https://www.sci-museum.jp/wp-content/themes/scimuseum2021/pdf/study/universe/2013/11/201311_08-09.pdf）。
+- 届きやすい順は 青→緑→黄→オレンジ→赤（NOAA https://oceanexplorer.noaa.gov/facts/animal-color.html）。
+- 深さの目安（きれいな水）：赤とオレンジは約10mまでにほとんど失われる、約150mで人の目には青だけ、約800mより深いと太陽の光は見えない（Australian Museum https://australian.museum/learn/species-identification/ask-an-expert/why-is-it-dark-in-the-deepsea/）。赤は上の10m、オレンジは約40m、黄は100mより手前で消える（Webb『Introduction to Oceanography』6.5 https://pressbooks.ccconline.org/introduction-to-oceanography/chapter/6-5-light/）。外洋は青く、沿岸は緑っぽい（同）。
+- 100mでは赤い光は届かず、赤い生き物は黒っぽく見える（NOAA https://oceanexplorer.noaa.gov/facts/red-color.html ・ https://oceanexplorer.noaa.gov/wp-content/uploads/2025/04/light-and-color-fact-sheet.pdf）。
+- ルアーの色の研究：ニジマスでは濁りで選ばれる色が変わった（龍谷大学 西大・丸山 魚類学雑誌64(2) 2017 https://www.jstage.jst.go.jp/article/jji/64/2/64_64-113/_article/-char/ja）。台湾のサバ延縄では透明・紫・青が釣れにくかった（Fisheries Science 67(3) 2001）。オオクチバスでは釣れる数は色で変わらなかった（Plymouth大学 2015 https://pearl.plymouth.ac.uk/handle/10026.1/11441）。
+- 使わないこと：「赤は水深◯mで完全に消える」と一つの数値で言う、濁った沿岸での色ごとの深さ、人の目と魚の目の見え方を同じとする、「この魚にはこの色」と断定する。
+
+## アジ・タチウオ・アオリイカの行動（2026-11-07 調査。CGの動きの根拠）
+- マアジは浅い所から水深100mまで群れで生息（宮城県 https://www.pref.miyagi.jp/documents/16731/r8_august_trachurus-japonicus.pdf）。人工魚礁の調査では、昼は小さな群れが集まって大きな群れをつくり、夜は分散して浅めを泳ぐ。潮上側に集まりやすい。胃の中は浮遊性の端脚類・カイアシ類が多い（水産庁 報告書 H21 https://www.jfa.maff.go.jp/j/gyoko_gyozyo/g_thema/houkokusho/attach/pdf/H21houkokusho-14.pdf）。稚魚はプランクトン、幼魚以降は魚食性が強くなる（マアジ太平洋系群の資源評価 https://www.pref.ibaraki.jp/nourinsuisan/suishi/teichaku/documents/r7maaji.pdf）。光にはプランクトンや小魚が集まり、アジなどの捕食者も集まるという説（有元貴文 https://www2.kaiyodai.ac.jp/~tarimoto/hikari.PDF）。
+  使わないこと：コマセに寄ることを研究で確かめた、という言い方（コマセの場面は「イメージ」と明記）。群れのリーダー・順番。
+- タチウオは、昼は海底直上数mで立ち泳ぎでホバーリング、夜は中表層に浮上して横泳ぎ。牙状の鋭い歯（先に返し）で捕らえた餌を丸呑み。200g以下はアミ類など、それ以上はカタクチイワシなどの魚・甲殻類・イカ類。共食いもする（徳島県「太刀魚」2019 https://www.pref.tokushima.lg.jp/file/attachment/508963.pdf）。夕方と明け方によく食べる（宗清 1990 京都府 https://www.jstage.jst.go.jp/article/suisan1932/56/8/56_8_1193/_article/-char/en）。
+  使わないこと：立ち泳ぎから下から襲う、夜の表層で立ち泳ぎして待ち伏せ。
+- イカの腕は10本で、2本が餌を捕らえる触腕（阿嘉島臨海研究所 https://www.amsl.or.jp/dayori/AMSL06.pdf）。アオリイカは外套背長の1.5倍程度の魚類やエビ類を捕食できる（徳島県 上田 https://www.pref.tokushima.lg.jp/file/attachment/177144.pdf）。夜、水中灯に集まる小魚を捕って食べる観察、餌を抱きかかえて食べる（長崎県総合水産試験場 https://www.pref.nagasaki.jp/shared/uploads/2018/11/15426920391.pdf）。色素胞を拡大・縮小して色や模様を変え、コミュニケーションに使うと言われる（徳島水研だより68号 https://www.pref.tokushima.lg.jp/file/attachment/435387.pdf）。
+  ヤリイカの仲間では、獲物に正面を向け、腕を開き、触腕をまっすぐ伸ばして先の吸盤で捕まえ、腕に引き寄せて抱える（Vidal & Salvador 2019 https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2019.01558/pdf）。伸びるのは触腕の柄の部分で、獲物まで20〜30ミリ秒（Kier & van Leeuwen 1997 J. Exp. Biol.）。
+  使わないこと：アオリイカ自身の捕獲動作として断定（「ヤリイカの仲間で知られる動き」と言う）、待ち伏せ、「怒ると赤くなる」、エギを何と思っているか。
+
 ## まだ確かめられていないこと（使わない）
-- 魚の側線が感じる振動の周波数の範囲（資料が断片的）。
-- アジの1日の摂餌のリズム、魚の色覚（種類ごとの見える色）、においへの感度の数値。
+- ルアーごとの水の振動（波動）の数値・違い。堤防の足音が水中へ伝わる量。
+- 真骨魚の視野の角度、クロダイの視力、透明度から魚の見える距離への換算。濁った沿岸で色ごとに何mで消えるか。
+- アジがコマセに寄る・針に食う動き、アジの1日の摂餌のリズム、においへの感度の数値。
+- タチウオの攻撃の方向、アオリイカ自身の触腕の捕獲動作・待ち伏せ・狩りのときの体色。
 - 「釣られた魚は学習して釣られにくくなる」（海外の研究はあるが、原文を開けていない）。
