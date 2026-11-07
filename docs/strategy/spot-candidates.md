@@ -80,7 +80,7 @@ robots.txt の確認結果（2026-10-20、オーナー承認後）:
 | 海辺つり公園（横須賀） | https://www.kanagawaparks.com/robots.txt | 2026-11-07 確認。/wp-admin/ 以外は許可。/umibeturi/fishing/ から取得 |
 | 鹿島港魚釣園 | https://kashima-fa.com/robots.txt | 2026-11-07 確認。/wp-admin/ 以外は許可。RSS https://kashima-fa.com/feed/ の月ごとの記事から取得 |
 | 市原海づり公園 | https://ichihara-umizuri.com/robots.txt | 2026-11-07 確認。/wp-admin/ 以外は許可。/fishing/ の一覧と詳細ページから取得 |
-| カンパリ（釣果情報サイト） | https://fishing.ne.jp/robots.txt | 2026-11-07：Cloudflare のボット確認（「Just a moment...」、HTTP 403）で、robots.txt・利用規約 /kiyaku・釣果ページのどれも自動では読めない。ボット確認を回避しての取得はしない。オーナー指示で個人投稿だけの取り込みを検討中。利用規約はオーナーにブラウザで確認してもらう |
+| カンパリ（釣果情報サイト） | https://fishing.ne.jp/robots.txt | 2026-11-07：Cloudflare のボット確認（「Just a moment...」、HTTP 403）で、robots.txt・利用規約 /kiyaku・釣果ページのどれも自動では読めない。ボット確認を回避しての取得はしない。オーナーに利用規約（平成30年9月20日改定、運営：株式会社ホワイトスペース）を貼ってもらい確認：第12条で投稿データの知的財産権はすべて運営会社に譲渡され、サイトの情報は「弊社の承認した場合を除き」指定の方法以外で使えない。第10条で無断転載・再配布、サーバーに負担をかける行為を禁止。→ 個人投稿だけでも、運営会社の許可がなければ取り込まない（2026-11-07） |
 | 横浜の海づり施設 | https://yokohama-fishingpiers.jp/robots.txt | 2026-11-07：robots.txt なし（404）。サイトは AWS AppSync の非公開APIで表示しているため、取得しない |
 | 飛島磯釣り公園（長崎） | http://www.tobishima.net/ | 2026-11-07：接続できず |
 | 和歌山北港海つり公園 | https://wakayama-fising.jp/robots.txt | 承認後も読み込みエラーで確認できず。公式の釣果ページもないため、自動取得はしない |
