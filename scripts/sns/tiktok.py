@@ -183,6 +183,14 @@ def cmd_post(path, caption, privacy="SELF_ONLY"):
         sys.exit(f"投稿できませんでした：{s.get('data', {}).get('fail_reason')}")
 
 
+def cg_caption(slug):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from reels import cap_tags
+    d = json.load(open(os.path.join(ROOT, "content/cg", slug + ".json"), encoding="utf-8"))
+    text = d["caption"] + ("\n\n" + d["ask"] if d.get("ask") else "") + "\n\n" + d.get("tags", "")
+    return cap_tags(text)
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
@@ -190,4 +198,5 @@ if __name__ == "__main__":
     {"auth-url": lambda: cmd_auth_url(),
      "exchange": lambda: cmd_exchange(a[1]),
      "check": lambda: cmd_check(),
-     "post": lambda: cmd_post(a[1], a[2], *(a[3:4]))}[a[0]]()
+     "post": lambda: cmd_post(a[1], a[2], *(a[3:4])),
+     "post-cg": lambda: cmd_post(a[2], cg_caption(a[1]), *(a[3:4]))}[a[0]]()

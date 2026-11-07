@@ -7,15 +7,27 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "auth-url / exchange / check"
+        description: "auth-url / exchange / check / post-cg"
         required: true
         default: "auth-url"
         type: choice
-        options: [auth-url, exchange, check]
+        options: [auth-url, exchange, check, post-cg]
       code:
         description: "exchange のとき：戻り先ページに出たコード"
         required: false
         default: ""
+      slug:
+        description: "post-cg のとき：content/cg の short-* の slug"
+        required: false
+        default: ""
+      video:
+        description: "post-cg のとき：動画ファイル（例 public/sns/cg-sp-ch-2026-11-07.mp4）"
+        required: false
+        default: ""
+      privacy:
+        description: "post-cg のとき：公開範囲（審査前は SELF_ONLY）"
+        required: false
+        default: "SELF_ONLY"
 
 permissions:
   contents: write
@@ -32,9 +44,13 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           ACTION: ${{ github.event.inputs.action }}
           CODE: ${{ github.event.inputs.code }}
+          SLUG: ${{ github.event.inputs.slug }}
+          VIDEO: ${{ github.event.inputs.video }}
+          PRIVACY: ${{ github.event.inputs.privacy }}
         run: |
           echo "::add-mask::$CODE"
           if [ "$ACTION" = exchange ]; then python scripts/sns/tiktok.py exchange "$CODE"
+          elif [ "$ACTION" = post-cg ]; then python scripts/sns/tiktok.py post-cg "$SLUG" "$VIDEO" "$PRIVACY"
           else python scripts/sns/tiktok.py "$ACTION"; fi
       - name: Save
         run: |
