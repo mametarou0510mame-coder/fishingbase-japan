@@ -19,7 +19,7 @@ function S1(c){const rod=rodC([250,640],[190,330],[480,230],[548,450],14,3,c.ink
  ${SP.splash2(740,872,380,170,c,4)}${buriG2({x:m[0],y:m[1],rot:50,scale:.47,bend:-128,c:monoC(c),outline:0,simple:true})}${SP.splash2(740,872,380,170,c,4,"front")}
  <g transform="translate(500 985) skewX(-10)"><text text-anchor="middle" font-family="${JP}" font-weight="900" font-size="46" fill="${c.ink}" letter-spacing="14">FISHING TIME · KANSAI</text></g></svg>`;}
 // S2: no frame — title, one sun, horizon line, rod, buri + splash
-function S2(c,o={}){const fam=o.fam||JP, fw=o.fw||900, fs=o.fs||158, sk=o.sk??-10, sy=o.sy||1.32, ls=o.ls??-2, ffam=o.ffam||JP, ffs=o.ffs||46;const rod=rodC([180,700],[130,420],[400,330],[470,520],14,3,c.ink);const m=[560,520];
+function S2(c,o={}){const fam=o.fam||JP, fw=o.fw||900, fs=o.fs||158, sk=o.sk??-10, sy=o.sy||1.32, ls=o.ls??-2, ffam=o.ffam||JP, ffs=o.ffs||46;const rod=rodC([40,990],[150,560],[330,320],[470,405],20,3,c.ink);const m=[560,520];
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1040" width="1000" height="1040">
  <g transform="translate(500 250) skewX(${sk}) scale(1 ${sy})"><text text-anchor="middle" font-family="${fam}" font-weight="${fw}" font-size="${fs}" fill="${c.ink}" letter-spacing="${ls}">TSUREDOKI</text></g>
  <defs><clipPath id="s2"><rect x="0" y="0" width="1000" height="760"/></clipPath></defs>
