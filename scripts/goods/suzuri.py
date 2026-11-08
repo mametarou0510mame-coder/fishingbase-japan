@@ -83,7 +83,11 @@ def cmd_publish(spec_path, flag="true"):
             continue
         prods = [{"itemId": p["itemId"], "exemplaryItemVariantId": p["exemplaryItemVariantId"], "published": pub,
                   "resizeMode": p.get("resizeMode", "contain")} for p in m["products"]]
-        r = req("PUT", f"/materials/{m['material_id']}", {"products": prods})
+        body = {"products": prods}
+        for k in ("title", "description"):
+            if m.get(k):
+                body[k] = m[k]
+        r = req("PUT", f"/materials/{m['material_id']}", body)
         for pr in r.get("products", []):
             summary(f"{m['title']}：{pr.get('sampleUrl') or ''}（published={pr.get('published')}）")
             for u in [pr.get("sampleImageUrl"), pr.get("pngSampleImageUrl")]:

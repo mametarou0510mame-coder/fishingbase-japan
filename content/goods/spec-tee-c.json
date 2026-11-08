@@ -4,7 +4,7 @@
    "title": "TSUREDOKI 朝日とブリ",
    "texture": "content/goods/print/back-light.png",
    "price": 300,
-   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の水平線、ぶち曲がる竿、跳ねるブリ。吸汗速乾のドライ生地で釣り場でも快適。",
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の水平線、ぶち曲がる竿、跳ねるブリ。吸汗速乾のドライ生地で釣り場でも快適。\n\n※このページは明るい色（ホワイト・アイスグレー）向けの紺色デザインです。ブラックをお求めの方は「TSUREDOKI 朝日とブリ（ブラック）」をお選びください。\nhttps://suzuri.jp/Tsuredoki/21327332/united-athle-4-1oz-dry-athletic-t-shirt-for-shop/m/black",
    "products": [
     {
      "itemId": 910,
@@ -19,7 +19,7 @@
    "title": "TSUREDOKI 朝日とブリ（ブラック）",
    "texture": "content/goods/print/back-dark.png",
    "price": 300,
-   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の水平線、ぶち曲がる竿、跳ねるブリ。吸汗速乾のドライ生地で釣り場でも快適。",
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の水平線、ぶち曲がる竿、跳ねるブリ。吸汗速乾のドライ生地で釣り場でも快適。\n\n※このページはブラック向けの生成り色デザインです。ホワイト・アイスグレーをお求めの方は「TSUREDOKI 朝日とブリ」をお選びください。\nhttps://suzuri.jp/Tsuredoki/21327330/united-athle-4-1oz-dry-athletic-t-shirt-for-shop/m/white",
    "products": [
     {
      "itemId": 910,
