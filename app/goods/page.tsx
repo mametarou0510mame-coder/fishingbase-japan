@@ -32,8 +32,8 @@ const ITEMS: Item[] = [
   },
   {
     name: "パーカー「朝日とブリ」",
-    img: "/goods/hoodie-back.webp",
-    alt: "パーカーの背中のプリント。TSUREDOKI の文字、朝日、曲がった竿、跳ねるブリ",
+    img: "/goods/hoodie-samples.webp",
+    alt: "パーカーの背中（左：ナチュラル、右：ネイビー）。TSUREDOKI の文字、朝日、曲がった竿、跳ねるブリのプリント",
     note: "右胸にブリと TSUREDOKI の小さなマーク、背中に朝日とブリの大きなプリント。裏地はパイル。",
     buys: [
       { label: "明るい色（ナチュラルなど）", price: "6,098円", href: "https://suzuri.jp/Tsuredoki/21328445/hoodie/m/natural" },
