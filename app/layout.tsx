@@ -82,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <li><Link href="/data-deletion/">データ削除のご依頼</Link></li>
               <li><Link href="/request/">要望の書き込み箱</Link></li>
               <li><Link href="/aquarium/">マイ水族館</Link></li>
+              <li><Link href="/goods/">オリジナルグッズ</Link></li>
               <li><Link href="/contact/">お問い合わせ</Link></li>
             </ul>
             <p className="small">

@@ -71,6 +71,7 @@ export default function LinksPage() {
         <Link className="link-btn" href="/map/">地図から釣り場を探す</Link>
         <Link className="link-btn" href="/start/">はじめての釣り 1回目プラン</Link>
         <Link className="link-btn" href="/gear/sale/">釣り道具のお得情報</Link>
+        <Link className="link-btn" href="/goods/">👕 ツレドキのTシャツ・パーカー（2,816円〜）</Link>
       </nav>
 
       {gear && hotGuide && (

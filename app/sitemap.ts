@@ -26,6 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...publishedSpots().map((s) => ({ url: u(`/shio/${s.slug}/`), lastModified: now, changeFrequency: "daily" as const, priority: 0.7 })),
     { url: u("/tide/"), lastModified: now, changeFrequency: "daily", priority: 0.8 },
     ...TIDE_STATIONS.map((s) => ({ url: u(`/tide/${stationSlug(s.code)}/`), lastModified: now, changeFrequency: "daily" as const, priority: 0.6 })),
+    { url: u("/goods/"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: u("/species/"), lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     ...SPECIES.map((s) => ({ url: u(`/species/${s.slug}/`), lastModified: now, changeFrequency: "monthly" as const, priority: 0.6 })),
     { url: u("/guide/"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
