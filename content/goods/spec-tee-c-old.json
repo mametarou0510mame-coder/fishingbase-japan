@@ -1,0 +1,32 @@
+{
+ "materials": [
+  {
+   "title": "TSUREDOKI 朝日とブリ",
+   "texture": "content/goods/print/back-light.png",
+   "price": 300,
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5785,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ],
+   "material_id": 21327330
+  },
+  {
+   "title": "TSUREDOKI 朝日とブリ（ブラック）",
+   "texture": "content/goods/print/back-dark.png",
+   "price": 300,
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5787,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ],
+   "material_id": 21327332
+  }
+ ]
+}
