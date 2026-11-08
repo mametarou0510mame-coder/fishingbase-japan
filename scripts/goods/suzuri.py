@@ -103,16 +103,18 @@ def cmd_profile(spec_path):
     body = {}
     if sp.get("displayName"):
         body["displayName"] = sp["displayName"]
+    raw = "https://raw.githubusercontent.com/mametarou0510mame-coder/fishingbase-japan/main/"
+    img = (lambda p: raw + p) if sp.get("imageAsUrl") else texture
     if sp.get("avatar"):
-        body["avatar"] = texture(sp["avatar"])
+        body["avatar"] = img(sp["avatar"])
     prof = {k: sp[k] for k in ("body", "url") if sp.get(k)}
     if sp.get("headerImage"):
-        prof["headerImage"] = texture(sp["headerImage"])
+        prof["headerImage"] = img(sp["headerImage"])
     if prof:
         body["profile"] = prof
     r = req("PUT", "/user", body)
     u = r.get("user", r)
-    summary("更新しました：" + json.dumps({k: u.get(k) for k in ("name", "displayName", "avatarUrl")}, ensure_ascii=False))
+    summary("更新しました：" + json.dumps({k: u.get(k) for k in ("name", "displayName", "avatarUrl", "profile")}, ensure_ascii=False))
 
 
 def cmd_preview(ids):

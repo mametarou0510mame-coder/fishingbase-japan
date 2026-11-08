@@ -3,5 +3,6 @@
  "body": "関西の釣り情報サイト「ツレドキ」の公式グッズショップです。サイトでは、潮・天気・釣果のデータから「今日の釣れる時間」を毎日お届けしています。釣り場で着たくなる、ブリや堤防の朝をモチーフにしたオリジナルグッズを作っています。",
  "url": "https://tsuredoki-kansai.mametarou0510mame.workers.dev/",
  "avatar": "content/goods/shop/shop-avatar.png",
- "headerImage": "content/goods/shop/shop-header.png"
+ "headerImage": "content/goods/shop/shop-header.png",
+ "imageAsUrl": true
 }
