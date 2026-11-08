@@ -1,0 +1,81 @@
+"""SUZURI API でグッズを作る。
+
+  python scripts/goods/suzuri.py items            作れるアイテム（生地・色・値段）を data/goods/suzuri-items.json に保存
+  python scripts/goods/suzuri.py create SPEC.json  SPEC のとおりに素材とグッズを作る（published は SPEC で指定）
+
+トークンは環境変数 SUZURI_TOKEN（GitHub Secrets）。ログやファイルにトークンを出さない。
+"""
+import base64, json, os, sys, urllib.request, urllib.error
+
+API = "https://suzuri.jp/api/v1"
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def req(method, path, body=None):
+    tok = os.environ.get("SUZURI_TOKEN", "").strip()
+    if not tok:
+        sys.exit("SUZURI_TOKEN が未登録です（GitHub Secrets に登録してください）")
+    data = json.dumps(body).encode() if body is not None else None
+    r = urllib.request.Request(API + path, data=data, method=method, headers={
+        "Authorization": "Bearer " + tok, "Content-Type": "application/json", "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(r, timeout=180) as res:
+            return json.loads(res.read() or b"{}")
+    except urllib.error.HTTPError as e:
+        sys.exit(f"HTTP {e.code}: {e.read().decode('utf-8', 'replace')[:800]}")
+
+
+def summary(t):
+    print(t)
+    p = os.environ.get("GITHUB_STEP_SUMMARY")
+    if p:
+        open(p, "a", encoding="utf-8").write(t + "\n")
+
+
+def cmd_items():
+    d = req("GET", "/items")
+    items = d.get("items", d)
+    out = os.path.join(ROOT, "data/goods/suzuri-items.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    json.dump(items, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    rows = []
+    for it in items:
+        name = it.get("humanizeName") or it.get("name")
+        vs = it.get("variants") or []
+        prices = sorted({v.get("price") for v in vs if v.get("price")})
+        colors = sorted({(v.get("color") or {}).get("name", "") for v in vs})
+        rows.append(f"| {it.get('id')} | {it.get('name')} | {name} | {prices[0] if prices else ''} | {len(colors)} |")
+    summary("| id | name | 名前 | 最安 | 色数 |\n|---|---|---|---|---|\n" + "\n".join(rows))
+
+
+def texture(path):
+    raw = open(os.path.join(ROOT, path), "rb").read()
+    return "data:image/png;base64," + base64.b64encode(raw).decode()
+
+
+def cmd_create(spec_path):
+    spec = json.load(open(os.path.join(ROOT, spec_path), encoding="utf-8"))
+    for m in spec["materials"]:
+        prods = []
+        for p in m["products"]:
+            q = {k: v for k, v in p.items() if k != "sub_materials"}
+            if p.get("sub_materials"):
+                q["sub_materials"] = [{"texture": texture(s["texture"]), "printSide": s.get("printSide", "back"),
+                                       "enabled": True} for s in p["sub_materials"]]
+            prods.append(q)
+        body = {"texture": texture(m["texture"]), "title": m["title"], "description": m.get("description", ""),
+                "products": prods}
+        if "price" in m:
+            body["price"] = m["price"]
+        r = req("POST", "/materials", body)
+        mat = r.get("material", {})
+        summary(f"### {m['title']}\nmaterial id {mat.get('id')}")
+        for pr in r.get("products", []):
+            summary(f"- {pr.get('item', {}).get('humanizeName')}：{pr.get('sampleUrl') or pr.get('url') or ''}（published={pr.get('published')}）")
+
+
+if __name__ == "__main__":
+    a = sys.argv[1:]
+    if not a:
+        sys.exit(__doc__)
+    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1])}[a[0]]()
