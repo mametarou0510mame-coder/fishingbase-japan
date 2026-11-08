@@ -1,0 +1,44 @@
+{
+ "materials": [
+  {
+   "title": "TSUREDOKI 朝日とブリ パーカー",
+   "texture": "content/goods/print/blank.png",
+   "price": 480,
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。背中に、朝日の水平線とぶち曲がる竿、跳ねるブリ。朝夕の冷える堤防に。",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 483,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/print/back-light.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "TSUREDOKI 朝日とブリ パーカー（ダーク）",
+   "texture": "content/goods/print/blank.png",
+   "price": 550,
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。背中に、朝日の水平線とぶち曲がる竿、跳ねるブリ。朝夕の冷える堤防に。",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/print/back-dark.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
