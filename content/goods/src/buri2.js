@@ -25,7 +25,7 @@ function shapes(){
  const mouth="M2 0 Q24 6 50 12 Q56 14 52 20";
  return {bodyD,tail,dorsal1,dorsal2,anal,pelvic,pect,back,stripe,gill,pre,mouth,eye:[64,-20]};
 }
-function buriG2({x,y,rot=0,scale=1,flip=false,bend=0,c,outline=10}){
+function buriG2({x,y,rot=0,scale=1,flip=false,bend=0,c,outline=10,simple=false}){
  const S=shapes();
  const W=(px,py)=>{const t=px/1000;const sy=bend*4*t*(1-t);const dy=bend*4*(1-2*t)/1000;const m=Math.hypot(1,dy);const n=[dy/m,-1/m];return [px+n[0]*(-py)*1, sy+n[1]*(-py)];};
  const w=d=>warpPath(d,W); const e=W(...S.eye);
@@ -39,11 +39,12 @@ function buriG2({x,y,rot=0,scale=1,flip=false,bend=0,c,outline=10}){
  <path d="${w(S.bodyD)}" fill="${c.belly}"/>
  <path d="${w(S.back)}" fill="${c.back}"/>
  <path d="${w(S.stripe)}" fill="${c.stripe}"/>
- <path d="${w(S.pect)}" fill="${c.fin}" stroke="${c.ink}" stroke-width="${3/k}"/>
- <path d="${w(S.gill)}" stroke="${c.ink}" stroke-width="${5/k}" fill="none" stroke-linecap="round"/>
- <path d="${w(S.pre)}" stroke="${c.ink}" stroke-width="${3/k}" fill="none" stroke-linecap="round" opacity=".6"/>
- <path d="${w(S.mouth)}" stroke="${c.ink}" stroke-width="${4/k}" fill="none" stroke-linecap="round"/>
- <circle cx="${f(e[0])}" cy="${f(e[1])}" r="13" fill="${c.stripe}"/><circle cx="${f(e[0])}" cy="${f(e[1])}" r="9" fill="${c.ink}"/><circle cx="${f(e[0]-3)}" cy="${f(e[1]-3)}" r="2.6" fill="#fff"/>
+${simple?`<circle cx="${f(e[0])}" cy="${f(e[1])}" r="19" fill="${c.ink}"/>`:` <path d="\${w(S.pect)}" fill="\${c.fin}" stroke="\${c.ink}" stroke-width="\${3/k}"/>
+ <path d="\${w(S.gill)}" stroke="\${c.ink}" stroke-width="\${5/k}" fill="none" stroke-linecap="round"/>
+ <path d="\${w(S.pre)}" stroke="\${c.ink}" stroke-width="\${3/k}" fill="none" stroke-linecap="round" opacity=".6"/>
+ <path d="\${w(S.mouth)}" stroke="\${c.ink}" stroke-width="\${4/k}" fill="none" stroke-linecap="round"/>
+ <circle cx="\${f(e[0])}" cy="\${f(e[1])}" r="13" fill="\${c.stripe}"/><circle cx="\${f(e[0])}" cy="\${f(e[1])}" r="9" fill="\${c.ink}"/><circle cx="\${f(e[0]-3)}" cy="\${f(e[1]-3)}" r="2.6" fill="#fff"/>
+`}
  </g>`;
 }
 module.exports={buriG2};
