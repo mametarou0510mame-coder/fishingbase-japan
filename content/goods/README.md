@@ -6,6 +6,13 @@
 - 色：生成りT（`*-light.png`）と紺T（`*-dark.png`）
 - 仕上がりイメージ：`tee-front-back.png`
 
+## 販売中（SUZURI・2026-11-08 公開）
+- ドライアスレチックT（United Athle 4.1oz）前プリント「朝日とブリ」取り分300円・2,816円（税込）
+  - 明るい色用 material 21327330：https://suzuri.jp/Tsuredoki/21327330/united-athle-4-1oz-dry-athletic-t-shirt-for-shop/m/white
+  - ブラック用 material 21327332：https://suzuri.jp/Tsuredoki/21327332/united-athle-4-1oz-dry-athletic-t-shirt-for-shop/m/black
+- 作り方：.github/workflows/suzuri.yml（items / create / publish）、内容は spec-tee-c.json
+- 非公開のまま残っているもの：両面プリントのドライT・ロンT（material 21327259 / 21327264）
+
 ## ロンT第1弾（2026-11-08）
 - おもて右胸・うしろはTシャツと同じ。左袖（着る人の左腕）に縦書きの TSUREDOKI / FISHING TIME · KANSAI。
 - 仕上がりイメージ：`longt-front-back.png`
