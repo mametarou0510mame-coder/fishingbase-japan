@@ -1,0 +1,30 @@
+name: YouTube channel description
+
+# チャンネル説明に1行足す（手動実行のみ）。dry=true は確認だけ。
+on:
+  workflow_dispatch:
+    inputs:
+      line:
+        description: "足す行"
+        required: true
+      dry:
+        description: "true で確認だけ"
+        required: true
+        default: "true"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          LINE: ${{ github.event.inputs.line }}
+        run: |
+          if [ "${{ github.event.inputs.dry }}" = "true" ]; then python scripts/sns/yt_channel.py "$LINE" --dry; else python scripts/sns/yt_channel.py "$LINE"; fi
