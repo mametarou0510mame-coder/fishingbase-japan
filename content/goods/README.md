@@ -6,12 +6,18 @@
 - 色：生成りT（`*-light.png`）と紺T（`*-dark.png`）
 - 仕上がりイメージ：`tee-front-back.png`
 
+## ロンT第1弾（2026-11-08）
+- おもて右胸・うしろはTシャツと同じ。左袖（着る人の左腕）に縦書きの TSUREDOKI / FISHING TIME · KANSAI。
+- 仕上がりイメージ：`longt-front-back.png`
+- 袖プリントは SUZURI のロンTで使えるか未確認。使えない場合は、おもて・うしろだけで出す。
+
 ## 入稿データ（透過PNG）
 | ファイル | 大きさ | 使う場所 |
 |---|---|---|
 | print/back-light.png | 4000×4160 | 生成りTの背中 |
 | print/back-dark.png | 4000×4160 | 紺Tの背中 |
 | print/A-light.png / A-dark.png | 4000×4320 | 旧バックプリント（景色の枠あり。タオルなどに使える） |
+| print/sleeve-light.png / sleeve-dark.png | 縦長 | ロンTの左袖 |
 | print/chest-light.png | 3600×2040 | 生成りTの右胸 |
 | print/chest-dark.png | 3600×2040 | 紺Tの右胸 |
 | print/B-light.png | 3000×3000 | ステッカー・キャップ（丸エンブレム） |
