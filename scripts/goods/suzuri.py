@@ -146,4 +146,4 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
         sys.exit(__doc__)
-    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1]), "publish": lambda: cmd_publish(a[1], *(a[2:3])), "me": lambda: cmd_me(), "profile": lambda: cmd_profile(a[1])}[a[0]]()
+    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1]), "publish": lambda: cmd_publish(a[1], *(a[2:3])), "unpublish": lambda: cmd_publish(a[1], "false"), "me": lambda: cmd_me(), "profile": lambda: cmd_profile(a[1])}[a[0]]()
