@@ -88,6 +88,8 @@ def cmd_publish(spec_path, flag="true"):
             if m.get(k):
                 body[k] = m[k]
         r = req("PUT", f"/materials/{m['material_id']}", body)
+        print("PUT", m["material_id"], "sent price", body.get("price"), "->", {k: v for k, v in (r.get("material") or r).items() if "price" in k.lower()},
+              [(pr.get("id"), pr.get("price"), pr.get("priceWithoutTax") or pr.get("priceExcludingTax")) for pr in r.get("products", [])], flush=True)
         for pr in r.get("products", []):
             summary(f"{m['title']}：{pr.get('sampleUrl') or ''}（published={pr.get('published')}）")
             for u in [pr.get("sampleImageUrl"), pr.get("pngSampleImageUrl")]:
