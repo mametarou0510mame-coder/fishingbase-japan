@@ -20,5 +20,6 @@
 ## デザインのルール
 - 朝日は淡い黄色の半円だけ。光の筋は入れない（旭日旗に見えないように）。
 - ブリ：背は濃い青、腹は銀白、口先から目を通って尾まで黄色い帯、深い二股の黄色い尾。
-- 文字はローマ字（TSUREDOKI / FISHING TIME · KANSAI）。書体は Noto Sans CJK（SIL OFL）。
+- 文字はローマ字。TSUREDOKI は **Alfa Slab One**、FISHING TIME · KANSAI は **Bebas Neue**（どちらも SIL Open Font License。fonts/ に同梱、OFL.txt 参照）。2026-11-08 決定。
+- 生成りTのブリの帯は白（生成り）。紺Tは黄色。
 - 作り直し：`src/` の designs.js（node と playwright で SVG → PNG）。

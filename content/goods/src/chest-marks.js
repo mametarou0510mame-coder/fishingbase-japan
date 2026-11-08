@@ -3,9 +3,9 @@ const JP="Noto Sans CJK JP";
 // one-colour buri: body in ink, stripe & eye knocked out in paper
 const mono=(x,y,rot,s,ink,paper,bend=0)=>buriG2({x,y,rot,scale:s,bend,outline:0,c:{ink:paper,back:ink,belly:ink,stripe:paper,tail:ink,fin:ink}});
 // 1: buri + TSUREDOKI
-const m1=(ink,acc,paper)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="600" height="340">
- ${mono(40,150,-8,.5,ink,paper,-60)}
- <g transform="translate(300 290) skewX(-10)"><text text-anchor="middle" font-family="${JP}" font-weight="900" font-size="84" fill="${ink}" letter-spacing="2">TSUREDOKI</text></g>
+const m1=(ink,acc,paper,o={})=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="600" height="340">
+ ${o.stripe?mono(40,150,-8,.5,ink,paper,-60).replace(/fill="#f3efe6"/g,'fill="'+o.stripe+'"'):mono(40,150,-8,.5,ink,paper,-60)}
+ <g transform="translate(300 290) skewX(${o.sk??-10}) scale(1 ${o.sy||1})"><text text-anchor="middle" font-family="${o.fam||JP}" font-weight="${o.fw||900}" font-size="${o.fs||84}" fill="${ink}" letter-spacing="${o.ls??2}">TSUREDOKI</text></g>
  <rect x="80" y="306" width="440" height="8" fill="${acc}"/></svg>`;
 // 2: circle line badge, 1 colour
 const m2=(ink,acc,paper)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
