@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "none / reel"
+        description: "none / reel / carousel"
         required: true
         default: "none"
 
@@ -70,3 +70,42 @@ jobs:
               raise SystemExit("サイトに動画が出ませんでした")
           print("::notice::Instagram reel", reels.ig_reel(url, f"{SITE}/sns/goods-tee-2026-11.jpg", cap))
           PY
+      - name: Carousel images (sns-media)
+        if: github.event.inputs.publish == 'carousel'
+        run: |
+          mkdir -p /tmp/gc
+          python - <<'PY'
+          import json, datetime
+          from PIL import Image
+          files = []
+          for i in range(1, 6):
+              f = f"{i:02d}.jpg"
+              Image.open(f"content/goods/promo/carousel-{i}.png").convert("RGB").save(f"/tmp/gc/{f}", quality=92)
+              files.append(f)
+          cap = open("content/goods/promo/caption.txt", encoding="utf-8").read().replace("ナレーション：VOICEVOX:四国めたん\n\n", "")
+          stamp = "goods-tee-" + datetime.datetime.utcnow().strftime("%Y%m%d%H%M")
+          json.dump({"key": "goods-tee-carousel", "stamp": stamp, "files": files, "caption": cap}, open("/tmp/gc/post.json", "w", encoding="utf-8"), ensure_ascii=False)
+          PY
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin sns-media
+          git worktree add /tmp/sm origin/sns-media && cd /tmp/sm && git checkout -B sns-media
+          STAMP=$(python -c "import json;print(json.load(open('/tmp/gc/post.json'))['stamp'])")
+          for f in /tmp/gc/0*.jpg; do cp "$f" "/tmp/sm/$STAMP-$(basename $f)"; done
+          git add -A && git commit -qm "goods carousel images" && git push -f origin sns-media
+          sleep 20
+      - name: Publish carousel
+        if: github.event.inputs.publish == 'carousel'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python scripts/sns/ig_images.py publish /tmp/gc "https://raw.githubusercontent.com/${{ github.repository }}/sns-media"
+      - name: Save log
+        if: github.event.inputs.publish != 'none'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add data/sns 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -qm "グッズ告知の投稿記録"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
