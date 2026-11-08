@@ -2,6 +2,7 @@ name: Instagram YouTube promo
 
 # YouTube に投稿した長尺動画（完全ガイド）を、Instagram のリール（約35秒の予告編）で紹介する。
 # 毎日 15:30 と 21:30 に1本ずつ。Instagram リールと YouTube ショート（フル版へのリンク付き）の両方に出す。
+# 2026-11-09〜 長尺1本につき2本：21:30 にその日の長尺の1本目、翌日 15:30 に2本目（まん中の章）。空いた回は予告がまだの古い長尺。
 # まだ紹介していない動画がなければ何もしない。
 on:
   schedule:
@@ -9,8 +10,12 @@ on:
     - cron: "7 12 * * *" # 21:07 JST に作り始め、21:30 に投稿
   workflow_dispatch:
     inputs:
+      slot:
+        description: "night（その日の長尺の1本目を優先）/ day（前の日の長尺の2本目を優先）"
+        required: true
+        default: "night"
       wait:
-        description: "true で 21:30 まで待ってから投稿する"
+        description: "true で :30 まで待ってから投稿する"
         required: true
         default: "false"
 
@@ -37,7 +42,7 @@ jobs:
         run: |
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
           rm -f public/sns/yt-*
-          ID=$(python scripts/sns/ig_yt_promo.py make /tmp/promo | tail -1)
+          ID=$(python scripts/sns/ig_yt_promo.py make /tmp/promo ${{ github.event.schedule == '7 6 * * *' && 'day' || (github.event.inputs.slot || 'night') }} | tail -1)
           [ -f /tmp/promo/post.json ] && echo "id=$ID" >> $GITHUB_OUTPUT || echo "::notice::紹介する長尺動画はありません"
       - name: Put video on the site
         if: steps.make.outputs.id != ''

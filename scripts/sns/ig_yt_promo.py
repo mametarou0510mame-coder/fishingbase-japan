@@ -1,8 +1,9 @@
 # YouTube に投稿した長尺動画（完全ガイド）を、Instagram のリールで紹介する。
 #  縦長の画面に、長尺動画の冒頭（つかみ）と最初の釣り方の章の一部を入れた約35秒の予告編を作り、
 #  「続きはYouTubeで（プロフィールのリンクから）」と案内する。1回に1本、まだ紹介していない動画を順番に。
+#  2026-11-09〜 長尺1本につき2本：投稿した日の 21:30 に1本目、翌日の 15:30 に2本目（まん中の章を見せる）
 # 使い方:
-#   python scripts/sns/ig_yt_promo.py make <outdir>    予告編を public/sns/ に作る（紹介する動画がなければ何もしない）
+#   python scripts/sns/ig_yt_promo.py make <outdir> [day|night]  予告編を public/sns/ に作る（紹介する動画がなければ何もしない）
 #   python scripts/sns/ig_yt_promo.py publish <outdir> Instagram に投稿して、記録を残す
 import json, os, re, subprocess, sys
 from datetime import datetime, timedelta, timezone
@@ -97,19 +98,35 @@ def frame(src, chapters, total_min, thumb=None):
     return img
 
 
-def make(out):
+def pick(posts, done, slot, today):
+    """どの動画の何本目の予告を出すか。2026-11-09 オーナー：長尺1本につき予告を2本（当日 21:30 に1本目、翌日 15:30 に2本目）
+    slot：night（21:30）／day（15:30）。返り値 (slug, part, platforms) か None"""
+    ok = lambda s: not s.startswith("cg-") and os.path.exists(f"content/long/{s}.json")  # 3DCG（cg-*）は専用のショートがあるので除く
+    # Instagram は出したが YouTube ショートがまだ（上限で止まった等）のものを先に
+    redo1 = [s for s, v in done.items() if ok(s) and not v.get("youtube") and v.get("at", "") >= "2026-10-30"]
+    redo2 = [s for s, v in done.items() if ok(s) and v.get("part2") and not v["part2"].get("youtube")]
+    if redo1:
+        return redo1[0], 1, ["youtube"]
+    if redo2:
+        return redo2[0], 2, ["youtube"]
+    todo1 = [s for s, v in posts.items() if v.get("youtube") and s not in done and ok(s)]
+    today1 = [s for s in todo1 if posts[s].get("at", "").startswith(today)]
+    old1 = [s for s in todo1 if s not in today1]
+    # 2本目：1本目を前の日までに出した動画（2026-11-09 以降に YouTube に出した長尺だけ）
+    todo2 = sorted((s for s, v in done.items() if ok(s) and "part2" not in v and v.get("instagram")
+                    and posts.get(s, {}).get("at", "") >= "2026-11-09" and not v.get("at", "").startswith(today)), key=lambda s: done[s]["at"])
+    order = today1 + old1 + todo2 if slot == "night" else todo2 + old1
+    return (order[0], 2 if order[0] in todo2 else 1, ["instagram", "youtube"]) if order else None
+
+
+def make(out, slot="night"):
     posts = json.load(open(POSTS, encoding="utf-8")) if os.path.exists(POSTS) else {}
     done = json.load(open(LOG, encoding="utf-8")) if os.path.exists(LOG) else {}
-    # 3DCG（cg-*）は専用のショートがあるので除く
-    ok = lambda s: not s.startswith("cg-") and os.path.exists(f"content/long/{s}.json")
-    # Instagram は出したが YouTube ショートがまだ（上限で止まった等）のものを先に
-    redo = [s for s, v in done.items() if ok(s) and not v.get("youtube") and v.get("at", "") >= "2026-10-30"]
-    todo = [s for s, v in posts.items() if v.get("youtube") and s not in done and ok(s)]
-    if not redo and not todo:
+    r = pick(posts, done, slot, datetime.now(JST).strftime("%Y-%m-%d"))
+    if not r:
         print("紹介する長尺動画はありません")
         return
-    slug = redo[0] if redo else todo[0]
-    platforms = ["youtube"] if redo else ["instagram", "youtube"]
+    slug, part, platforms = r
     src = json.load(open(f"content/long/{slug}.json", encoding="utf-8"))
     os.makedirs(out, exist_ok=True)
     for f in (f"{slug}.mp4", f"{slug}.jpg", f"{slug}-chapters.txt"):
@@ -123,14 +140,16 @@ def make(out):
     dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f"{out}/{slug}.mp4"]).decode())
     body = [c for c in chs if c["title"] not in SKIP and c["title"] != "まとめ"]
     g0 = body[0]["sec"] if body else 60
+    if part == 2 and len(body) > 1:  # 2本目：まん中あたりの章を見せる（1本目と同じ絵にしない）
+        g0 = body[len(body) // 2]["sec"]
     listed = [c for c in chs if c["title"] not in ("はじめに", "まとめ")]
     total_min = round(dur / 60)
     frame(src, listed, total_min).save(f"{out}/bg.png")
     cover = frame(src, listed, total_min, Image.open(f"{out}/{slug}.jpg"))
     os.makedirs("public/sns", exist_ok=True)
-    vid = f"yt-{slug[5:]}"
+    vid = f"yt-{slug[5:]}" + ("-2" if part == 2 else "")
     cover.save(f"public/sns/{vid}.jpg", quality=88)
-    # 冒頭（つかみ）7秒 ＋ 最初の釣り方の章 28秒
+    # 冒頭（つかみ）7秒 ＋ 最初の釣り方の章 28秒（2本目は まん中の章）
     # 同じ動画を2回、必要な所だけ読み込む（全体を読むとメモリが足りない）
     fc = (
         f"[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a];[v]scale={W}:{VH},setsar=1[vs];[2:v][vs]overlay=0:{VY}:shortest=1,format=yuv420p[o];"
@@ -141,17 +160,21 @@ def make(out):
                            "-filter_complex", fc, "-map", "[o]", "-map", "[ao]", "-t", "35", "-r", "30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
                            "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", f"public/sns/{vid}.mp4"])
     title = src["title"].replace("【完全版】", "")
-    cap = [f"【YouTubeで公開】{title}", "", f"約{total_min}分の完全ガイドを公開しました。リールはその予告編です。", "", "▼ この動画でわかること"]
+    if part == 2:
+        mid = body[len(body) // 2]["title"] if len(body) > 1 else ""
+        cap = [f"【YouTubeで公開中】{title}", "", f"約{total_min}分の動画から、" + (f"「{mid}」の章を少しだけ。" if mid else "見どころを少しだけ。"), "", "▼ この動画でわかること"]
+    else:
+        cap = [f"【YouTubeで公開】{title}", "", f"約{total_min}分の完全ガイドを公開しました。リールはその予告編です。", "", "▼ この動画でわかること"]
     cap += [f"・{c['title']}" for c in listed[:8]]
     cap += ["", "▶ 続きはYouTubeで", "プロフィールのリンク →「YouTube」から見られます", "（YouTubeで「ツレドキ関西」と検索しても見つかります）"]
     if slug in discuss.LONG:
         cap += discuss.caption(discuss.LONG[slug])
     cap += ["", TAGS]
     # YouTube ショートの説明：フル版へのリンク
-    ycap = [f"{title}（約{total_min}分）の予告編です。", "", "▶ フル版はこちら", f"https://youtu.be/{posts[slug]['youtube']}", "", "▼ この動画でわかること"]
+    ycap = [f"{title}（約{total_min}分）の" + ("見どころです。" if part == 2 else "予告編です。"), "", "▶ フル版はこちら", f"https://youtu.be/{posts[slug]['youtube']}", "", "▼ この動画でわかること"]
     ycap += [f"・{c['title']}" for c in listed[:8]]
     ycap += ["", "▼関西の釣果・潮・今日の釣れる時間", SITE, "", "#釣り #釣り初心者 #関西釣り #堤防釣り #ツレドキ関西"]
-    json.dump({"slug": slug, "id": vid, "caption": "\n".join(cap), "yt_title": f"{title}【予告】", "yt_caption": "\n".join(ycap), "platforms": platforms},
+    json.dump({"slug": slug, "id": vid, "caption": "\n".join(cap), "yt_title": f"{title}【" + ("見どころ" if part == 2 else "予告") + "】", "part": part, "yt_caption": "\n".join(ycap), "platforms": platforms},
               open(f"{out}/post.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(vid)
 
@@ -162,7 +185,8 @@ def publish(out):
     if not wait_url(url):
         raise SystemExit(f"動画がサイトに公開されていません: {url}")
     done = json.load(open(LOG, encoding="utf-8")) if os.path.exists(LOG) else {}
-    rec = done.get(p["slug"], {})
+    top = done.get(p["slug"], {})
+    rec = top.get("part2", {}) if p.get("part") == 2 else top  # 2本目の記録は part2 に入れる
     failed = False
     if "instagram" in p.get("platforms", ["instagram"]):
         try:
@@ -186,6 +210,9 @@ def publish(out):
                 failed = True
     if rec:
         rec.setdefault("at", datetime.now(JST).isoformat(timespec="minutes"))
+        if p.get("part") == 2:
+            top["part2"] = rec
+            rec = top
         done[p["slug"]] = rec
         json.dump(done, open(LOG, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     if failed:
@@ -193,4 +220,4 @@ def publish(out):
 
 
 if __name__ == "__main__":
-    {"make": make, "publish": publish}[sys.argv[1]](sys.argv[2])
+    {"make": make, "publish": publish}[sys.argv[1]](*sys.argv[2:4])

@@ -1,9 +1,9 @@
 name: Instagram images
 
-# Instagram の画像投稿（カルーセル）。6:00 今アツい釣り場 ／ 23:00 釣り方・豆知識（1日おき）
+# Instagram の画像投稿（カルーセル）。23:00 釣り方・豆知識（1日おき）
+# 6:00 の「今アツい釣り場」は 2026-11-09 オーナー判断で定期投稿をやめた（手動の slot=morning では作れる）
 on:
   schedule:
-    - cron: "40 20 * * *" # 5:40 JST に作り始め、6:00 に投稿
     - cron: "40 13 * * *" # 22:40 JST に作り始め、23:00 に投稿
   workflow_dispatch:
     inputs:

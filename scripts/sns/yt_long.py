@@ -36,7 +36,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          # 第6弾（2026-11-05。書き出し済み）
          "long-hatsumono", "long-shokuchudoku", "long-kisetsu-quiz", "long-osaka-kobe", "long-nakama-quiz", "long-shurui", "long-yougo30"]
 REC = "data/sns/long-posts.json"
-PER_DAY = 2  # 1日に出す長尺の本数（07:17 と 18:17。出せなかった分は 21:17）
+PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17）
 
 
 def yt_title(t):
