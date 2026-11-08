@@ -6,11 +6,17 @@
 - 色：生成りT（`*-light.png`）と紺T（`*-dark.png`）
 - 仕上がりイメージ：`tee-front-back.png`
 
+## 価格の決め方（オーナー方針 2026-11-09）
+- ツレドキの取り分（トリブン）は販売価格の**だいたい1割**。
+- そのうえで、**心理的に買いやすい値段**にそろえる（例：6,183円より 6,100円、6,879円より 6,800円。端数より切りのいい値段や、大台の手前）。
+- 取り分は 8〜12% の範囲で、切りのいい値段になる額を選ぶ。SUZURI の price（トリブン）は税抜で指定する（販売価格 =（原価＋トリブン）×1.1）。
+- Tシャツ（ドライアスレチック）は 2,816円・取り分300円のまま（オーナー判断）。
+
 ## 販売中（SUZURI・2026-11-08 公開）
 - ドライアスレチックT（United Athle 4.1oz）前プリント「朝日とブリ」取り分300円・2,816円（税込）
   - 明るい色用 material 21327969：https://suzuri.jp/Tsuredoki/21327969/united-athle-4-1oz-dry-athletic-t-shirt-for-shop/m/white
   - ブラック用 material 21327970：https://suzuri.jp/Tsuredoki/21327970/united-athle-4-1oz-dry-athletic-t-shirt-for-shop/m/black
-- パーカー（右胸マーク＋背中・取り分約1割）明るい色 6,183円 material 21328445：https://suzuri.jp/Tsuredoki/21328445/hoodie/m/natural／濃い色 6,879円 material 21328447：https://suzuri.jp/Tsuredoki/21328447/hoodie/m/navy
+- パーカー（右胸マーク＋背中・取り分約1割）明るい色 6,100円 material 21328445：https://suzuri.jp/Tsuredoki/21328445/hoodie/m/natural／濃い色 6,800円 material 21328447：https://suzuri.jp/Tsuredoki/21328447/hoodie/m/navy
   - 前が無地でも API では前のプリント代がかかるため、右胸マークを入れた（2026-11-08）
 - 作り方：.github/workflows/suzuri.yml（items / create / publish）、内容は spec-tee-c2.json（旧デザイン 21327330 / 21327332 は非公開）
 - 非公開のまま残っているもの：両面プリントのドライT・ロンT（material 21327259 / 21327264）
