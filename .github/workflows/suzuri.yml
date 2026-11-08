@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "items（作れるアイテム一覧）/ create（SPEC のとおり作る）"
+        description: "items（アイテム一覧）/ create（SPEC のとおり作る）/ preview（作った商品の画像を保存。spec に material id をカンマ区切り）"
         required: true
         default: items
       spec:
@@ -31,11 +31,11 @@ jobs:
         env:
           SUZURI_TOKEN: ${{ secrets.SUZURI_TOKEN }}
         run: python scripts/goods/suzuri.py ${{ github.event.inputs.action }} ${{ github.event.inputs.spec }}
-      - name: Save item list
-        if: github.event.inputs.action == 'items'
+      - name: Save results
+        if: github.event.inputs.action == 'items' || github.event.inputs.action == 'preview'
         run: |
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/goods/suzuri-items.json
+          git add data/goods
           git commit -qm "SUZURI のアイテム一覧を更新" || exit 0
           git pull -q --rebase && git push -q

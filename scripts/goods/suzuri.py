@@ -74,8 +74,26 @@ def cmd_create(spec_path):
             summary(f"- {pr.get('item', {}).get('humanizeName')}：{pr.get('sampleUrl') or pr.get('url') or ''}（published={pr.get('published')}）")
 
 
+def cmd_preview(ids):
+    out = os.path.join(ROOT, "data/goods/preview")
+    os.makedirs(out, exist_ok=True)
+    for mid in ids.split(","):
+        r = req("GET", f"/products?materialId={mid}&limit=50")
+        for pr in r.get("products", []):
+            urls = [pr.get("sampleImageUrl"), pr.get("pngSampleImageUrl")] + [u for u in (pr.get("sampleUrlsBack") or [])]
+            name = pr.get("item", {}).get("name", "item")
+            summary(f"{mid} {name} published={pr.get('published')} {pr.get('sampleUrl','')}")
+            for i, u in enumerate([u for u in urls if u][:3]):
+                try:
+                    data = urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"}), timeout=60).read()
+                    open(os.path.join(out, f"{mid}-{name}-{i}.jpg"), "wb").write(data)
+                except Exception as e:
+                    summary(f"  画像取得エラー {u}: {e}")
+        json.dump(r, open(os.path.join(out, f"{mid}.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
         sys.exit(__doc__)
-    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1])}[a[0]]()
+    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1])}[a[0]]()
