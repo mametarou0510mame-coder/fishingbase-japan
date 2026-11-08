@@ -1,0 +1,35 @@
+{
+ "products": [],
+ "raw": {
+  "material": {
+   "id": 21327332,
+   "title": "TSUREDOKI 朝日とブリ（ブラック）",
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の水平線、ぶち曲がる竿、跳ねるブリ。吸汗速乾のドライ生地で釣り場でも快適。",
+   "price": 300,
+   "priceWithTax": 330,
+   "violation": false,
+   "published": true,
+   "publishedAt": "2026-11-08T21:15:03.268+09:00",
+   "uploadedAt": "2026-11-08T21:15:01.204+09:00",
+   "dominantRgb": "#808076",
+   "originalWidth": 4000,
+   "originalHeight": 4160,
+   "textureUrl": "https://dzdih2euft5nz.cloudfront.net/materials/textures/21327332/1794140101-4000x4160",
+   "texturePath": "materials/textures/21327332/1794140101-4000x4160",
+   "thumbnailUrl": "https://lens.suzuri.jp/v3/765x765/21327332/1794140101-4000x4160.png?h=2fdf205045ab5623f43fd51724b0aa074ad0d3a3",
+   "lensVersion": 3,
+   "isNft": false,
+   "user": {
+    "id": 2876943,
+    "name": "Tsuredoki",
+    "secret": false,
+    "official": false,
+    "displayName": null,
+    "avatarUrl": "https://dijsur42hqnz1.cloudfront.net/assets/common/icon_default-9f0e3b96021ff9bf4eac8e49fc43366572d598fcc4732e9b29bbe6ce3a14c36d.jpg",
+    "createdAt": "2026-11-08T17:44:41.455+09:00",
+    "youtubeGroupId": null
+   },
+   "closedSelling": null
+  }
+ }
+}
