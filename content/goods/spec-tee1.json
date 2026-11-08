@@ -1,0 +1,72 @@
+{
+ "materials": [
+  {
+   "title": "TSUREDOKI ブリ（ライト）",
+   "texture": "content/goods/print/chest-light.png",
+   "price": 500,
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の堤防から跳ねるブリ。右胸にブリ＋TSUREDOKI、背中に朝日とブリのプリント。",
+   "products": [
+    {
+     "itemId": 112,
+     "exemplaryItemVariantId": 1537,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/print/back-light.png",
+       "printSide": "back"
+      }
+     ]
+    },
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 637,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/print/back-light.png",
+       "printSide": "back"
+      },
+      {
+       "texture": "content/goods/print/sleeve-light.png",
+       "printSide": "left-sleeve"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "TSUREDOKI ブリ（ネイビー）",
+   "texture": "content/goods/print/chest-dark.png",
+   "price": 500,
+   "description": "ツレドキ（関西の釣れる時間がわかるサイト）のオリジナル。朝日の堤防から跳ねるブリ。右胸にブリ＋TSUREDOKI、背中に朝日とブリのプリント。",
+   "products": [
+    {
+     "itemId": 112,
+     "exemplaryItemVariantId": 1556,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/print/back-dark.png",
+       "printSide": "back"
+      }
+     ]
+    },
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 646,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/print/back-dark.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
