@@ -79,6 +79,9 @@ def cmd_preview(ids):
     os.makedirs(out, exist_ok=True)
     for mid in ids.split(","):
         r = req("GET", f"/products?materialId={mid}&limit=50")
+        if not r.get("products"):
+            m = req("GET", f"/materials/{mid}")
+            r = {"products": m.get("products") or (m.get("material") or {}).get("products") or [], "raw": m}
         for pr in r.get("products", []):
             urls = [pr.get("sampleImageUrl"), pr.get("pngSampleImageUrl")] + [u for u in (pr.get("sampleUrlsBack") or [])]
             name = pr.get("item", {}).get("name", "item")
