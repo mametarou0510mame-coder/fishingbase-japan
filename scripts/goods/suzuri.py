@@ -91,6 +91,30 @@ def cmd_publish(spec_path, flag="true"):
                     summary(f"  image {u}")
 
 
+def cmd_me():
+    r = req("GET", "/user")
+    u = r.get("user", r)
+    summary("```\n" + json.dumps(u, ensure_ascii=False, indent=1)[:3000] + "\n```")
+
+
+def cmd_profile(spec_path):
+    """content/goods/shop-profile.json の内容でショップ情報を更新（PUT /user）"""
+    sp = json.load(open(os.path.join(ROOT, spec_path), encoding="utf-8"))
+    body = {}
+    if sp.get("displayName"):
+        body["displayName"] = sp["displayName"]
+    if sp.get("avatar"):
+        body["avatar"] = texture(sp["avatar"])
+    prof = {k: sp[k] for k in ("body", "url") if sp.get(k)}
+    if sp.get("headerImage"):
+        prof["headerImage"] = texture(sp["headerImage"])
+    if prof:
+        body["profile"] = prof
+    r = req("PUT", "/user", body)
+    u = r.get("user", r)
+    summary("更新しました：" + json.dumps({k: u.get(k) for k in ("name", "displayName", "avatarUrl")}, ensure_ascii=False))
+
+
 def cmd_preview(ids):
     out = os.path.join(ROOT, "data/goods/preview")
     os.makedirs(out, exist_ok=True)
@@ -116,4 +140,4 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
         sys.exit(__doc__)
-    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1]), "publish": lambda: cmd_publish(a[1], *(a[2:3]))}[a[0]]()
+    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1]), "publish": lambda: cmd_publish(a[1], *(a[2:3])), "me": lambda: cmd_me(), "profile": lambda: cmd_profile(a[1])}[a[0]]()
