@@ -74,6 +74,23 @@ def cmd_create(spec_path):
             summary(f"- {pr.get('item', {}).get('humanizeName')}：{pr.get('sampleUrl') or pr.get('url') or ''}（published={pr.get('published')}）")
 
 
+def cmd_publish(spec_path, flag="true"):
+    """SPEC の materials に material_id があるものを公開（flag=false で非公開）にする"""
+    spec = json.load(open(os.path.join(ROOT, spec_path), encoding="utf-8"))
+    pub = flag != "false"
+    for m in spec["materials"]:
+        if not m.get("material_id"):
+            continue
+        prods = [{"itemId": p["itemId"], "exemplaryItemVariantId": p["exemplaryItemVariantId"], "published": pub,
+                  "resizeMode": p.get("resizeMode", "contain")} for p in m["products"]]
+        r = req("PUT", f"/materials/{m['material_id']}", {"products": prods})
+        for pr in r.get("products", []):
+            summary(f"{m['title']}：{pr.get('sampleUrl') or ''}（published={pr.get('published')}）")
+            for u in [pr.get("sampleImageUrl"), pr.get("pngSampleImageUrl")]:
+                if u:
+                    summary(f"  image {u}")
+
+
 def cmd_preview(ids):
     out = os.path.join(ROOT, "data/goods/preview")
     os.makedirs(out, exist_ok=True)
@@ -99,4 +116,4 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
         sys.exit(__doc__)
-    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1])}[a[0]]()
+    {"items": lambda: cmd_items(), "create": lambda: cmd_create(a[1]), "preview": lambda: cmd_preview(a[1]), "publish": lambda: cmd_publish(a[1], *(a[2:3]))}[a[0]]()

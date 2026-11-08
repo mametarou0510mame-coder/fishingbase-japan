@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "items（アイテム一覧）/ create（SPEC のとおり作る）/ preview（作った商品の画像を保存。spec に material id をカンマ区切り）"
+        description: "items（アイテム一覧）/ create（SPEC のとおり作る）/ preview（作った商品の画像を保存。spec に material id をカンマ区切り）/ publish（spec の material_id を公開）"
         required: true
         default: items
       spec:
