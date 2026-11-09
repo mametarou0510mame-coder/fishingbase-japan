@@ -34,7 +34,9 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-michihiki",  # 2026-11-06 見える化 潮の満ち引き（定時タスクで force 投稿）
          "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae",
          # 第6弾（2026-11-05。書き出し済み）
-         "long-hatsumono", "long-shokuchudoku", "long-kisetsu-quiz", "long-osaka-kobe", "long-nakama-quiz", "long-shurui", "long-yougo30"]
+         "long-hatsumono", "long-shokuchudoku", "long-kisetsu-quiz", "long-osaka-kobe", "long-nakama-quiz", "long-shurui", "long-yougo30",
+         # 第7弾（2026-11-09。1日1本・高クオリティ。書き出し済み）
+         "long-tsureta-jikan", "long-shime"]
 REC = "data/sns/long-posts.json"
 PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17）
 
