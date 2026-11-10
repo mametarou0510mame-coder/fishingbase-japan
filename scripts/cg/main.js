@@ -2078,17 +2078,17 @@ extras.push(studio);
 }
 // 水温 → 色（冷たい＝青、温かい＝赤）
 const TEMP_GLSL = `
-uniform float season; uniform float sun; uniform float time;
+uniform float season; uniform float sun; uniform float time; uniform float tadd; uniform float iso; uniform float nat;
 float Tsum(vec2 p){ return 20.0 + 8.0*smoothstep(-8.5,-3.0,p.y); }
 float Twin(vec2 p){ return 8.0 + 4.5*smoothstep(-16.0,4.0,p.x) + 0.5*smoothstep(-4.0,-12.0,p.y); }
 float temp(vec2 p){ p.x += sin(p.y*1.1+time*0.45)*0.5; p.y += sin(p.x*0.6-time*0.35)*0.25;
   float T = season < 1.0 ? mix(Tsum(p), 23.0, season) : mix(23.0, Twin(p), season-1.0);
   T += sun*6.5*(1.0-smoothstep(-15.0,-1.0,p.x))*smoothstep(-5.0,-0.5,p.y);
-  return T; }
+  return T + tadd; }
 vec3 pal(float k){ k = clamp(k,0.,1.);
   vec3 c0=vec3(0.07,0.18,0.78), c1=vec3(0.08,0.62,0.95), c2=vec3(0.3,0.86,0.55), c3=vec3(1.0,0.78,0.2), c4=vec3(0.95,0.26,0.14);
   if(k<0.25) return mix(c0,c1,k/0.25); if(k<0.5) return mix(c1,c2,(k-0.25)/0.25); if(k<0.75) return mix(c2,c3,(k-0.5)/0.25); return mix(c3,c4,(k-0.75)/0.25); }
-vec3 tcol(float T){ vec3 c = pal((T-8.0)/20.0); float f = T/2.0; float w = fwidth(f); float line = 1.0 - smoothstep(0.0, w*1.6, abs(fract(f+0.5)-0.5)); return mix(c, vec3(1.0), line*0.45); }`;
+vec3 tcol(float T){ vec3 c = pal((T-8.0)/20.0); float f = T/2.0; float w = fwidth(f); float line = 1.0 - smoothstep(0.0, w*1.6, abs(fract(f+0.5)-0.5)); c = mix(c, vec3(1.0), line*0.45); float l15 = 1.0 - smoothstep(0.18, 0.18 + fwidth(T)*1.5, abs(T-15.0)); return mix(c, vec3(1.0), l15*iso*0.92); }`;
 function tempJS(x, y, season, sun = 0) {
   const ss = (a, b, v) => smooth01((v - a) / (b - a));
   const ts = 20 + 8 * ss(-8.5, -3, y), tw = 8.0 + 4.5 * ss(-16, 4, x) + 0.5 * ss(-4, -12, y);
@@ -2100,7 +2100,7 @@ function tempColor(T) {
   const i = Math.min(3, Math.floor(k * 4)), f = k * 4 - i;
   return `rgb(${cs[i].map((c, j) => Math.round(lerp(c, cs[i + 1][j], f))).join(",")})`;
 }
-const WU = { season: { value: 0 }, sun: { value: 0 }, time: U.time };
+const WU = { season: { value: 0 }, sun: { value: 0 }, time: U.time, tadd: { value: 0 }, iso: { value: 0 }, nat: { value: 0 } }; // tadd・iso・nat はアオリイカ（ao_*）用。ふだんは 0
 const dio = new THREE.Group();
 studio.add(dio);
 {
@@ -2155,7 +2155,7 @@ studio.add(dio);
     uniforms: { ...WU, alpha: { value: alpha } }, transparent: alpha < 1, depthWrite: alpha >= 1, side: THREE.FrontSide,
     vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
     fragmentShader: `uniform float alpha; ${TEMP_GLSL} varying vec3 vL; varying vec3 vN;
-      void main(){ vec3 c = tcol(temp(vL.xy)); float a = alpha;
+      void main(){ vec3 c = tcol(temp(vL.xy)); c = mix(c, mix(vec3(0.03,0.25,0.4), vec3(0.1,0.48,0.62), smoothstep(-6.0,0.0,vL.y)), nat); float a = alpha;
         if (vN.y > 0.5) { a = ${top}; c = mix(c, vec3(0.9,1.0,1.0), 0.18*pow(abs(sin(vL.x*1.3+time)*sin(vL.z*1.7-time*0.8)),4.0)); }
         gl_FragColor = vec4(c, a); }`,
   });
@@ -2254,6 +2254,9 @@ function studioBase() {
   conv.material.uniforms.show.value = 0;
   sunGrp.visible = false;
   setSeason(0, 0);
+  WU.tadd.value = 0;
+  WU.iso.value = 0;
+  WU.nat.value = 0;
 }
 // 3Dの棒グラフ（月ごとの水温）
 const graph = new THREE.Group();
@@ -6007,6 +6010,484 @@ Object.assign(SHOTS, {
 });
 
 // ---------- 1フレーム描く ----------
+// =====================================================================
+// アオリイカの一生（cg-aori、ao_*）2026-11-10 ツレドキアカデミー R7
+// 出典：上田幸男（徳島県）「解明されつつあるアオリイカの生活史の全容と人工産卵礁の開発」
+//   寿命は約1年・多くは産卵後に死ぬ・産卵期4〜9月（盛期5〜7月）・卵嚢は20〜35日でふ化・8〜9月生まれは小型のまま越冬
+//   15℃以下で死ぬ・摂餌量は25〜30℃で大きい・高水温期は沿岸に広く分布、低水温期は紀伊水道南部・海部沿岸に限られ中心は沖合へ
+//   雄の方が成長が良い・稚仔は外套背長の約1.5倍までの魚類やエビ類を捕食・大型例 外套背長50.1cm 3.9kg・近年は大型化の傾向
+// 大阪湾の水温は SUION（気象庁）。断面の水温の分かれ方は模式図（studio の dio を tadd・iso で使う）
+// =====================================================================
+const AO_SRC = "徳島県（上田幸男）「解明されつつあるアオリイカの生活史の全容と人工産卵礁の開発」";
+const AO_NORM = `vec3 aoLight(vec3 c, vec3 n){ float diff = clamp(dot(normalize(n), normalize(vec3(0.3,1.0,0.55))),0.,1.); return c*(0.42+0.72*diff); }`;
+const aoBodyMat = new THREE.ShaderMaterial({
+  uniforms: { col: { value: new THREE.Color(0xd8b48a) } },
+  vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform vec3 col; varying vec3 vL; varying vec3 vN; ${AO_NORM}
+    void main(){ float sp = smoothstep(0.55, 0.95, sin(vL.x*70.0+sin(vL.z*30.0)*2.0)*sin(vL.z*62.0+vL.y*45.0));
+      vec3 c = mix(col, vec3(0.55,0.3,0.18), sp*0.55); c = mix(c, vec3(1.0,0.95,0.85), smoothstep(-0.02,-0.11,vL.y)*0.45);
+      gl_FragColor = vec4(aoLight(c, vN), 1.); }`,
+});
+const aoFinMat = new THREE.ShaderMaterial({
+  uniforms: { time: U.time, col: { value: new THREE.Color(0xe8d2ae) } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: `uniform float time; varying vec3 vL; varying vec3 vN;
+    void main(){ vec3 p = position; float e = clamp(abs(p.z)/0.27, 0., 1.); float ph = modelMatrix[3][0]*1.7 + modelMatrix[3][2]*2.3 + modelMatrix[3][1]*1.1;
+      p.y += sin(p.x*26.0 - time*7.0 + ph)*0.035*e*e; vL = position; vN = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
+  fragmentShader: `uniform vec3 col; varying vec3 vL; varying vec3 vN; ${AO_NORM}
+    void main(){ float e = clamp(abs(vL.z)/0.27, 0., 1.); vec3 c = mix(col*0.85, vec3(1.0,0.97,0.9), e*0.5);
+      gl_FragColor = vec4(aoLight(c, abs(vN.y) > 0.0 ? vec3(0.0,1.0,0.0) : vN), 0.62 + 0.25*(1.0-e)); }`,
+});
+const aoEyeMat = new THREE.MeshBasicMaterial({ color: 0x14262a });
+const aoShineMat = new THREE.MeshBasicMaterial({ color: 0xbfe9ff });
+const aoArmMat = new THREE.ShaderMaterial({
+  uniforms: { col: { value: new THREE.Color(0xcaa07a) } },
+  vertexShader: `varying vec3 vN; void main(){ vN = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform vec3 col; varying vec3 vN; ${AO_NORM} void main(){ gl_FragColor = vec4(aoLight(col, vN), 1.); }`,
+});
+// 1体のアオリイカ（長さ約1。腕は -x、胴の先は +x）
+function makeSquid() {
+  const g = new THREE.Group();
+  const mg = new THREE.SphereGeometry(1, 30, 18);
+  mg.scale(0.34, 0.12, 0.135);
+  const pa = mg.attributes.position;
+  for (let i = 0; i < pa.count; i++) {
+    const x = pa.getX(i), f = x > 0 ? 1 - 0.55 * (x / 0.34) ** 2 : 1;
+    pa.setY(i, pa.getY(i) * f); pa.setZ(i, pa.getZ(i) * f);
+  }
+  mg.translate(0.17, 0, 0);
+  mg.computeVertexNormals();
+  const mant = new THREE.Mesh(mg, aoBodyMat);
+  const fg = new THREE.SphereGeometry(1, 40, 6);
+  fg.scale(0.31, 0.012, 0.27);
+  fg.translate(0.19, 0.01, 0);
+  const fin = new THREE.Mesh(fg, aoFinMat);
+  fin.renderOrder = 9;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14).scale(0.08, 0.085, 0.1).translate(-0.2, 0, 0), aoBodyMat);
+  g.add(mant, fin, head);
+  [-1, 1].forEach((sd) => {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.042, 14, 10), aoEyeMat);
+    e.position.set(-0.2, 0.015, sd * 0.085);
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), aoShineMat);
+    sh.position.set(-0.215, 0.035, sd * 0.118);
+    g.add(e, sh);
+  });
+  const arms = new THREE.Group();
+  arms.position.set(-0.27, 0, 0);
+  for (let i = 0; i < 10; i++) {
+    const tent = i >= 8, len = tent ? 0.36 : 0.18 + (i % 4) * 0.025;
+    const ag = new THREE.CylinderGeometry(0.004, tent ? 0.009 : 0.02, len, 6);
+    ag.translate(0, len / 2, 0);
+    ag.rotateZ(Math.PI / 2);
+    const m = new THREE.Mesh(ag, aoArmMat);
+    const a = tent ? (i === 8 ? -0.4 : 0.4) : (i / 8) * Math.PI * 2;
+    m.position.set(0, Math.sin(a) * (tent ? 0.01 : 0.035), Math.cos(a) * (tent ? 0.02 : 0.045));
+    m.rotation.set(0, Math.cos(a) * (tent ? 0.05 : 0.22), -Math.sin(a) * (tent ? 0.03 : 0.2));
+    m.userData.a = a;
+    arms.add(m);
+  }
+  g.add(arms);
+  g.userData.arms = arms;
+  return g;
+}
+const AO_SQ = Array.from({ length: 10 }, () => { const m = makeSquid(); world.add(m); extras.push(m); return m; });
+const AO_BABY = Array.from({ length: 22 }, () => { const m = makeSquid(); world.add(m); extras.push(m); return m; });
+// 1体を置く。p はワールド座標、dir=1 なら腕を +x（右）へ向けて進む
+function aoPlace(m, p, dir, T, sc = 1, seed = 0, pitch = 0) {
+  m.visible = true;
+  m.position.set(p.x, p.y + Math.sin(T * 1.4 + seed * 2.1) * 0.05 * sc, p.z);
+  m.scale.setScalar(sc);
+  m.rotation.set(0, dir > 0 ? Math.PI : 0, pitch * (dir > 0 ? -1 : 1));
+  m.userData.arms.children.forEach((a, i) => { a.rotation.y = Math.cos(a.userData.a) * 0.22 + Math.sin(T * 2 + i + seed) * 0.06; });
+}
+// 群れ（ふつうは中心 c のまわりに n 体）
+const AO_OFF = (() => { const r = rng(1101); return Array.from({ length: 32 }, () => [r() * 2 - 1, r() * 2 - 1, r() * 2 - 1, r() * 6]); })();
+function aoFlock(c, spread, dir, T, n = 8, sc = 1.3) {
+  AO_SQ.forEach((m, i) => {
+    if (i >= n) { m.visible = false; return; }
+    const [ox, oy, oz, ph] = AO_OFF[i];
+    aoPlace(m, V(c.x + ox * spread.x + Math.sin(T * 0.3 + ph) * 0.3, c.y + oy * spread.y, c.z + oz * spread.z), dir, T, sc * (0.85 + 0.3 * ((i * 37) % 10) / 10), ph);
+  });
+}
+// 卵のう（白いさや）のかたまりと、それを付ける海藻
+const AO_EGG_AT = [-7.6, 2.4]; // 岩のない砂地（岩は x=-15〜-9 に多い）
+const aoEggs = new THREE.Group();
+world.add(aoEggs);
+extras.push(aoEggs);
+const aoEggCaps = [];
+{
+  const by = dioY(AO_EGG_AT[0]);
+  aoEggs.position.copy(D(AO_EGG_AT[0], by, AO_EGG_AT[1]));
+  const stemM = shadedMat(0x5b6a24, { rough: 0.2 });
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, 1.5, 6).translate(0, 0.75, 0), stemM);
+  aoEggs.add(stem);
+  const r = rng(1201);
+  for (let i = 0; i < 9; i++) {
+    const br = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.035, 0.7, 5).translate(0, 0.35, 0), stemM);
+    br.position.set(0, 0.35 + i * 0.12, 0);
+    br.rotation.set((r() - 0.5) * 1.6, r() * 6, (r() - 0.5) * 1.8);
+    aoEggs.add(br);
+  }
+  const capM = new THREE.ShaderMaterial({
+    transparent: true,
+    vertexShader: `varying vec3 vN; varying vec3 vL; void main(){ vN = normalize(mat3(modelMatrix)*normal); vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vN; varying vec3 vL; ${AO_NORM} void main(){ float egg = smoothstep(0.03,0.02,length(vec2(vL.x, mod(vL.y+0.3,0.12)-0.06)));
+      vec3 c = mix(vec3(0.97,0.96,0.92), vec3(0.85,0.8,0.62), egg*0.6); gl_FragColor = vec4(aoLight(c, vN)*1.12, 0.93); }`,
+  });
+  for (let i = 0; i < 44; i++) {
+    const cg = new THREE.CapsuleGeometry(0.07, 0.42, 4, 10).translate(0, 0.28, 0);
+    const m = new THREE.Mesh(cg, capM);
+    const h = 0.45 + r() * 0.8, a = r() * 6.28;
+    m.position.set(Math.cos(a) * 0.05, h, Math.sin(a) * 0.05);
+    m.rotation.set(Math.cos(a) * (0.6 + r() * 1.4), 0, Math.sin(a) * (0.6 + r() * 1.4) + Math.PI);
+    m.rotation.order = "YXZ";
+    m.rotation.y = r() * 6.28;
+    aoEggs.add(m);
+    aoEggCaps.push(m);
+  }
+}
+function aoEggShow(n) { aoEggs.visible = true; aoEggCaps.forEach((m, i) => (m.visible = i < n)); }
+// 小魚（エサ）とものさし用の1匹
+const aoPrey = school("イワシ", 16, 0.5, 1301, { freq: 16, amp: 0.06 });
+world.add(aoPrey);
+extras.push(aoPrey);
+const aoPreyOne = fishMesh("イワシ", 1, { amp: 0.06, freq: 12 });
+world.add(aoPreyOne);
+extras.push(aoPreyOne);
+// 大阪湾の水温グラフに引く 15℃・25℃の線
+const aoLine15 = new THREE.Mesh(new THREE.BoxGeometry(40, 0.14, 2.8), new THREE.MeshBasicMaterial({ color: 0x7fd3ff, transparent: true, opacity: 0.95, depthTest: false }));
+const aoLine25 = new THREE.Mesh(new THREE.BoxGeometry(40, 0.14, 2.8), new THREE.MeshBasicMaterial({ color: 0xff9f40, transparent: true, opacity: 0.95, depthTest: false }));
+aoLine15.position.copy(D(0, -9 + 15 * BAR_H, 0));
+aoLine25.position.copy(D(0, -9 + 25 * BAR_H, 0));
+aoLine15.renderOrder = aoLine25.renderOrder = 40;
+world.add(aoLine15, aoLine25);
+extras.push(aoLine15, aoLine25);
+
+// 1年の輪（月は時計回り、1月が上）。o.mini=全体図の小さい輪、o.now=いまの月（小数）、o.seg=描く段階の数（小数で描き進める）
+const AO_SEG = [[7, 9, "#ff9f6a", "夏", "生まれて育つ"], [10, 11, "#ffd166", "秋", "岸の近くで大きく"], [12, 3, "#4c9dff", "冬", "分布の中心は沖へ"], [4, 6, "#ff6fae", "春〜夏", "岸で卵を産む"]];
+const aoAng = (m) => ((m - 1) / 12) * Math.PI * 2 - Math.PI / 2;
+const aoXY = (a, r) => [Math.cos(a) * r, Math.sin(a) * r];
+function aoArc(m0, m1, r, prog = 1) {
+  const span = ((m1 - m0 + 12) % 12) + 1;
+  const a0 = aoAng(m0), a1 = a0 + (span / 12) * Math.PI * 2 * clamp01(prog);
+  const [x0, y0] = aoXY(a0, r), [x1, y1] = aoXY(a1, r);
+  return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+}
+function aoRing(cx, cy, R, o = {}) {
+  const a = o.a ?? 1;
+  if (a <= 0.01) return;
+  const mini = !!o.mini, sw = mini ? 16 : 34, pad = mini ? 20 : 150;
+  let s = `<svg style="position:absolute;left:${cx - R - pad}px;top:${cy - R - pad}px;opacity:${a};overflow:visible" width="${2 * (R + pad)}" height="${2 * (R + pad)}" viewBox="${-R - pad} ${-R - pad} ${2 * (R + pad)} ${2 * (R + pad)}">`;
+  s += `<circle r="${R + (mini ? 16 : 44)}" fill="rgba(6,22,42,.86)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>`;
+  s += `<circle r="${R}" fill="none" stroke="#2c4a66" stroke-width="${sw}"/>`;
+  if (o.loop != null) s += `<path d="${aoArc(1, 12, R, o.loop)}" fill="none" stroke="#9fb7c9" stroke-width="${sw}" stroke-linecap="butt"/>`;
+  const seg = o.seg ?? 0;
+  AO_SEG.forEach(([m0, m1, col, nm, sub], i) => {
+    const pr = clamp01(seg - i);
+    if (pr <= 0) return;
+    const hi = o.hi == null || o.hi === i;
+    s += `<path d="${aoArc(m0, m1, R, pr)}" fill="none" stroke="${col}" stroke-width="${sw}" opacity="${hi ? 1 : 0.35}"/>`;
+    if (!mini && pr > 0.6) {
+      const span = ((m1 - m0 + 12) % 12) + 1, am = aoAng(m0) + (span / 24) * Math.PI * 2;
+      const [x, y] = aoXY(am, R + 105);
+      s += `<g opacity="${clamp01((pr - 0.6) / 0.4) * (hi ? 1 : 0.4)}"><text x="${x}" y="${y - 6}" text-anchor="middle" font-size="40" font-weight="900" fill="${col}" stroke="#06213a" stroke-width="6" paint-order="stroke">${nm}</text><text x="${x}" y="${y + 32}" text-anchor="middle" font-size="27" font-weight="800" fill="#fff" stroke="#06213a" stroke-width="5" paint-order="stroke">${sub}</text></g>`;
+    }
+  });
+  if (o.spawn) {
+    const r2 = R - (mini ? 18 : 44);
+    s += `<path d="${aoArc(4, 9, r2, o.spawn)}" fill="none" stroke="#ff6fae" stroke-width="${mini ? 6 : 12}" opacity=".85"/>`;
+    s += `<path d="${aoArc(5, 7, r2, clamp01(o.spawn * 2 - 1))}" fill="none" stroke="#ff6fae" stroke-width="${mini ? 10 : 22}"/>`;
+  }
+  for (let m = 1; m <= 12; m++) {
+    const [x, y] = aoXY(aoAng(m + 0.5), mini ? R : R);
+    if (!mini) s += `<text x="${x}" y="${y + 10}" text-anchor="middle" font-size="27" font-weight="900" fill="#06213a">${m}</text>`;
+    else if (m % 3 === 1) s += `<text x="${x}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">${m}</text>`;
+  }
+  if (o.now != null) {
+    const am = aoAng(o.now + 0.5), [x, y] = aoXY(am, R + (mini ? 20 : 40)), [x2, y2] = aoXY(am, R - (mini ? 12 : 26));
+    s += `<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="${mini ? 5 : 8}" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="${mini ? 7 : 12}" fill="#fff"/>`;
+  }
+  if (o.center) s += `<text y="${mini ? 8 : -10}" text-anchor="middle" font-size="${mini ? 26 : 74}" font-weight="900" fill="#ffd166">${o.center}</text>`;
+  if (o.center2) s += `<text y="${mini ? 30 : 46}" text-anchor="middle" font-size="${mini ? 16 : 34}" font-weight="800" fill="#fff">${o.center2}</text>`;
+  html += s + `</svg>`;
+}
+// 全体図（左上）：いまの季節が、1年のどこか
+function aoMini(now, hi, a = 1) {
+  const P = PORTRAIT;
+  aoRing(P ? 150 : 175, P ? 340 : 240, P ? 82 : 88, { mini: true, seg: 4, hi, now, center: "1年", center2: "いまここ", a });
+}
+// 太い矢印（画面の上に描く）
+function aoArrow(p0, p1, color, a = 1, w = 22) {
+  if (a <= 0.01) return;
+  const q0 = project(p0), q1 = project(p1);
+  const dx = q1.x - q0.x, dy = q1.y - q0.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, h = w * 2.1;
+  const bx = q1.x - ux * h, by = q1.y - uy * h;
+  lines += `<g opacity="${a}"><line x1="${q0.x}" y1="${q0.y}" x2="${bx}" y2="${by}" stroke="#06213a" stroke-width="${w + 8}" stroke-linecap="round"/><line x1="${q0.x}" y1="${q0.y}" x2="${bx}" y2="${by}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>
+    <polygon points="${q1.x},${q1.y} ${bx - uy * h * 0.8},${by + ux * h * 0.8} ${bx + uy * h * 0.8},${by - ux * h * 0.8}" fill="${color}" stroke="#06213a" stroke-width="4"/></g>`;
+}
+const aoTag = (txt = "模式図") => `<div style="position:absolute;${PORTRAIT ? "left:40px;top:1120px" : "right:70px;bottom:250px"};background:rgba(6,22,42,.85);color:#fff;font-weight:900;font-size:28px;padding:6px 18px;border-radius:12px;border:2px solid #fff">${txt}</div>`;
+const aoSrc = () => `<div style="position:absolute;left:${PORTRAIT ? 40 : 70}px;${PORTRAIT ? "top:1260px" : "bottom:210px"};color:#cfe6f5;font-size:22px;font-weight:700;text-shadow:0 2px 6px #000">出典：${AO_SRC}</div>`;
+// 凡例（上のまん中）：水温の色と、白い線＝15℃
+function aoLegend(a = 1) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;left:0;right:0;top:${P ? 1190 : 118}px;display:flex;justify-content:center;opacity:${a}"><div style="display:flex;align-items:center;gap:14px;background:rgba(6,22,42,.82);border-radius:16px;padding:8px 20px;color:#fff;font-weight:900;font-size:${P ? 28 : 26}px">冷たい<div style="width:${P ? 200 : 240}px;height:20px;border-radius:10px;background:linear-gradient(90deg,${[8, 13, 18, 23, 28].map(tempColor).join(",")})"></div>温かい<span style="display:inline-block;width:34px;height:8px;background:#fff;border-radius:4px;margin-left:14px"></span>15℃のライン</div></div>`;
+}
+// 断面の季節：w=0 夏 → 1 秋 → 2 冬（冬は沖が温かいように tadd）→ spring で全体が温まる
+function aoSeason(w, spring = 0, iso = 0) {
+  setSeason(w);
+  WU.tadd.value = 4 * clamp01(w - 1) + 6 * spring;
+  WU.iso.value = iso;
+}
+const aoClose = (t = 0) => (PORTRAIT ? look(D(-7.6 + Math.sin(t * 0.08) * 0.3, -1.1, 7.9), D(-7.6, -1.5, 1.5), 50) : look(D(-7.9 + Math.sin(t * 0.08) * 0.4, -1.0, 7.2), D(-7.6, -1.5, 1.6), 50));
+const aoWide = (t = 0) => (PORTRAIT ? look(D(Math.sin(t * 0.03) * 3, 2, 58), D(0, -5.5, 0), 50) : look(D(Math.sin(-0.08 + t * 0.008) * 39, -3, Math.cos(-0.08 + t * 0.008) * 39), D(0, -6.3, 0), 50));
+const fadeOut = (t, t1, dur = 0.4) => 1 - clamp01((t - t1) / dur);
+function aoBase(nat = 0) {
+  studioBase();
+  dio.visible = true;
+  graph.visible = false;
+  WU.nat.value = nat;
+}
+
+Object.assign(SHOTS, {
+  ao_thumb(t, d, s) {
+    aoBase(1);
+    aoSeason(0.6);
+    aoEggShow(44);
+    aoPlace(AO_SQ[0], D(-7.05, -1.05, 4.6), -1, 3, 1.35, 0, 0.05);
+    aoPlace(AO_SQ[1], D(-4.2, -0.75, 1.2), -1, 3, 1.0, 1);
+    look(D(-8.4, -1.1, 7.4), D(-8.0, -1.3, 1.5), 50);
+    html += `<div style="position:absolute;left:0;top:0;bottom:0;width:1050px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div>`;
+    html += `<div style="position:absolute;left:70px;top:190px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px;background:#10345a;color:#ffd166;border:3px solid #ffd166">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+  },
+  // つかみ：最初のコマからアオリイカと問い
+  ao_hook(t, d, s) {
+    aoBase(1);
+    academyBadge();
+    aoSeason(0.3);
+    const P = PORTRAIT;
+    const x = -10.2 - t * 0.1;
+    aoPlace(AO_SQ[0], D(x, -1.0, 2.6), -1, t, 1.3, 0);
+    aoPlace(AO_SQ[1], D(x - 2.2, -0.75, 1.0), -1, t, 1.1, 1);
+    aoPlace(AO_SQ[2], D(x + 1.9, -1.35, 0.4), -1, t, 1.0, 2);
+    if (P) look(D(-10.8 - t * 0.05, -0.8, 7.2), D(-11.2 - t * 0.05, -0.95, 0), 50);
+    else look(D(-10.4 - t * 0.06, -0.8, 6.3), D(-11.2 - t * 0.06, -0.95, 0), 50);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 430}px;background:linear-gradient(rgba(2,10,22,.75),rgba(2,10,22,0))"></div>`;
+    const a = P ? 1 : clamp01(t / 0.25);
+    bigText(P ? 0 : 110, "アオリイカの寿命は<br>どのくらい？", "カギは水温「15℃」", a);
+    drawBar(s);
+  },
+  // 1年の輪：k0 約1年 → k1 季節ごとの暮らし → k2 産卵のあと一生を終える
+  ao_ring(t, d, s, k) {
+    aoBase(0);
+    academyBadge();
+    aoSeason(0.5);
+    aoFlock(D(-10, -1.0, 0), V(4, 0.3, 2.5), Math.sin(t * 0.2) > 0 ? 1 : -1, t, 6, 1.8);
+    aoWide(t);
+    html += acDim(0.55);
+    const P = PORTRAIT, cx = P ? 540 : 960, cy = P ? 720 : 470, R = P ? 290 : 255;
+    const t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    const seg = k >= 1 ? clamp01(t1 / 7) * 4 : 0;
+    aoRing(cx, cy, R, { loop: k === 0 ? clamp01(t / 2.2) : null, seg, center: "約1年", center2: k >= 2 ? "多くは産卵のあと死ぬ" : "1周＝1年", now: k >= 1 ? lerp(6.5, 18.5, clamp01(t1 / 7)) % 12 : null });
+    if (k >= 2) {
+      html += `<div class="lab red" style="left:${P ? cx : cx + R + 250}px;top:${P ? cy + R + 250 : cy + 30}px;opacity:${fadeIn(t2, 0.3)}">産卵して一生を終える</div>`;
+    }
+    html += aoSrc();
+  },
+  // 卵を産む：k0 産卵期 → k1 卵のう → k2 人工の産卵礁
+  ao_spawn(t, d, s, k) {
+    aoBase(1);
+    academyBadge();
+    aoSeason(0.15);
+    const t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    aoEggShow(k >= 1 ? Math.floor(8 + 36 * clamp01(t1 / 4)) : 8);
+    aoPlace(AO_SQ[0], D(-6.0 + Math.sin(t * 0.4) * 0.2, -1.3, 2.6), -1, t, 1.1, 0, 0.15);
+    aoPlace(AO_SQ[1], D(-9.4 + Math.sin(t * 0.3) * 0.2, -1.0, 1.6), 1, t, 1.3, 1, 0.05);
+    aoClose(t);
+    const P = PORTRAIT;
+    const EG = D(AO_EGG_AT[0], dioY(AO_EGG_AT[0]), AO_EGG_AT[1]);
+    if (k >= 1) label(V(EG.x, EG.y + 1.0, EG.z), "卵のう", "白いさやの中に卵", fadeIn(t1, 0.4), "gold ans", P ? -140 : -420, -40);
+    if (k >= 1) label(V(EG.x, EG.y + 0.2, EG.z), "海藻など", "", fadeIn(t1, 1.2), "", P ? -140 : -400, 0);
+    if (k <= 1) {
+      const bar = (lab, m0, m1, col, h) => `<div style="display:flex;align-items:center;gap:14px;margin-top:10px"><b style="width:120px;font-size:28px">${lab}</b><div style="position:relative;flex:1;height:${h}px;background:#e6edf3;border-radius:8px"><div style="position:absolute;left:${(m0 - 1) / 12 * 100}%;width:${(m1 - m0 + 1) / 12 * 100}%;top:0;bottom:0;background:${col};border-radius:8px"></div></div></div>`;
+      html += card(P ? 60 : 1110, P ? 270 : 140, P ? 880 : 700, `<b style="font-size:36px">卵を産む季節（月）</b>${bar("産卵期", 4, 9, "#ffb3d1", 30)}${bar("盛期", 5, 7, "#ff4f98", 30)}<div style="display:flex;justify-content:space-between;margin:6px 0 0 134px;font-size:22px;color:#3a5a78">${[1, 3, 5, 7, 9, 11].map((m) => `<span>${m}月</span>`).join("")}</div>`, fadeIn(t, 0.3) * (k >= 1 ? fadeOut(t1, 2.5) : 1), "padding:22px 28px");
+    }
+    if (k >= 2) html += card(P ? 60 : 1110, P ? 270 : 140, P ? 880 : 700, `<b style="font-size:38px">卵を産みつける場所は少ない</b><div style="font-size:30px;margin-top:8px">徳島県では<span style="color:#e3412b;font-weight:900">人工の産卵礁</span>も開発</div>`, fadeIn(t2, 0.2), "padding:22px 28px");
+    aoMini(5.5, 3);
+    html += aoSrc();
+  },
+  // ふ化：k0 20〜35日 → k1 8〜9月生まれは小さいまま冬へ
+  ao_hatch(t, d, s, k) {
+    aoBase(1);
+    academyBadge();
+    aoSeason(0.05);
+    aoEggShow(44);
+    const day = Math.min(35, t * 7.5);
+    const out = clamp01((day - 20) / 15);
+    const r = rng(1401);
+    const E = D(AO_EGG_AT[0], dioY(AO_EGG_AT[0]) + 0.9, AO_EGG_AT[1]);
+    AO_BABY.forEach((m, i) => {
+      const u = clamp01(out * 1.6 - (i / AO_BABY.length) * 0.6);
+      const dx = (r() - 0.5) * 4.5, dy = r() * 0.9 - 0.2, dz = (r() - 0.5) * 2.4;
+      if (u <= 0.001) { m.visible = false; return; }
+      const e = ease(u);
+      aoPlace(m, V(E.x + dx * e, Math.min(D(0, -0.25, 0).y, E.y + dy * e), E.z + dz * e), dx > 0 ? 1 : -1, t, 0.26, i);
+    });
+    aoClose(t);
+    const P = PORTRAIT;
+    html += card(P ? 300 : 1300, P ? 270 : 150, P ? 480 : 520, `<div style="font-size:30px;font-weight:800;color:#3a5a78">卵を産んでから</div><div style="font-size:${P ? 96 : 96}px;font-weight:900;line-height:1.1">${Math.floor(day)}<span style="font-size:44px">日</span></div><div style="height:22px;background:#e6edf3;border-radius:11px;position:relative;margin-top:6px"><div style="position:absolute;left:${20 / 35 * 100}%;right:0;top:0;bottom:0;background:#ffd166;border-radius:11px"></div><div style="position:absolute;left:0;width:${day / 35 * 100}%;top:6px;height:10px;background:#1f6fd1;border-radius:5px"></div></div><div style="font-size:28px;font-weight:900;margin-top:8px;color:#1e7a36">20〜35日でふ化</div>`, 1, "padding:20px 28px;text-align:center");
+    if (out > 0.3) label(V(E.x + 1.2, E.y + 0.2, E.z + 0.6), "生まれたばかり", "", fadeIn(out, 0.3, 0.3), "gold", P ? 60 : 300, 170);
+    if (k >= 1) html += card(P ? 60 : 110, P ? 1020 : 590, P ? 880 : 760, `<b style="font-size:38px">8〜9月に生まれたものは</b><div style="font-size:34px;margin-top:6px;font-weight:900"><span style="color:#1f6fd1">小さいまま冬を越す</span>とされる</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), "padding:20px 28px");
+    aoMini(7, 0);
+  },
+  // 夏に育つ：k0 25〜30℃でよく食べる → k1 胴の1.5倍までの魚やエビ → k2 オスの方が成長が良い
+  ao_eat(t, d, s, k) {
+    aoBase(1);
+    academyBadge();
+    aoSeason(0);
+    const P = PORTRAIT;
+    const t1 = t - (s._k1 ?? 99);
+    const sc = 1.6, sq = D(-3.4, -1.55, 2.2);
+    aoPlace(AO_SQ[0], sq, -1, t, sc, 0);
+    if (k >= 1) {
+      // 胴の長さ（外套背長 ≒ 0.68×sc）と、その1.5倍の魚を左端そろえで比べる
+      const ml = 0.68 * sc, xb = sq.x - 0.17 * sc, y = sq.y + 0.12 * sc + 0.2;
+      pathLine([V(xb, y, sq.z), V(xb + ml, y, sq.z)], "#ffd166", fadeIn(t1, 0, 0.6), 9);
+      aoPreyOne.visible = true;
+      const fl = 1.5 * ml;
+      aoPreyOne.scale.set(fl, fl, 1);
+      aoPreyOne.position.set(xb + fl / 2, sq.y - 0.95, sq.z);
+      aoPreyOne.rotation.set(0, 0, 0);
+      const fy = sq.y - 1.4;
+      pathLine([V(xb, fy, sq.z), V(xb + fl, fy, sq.z)], "#2ecc71", fadeIn(t1, 0.8, 1), 9);
+      label(V(xb + ml / 2, y, sq.z), "胴の長さ", "外套背長", fadeIn(t1, 0.2), "gold", P ? 0 : -60, -60);
+      label(V(xb + fl, fy, sq.z), "約1.5倍までの魚やエビ", "子どもでも食べられる", fadeIn(t1, 1.3), "gold ans", P ? -40 : 300, -20);
+    } else {
+      show(aoPrey);
+      updateSchool(aoPrey, t, D(-0.6 + Math.sin(t * 0.3) * 0.4, -1.8, 1.6), V(1.2, 0.3, 1.0), -1);
+    }
+    if (P) look(D(-2.5, -1.9, 7.4), D(-2.5, -2.0, 0.8), 50);
+    else look(D(-2.4 + Math.sin(t * 0.06) * 0.3, -1.9, 6.6), D(-2.4, -2.0, 1.2), 50);
+    const T = 27;
+    html += card(P ? 60 : 1290, P ? 270 : 140, P ? 520 : 520, `<div style="font-size:28px;font-weight:800;color:#3a5a78">よく食べる水温</div><div style="font-size:84px;font-weight:900;line-height:1.1;color:${tempColor(T)}">25〜30℃</div><div style="font-size:26px;font-weight:800">夏から秋がよく育つ季節</div>`, fadeIn(t, 0.3), "padding:18px 26px;text-align:center");
+    if (k >= 2) html += card(P ? 60 : 110, P ? 1030 : 600, P ? 880 : 640, `<b style="font-size:40px">成長は<span style="color:#1f6fd1">オス</span>の方がよい</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">とされる（徳島県）</div>`, fadeIn(t - (s._k2 ?? 99), 0.2), "padding:20px 28px");
+    aoMini(8, 0);
+  },
+  // クイズ：k0 問い → k1 選択肢 → k2 答え 15℃
+  ao_quiz(t, d, s, k) {
+    aoBase(0);
+    academyBadge();
+    const t2 = t - (s._k2 ?? 99);
+    aoSeason(2, 0, k >= 2 ? fadeIn(t2, 0.3, 0.6) : 0);
+    aoFlock(D(11, -8.5, 0), V(4, 1.4, 2.5), 1, t, 8, 3.0);
+    aoWide(t);
+    const P = PORTRAIT;
+    if (k <= 1) {
+      html += acDim(0.35);
+      html += `<div class="big" style="top:${P ? 560 : 140}px;font-size:${P ? 66 : 62}px">クイズ　アオリイカが<br><span style="color:#ffd166">死んでしまう水温</span>は？</div>`;
+      if (k === 1) {
+        const o = [["1", "5℃以下"], ["2", "15℃以下"], ["3", "25℃以下"]];
+        html += `<div style="position:absolute;left:${P ? 140 : 610}px;top:${P ? 980 : 380}px;width:${P ? 800 : 700}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      label(D(-3.2, -2.2, 6), "答え 2：15℃以下", "これより冷たいと生きられない", fadeIn(t2, 0.5), "gold ans", P ? 0 : -360, -60);
+      html += `<div style="position:absolute;${P ? "right:40px;top:230px" : "right:60px;top:120px"};opacity:${fadeIn(t2, 0.6)}">${""}</div>`;
+      aoLegend(fadeIn(t2, 0.6));
+      html += aoTag("模式図（水温の分かれ方はイメージ）");
+      html += aoSrc();
+    }
+  },
+  // 冬は沖へ：k0 夏〜秋は沿岸に広く → k1 冬は分布の中心が沖へ → k2 浅い所ほど冷えやすい・紀伊水道南部・海部沿岸
+  ao_winter(t, d, s, k) {
+    aoBase(0);
+    academyBadge();
+    const t1 = t - (s._k1 ?? 99);
+    const w = k >= 1 ? 1 + ease(t1 / 4) : 0.9;
+    aoSeason(w, 0, k >= 1 ? clamp01((w - 1.4) / 0.4) : 0);
+    const mv = k >= 1 ? ease((t1 - 0.8) / 5) : 0;
+    const c = D(lerp(-10, 10.5, mv), lerp(-1.0, -8.3, mv * mv), 0);
+    aoFlock(c, V(lerp(4.5, 4, mv), lerp(0.4, 1.4, mv), 3), mv > 0.02 && mv < 0.98 ? 1 : Math.sin(t * 0.2) > 0 ? 1 : -1, t, 8, 3.0);
+    aoWide(t);
+    const P = PORTRAIT;
+    const L = (x, y, txt, sub, a, cls, dx, dy) => label(D(x, y, 6), txt, sub, a, cls, dx, dy);
+    L(-17, 0.6, "岸（浅い）", "", 1, "", P ? 80 : 230, -40);
+    L(18, 0.2, "沖（深い）", "", 1, "", P ? -80 : -200, -40);
+    if (k === 0) L(-10, -1.2, "沿岸に広く分布", "水温が高い季節", fadeIn(t, 0.5), "gold", P ? 80 : 160, 200);
+    if (k >= 1) aoArrow(D(-8, -1.2, 6), D(8, -7.4, 6), "#4c9dff", fadeIn(t1, 0.6) * fadeOut(t1, 7), P ? 26 : 22);
+    if (k >= 1 && mv > 0.9) L(10.5, -8, "分布の中心は沖へ", "水温が低い季節", fadeIn(mv, 0.9, 0.1), "gold ans", P ? -60 : 0, -160);
+    if (k >= 2) {
+      L(-12, -1.4, "浅い所は冷えやすい", "と言われる", fadeIn(t - (s._k2 ?? 99), 0.2), "red", P ? 60 : 160, 160);
+    }
+    aoLegend(1);
+    aoMini(w < 1.5 ? 10 : 1, w < 1.5 ? 1 : 2);
+    html += aoTag("模式図（水温の分かれ方・群れの動きはイメージ）");
+    if (k >= 2) {
+      const a = fadeIn(t - (s._k2 ?? 99), 2.5);
+      html += card(P ? 60 : 110, P ? 1030 : 610, P ? 880 : 660, `<b style="font-size:34px">徳島県の調査では</b><div style="font-size:32px;font-weight:900;margin-top:6px">冬は<span style="color:#1f6fd1">紀伊水道の南部</span>や<span style="color:#1f6fd1">海部の沿岸</span>に限られる</div>`, a, "padding:20px 28px");
+    }
+  },
+  // 大阪湾の水温：k0 1〜4月は15℃を下回る → k1 7〜9月は25℃をこえる → k2 いま11月は約20℃
+  ao_osaka(t, d, s, k) {
+    aoBase(0);
+    academyBadge();
+    dio.visible = false;
+    graph.visible = true;
+    const P = PORTRAIT;
+    const ang = -0.2 + ease(t / d) * 0.16;
+    if (P) look(D(Math.sin(ang) * 30, 4, 56), D(0, -1.5, 0), 50);
+    else look(D(Math.sin(ang) * 44, 5, Math.cos(ang) * 44), D(0, -0.5, 0), 48);
+    const hi = k >= 2 ? [10] : k >= 1 ? [6, 7, 8] : [0, 1, 2, 3];
+    drawBars(t, { grow: 0.1, hi });
+    aoLine15.visible = true;
+    aoLine15.material.opacity = 0.95;
+    if (k >= 1) aoLine25.visible = true;
+    label(D(-21, -9 + 15 * BAR_H, 0), "15℃", "", 1, "", P ? 60 : -40, -20);
+    if (k >= 1) label(D(-21, -9 + 25 * BAR_H, 0), "25℃", "", 1, "gold", P ? 60 : -40, -20);
+    if (k === 0) { barLabel(1, fadeIn(t, 1.2), "", 0, -150); html += `<div class="big" style="top:${P ? 380 : 150}px;font-size:${P ? 64 : 58}px;opacity:${fadeIn(t, 1.4)}">1〜4月は <span style="color:#7fd3ff">15℃より下</span></div>`; }
+    if (k === 1) { barLabel(7, 1, "gold", 0, -100); html += `<div class="big" style="top:${P ? 380 : 150}px;font-size:${P ? 64 : 58}px">7〜9月は <span style="color:#ff9f40">25℃をこえる</span></div>`; }
+    if (k >= 2) { barLabel(10, 1, "gold ans", 0, -120); html += `<div class="big" style="top:${P ? 380 : 150}px;font-size:${P ? 64 : 58}px">いま11月は <span style="color:#ffd166">約20℃</span></div>`; }
+    html += `<div style="position:absolute;${P ? "left:40px;right:40px;top:1240px" : "left:0;right:0;text-align:center;top:235px"};color:#bfe6ea;font-weight:700;font-size:22px;text-shadow:0 2px 6px #000">出典：気象庁「沿岸域の海面水温情報（大阪湾）」2021〜2025年の日平均を月ごとに平均</div>`;
+  },
+  // 春、ふたたび岸へ：k0 水温が上がると沿岸へ・産卵 → k1 大きなもの 50.1cm・3.9kg → k2 近年は大型化の傾向
+  ao_spring(t, d, s, k) {
+    aoBase(0);
+    academyBadge();
+    const sp = ease(t / 5);
+    aoSeason(2, sp, clamp01(1 - sp * 1.6));
+    const mv = ease((t - 1) / 5);
+    const c = D(lerp(10.5, -10, mv), lerp(-8.3, -1.0, Math.sqrt(mv)), 0);
+    aoFlock(c, V(lerp(4, 4.5, mv), lerp(1.4, 0.4, mv), 3), mv > 0.02 && mv < 0.98 ? -1 : Math.sin(t * 0.2) > 0 ? 1 : -1, t, 8, 3.0);
+    if (mv > 0.9) aoEggShow(Math.floor(44 * clamp01((t - 6) / 3)));
+    aoWide(t);
+    const P = PORTRAIT;
+    if (k === 0) aoArrow(D(8, -7.4, 6), D(-8, -1.4, 6), "#ff6fae", fadeIn(t, 0.8) * fadeOut(t, 6.5), P ? 26 : 22);
+    if (k === 0 && mv > 0.9) label(D(-10, -1.2, 6), "岸の近くで卵を産む", "水温が上がる季節", fadeIn(mv, 0.9, 0.1), "gold ans", P ? 60 : 120, 340);
+    aoLegend(k >= 1 ? fadeOut(t - (s._k1 ?? 99), 0) : 1);
+    aoMini(mv < 0.5 ? 3 : 5, 3);
+    html += aoTag("模式図（群れの動きはイメージ）");
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      html += acDim(0.35 * a);
+      html += card(P ? 60 : 1050, P ? 270 : 150, P ? 880 : 800, `<div style="font-size:30px;font-weight:800;color:#3a5a78">徳島県の定置網でとれた大きなもの</div><div style="font-size:58px;font-weight:900;margin-top:6px">外套背長 <span style="color:#e3412b">50.1cm</span></div><div style="font-size:58px;font-weight:900">体重 <span style="color:#e3412b">3.9kg</span></div>`, a, "padding:22px 30px");
+    }
+    if (k >= 2) html += card(P ? 60 : 1050, P ? 750 : 560, P ? 880 : 800, `<b style="font-size:36px">近年は水温が高い傾向で</b><div style="font-size:40px;font-weight:900;margin-top:6px"><span style="color:#e3412b">大型化の傾向</span>とされる</div>`, fadeIn(t - (s._k2 ?? 99), 0.2), "padding:20px 30px");
+    html += aoSrc();
+  },
+  ao_sum(t, d, s, k) {
+    aoBase(0);
+    aoSeason(0.6);
+    aoFlock(D(-10, -1.0, 0), V(4, 0.3, 2.5), Math.sin(t * 0.2) > 0 ? 1 : -1, t, 6, 1.8);
+    aoWide(t);
+    html += acDim(0.5);
+    const P = PORTRAIT;
+    const rows = [["寿命", "約1年", "多くは産卵のあとに死ぬ", "#c2410c"], ["15℃以下", "生きられない", "冬は分布の中心が沖へ", "#1f6fd1"], ["4〜9月", "岸の近くで産卵", "20〜35日でふ化", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">アオリイカの一生 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 230 : 250}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 42 : 46}px;font-weight:900">${b1}</div><div style="font-size:${P ? 28 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 window.frame = function (o) {
