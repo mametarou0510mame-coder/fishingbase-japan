@@ -1,5 +1,5 @@
 {
- "updatedOn": "2026-11-09",
+ "updatedOn": "2026-11-10",
  "sources": [
   {
    "spot": "marina-city-tsuri-koen",
@@ -11,102 +11,102 @@
    "spot": "hiraiso-umizuri-koen",
    "name": "平磯海づり公園 釣果情報",
    "url": "https://kobeumiduri.jp/fishresult/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "kishiwada-ichimonji",
    "name": "岸和田渡船 釣果情報",
    "url": "https://kishiwadatosen.com/result/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "suma-umizuri-koen",
    "name": "須磨海づり公園 釣果情報",
    "url": "https://sumasakana-park.com/fishing/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "amagasaki-uotsuri-koen",
    "name": "尼崎市立魚つり公園 釣果情報",
    "url": "https://amagasaki-uoturikouen.com/fishing/index.html",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "naruohama-umizuri-hiroba",
    "name": "鳴尾浜臨海公園 海づり広場 釣果情報",
    "url": "http://www.naruohama-park.com/choka/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "shimotsu-pialand",
    "name": "下津ピアーランド 釣果情報",
    "url": "https://www.shimotsu-pialand.com/fishing/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "minamiawaji-megafloat",
    "name": "南あわじ海釣り公園メガフロート 釣果情報（南あわじ市）",
    "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "okura-kaigan-higashi",
    "key": "maruha-akashi",
    "name": "まるは釣具 明石店 釣果ブログ",
    "url": "https://anglers.lekumo.biz/akashi/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "tomakomai-ippon-bohatei",
    "name": "苫小牧港海釣り施設「一本防波堤」 釣果情報",
    "url": "https://ippon-b.com/choka/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "yokosuka-umibe-tsuri-koen",
    "name": "横須賀市 海辺つり公園 釣場情報・釣果状況",
    "url": "https://www.kanagawaparks.com/umibeturi/fishing/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "kashimako-uotsurien",
    "name": "鹿島港魚釣園 釣果ブログ",
    "url": "https://kashima-fa.com/blog/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "ichihara-umizuri-koen",
    "name": "オリジナルメーカー海づり公園 釣果情報",
    "url": "https://ichihara-umizuri.com/fishing/",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "suma-umizuri-koen",
    "key": "point-kansai",
    "name": "釣具のポイント お持込釣果",
    "url": "https://www.point-i.jp/fishing_infos?area_id=94",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "honmoku-umizuri-shisetsu",
    "key": "point-72",
    "name": "釣具のポイント お持込釣果（関東）",
    "url": "https://www.point-i.jp/fishing_infos?area_id=72",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "fishing-park-hikari",
    "key": "point-91",
    "name": "釣具のポイント お持込釣果（山口）",
    "url": "https://www.point-i.jp/fishing_infos?area_id=91",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   },
   {
    "spot": "kamoike-umizuri-koen",
    "key": "point-82",
    "name": "釣具のポイント お持込釣果（鹿児島）",
    "url": "https://www.point-i.jp/fishing_infos?area_id=82",
-   "lastSuccess": "2026-11-09"
+   "lastSuccess": "2026-11-10"
   }
  ],
  "monthly": {
@@ -150,6 +150,182 @@
   }
  },
  "reports": [
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%8810%e6%97%a5%e7%81%ab#0",
+   "date": "2026-11-10",
+   "species": "ハマチ・ブリ",
+   "sizeCm": 49,
+   "count": 1,
+   "method": "ウキ釣り",
+   "time": "6:00~10:00",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%8810%e6%97%a5%e7%81%ab",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%8810%e6%97%a5%e7%81%ab#1",
+   "date": "2026-11-10",
+   "species": "カワハギ",
+   "sizeCm": 16,
+   "count": 1,
+   "method": "投げ釣り",
+   "time": "7:00~11:00",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%8810%e6%97%a5%e7%81%ab",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%8810%e6%97%a5%e7%81%ab#2",
+   "date": "2026-11-10",
+   "species": "ウマヅラハギ",
+   "sizeCm": 31,
+   "count": 1,
+   "method": "サビキ",
+   "time": "6:00~10:00",
+   "url": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%8810%e6%97%a5%e7%81%ab",
+   "spot": "hiraiso-umizuri-koen"
+  },
+  {
+   "id": "naruo-2026-11-10-イワシ-0",
+   "date": "2026-11-10",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 700,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-10-サッパ-1",
+   "date": "2026-11-10",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 150,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-10-アジ-2",
+   "date": "2026-11-10",
+   "species": "アジ",
+   "sizeCm": 13,
+   "count": 30,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-10-スズキ-3",
+   "date": "2026-11-10",
+   "species": "スズキ",
+   "sizeCm": 76,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-10-サバ-4",
+   "date": "2026-11-10",
+   "species": "サバ",
+   "sizeCm": 21,
+   "count": 120,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-10-チヌ（クロダイ）-5",
+   "date": "2026-11-10",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 44,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-10-サヨリ-6",
+   "date": "2026-11-10",
+   "species": "サヨリ",
+   "sizeCm": 22,
+   "count": 80,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "https://ichihara-umizuri.com/fishing/31475#0",
+   "date": "2026-11-10",
+   "species": "アジ",
+   "sizeCm": 18,
+   "count": 140,
+   "method": null,
+   "time": null,
+   "url": "https://ichihara-umizuri.com/fishing/31475",
+   "spot": "ichihara-umizuri-koen"
+  },
+  {
+   "id": "https://ichihara-umizuri.com/fishing/31475#1",
+   "date": "2026-11-10",
+   "species": "スズキ",
+   "sizeCm": 75,
+   "count": 10,
+   "method": null,
+   "time": null,
+   "url": "https://ichihara-umizuri.com/fishing/31475",
+   "spot": "ichihara-umizuri-koen"
+  },
+  {
+   "id": "https://ichihara-umizuri.com/fishing/31475#2",
+   "date": "2026-11-10",
+   "species": "スズキ",
+   "sizeCm": 35,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://ichihara-umizuri.com/fishing/31475",
+   "spot": "ichihara-umizuri-koen"
+  },
+  {
+   "id": "https://ichihara-umizuri.com/fishing/31475#3",
+   "date": "2026-11-10",
+   "species": "コノシロ",
+   "sizeCm": 28,
+   "count": 75,
+   "method": null,
+   "time": null,
+   "url": "https://ichihara-umizuri.com/fishing/31475",
+   "spot": "ichihara-umizuri-koen"
+  },
+  {
+   "id": "https://ichihara-umizuri.com/fishing/31475#4",
+   "date": "2026-11-10",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 32,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://ichihara-umizuri.com/fishing/31475",
+   "spot": "ichihara-umizuri-koen"
+  },
+  {
+   "id": "https://ichihara-umizuri.com/fishing/31475#5",
+   "date": "2026-11-10",
+   "species": "グレ（メジナ）",
+   "sizeCm": 21,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://ichihara-umizuri.com/fishing/31475",
+   "spot": "ichihara-umizuri-koen"
+  },
   {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%889%e6%97%a5%e6%9c%88#0",
    "date": "2026-11-09",
@@ -501,6 +677,281 @@
    "time": null,
    "url": "http://www.naruohama-park.com/choka/",
    "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-09-イワシ-7",
+   "date": "2026-11-09",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 800,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-09-サッパ-8",
+   "date": "2026-11-09",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 200,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-09-サバ-9",
+   "date": "2026-11-09",
+   "species": "サバ",
+   "sizeCm": 24,
+   "count": 80,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-09-アジ-10",
+   "date": "2026-11-09",
+   "species": "アジ",
+   "sizeCm": 14,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-09-サヨリ-11",
+   "date": "2026-11-09",
+   "species": "サヨリ",
+   "sizeCm": 23,
+   "count": 350,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-09-チヌ（クロダイ）-12",
+   "date": "2026-11-09",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 44,
+   "count": 6,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "mega-2026-11-09-長ハゲ-1",
+   "date": "2026-11-09",
+   "species": "ウマヅラハギ",
+   "sizeCm": null,
+   "count": 25,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-タイ-1",
+   "date": "2026-11-09",
+   "species": "タイ",
+   "sizeCm": 30,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-チヌ-1",
+   "date": "2026-11-09",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": null,
+   "count": 3,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-丸ハゲ-1",
+   "date": "2026-11-09",
+   "species": "カワハギ",
+   "sizeCm": null,
+   "count": 15,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-チャリコ-1",
+   "date": "2026-11-09",
+   "species": "マダイ",
+   "sizeCm": null,
+   "count": 23,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-サヨリ-1",
+   "date": "2026-11-09",
+   "species": "サヨリ",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-アコウ-1",
+   "date": "2026-11-09",
+   "species": "アコウ（キジハタ）",
+   "sizeCm": 45,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-アイゴ-1",
+   "date": "2026-11-09",
+   "species": "アイゴ",
+   "sizeCm": null,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-アオリイカ-1",
+   "date": "2026-11-09",
+   "species": "アオリイカ",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-クエ-1",
+   "date": "2026-11-09",
+   "species": "クエ",
+   "sizeCm": 35,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-ハマチ-1",
+   "date": "2026-11-09",
+   "species": "ハマチ・ブリ",
+   "sizeCm": null,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-ガシラ-1",
+   "date": "2026-11-09",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": null,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-グレ-1",
+   "date": "2026-11-09",
+   "species": "グレ（メジナ）",
+   "sizeCm": null,
+   "count": 4,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "mega-2026-11-09-(大)アジ-1",
+   "date": "2026-11-09",
+   "species": "アジ",
+   "sizeCm": 35,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
+   "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "umibe-2026-11-09-ガシラ（カサゴ）",
+   "date": "2026-11-09",
+   "species": "ガシラ（カサゴ）",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://www.kanagawaparks.com/umibeturi/fishing/",
+   "spot": "yokosuka-umibe-tsuri-koen"
+  },
+  {
+   "id": "umibe-2026-11-09-メバル",
+   "date": "2026-11-09",
+   "species": "メバル",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://www.kanagawaparks.com/umibeturi/fishing/",
+   "spot": "yokosuka-umibe-tsuri-koen"
+  },
+  {
+   "id": "umibe-2026-11-09-ウミタナゴ",
+   "date": "2026-11-09",
+   "species": "ウミタナゴ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://www.kanagawaparks.com/umibeturi/fishing/",
+   "spot": "yokosuka-umibe-tsuri-koen"
+  },
+  {
+   "id": "umibe-2026-11-09-ベラ",
+   "date": "2026-11-09",
+   "species": "ベラ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://www.kanagawaparks.com/umibeturi/fishing/",
+   "spot": "yokosuka-umibe-tsuri-koen"
+  },
+  {
+   "id": "umibe-2026-11-09-ハゼ",
+   "date": "2026-11-09",
+   "species": "ハゼ",
+   "sizeCm": null,
+   "count": null,
+   "method": null,
+   "time": null,
+   "url": "https://www.kanagawaparks.com/umibeturi/fishing/",
+   "spot": "yokosuka-umibe-tsuri-koen"
   },
   {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%888%e6%97%a5%e6%97%a5#0",
@@ -1603,6 +2054,94 @@
    "spot": "yokosuka-umibe-tsuri-koen"
   },
   {
+   "id": "naruo-2026-11-08-チヌ（クロダイ）-13",
+   "date": "2026-11-08",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 51,
+   "count": 9,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-コノシロ-14",
+   "date": "2026-11-08",
+   "species": "コノシロ",
+   "sizeCm": 27,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-イワシ-15",
+   "date": "2026-11-08",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 4800,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-サッパ-16",
+   "date": "2026-11-08",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 500,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-サヨリ-17",
+   "date": "2026-11-08",
+   "species": "サヨリ",
+   "sizeCm": 24,
+   "count": 350,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-アジ-18",
+   "date": "2026-11-08",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 80,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-フグ-19",
+   "date": "2026-11-08",
+   "species": "フグ",
+   "sizeCm": 39,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-08-サバ-20",
+   "date": "2026-11-08",
+   "species": "サバ",
+   "sizeCm": 23,
+   "count": 300,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
    "id": "https://amagasaki-uoturikouen.com/fishing/20261107.html#0",
    "date": "2026-11-07",
    "species": "サバ",
@@ -2580,6 +3119,83 @@
    "time": null,
    "url": "https://www.city.minamiawaji.hyogo.jp/soshiki/suisan/umidurikouen.html",
    "spot": "minamiawaji-megafloat"
+  },
+  {
+   "id": "naruo-2026-11-07-イワシ-21",
+   "date": "2026-11-07",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 1400,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-07-サッパ-22",
+   "date": "2026-11-07",
+   "species": "サッパ",
+   "sizeCm": 12,
+   "count": 400,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-07-アジ-23",
+   "date": "2026-11-07",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 220,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-07-サバ-24",
+   "date": "2026-11-07",
+   "species": "サバ",
+   "sizeCm": 22,
+   "count": 300,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-07-サヨリ-25",
+   "date": "2026-11-07",
+   "species": "サヨリ",
+   "sizeCm": 22,
+   "count": 300,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-07-チヌ（クロダイ）-26",
+   "date": "2026-11-07",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 46,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-07-グレ（メジナ）-27",
+   "date": "2026-11-07",
+   "species": "グレ（メジナ）",
+   "sizeCm": 23,
+   "count": 2,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
   },
   {
    "id": "https://kobeumiduri.jp/fishresult/2026%e5%b9%b411%e6%9c%886%e6%97%a5%e9%87%91#0",
@@ -3671,6 +4287,83 @@
    "spot": "minamiawaji-megafloat"
   },
   {
+   "id": "naruo-2026-11-06-イワシ-28",
+   "date": "2026-11-06",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 350,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-06-サッパ-29",
+   "date": "2026-11-06",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 120,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-06-サバ-30",
+   "date": "2026-11-06",
+   "species": "サバ",
+   "sizeCm": 23,
+   "count": 40,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-06-アジ-31",
+   "date": "2026-11-06",
+   "species": "アジ",
+   "sizeCm": 13,
+   "count": 60,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-06-チヌ（クロダイ）-32",
+   "date": "2026-11-06",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 46,
+   "count": 6,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-06-サヨリ-33",
+   "date": "2026-11-06",
+   "species": "サヨリ",
+   "sizeCm": 22,
+   "count": 15,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-06-グレ（メジナ）-34",
+   "date": "2026-11-06",
+   "species": "グレ（メジナ）",
+   "sizeCm": 20,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
    "id": "20261105-DSC_0374.jpg#0",
    "date": "2026-11-05",
    "species": "アジ・サバ・イワシ",
@@ -4585,6 +5278,72 @@
   },
   {
    "id": "naruo-2026-11-05-チヌ（クロダイ）-33",
+   "date": "2026-11-05",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 48,
+   "count": 7,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-05-イワシ-35",
+   "date": "2026-11-05",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 1450,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-05-アジ-36",
+   "date": "2026-11-05",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 50,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-05-サバ-37",
+   "date": "2026-11-05",
+   "species": "サバ",
+   "sizeCm": 27,
+   "count": 220,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-05-サッパ-38",
+   "date": "2026-11-05",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 300,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-05-サヨリ-39",
+   "date": "2026-11-05",
+   "species": "サヨリ",
+   "sizeCm": 24,
+   "count": 130,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-05-チヌ（クロダイ）-40",
    "date": "2026-11-05",
    "species": "チヌ（クロダイ）",
    "sizeCm": 48,
@@ -5784,6 +6543,83 @@
   },
   {
    "id": "naruo-2026-11-04-グレ（メジナ）-40",
+   "date": "2026-11-04",
+   "species": "グレ（メジナ）",
+   "sizeCm": 28,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-イワシ-41",
+   "date": "2026-11-04",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 1800,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-サッパ-42",
+   "date": "2026-11-04",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 350,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-サバ-43",
+   "date": "2026-11-04",
+   "species": "サバ",
+   "sizeCm": 26,
+   "count": 100,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-アジ-44",
+   "date": "2026-11-04",
+   "species": "アジ",
+   "sizeCm": 16,
+   "count": 40,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-サヨリ-45",
+   "date": "2026-11-04",
+   "species": "サヨリ",
+   "sizeCm": 28,
+   "count": 140,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-チヌ（クロダイ）-46",
+   "date": "2026-11-04",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 48,
+   "count": 11,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-04-グレ（メジナ）-47",
    "date": "2026-11-04",
    "species": "グレ（メジナ）",
    "sizeCm": 28,
@@ -7071,6 +7907,72 @@
   },
   {
    "id": "naruo-2026-11-03-チヌ（クロダイ）-46",
+   "date": "2026-11-03",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 32,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-03-イワシ-48",
+   "date": "2026-11-03",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 6000,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-03-サッパ-49",
+   "date": "2026-11-03",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 600,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-03-サバ-50",
+   "date": "2026-11-03",
+   "species": "サバ",
+   "sizeCm": 22,
+   "count": 150,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-03-アジ-51",
+   "date": "2026-11-03",
+   "species": "アジ",
+   "sizeCm": 12,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-03-サヨリ-52",
+   "date": "2026-11-03",
+   "species": "サヨリ",
+   "sizeCm": 22,
+   "count": 320,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-03-チヌ（クロダイ）-53",
    "date": "2026-11-03",
    "species": "チヌ（クロダイ）",
    "sizeCm": 45,
@@ -8424,6 +9326,94 @@
   },
   {
    "id": "naruo-2026-11-02-チヌ（クロダイ）-54",
+   "date": "2026-11-02",
+   "species": "チヌ（クロダイ）",
+   "sizeCm": 45,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-イワシ-54",
+   "date": "2026-11-02",
+   "species": "イワシ",
+   "sizeCm": 12,
+   "count": 1200,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-サッパ-55",
+   "date": "2026-11-02",
+   "species": "サッパ",
+   "sizeCm": 13,
+   "count": 250,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-アジ-56",
+   "date": "2026-11-02",
+   "species": "アジ",
+   "sizeCm": 15,
+   "count": 20,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-サバ-57",
+   "date": "2026-11-02",
+   "species": "サバ",
+   "sizeCm": 20,
+   "count": 230,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-サヨリ-58",
+   "date": "2026-11-02",
+   "species": "サヨリ",
+   "sizeCm": 20,
+   "count": 4,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-スズキ-59",
+   "date": "2026-11-02",
+   "species": "スズキ",
+   "sizeCm": 80,
+   "count": 1,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-グレ（メジナ）-60",
+   "date": "2026-11-02",
+   "species": "グレ（メジナ）",
+   "sizeCm": 20,
+   "count": 5,
+   "method": null,
+   "time": null,
+   "url": "http://www.naruohama-park.com/choka/",
+   "spot": "naruohama-umizuri-hiroba"
+  },
+  {
+   "id": "naruo-2026-11-02-チヌ（クロダイ）-61",
    "date": "2026-11-02",
    "species": "チヌ（クロダイ）",
    "sizeCm": 45,
