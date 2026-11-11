@@ -118,7 +118,8 @@ def swim(t):
 
 def cam_target(t):
     def c(x):
-        return lure_now(x) * 0.45 + snout(x) * 0.55 + Vector((0, 0, 0.04))
+        body = snout(x) - heading(x) * 0.2   # 魚の体の真ん中
+        return lure_now(x) * 0.4 + body * 0.6 + Vector((0, 0, 0.03))
     acc = Vector((0, 0, 0))
     for i in range(9):
         acc += c(t + (i - 4) * 0.08)
@@ -156,7 +157,7 @@ try:
     sc.view_settings.look = "AgX - Medium High Contrast"
 except Exception:
     pass
-sc.view_settings.exposure = 0.3
+sc.view_settings.exposure = 0.55
 
 
 def mat(name, build):
@@ -208,7 +209,7 @@ water.data.materials.append(mat("water", b_water))
 # 日光と、水面のゆらぎの影（コースティクスと光の筋になる）
 bpy.ops.object.light_add(type="SUN", location=(0, 0, 20))
 sun = bpy.context.object
-sun.data.energy = 9.0
+sun.data.energy = 12.0
 sun.data.angle = math.radians(0.6)
 sun.rotation_euler = (math.radians(12), math.radians(-8), 0)
 
@@ -238,20 +239,35 @@ def b_gobo(nt, n, l):
     vor = n.new("ShaderNodeTexVoronoi")
     vor.voronoi_dimensions = "4D"
     vor.feature = "DISTANCE_TO_EDGE"
-    vor.inputs["Scale"].default_value = 2.6
+    vor.inputs["Scale"].default_value = 1.8
     l.new(vm.outputs[0], vor.inputs["Vector"])
     GOBO_W = vor.inputs["W"]
     ramp = n.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.0
     ramp.color_ramp.elements[0].color = (0, 0, 0, 1)
     ramp.color_ramp.elements[1].position = 0.09
-    ramp.color_ramp.elements[1].color = (0.62, 0.62, 0.62, 1)
+    ramp.color_ramp.elements[1].color = (0.75, 0.75, 0.75, 1)
     l.new(vor.outputs["Distance"], ramp.inputs["Fac"])
+    big = n.new("ShaderNodeTexNoise")
+    big.inputs["Scale"].default_value = 0.22
+    big.inputs["Detail"].default_value = 1.0
+    l.new(tc.outputs["Object"], big.inputs["Vector"])
+    br = n.new("ShaderNodeMapRange")
+    br.inputs["From Min"].default_value = 0.42
+    br.inputs["From Max"].default_value = 0.6
+    br.inputs["To Min"].default_value = 0.55
+    br.inputs["To Max"].default_value = 0.0
+    l.new(big.outputs["Fac"], br.inputs["Value"])
+    mx2 = n.new("ShaderNodeMath")
+    mx2.operation = "MAXIMUM"
+    mx2.use_clamp = True
+    l.new(ramp.outputs["Color"], mx2.inputs[0])
+    l.new(br.outputs["Result"], mx2.inputs[1])
     tr = n.new("ShaderNodeBsdfTransparent")
     blk = n.new("ShaderNodeBsdfDiffuse")
     blk.inputs["Color"].default_value = (0, 0, 0, 1)
     mix = n.new("ShaderNodeMixShader")
-    l.new(ramp.outputs["Color"], mix.inputs["Fac"])
+    l.new(mx2.outputs[0], mix.inputs["Fac"])
     l.new(tr.outputs[0], mix.inputs[1])
     l.new(blk.outputs[0], mix.inputs[2])
     l.new(mix.outputs[0], out.inputs["Surface"])
@@ -556,7 +572,7 @@ def place_lure(t):
 
 # カメラ（横から少し見上げる）。ピントは魚の口先
 cam_d = bpy.data.cameras.new("cam")
-cam_d.lens = 50
+cam_d.lens = 40
 cam_d.dof.use_dof = True
 cam_d.dof.aperture_fstop = 2.2
 cam = bpy.data.objects.new("cam", cam_d)
@@ -566,7 +582,10 @@ sc.camera = cam
 
 def place_cam(t):
     C = cam_target(t)
-    P = C + Vector((0.55, -1.75, -0.10))
+    # 魚とタイラバが離れているときは引いて、両方が入るようにする
+    sep = sum(((lure_now(t + (i - 4) * 0.08) - snout(t + (i - 4) * 0.08)).length for i in range(9))) / 9
+    k = 1.0 + 0.55 * sep
+    P = C + Vector((0.30, -1.6, -0.30)) * k
     P.z = max(P.z, 0.14)
     cam.location = P
     cam.rotation_euler = (C - P).to_track_quat("-Z", "Y").to_euler()
