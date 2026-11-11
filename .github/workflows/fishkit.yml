@@ -21,10 +21,15 @@ jobs:
           cp -r "$ROOT"/. scripts/cg/vendor/fishkit/
           printf 'Fish Kit（CC0 1.0）\n出典：https://cda-social.github.io/fish/gallery.html\n取り込み：%s\n' "$(date -u +%F)" > scripts/cg/vendor/fishkit/SOURCE.txt
           du -sh scripts/cg/vendor/fishkit; find scripts/cg/vendor/fishkit -size +20M
+          # GLTFLoader（three r160。scripts/cg/vendor/three.module.min.js と同じ版）
+          cd /tmp && npm pack three@0.160.0 --silent && tar xzf three-0.160.0.tgz && cd "$GITHUB_WORKSPACE"
+          mkdir -p scripts/cg/vendor/addons/loaders scripts/cg/vendor/addons/utils
+          cp /tmp/package/examples/jsm/loaders/GLTFLoader.js scripts/cg/vendor/addons/loaders/
+          cp /tmp/package/examples/jsm/utils/BufferGeometryUtils.js scripts/cg/vendor/addons/utils/
       - name: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/cg/vendor/fishkit
+          git add scripts/cg/vendor/fishkit scripts/cg/vendor/addons
           git commit -m "Fish Kit（CC0）を取り込み" || exit 0
           for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && break; sleep 5; done
