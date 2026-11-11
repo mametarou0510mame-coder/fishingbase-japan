@@ -7653,6 +7653,282 @@ Object.assign(SHOTS, {
     html += `<div style="position:absolute;left:20px;top:20px;color:#fff;font-size:30px">${FK.ok ? "Fish Kit OK" : "Fish Kit NG"}</div>`;
   },
 });
+// =====================================================================
+// タイラバ（cg-fune-tairaba、tr_*）2026-11-12 船釣り 見える化シリーズ 第3回。ft_*（船のタチウオ）の部品と Fish Kit のマダイを使う
+// 参考：Honda釣り倶楽部「タイラバ」2019年5月（STEP1：着底後すぐ巻き上げ、巻く速さは終始一定でゆっくり、重さの目安は水深＝グラム数、
+//   巻き上げは底から水深の約1/3かリール約30回転、アタリがあっても掛かったと確信できるまで一定速で巻き続ける／STEP3：潮が緩い→軽め、速い→重め）
+//   ダイワ「タイラバ特集」（マダイは基本的に底付近、ヘッドで底を取りネクタイの波動で誘う、着底の瞬間はスプールが止まる、
+//   着底後は数回転速めに巻いてたるみを取る、タッチ＆ゴー、巻き上げは水深の1/3〜1/2、春の乗っ込みは長い距離を追う・冬は追う距離が短い（錦江湾の例））
+// =====================================================================
+const TR_BODY = { m: 0.07, ma: 0.014, W: G_W(0.07, 11.34), I: 2e-5, len: 0.03, r: 0.013, eye: [0, 0.013], cp: 0, ka: 0.24, kn: 0.24, kl: 0, km: 0, kw: 2e-5, kw1: 2e-5 };
+FT_BODY.tairaba = TR_BODY;
+Object.assign(FT_SEQ, {
+  // 落とす → 着底 → たるみを数回転速めに取る → 等速でゆっくり30回転
+  tr_main: { body: "tairaba", opt: { y0: -61, th0: 0 }, seq: [{ free: 8.6 }, { mark: "land" }, { reel: 3, dur: 0.8 }, { mark: "go" }, { reel: 30, dur: 40, lin: 1 }, { wait: 3 }] },
+  // アタリが出ても、同じ速さで巻き続ける → 重さが乗る
+  tr_bite: { body: "tairaba", opt: { y0: -66, th0: 0 }, seq: [{ reel: 4, dur: 5.3, lin: 1 }, { mark: "n1" }, { reel: 0.3, dur: 0.4, lin: 1, fish: [0, -1.2] }, { reel: 1.2, dur: 1.6, lin: 1 }, { mark: "n2" }, { reel: 0.3, dur: 0.4, lin: 1, fish: [0, -1.2] }, { reel: 1.2, dur: 1.6, lin: 1 }, { mark: "hook" }, { reel: 5, dur: 7, lin: 1, fish: [0, -3.5] }, { wait: 6, fish: [0, -3] }] },
+});
+// タイラバの模型（実物大：ヘッドの直径約2.4cm）。原点＝ヘッドの中心。スカートとネクタイは -y へ垂れる
+const trRig = new THREE.Group();
+world.add(trRig);
+extras.push(trRig);
+const trTail = new THREE.Group();
+{
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.012, 24, 16), ftLit(0xff6a1a, { shine: 0.7 }));
+  const eyeW = new THREE.MeshBasicMaterial({ color: 0xffffff }), eyeB = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  [-1, 1].forEach((sd) => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.0042, 10, 8), eyeW); e.position.set(0.004, 0.002, sd * 0.0105); const p = new THREE.Mesh(new THREE.SphereGeometry(0.0022, 8, 6), eyeB); p.position.set(0.0055, 0.002, sd * 0.0135); head.add(e, p); });
+  trRig.add(head);
+  trRig.add(trTail);
+  // スカート（細いゴムの束）
+  const skM = ftLit(0xff8a2a, { shine: 0.2 });
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2, L = 0.055 + (i % 3) * 0.006;
+    const g = new THREE.CylinderGeometry(0.0006, 0.0008, L, 4).translate(0, -L / 2, 0);
+    const m = new THREE.Mesh(g, skM);
+    m.position.set(Math.cos(a) * 0.004, -0.008, Math.sin(a) * 0.004);
+    m.rotation.set(Math.sin(a) * 0.22, 0, -Math.cos(a) * 0.22);
+    m.userData.a = a;
+    trTail.add(m);
+  }
+  // ネクタイ（くるっと曲がった板。ゆらゆら揺れる）
+  const tieM = new THREE.ShaderMaterial({
+    uniforms: { time: U.time, col: { value: new THREE.Color(0xff3d2a) } }, side: THREE.DoubleSide,
+    vertexShader: `uniform float time; attribute float ph; varying float vY; void main(){ vec3 p = position; float u = clamp(-p.y/0.09, 0., 1.);
+      p.x += sin(u*7.0 - time*9.0 + ph)*0.012*u; p.z += cos(u*5.0 - time*7.0 + ph)*0.004*u; vY = u; gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
+    fragmentShader: `uniform vec3 col; varying float vY; void main(){ gl_FragColor = vec4(col*(0.85+0.3*(1.0-vY)), 1.); }`,
+  });
+  [0, 1].forEach((i) => {
+    const g = new THREE.PlaneGeometry(0.008, 0.09, 1, 18).translate(0, -0.045 - 0.008, 0);
+    g.setAttribute("ph", new THREE.Float32BufferAttribute(new Array(g.attributes.position.count).fill(i * 2.1), 1));
+    const m = new THREE.Mesh(g, tieM);
+    m.position.set((i - 0.5) * 0.006, 0, (i - 0.5) * 0.004);
+    trTail.add(m);
+  });
+  // ハリ（2本）
+  const st = ftLit(0xc3cad0, { shine: 0.9 });
+  [-1, 1].forEach((sd) => { const h = new THREE.Mesh(new THREE.TorusGeometry(0.006, 0.0007, 6, 14, Math.PI * 1.2), st); h.position.set(sd * 0.004, -0.045, 0); h.rotation.z = sd > 0 ? 0.6 : 2.5; trTail.add(h); });
+}
+const _trDir = V(0, -1, 0), _trDown = V(0, -1, 0);
+// タイラバを置く。スカートは進む向きと反対へ（止まっているときは下へ）なびく
+function trPlace(sim, ts, vis = 1, ox = 0) {
+  const a = sim.at(ts), b = sim.at(Math.max(0, ts - 0.2));
+  trRig.visible = true;
+  trRig.position.copy(FTp(a[0] + ox, a[1], FT_LZ));
+  trRig.scale.setScalar(vis);
+  const vx = (a[0] - b[0]) / 0.2, vy = (a[1] - b[1]) / 0.2, sp = Math.hypot(vx, vy);
+  _trDir.set(-vx / (sp || 1), -vy / (sp || 1), 0);
+  _trDir.lerp(_trDown, clamp01(1 - sp / 0.25)).normalize();
+  trTail.quaternion.setFromUnitVectors(_trDown, _trDir);
+  trTail.children.forEach((m, i) => { if (m.userData.a != null) m.rotation.x = Math.sin(m.userData.a) * 0.22 + Math.sin(U.time.value * 6 + i) * 0.05; });
+  return { x: a[0] + ox, y: a[1], dir: _trDir.clone(), vis };
+}
+// マダイ（Fish Kit。なければイラストの板）を、タイラバの後ろ（下）につける。dist：スカートの先からの距離
+function trMadai(i, tp, dist, T, o = {}) {
+  const f = fkGet("madai", i, o.cm ?? 50);
+  if (!f) return null;
+  const L = f.length, d = tp.dir, sd = o.side ?? -0.22, sk = 0.07 * (tp.vis ?? 1); // d：スカートが伸びる向き。sd：横へずらす量（斜め後ろから追う）。sk：スカートの長さ
+  const mx = tp.x + d.x * (sk + dist) - d.y * sd, my = tp.y + d.y * (sk + dist) + d.x * sd;
+  // 口がタイラバのスカートの先を向くように
+  const ang = Math.atan2(tp.y + d.y * sk * 0.85 - my, tp.x + d.x * sk * 0.85 - mx), cx = mx - Math.cos(ang) * L * 0.47, cy0 = my - Math.sin(ang) * L * 0.47;
+  let cy = cy0;
+  const low = cy - Math.abs(Math.sin(ang)) * L * 0.5 - 0.2 * L * Math.abs(Math.cos(ang));
+  if (low < FT_BOT + 0.4) cy += FT_BOT + 0.4 - low;
+  ftClear(Math.max(low, FT_BOT + 0.4));
+  ftShade(cx, FT_LZ + (o.dz ?? -0.12), Math.max(low, FT_BOT + 0.4) - FT_BOT, L);
+  const right = Math.cos(ang) >= 0;
+  fkPlace(f, FTp(cx, cy, FT_LZ + (o.dz ?? -0.12)), right ? 0 : Math.PI, right ? ang : Math.PI - ang, T + i, { freq: o.freq ?? 2.4, amp: o.amp ?? 0.09, seed: i });
+  return [mx, my];
+}
+const TR_LEG = [["#ffb45e", "糸とタイラバの動き"], ["#2ecc71", "巻き上げる範囲"]];
+function trBand(top, a = 1) {
+  ftBand.visible = a > 0.01;
+  ftBand.position.set(4, (FT_BOT + top) / 2, FT_LZ - 2.5);
+  ftBand.scale.set(1, top - FT_BOT, 1);
+  ftBand.material.opacity = 0.2 * a;
+}
+// 船・竿・糸（仕掛けは trPlace で置く）
+function trRig2(T, sim, ts, o = {}) {
+  const st = ftRig(T, sim, ts, { obj: new THREE.Group(), rod: o.rod, trail: o.trail, lw: o.lw, ox: o.ox });
+  const tp = trPlace(sim, ts, o.vis ?? 1, o.ox ?? 0);
+  return { ...st, tp };
+}
+
+Object.assign(SHOTS, {
+  tr_thumb(t, d, s) {
+    ftBase();
+    const sim = ftRun("tr_main"), T = 3, ts = sim.marks.go + 6, st = trRig2(T, sim, ts, { lw: 6, vis: 2 });
+    trMadai(0, st.tp, 0.06, T, { cm: 55, side: 0.25 });
+    look(FTp(st.tp.x - 0.55, st.tp.y - 0.2, FT_LZ + 1.25), FTp(st.tp.x - 0.4, st.tp.y - 0.22, FT_LZ), 50);
+    ftFlush();
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  tr_hook(t, d, s) {
+    ftBase();
+    const P = PORTRAIT, T = t, sim = ftRun("tr_main"), ts = sim.marks.go + 2 + t;
+    const st = trRig2(T, sim, ts, { trail: 2.2 });
+    ftOthers(T, -64);
+    trMadai(0, st.tp, 0.35 + 0.1 * Math.sin(t), T, { cm: 55 });
+    trMadai(1, st.tp, 1.4, T, { cm: 45, side: 0.6, dz: -0.6 });
+    const k = ease((t - 0.9) / 4.4), [sx, sy] = ftSmooth(sim, ts);
+    const cx = lerp(-1, sx, k), cy = lerp(1.3, sy - 0.3, k);
+    look(FTp(cx, cy + lerp(1.6, 0.05, k), FT_LZ + lerp(P ? 31 : 24, P ? 2.2 : 1.7, k)), FTp(cx, cy, FT_LZ), 50);
+    ftFlush();
+    const a = P ? 1 : clamp01(t / 0.25), depth = Math.max(0, -cy);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 400}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "タイラバ、<br>巻くだけでなぜ釣れる？", "海の中の動きを計算で見える化", a);
+    html += `<div style="position:absolute;${P ? "right:40px;top:860px" : "right:70px;top:430px"};background:rgba(6,22,42,.85);border:4px solid #ffb45e;border-radius:20px;padding:8px 24px;color:#fff;font-weight:900;font-size:${P ? 40 : 38}px;opacity:${clamp01((t - 0.6) / 0.4)}">水深 <span style="font-size:${P ? 84 : 80}px;color:#ffd166">${depth.toFixed(0)}</span> m</div>`;
+    drawBar(s);
+  },
+  // しくみ：k0 部品 → k1 底のマダイを、ネクタイの波動で誘う
+  tr_what(t, d, s, k) {
+    ftBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT;
+    trRig.visible = true;
+    trRig.position.copy(FTp(0, -30, FT_LZ));
+    trRig.scale.setScalar(1);
+    trTail.quaternion.identity();
+    trRig.rotation.set(0, Math.sin(t * 0.4) * 0.5, 0);
+    trRig.updateMatrixWorld(true);
+    look(FTp(0, -30.04, FT_LZ + (P ? 0.36 : 0.26)), FTp(0, -30.04, FT_LZ), 50);
+    ftFlush();
+    ftSeg(FTp(0, -28, FT_LZ), FTp(0, -29.988, FT_LZ), "#ffb45e", 5);
+    label(FTp(0.008, -30, FT_LZ), "ヘッド（オモリ）", "底を取る", fadeIn(t, 0.4), "gold", P ? 140 : 320, -120);
+    label(FTp(-0.006, -30.03, FT_LZ), "スカート", "", fadeIn(t, 1.2), "", P ? -140 : -330, -60);
+    label(FTp(0.006, -30.08, FT_LZ), "ネクタイ", "水の抵抗でゆらゆら", fadeIn(t, 2.0), "gold ans", P ? 120 : 330, 120);
+    label(FTp(-0.004, -30.045, FT_LZ), "ハリ", "", fadeIn(t, 2.8), "", P ? -140 : -330, 120);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">マダイは、基本的に底の近く</b><div style="font-size:30px;font-weight:900;margin-top:6px">ヘッドで底を取り、<span style="color:#c2410c">ネクタイの波動</span>で誘う</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), [70, 140, 820], [60, 270, 880]);
+    ftNote("ネクタイの揺れはイメージ");
+  },
+  // 重さ：k0 水深＝グラム数 → k1 潮で変える
+  tr_weight(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 20, sim = ftRun("tr_main"), st = trRig2(T, sim, sim.marks.go + 4 + (t % 20));
+    ftOthers(T, -64);
+    ftWide(t);
+    ftFlush();
+    const q = project(FTp(st.tp.x, st.tp.y, FT_LZ));
+    html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:#ff6a1a;border:5px solid #fff"></div>`;
+    pathLine([FTp(-24, 0, FT_LZ), FTp(-24, FT_BOT, FT_LZ)], "#ffffff", 1, 3);
+    [0, 10, 20, 30, 40, 50, 60, 70].forEach((m) => { const p = project(FTp(-24, -m, FT_LZ)); html += `<div style="position:absolute;left:${p.x - 12}px;top:${p.y}px;transform:translate(-100%,-50%);color:#fff;font-weight:900;font-size:26px;text-shadow:0 2px 6px #000">${m}m</div>`; });
+    html += ftCard(P, `<b style="font-size:34px">重さの目安は <span style="color:#c2410c">水深＝グラム数</span></b><div style="font-size:34px;font-weight:900;margin-top:8px">水深70mなら 70g</div><div style="font-size:24px;font-weight:800;color:#3a5a78">底が取れないと釣りにならないので、軽くしすぎない</div>`, fadeIn(t, 0.4), [560, 150, 820], [60, 270, 880]);
+    if (k >= 1) html += ftCard(P, `<div style="font-size:32px;font-weight:900">潮が速い → <span style="color:#c2410c">重く</span>　潮がゆるい → <span style="color:#1f6fd1">軽く</span></div><div style="font-size:24px;font-weight:800;color:#3a5a78">色や重さは、船宿で最新の情報を聞く</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), [560, 360, 820], [60, 560, 880]);
+    if (!P) legend([TR_LEG[0]]);
+  },
+  // 着底 → タッチ＆ゴー
+  tr_fall(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 40, sim = ftRun("tr_main"), ts = t, mk = sim.marks, L = sim.landed > 0 ? sim.landed : mk.land;
+    const st = trRig2(T, sim, ts, { trail: 1.6, vis: 2.5 });
+    if (ts > L) trMadai(0, st.tp, 0.9, T, { cm: 50 });
+    ftCam(sim, ts, 1.6, { dy: -0.15 });
+    const c0 = st.c0;
+    if (c0.free) ftChip("フォール：底まで落とす", "#1f6fd1");
+    else if (ts < mk.go) ftChip("着底！ すぐ数回転、速めに巻く", "#c2410c");
+    else ftChip("タッチ＆ゴー：間をあけずに巻き始める", "#e08a2a");
+    if (ts > L && ts < L + 3) label(FTp(st.tp.x, FT_BOT + 0.02, FT_LZ), "着底", "スプールが一瞬止まる", fadeIn(ts, L), "gold ans", P ? 0 : 330, P ? -330 : -200);
+    ftMini(-st.y, 1, false);
+    ftCtl(st);
+    if (!P) legend([TR_LEG[0]]);
+    ftNote("タイラバは大きく表示。動きは簡単な物理モデルの計算");
+  },
+  // 等速巻き：k0 一定の速さでゆっくり → k1 水深の1/3〜1/2（約30回転）まで
+  tr_reel(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 60, sim = ftRun("tr_main"), mk = sim.marks;
+    const ts = mk.go + (k >= 1 ? 6 + (t - (s._k1 ?? 0)) * 3.2 : t * 0.9);
+    const st = trRig2(T, sim, Math.min(ts, mk.go + 40), { trail: 2.5, vis: 2.5 });
+    trMadai(0, st.tp, 0.55 + 0.2 * Math.sin(t * 0.7), T, { cm: 50 });
+    trBand(FT_BOT + 23, 1);
+    ftCam(sim, Math.min(ts, mk.go + 40), 1.7, { dy: -0.25 });
+    ftChip(k >= 1 ? "早送り：底から約20mまで" : "等速巻き：同じ速さで、ゆっくり", k >= 1 ? "#10345a" : "#e08a2a");
+    ftMini(-st.y, 1, false);
+    ftCtl(st);
+    agGraph([[sim, "#e08a2a", "タイラバ"]], Math.min(ts, mk.go + 40), mk.go + 40, 1);
+    if (!P) legend(TR_LEG);
+    ftNote("動きは簡単な物理モデルの計算。マダイの動きはイメージ");
+    drawBar(s);
+  },
+  // クイズ：アタリが来たら？ k0 問い → k1 選択肢 → k2 答え（巻き続ける）
+  tr_quiz(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 80, sim = ftRun("tr_bite"), mk = sim.marks, t2 = t - (s._k2 ?? 99);
+    const ts = k >= 2 ? mk.n1 - 0.5 + Math.max(0, t2) : Math.min(t, mk.n1 - 0.6);
+    const st = trRig2(T, sim, ts, { trail: 1.5, vis: 2.5 });
+    const hooked = ts >= mk.hook;
+    const nib = (ts > mk.n1 - 0.2 && ts < mk.n1 + 0.5) || (ts > mk.n2 - 0.2 && ts < mk.n2 + 0.5);
+    trMadai(0, st.tp, hooked ? -0.07 * st.tp.vis * 0.4 : nib ? 0.0 : 0.25, T, { cm: 50, freq: hooked ? 4 : 2.4, amp: hooked ? 0.16 : 0.09, side: hooked ? -0.03 : -0.22 });
+    ftCam(sim, ts, 1.6, { dy: -0.25 });
+    if (k <= 1) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 130}px;font-size:${P ? 70 : 62}px">クイズ　アタリが来たら<br><span style="color:#ffd166">どうする？</span></div>`;
+      if (k === 1) {
+        const o = [["A", "すぐ竿を立てて合わせる"], ["B", "同じ速さで巻き続ける"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 560}px;top:${P ? 1000 : 400}px;width:${P ? 840 : 800}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      if (nib) ftChip("アタリ！", "#3a6ea5");
+      else if (hooked) ftChip("重さが乗った → 掛かった", "#2a9d5c");
+      else ftChip("答え B：同じ速さで巻き続ける", "#e08a2a");
+      label(FTp(st.tp.x, st.tp.y, FT_LZ), "答え B", "掛かったと確信できるまで、一定の速さで", fadeIn(t2, 0.3), "gold ans", P ? 0 : -380, P ? 330 : 60);
+    }
+    ftMini(-st.y, 1, false);
+    ftCtl(st, 1, hooked ? ["掛かった", "#2a9d5c"] : null);
+    ftNote("魚が引く力は仮の値。マダイの動きはイメージ");
+    drawBar(s);
+  },
+  // 季節：春の乗っ込み（長く追う）と冬（追う距離が短い）
+  tr_season(t, d, s, k) {
+    ftBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 100, sim = ftRun("tr_main"), mk = sim.marks;
+    const ts = mk.go + 3 + (t % 8) * 0.3;
+    const st = trRig2(T, sim, ts, { rod: false, vis: 3, lw: 3 });
+    trMadai(0, st.tp, 0.25, T, { cm: 55, side: -0.3 });
+    // 冬：追う距離が短い（底の近くにとどまる）。マダイの動きはイメージ
+    const f = fkGet("madai", 2, 55);
+    if (f) { fkPlace(f, FTp(st.tp.x + 1.2, FT_BOT + 0.75, FT_LZ - 0.3), Math.PI, 0.35, T, { freq: 1.6, amp: 0.07 }); ftShade(st.tp.x + 1.2, FT_LZ - 0.3, 0.5, 0.55); ftClear(0.5); }
+    const cy = FT_BOT + 2.3;
+    look(FTp(st.tp.x + 0.5, cy + 0.3, FT_LZ + (P ? 8 : 6)), FTp(st.tp.x + 0.5, cy, FT_LZ), 50);
+    ftFlush();
+    label(FTp(st.tp.x - 0.3, st.tp.y - 0.4, FT_LZ), "春（乗っ込み）", "長い距離を追う → 高めまで巻く", 1, "gold", P ? -60 : -320, -40);
+    label(FTp(st.tp.x + 1.2, FT_BOT + 0.9, FT_LZ), "冬", "追う距離が短い → 釣れる層が狭い", fadeIn(t, 1.2), "", P ? 60 : 300, -150);
+    ftNote("ダイワの解説（鹿児島・錦江湾の例）から。マダイの動きはイメージ。タイラバは大きく表示");
+  },
+  tr_safe(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 220, sim = ftRun("tr_main");
+    trRig2(T, sim, sim.marks.go + 3);
+    ftOthers(T, -64);
+    if (P) look(FTp(-0.5, 5, 25), FTp(-0.5, 1.6, 0), 45);
+    else look(FTp(1.0 + t * 0.06, 4.2, 15.5), FTp(-0.8, 1.7, 0), 45);
+    ftFlush();
+    const bob = ftSurf(0, T) * 0.5;
+    if (k === 0) html += ftCard(P, `<b style="font-size:38px">重さや色は、<span style="color:#c2410c">船長・船宿</span>に聞く</b><div style="font-size:30px;font-weight:900;margin-top:8px">地域や日によって、釣れる色・重さが違う</div>`, fadeIn(t, 0.4), [70, 150, 880], [60, 270, 880]);
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      label(FTp(0, 1.15 + 1.2 + bob, 1.45), "ライフジャケット", "必ず着ける", a, "gold ans", P ? 0 : 420, P ? -330 : -230);
+      html += ftCard(P, `<b style="font-size:38px">船の上では、ライフジャケットを必ず</b>`, a, [70, 150, 760], [60, 270, 880]);
+    }
+  },
+  tr_sum(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 240, sim = ftRun("tr_main");
+    trRig2(T, sim, sim.marks.go + 4 + (t % 20));
+    ftOthers(T, -64);
+    ftWide(t);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["重さ", "水深＝グラム数が目安", "底が取れる重さに", "#c2410c"], ["巻き方", "着底したらすぐ、同じ速さでゆっくり", "水深の1/3〜1/2まで（約30回転）", "#e08a2a"], ["アタリ", "合わせずに、巻き続ける", "掛かったと確信できるまで", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">タイラバ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 38 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 window.frame = function (o) {
