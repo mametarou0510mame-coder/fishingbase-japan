@@ -8,7 +8,7 @@ export function rakutenSearchUrl(keyword: string) {
   return `https://hb.afl.rakuten.co.jp/hgc/${RAKUTEN_AFFILIATE_ID}/?pc=${encodeURIComponent(target)}&m=${encodeURIComponent(target)}`;
 }
 
-// Amazon（もしもアフィリエイト経由。Instagram 2026-11-02・ホームページ 2026-11-03 承認、YouTube は否認）
+// Amazon（サイトは2026-11-11からアソシエイト直接。以下の MOSHIMO_AMAZON は Instagram 等の移行完了まで残す。元はもしも経由。Instagram 2026-11-02・ホームページ 2026-11-03 承認、YouTube は否認）
 // a_id 等はリンクに必ず載る公開情報。AMAZON_ON は、この媒体（サイト）での提携が承認されてから true にする
 // a_id は媒体ごと：ホームページ 5873643（2026-11-03 承認）／Instagram 5858728。サイトではホームページ用を使う
 export const MOSHIMO_AMAZON = { a_id: "5873643", p_id: "170", pc_id: "185", pl_id: "4062" };
@@ -45,12 +45,15 @@ export const AMAZON_ASIN: Record<string, string> = {
   "シャウト ツインアシスト 43-TA": "B000AQZAYA",  // シャウト! 43-TA ツインアシスト
 };
 
+// Amazonアソシエイト直接のリンク（2026-11-11 サイトのトラッキングID tsuredoki-22。公開情報）
+// 登録から180日以内（〜2027-05-10ごろ）に3件の適格販売が必要。製品ページ（dp/ASIN）が分かるものはそちらへ
+export const AMAZON_ASSOCIATE_TAG = "tsuredoki-22";
 export function amazonSearchUrl(keyword: string): string | null {
   if (!AMAZON_ON) return null;
-  const m = MOSHIMO_AMAZON;
   const asin = AMAZON_ASIN[keyword];
-  const target = asin ? `https://www.amazon.co.jp/dp/${asin}` : `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}`;
-  return `https://af.moshimo.com/af/c/click?a_id=${m.a_id}&p_id=${m.p_id}&pc_id=${m.pc_id}&pl_id=${m.pl_id}&url=${encodeURIComponent(target)}`;
+  return asin
+    ? `https://www.amazon.co.jp/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`
+    : `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${AMAZON_ASSOCIATE_TAG}`;
 }
 
 // 広告表示の文言（参加しているプログラムに合わせる）
