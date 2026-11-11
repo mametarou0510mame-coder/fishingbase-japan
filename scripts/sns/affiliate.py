@@ -78,6 +78,12 @@ AMAZON_ASIN = {
     "シマノ 21 バルケッタ 300PG": "B09BFNX9H7",
     "ダイワ ライトゲームRX IC 200": "B0FWB5CM6C",
     "よつあみ スーパージグマンX8 2号 200m": "B07L5GP9F5",
+    # 2026-11-11 船の青物ジギング・タイラバ（cg-fune-aomono / cg-fune-tairaba）の固定コメント用。Amazon 検索で製品ページを確かめた
+    "シマノ グラップラーBB タイプJ": "B08ZT3SW92",
+    "シマノ 24 ストラディックSW 4000HG": "B0D7C2HHV8",
+    "ダイワ 紅牙 ベイラバーフリー": "B08DDPKP4H",
+    "シマノ 21 炎月BB B69ML-S": "B08ZST3XC1",
+    "シマノ 19 炎月CT 150HG": "B0CLRBG1Q6",
 }
 
 
