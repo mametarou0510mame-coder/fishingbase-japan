@@ -6875,6 +6875,7 @@ function ftTrail(sim, ts, span, ox = 0, col = "#ffd39a") {
 }
 // 船・竿・糸・仕掛けを置く。o.obj：仕掛けのモデル、o.unit：モデルの縮尺、o.vis：見やすくする倍率、o.ox：横にずらす、o.th：向きを上書き
 function ftRig(T, sim, ts, o = {}) {
+  if (typeof ftHeroT !== "undefined") ftHeroT = T;
   const a = sim.at(ts), c0 = sim.ctl(ts), ox = o.ox ?? 0, vis = o.vis ?? 1, th = o.th ?? a[2];
   const bob = ftSurf(0, T) * 0.5;
   ftBoat.position.set(-1, bob, 0);
@@ -7311,6 +7312,22 @@ extras.push(agSchool);
 const agHero = [0, 1].map(() => { const m = fishMesh("ハマチ", 0.9, { amp: 0.07, freq: 8 }); world.add(m); extras.push(m); return m; });
 function agSchoolPlace(T, o = {}) {
   const { cx = 0, y0 = AG_BAND[0] + 0.5, y1 = AG_BAND[1] - 0.5, sx = 6, sz = 1.4, sc = 1, n = 16, zc = FT_LZ - 3.2 } = o;
+  if (FK.ok) {
+    // 写真から作った3Dモデル（ブリの仲間。ハマチ〜メジロの大きさ 50〜70cm）
+    const off = agSchool.userData.off;
+    for (let i = 0; i < Math.min(n, 14); i++) {
+      const q = off[i], f = fkGet("buri", i, 50 + ((i * 37) % 20));
+      const L = f.length * sc, dir = Math.sin(T * 0.12 + q.p) > 0 ? 1 : -1;
+      let y = lerp(y0, y1, 0.5 + 0.5 * q.y) + Math.sin(T * 0.5 * q.w + q.p) * 0.2;
+      y = Math.max(y, FT_BOT + 0.2 * L + 0.6);
+      ftClear(y - 0.2 * L);
+      const fx = cx + q.x * sx + Math.sin(T * 0.25 * q.w + q.p) * 1.2 * sc, fz = zc + q.z * sz;
+      ftShade(fx, fz, y - 0.2 * L - FT_BOT, L);
+      f.object.scale.setScalar(sc);
+      fkPlace(f, FTp(fx, y, fz), dir > 0 ? 0 : Math.PI, Math.sin(T * 0.6 + q.p) * 0.05, T, { seed: q.p * 3, freq: 1.7, amp: 0.1 });
+    }
+    return;
+  }
   agSchool.visible = true;
   const off = agSchool.userData.off;
   for (let i = 0; i < off.length; i++) {
@@ -7332,6 +7349,18 @@ function agSchoolPlace(T, o = {}) {
 }
 // 主役のハマチ：頭の位置と向き（ang：0 で右向き）
 function agHeroAt(i, hx, hy, ang, dz = -0.08, len = 0.9) {
+  if (FK.ok) {
+    const f = fkGet("buri", 20 + i, 70);
+    const L = f.length, cx = hx - Math.cos(ang) * L * 0.5;
+    let cy = hy - Math.sin(ang) * L * 0.5;
+    let low = cy - Math.abs(Math.sin(ang)) * L * 0.5 - 0.13 * L * Math.abs(Math.cos(ang));
+    if (low < FT_BOT + 0.5) { cy += FT_BOT + 0.5 - low; low = FT_BOT + 0.5; }
+    ftClear(low);
+    ftShade(cx, FT_LZ + dz, low - FT_BOT, L);
+    const right = Math.cos(ang) >= 0;
+    fkPlace(f, FTp(cx, cy, FT_LZ + dz), right ? 0 : Math.PI, right ? ang : Math.PI - ang, (ftHeroT ?? 0) + i, { freq: 2.2, amp: 0.12 });
+    return [hx, hy];
+  }
   const m = agHero[i];
   const cx = hx - Math.cos(ang) * len * 0.5;
   let cy = hy - Math.sin(ang) * len * 0.5;
@@ -7344,6 +7373,7 @@ function agHeroAt(i, hx, hy, ang, dz = -0.08, len = 0.9) {
   m.rotation.set(0, Math.abs(ang) > Math.PI / 2 ? Math.PI : 0, Math.abs(ang) > Math.PI / 2 ? Math.PI - ang : ang);
   return [hx, hy];
 }
+let ftHeroT = 0; // 主役の魚の尾の動きの時刻（ショットの初めに T を入れる）
 // タナの帯（底から5〜10m）
 function agBand(a = 1) {
   ftBand.visible = a > 0.01;
@@ -7570,6 +7600,59 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 写真から作った魚の3Dモデル（Fish Kit、CC0 1.0。https://cda-social.github.io/fish/gallery.html）2026-11-12 オーナー指示で取り込み
+// scripts/cg/vendor/fishkit。動きは決まった時刻 T から計算する（書き出しを分割しても、つなぎ目で動きが飛ばないように）
+// =====================================================================
+const FK = { ok: false, mod: null, pool: {} };
+{
+  const hemi = new THREE.HemisphereLight(0xcfeaff, 0x3a4a58, 1.3);
+  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+  sun.position.set(0.4, 1, 0.6);
+  scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
+  pending.push(
+    import("./vendor/fishkit/fish-kit.js")
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara"]); FK.mod = mod; FK.ok = true; })
+      .catch((e) => console.warn("fishkit", e))
+  );
+}
+// id ごとに使い回す。i 番目のインスタンス（なければ作る）。cm：体長
+function fkGet(id, i = 0, cm) {
+  if (!FK.ok) return null;
+  const key = `${id}:${i}:${cm ?? ""}`;
+  let f = FK.pool[key];
+  if (!f) {
+    f = FK.mod.createFish(id, cm);
+    f.mesh.detail(true);
+    f.setDetail("high");
+    world.add(f.object);
+    extras.push(f.object);
+    FK.pool[key] = f;
+  }
+  return f;
+}
+// p：体の中心（ワールド）、yaw：口の向き（0＝+x 右向き、π＝左向き）、pitch：頭を上げる角度、T：時刻、o.amp・o.freq：尾の振り
+function fkPlace(f, p, yaw, pitch, T, o = {}) {
+  if (!f) return;
+  f.object.visible = true;
+  f.object.position.copy(p);
+  f.object.rotation.set(0, Math.PI / 2 - yaw, 0, "YXZ");
+  f.body.rotation.set(-pitch, 0, o.roll ?? 0);
+  const ph = (T + (o.seed ?? 0)) * Math.PI * 2 * (o.freq ?? 1.6);
+  f.mesh.swim(ph, o.amp ?? 0.09, o.bend ?? 0, T + (o.seed ?? 0));
+}
+
+Object.assign(SHOTS, {
+  fk_test(t, d, s) {
+    ftBase();
+    const T = t + 3;
+    const ids = [["tachiuo", 100], ["buri", 80], ["madai", 50], ["aji", 25], ["saba", 35], ["sawara", 70], ["katakuchi", 12]];
+    ids.forEach(([id, cm], i) => fkPlace(fkGet(id, 0, cm), FTp(-3 + (i % 4) * 2, FT_BOT + 2.5 - Math.floor(i / 4) * 1.3, FT_LZ), i % 2 ? Math.PI : 0, 0, T, { seed: i }));
+    look(FTp(0, FT_BOT + 2, FT_LZ + 6), FTp(0, FT_BOT + 1.9, FT_LZ), 50);
+    ftFlush();
+    html += `<div style="position:absolute;left:20px;top:20px;color:#fff;font-size:30px">${FK.ok ? "Fish Kit OK" : "Fish Kit NG"}</div>`;
+  },
+});
 let lastShot = null;
 window.ready = Promise.all(pending);
 window.frame = function (o) {
