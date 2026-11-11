@@ -336,7 +336,7 @@ def b_rock(nt, n, l):
 
 
 rockm = mat("rock", b_rock)
-for i, (x, y, s) in enumerate([(3.5, 7.0, 1.1), (6.0, 9.5, 1.6), (5.0, 4.5, 0.7), (9.0, 12.0, 2.0)]  # 魚の後ろに重ならないよう右奥だけ):
+for i, (x, y, s) in enumerate([(3.5, 7.0, 1.1), (6.0, 9.5, 1.6), (5.0, 4.5, 0.7), (9.0, 12.0, 2.0)]):  # 魚の後ろに重ならないよう右奥だけ
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=4, radius=s, location=(x, y, s * 0.15))
     r = bpy.context.object
     r.scale = (1.0, 0.8, 0.55)
