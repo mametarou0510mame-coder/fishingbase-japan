@@ -6488,6 +6488,803 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 船のタチウオ（cg-fune-tachiuo、ft_*）2026-11-11 船釣り 見える化シリーズ 第1回
+// 参考：Honda釣り倶楽部「船テンヤタチウオ」（時期7〜12月ごろ・近年は3月ごろまで／40号150gが標準のことが多い／PE2号／
+//   ストップ＆ゴー＝ハンドル2回転→3〜8秒待つ／ジャーク＆ステイ／止めるとき竿先を下げない／食い上げは重さを感じるまで巻いてから合わせる／歯が鋭い）
+//   シマノ「大阪湾のテンヤタチウオ」（神戸沖 水深70m・テンヤ40号か50号・微速巻き＋シャクリは上へ追わせる誘い）、同「泉佐野出船のタチウオ」（洲本沖 水深100m前後）
+//   TSURI HACK（タチウオジギング：東京湾・大阪湾は150g前後が多い、ワンピッチジャーク、フォール中のアタリ）
+//   昼は海底直上で立ち泳ぎ（徳島県「太刀魚」2019。docs/research/fish-knowledge.md）
+// 仕掛けの動きは、下の ftSim（重さ・浮力・水の抵抗・糸の張りの簡単な物理モデル）で計算したもの。係数は形と重さから決めた目安で、実物の計測値ではない。
+// 魚の動きはイメージ（「下から襲う」とは描かない。横に並んで、止まった仕掛けに口を寄せる）。
+// 1 = 1m。海面 y=0、海底 y=-70。魚は必ず海底より上に置く（ftHeroAt・ftSchoolPlace で下端を確かめる）
+// =====================================================================
+// ---- 仕掛けの動きの計算（2次元の剛体：重さ・浮力・水の抵抗・糸の張り） ----
+// 単位は m・kg・秒。y は上が正、海面が 0。体の向き th は「頭（糸を結ぶ側ではなく進む向きの基準）」の角度
+const FT_TURN = 0.65; // ハンドル1回転で巻ける糸の長さ（計算の条件。リールで変わる）
+const FT_EA = 3750;   // 道糸（PE2号を想定）の伸びにくさ EA [N]
+const FT_KLD = 0.0031; // 糸が水を切る抵抗（糸1mあたり、速さの2乗にかかる係数）
+// 操作の列 → 時刻 t の {tip: 竿先の上下[m], reel: 巻いた長さの合計[m], free: クラッチを切っているか, fish: 魚が引く力[N]}
+function ftControl(seq) {
+  const segs = [], marks = {};
+  let t = 0, reel = 0;
+  const sm = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+  for (const s of seq) {
+    if (s.mark) { marks[s.mark] = t; continue; }
+    const n = s.rep ?? 1;
+    for (let i = 0; i < n; i++) {
+      if (s.wait != null) { segs.push({ t0: t, t1: t + s.wait, reel0: reel, reel1: reel, kind: "wait", fish: s.fish }); t += s.wait; }
+      else if (s.free != null) { segs.push({ t0: t, t1: t + s.free, reel0: reel, reel1: reel, kind: "free", thumb: s.thumb ?? 0.15, fish: s.fish }); t += s.free; }
+      else if (s.reel != null) { const r1 = reel + s.reel * FT_TURN; segs.push({ t0: t, t1: t + s.dur, reel0: reel, reel1: r1, kind: "reel", lin: s.lin, fish: s.fish }); reel = r1; t += s.dur; }
+      else if (s.jerk != null) {
+        // 竿を up 秒で jerk[m] だけ上げ、down 秒で戻す。戻す間に turn 回転ぶん巻く
+        const r1 = reel + (s.turn ?? 0) * FT_TURN;
+        segs.push({ t0: t, t1: t + s.up, reel0: reel, reel1: reel, kind: "up", amp: s.jerk, fish: s.fish });
+        segs.push({ t0: t + s.up, t1: t + s.up + s.down, reel0: reel, reel1: r1, kind: "down", amp: s.jerk, fish: s.fish });
+        reel = r1; t += s.up + s.down;
+      }
+    }
+  }
+  const dur = t;
+  let j = 0;
+  const f = (tt) => {
+    if (tt >= dur || tt < 0) return { tip: 0, reel: tt < 0 ? 0 : reel, free: false, fish: null, kind: "wait", turning: false, t0: tt < 0 ? -9 : dur, t1: 1e9 };
+    if (tt < segs[j].t0) j = 0;
+    while (tt >= segs[j].t1) j++;
+    const s = segs[j], u = (tt - s.t0) / (s.t1 - s.t0);
+    const e = s.lin ? u : sm(u);
+    return {
+      tip: s.kind === "up" ? s.amp * sm(u) : s.kind === "down" ? s.amp * (1 - sm(u)) : 0,
+      reel: s.reel0 + (s.reel1 - s.reel0) * e, free: s.kind === "free", thumb: s.thumb, fish: s.fish || null, kind: s.kind,
+      turning: s.reel1 > s.reel0, t0: s.t0, t1: s.t1,
+    };
+  };
+  f.dur = dur;
+  f.marks = marks;
+  return f;
+}
+function ftSim(b, ctl, opt = {}) {
+  const dt = 1 / 2000, dur = opt.dur ?? ctl.dur, N = Math.round(dur / dt), BOT = opt.bot ?? -70, tip0 = 2, REC = 20;
+  let x = 0, y = opt.y0 ?? -60, vx = 0, vy = 0, th = opt.th0 ?? 0, om = opt.om0 ?? 0;
+  const eye0 = b.eye[0] * Math.sin(th) + b.eye[1] * Math.cos(th);
+  let L = tip0 - (y + eye0); L -= b.W * L / FT_EA;
+  let Lbase = L, reelBase = 0, wasFree = false, prevReel = 0, prevTip = 0, landed = -1;
+  const mt = b.m + (b.ma ?? 0), out = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i * dt, c0 = ctl(t);
+    const c = Math.cos(th), s = Math.sin(th);
+    const ex = b.eye[0] * c - b.eye[1] * s, ey = b.eye[0] * s + b.eye[1] * c;
+    const px = b.cp * c, py = b.cp * s;
+    const wx = 0.03 * Math.sin(1.7 * t + 0.4) + 0.02 * Math.sin(4.1 * t + 1.3); // 水の小さなゆらぎ（横向き）
+    const ux = vx - wx - om * py, uy = vy + om * px;
+    const ua = ux * c + uy * s, un = -ux * s + uy * c;
+    const Fa = -b.ka * Math.abs(ua) * ua, Fn = -b.kn * Math.abs(un) * un - b.kl * Math.abs(ua) * un;
+    let Fx = Fa * c - Fn * s, Fy = Fa * s + Fn * c - b.W;
+    let tau = b.cp * Fn - b.km * ua * un - b.kw * Math.abs(om) * om - b.kw1 * om;
+    // 糸
+    const tipV = (c0.tip - prevTip) / dt, reelV = (c0.reel - prevReel) / dt;
+    prevTip = c0.tip; prevReel = c0.reel;
+    const dx = -(x + ex), dy = tip0 + c0.tip - (y + ey), dist = Math.hypot(dx, dy);
+    const evx = vx - om * ey, evy = vy + om * ex;
+    const rate = (-(dx * evx + dy * evy) + dy * tipV) / dist;
+    let T = 0;
+    if (c0.free) {
+      if (dist > L) { const sp = Math.max(0, rate); T = c0.thumb + FT_KLD * L * sp * sp; L = dist; }
+      wasFree = true;
+    } else {
+      if (wasFree) { Lbase = L; reelBase = c0.reel; wasFree = false; }
+      L = Lbase - (c0.reel - reelBase);
+      const ext = dist - L;
+      if (ext > 0) T = Math.max(0, FT_EA / L * ext + 3 * (rate + reelV));
+    }
+    const lx = T * dx / dist, ly = T * dy / dist;
+    Fx += lx; Fy += ly; tau += ex * ly - ey * lx;
+    if (c0.fish) { Fx += c0.fish[0]; Fy += c0.fish[1]; }
+    if (i % REC === 0) out.push([x, y, th, T, c0.tip, c0.reel, c0.free ? 1 : 0, c0.turning ? 1 : 0]);
+    vx += Fx / mt * dt; vy += Fy / mt * dt; om += tau / b.I * dt;
+    x += vx * dt; y += vy * dt; th += om * dt;
+    const low = y - Math.abs(Math.sin(th)) * b.len / 2 - b.r;
+    if (low < BOT) { y += BOT - low; if (vy < 0) vy = 0; vx *= 0.97; om *= 0.9; if (landed < 0) landed = t; }
+  }
+  return { rec: out, hz: 2000 / REC, dur, landed, at(t) { const u = Math.max(0, Math.min(out.length - 1.001, t * this.hz)), i = Math.floor(u), f = u - i, a = out[i], q = out[i + 1]; return a.map((v, k) => v + (q[k] - v) * f); } };
+}
+// 仕掛けの条件（重さ・形から決めた係数。実物の計測値ではない）
+const G_W = (m, dens) => m * 9.8 * (1 - 1.025 / dens);
+const FT_BODY = {
+  // テンヤ 40号（約150g・鉛）＋エサのイワシ。重心は頭の近く、糸を結ぶ輪は重心の真上
+  tenya: { m: 0.17, ma: 0.03, W: G_W(0.15, 11.34), I: 6e-4, len: 0.2, r: 0.02, eye: [0, 0.03], cp: -0.04, ka: 0.26, kn: 3.4, kl: 0.3, km: 0.02, kw: 2e-3, kw1: 6e-4 },
+  // メタルジグ 150g（鉛）長さ15cm。センターバランス：重心がまん中
+  jigC: { m: 0.15, ma: 0.03, W: G_W(0.15, 11.34), I: 4e-4, len: 0.15, r: 0.012, eye: [0.075, 0], cp: 0, ka: 0.05, kn: 2.5, kl: 0.5, km: 0.03, kw: 1.2e-3, kw1: 3e-4 },
+  // リアバランス：重心が後ろ（尾の側）に 3cm
+  jigR: { m: 0.15, ma: 0.03, W: G_W(0.15, 11.34), I: 4.5e-4, len: 0.15, r: 0.012, eye: [0.105, 0], cp: 0.03, ka: 0.05, kn: 2.5, kl: 0.5, km: 0.03, kw: 1.2e-3, kw1: 3e-4 },
+};
+const FT_REP = (n, a) => Array.from({ length: n }, () => a).flat();
+const FT_SEQ = {
+  // テンヤを落とす → 着底 → 糸ふけを取って底を切る
+  fall: { body: "tenya", opt: { y0: -57.5 }, seq: [{ free: 11 }, { wait: 0.6 }, { reel: 1.5, dur: 1.0 }, { wait: 10 }] },
+  // ストップ＆ゴー：ハンドル2回転 → 止めて待つ（3〜8秒のうち4秒で計算）
+  sg: { body: "tenya", opt: { y0: -68.6 }, seq: [{ wait: 1.5 }, ...FT_REP(7, [{ reel: 2, dur: 1.2 }, { wait: 4 }])] },
+  // ジャーク＆ステイ：巻きながら3回しゃくって止める
+  js: { body: "tenya", opt: { y0: -68 }, seq: [{ wait: 1.2 }, ...FT_REP(5, [{ jerk: 0.4, up: 0.25, down: 0.45, turn: 0.5, rep: 3 }, { wait: 3.2 }])] },
+  // ごくゆっくり巻く＋小さくしゃくる
+  bs: { body: "tenya", opt: { y0: -68 }, seq: [{ wait: 1 }, ...FT_REP(16, [{ jerk: 0.15, up: 0.2, down: 0.4, turn: 0.1 }, { reel: 0.15, dur: 1.0, lin: 1 }])] },
+  // コツン、コツン → はっきり出たら合わせる（魚が引く力は仮の値）
+  nib: { body: "tenya", opt: { y0: -67 }, seq: [{ wait: 2 }, { reel: 2, dur: 1.2 }, { wait: 1.6 }, { mark: "n1" }, { wait: 0.12, fish: [0.4, -2.5] }, { wait: 0.9 }, { mark: "n2" }, { wait: 0.12, fish: [0.4, -2.5] }, { wait: 1.0 }, { mark: "hook" }, { wait: 0.25, fish: [0, -4] }, { jerk: 0.6, up: 0.2, down: 0.6, fish: [0, -3] }, { wait: 8, fish: [0, -2.5] }] },
+  // 食い上げ：魚がくわえて上へ → 糸がゆるむ → 重さを感じるまで巻いて合わせる
+  kui: { body: "tenya", opt: { y0: -66 }, seq: [{ wait: 2.0 }, { mark: "bite" }, { wait: 2.0, fish: [0, 1.85] }, { wait: 4.0, fish: [0, 1.337] }, { mark: "reel" }, { reel: 4, dur: 1.8, fish: [0, 1.3] }, { mark: "hook" }, { jerk: 0.5, up: 0.2, down: 0.6, fish: [0, -3] }, { wait: 8, fish: [0, -2.5] }] },
+  // ジグ：ワンピッチジャーク（1回しゃくって1回巻く）×5 → フォール
+  jig: { body: "jigC", opt: { y0: -62, th0: 1.5 }, seq: [{ wait: 1.2 }, ...FT_REP(4, [{ jerk: 0.5, up: 0.3, down: 0.5, turn: 1, rep: 5 }, { free: 2 }, { wait: 0.8 }])] },
+  jigfall: { body: "jigC", opt: { y0: -62, th0: 1.5 }, seq: [{ wait: 0.6 }, { jerk: 0.5, up: 0.3, down: 0.5, turn: 1, rep: 3 }, { mark: "fall" }, { free: 2.6 }, { wait: 7 }] },
+  // 同じ150g：センターバランスとリアバランスを同時に落とす
+  fallC: { body: "jigC", opt: { y0: -30, th0: 1.4 }, seq: [{ free: 14 }] },
+  fallR: { body: "jigR", opt: { y0: -30, th0: 1.4 }, seq: [{ free: 14 }] },
+};
+const FT_SIMS = {};
+function ftRun(name) {
+  if (FT_SIMS[name]) return FT_SIMS[name];
+  const d = FT_SEQ[name], ctl = ftControl(d.seq), r = ftSim(FT_BODY[d.body], ctl, d.opt);
+  r.ctl = ctl; r.body = FT_BODY[d.body]; r.marks = ctl.marks;
+  return (FT_SIMS[name] = r);
+}
+
+// ---------- 場面（海の断面）----------
+const FT = V(0, 0, -2200);
+const FTp = (x, y, z = 0) => V(FT.x + x, FT.y + y, FT.z + z);
+const FT_BOT = -70, FT_LZ = 2.6, FT_TIP = 2;
+const ftSurf = (x, T) => 0.2 * Math.sin(x * 0.35 + T * 0.9) + 0.1 * Math.sin(x * 0.8 - T * 1.3);
+const ftGrp = new THREE.Group();
+ftGrp.position.copy(FT);
+world.add(ftGrp);
+extras.push(ftGrp);
+const ftLit = (hex, o = {}) => new THREE.ShaderMaterial({
+  uniforms: { col: { value: new THREE.Color(hex) }, shine: { value: o.shine ?? 0.25 } }, side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vN; varying vec3 vW; void main(){ vN = normalize(mat3(modelMatrix)*normal); vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform vec3 col; uniform float shine; varying vec3 vN; varying vec3 vW;
+    void main(){ vec3 N = normalize(vN); vec3 Vd = normalize(cameraPosition - vW); if (dot(N, Vd) < 0.0) N = -N;
+      vec3 Ld = normalize(vec3(0.3,1.0,0.6)); float diff = clamp(dot(N, Ld),0.,1.);
+      float sp = pow(max(dot(reflect(-Ld, N), Vd),0.), 24.0);
+      gl_FragColor = vec4(col*(0.52+0.62*diff) + vec3(1.0)*sp*shine, 1.0); }`,
+});
+{
+  // 奥の壁：海面より上は空、下は深さで色が変わる水
+  const wallM = new THREE.Mesh(new THREE.PlaneGeometry(1800, 800).translate(0, -150, 0), new THREE.ShaderMaterial({
+    uniforms: { time: U.time },
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL;
+      void main(){ vec2 p = vL.xy; float surf = 0.2*sin(p.x*0.35+time*0.9) + 0.1*sin(p.x*0.8-time*1.3); vec3 c;
+        if (p.y > surf) { c = mix(vec3(0.78,0.90,0.97), vec3(0.52,0.76,0.94), smoothstep(0.0, 50.0, p.y)); }
+        else { float d = clamp(-p.y/70.0, 0.0, 1.0);
+          c = mix(vec3(0.38,0.76,0.89), vec3(0.10,0.36,0.60), pow(d, 0.75));
+          float ray = smoothstep(0.5, 1.0, sin(p.x*0.22 + p.y*0.07 + time*0.15)*sin(p.x*0.07 - time*0.05 + 1.0));
+          c += vec3(0.10,0.12,0.10) * ray * (1.0 - d);
+          c = mix(c, vec3(0.93,0.98,1.0), 0.6*smoothstep(0.7, 0.0, surf - p.y)); }
+        gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  wallM.position.z = -14;
+  // 海底（砂）。上の面は y=-70 で平ら
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(1800, 60, 26).translate(0, FT_BOT - 30, -1), new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      void main(){ vec3 c;
+        if (vN.y > 0.5) { float n = hash(floor(vL.xz*7.0)); float rip = 0.5+0.5*sin(vL.x*2.6 + sin(vL.z*1.1)*1.6);
+          c = vec3(0.80,0.74,0.58)*(0.80+0.10*n+0.12*rip); c *= 0.78 + 0.22*smoothstep(-14.0, 12.0, vL.z); }
+        else { c = mix(vec3(0.40,0.33,0.25), vec3(0.56,0.48,0.35), 0.5+0.5*sin(vL.y*1.5+sin(vL.x*0.3)*1.2)); }
+        gl_FragColor = vec4(c,1.); }`,
+  }));
+  // 海面：上から見ると海の色、下から見ると明るい膜
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(1800, 26, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, -1), new THREE.ShaderMaterial({
+    uniforms: { time: U.time }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL;
+      void main(){ float w = pow(abs(sin(vL.x*1.3+time)*sin(vL.z*1.7-time*0.8)), 4.0);
+        if (gl_FrontFacing) gl_FragColor = vec4(mix(vec3(0.16,0.50,0.72), vec3(0.85,0.96,1.0), w*0.5), 0.96);
+        else gl_FragColor = vec4(vec3(0.85,0.97,1.0), 0.28 + 0.3*w); }`,
+  }));
+  top.renderOrder = 9;
+  ftGrp.add(wallM, bed, top);
+}
+// 水中のただよう粒（深さの感じを出す）
+const ftSnow = (() => {
+  const n = 1500, pos = new Float32Array(n * 3), ph = new Float32Array(n), r = rng(2311);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (r() - 0.5) * 70; pos[i * 3 + 1] = -r() * 70; pos[i * 3 + 2] = -9 + r() * 14; ph[i] = r() * 100; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("ph", new THREE.BufferAttribute(ph, 1));
+  const p = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: { time: U.time, hpx: { value: H } }, transparent: true, depthWrite: false,
+    vertexShader: `uniform float time; uniform float hpx; attribute float ph; varying float vA;
+      void main(){ vec3 p = position; p.x += sin(time*0.25+ph)*0.25; p.y += sin(time*0.2+ph*1.7)*0.15; p.z += cos(time*0.22+ph)*0.2;
+        vec4 mv = modelViewMatrix*vec4(p,1.); float s = 0.03 * projectionMatrix[1][1] * hpx * 0.5 / -mv.z;
+        vA = clamp(s/1.5, 0.15, 1.0); gl_PointSize = clamp(s, 1.5, 9.0); gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying float vA; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.1,d)*vA*0.5; gl_FragColor = vec4(vec3(0.92,0.98,1.0), a); }`,
+  }));
+  p.frustumCulled = false;
+  p.renderOrder = 8;
+  ftGrp.add(p);
+  return p;
+})();
+// タナ（ねらう深さ）の緑の帯
+const ftBand = new THREE.Mesh(new THREE.BoxGeometry(120, 1, 10), new THREE.MeshBasicMaterial({ color: 0x2ecc71, transparent: true, opacity: 0.22, depthWrite: false }));
+ftBand.renderOrder = 7;
+ftGrp.add(ftBand);
+// 遊漁船（長さ約14m）。船体は断面をつないで作る
+const ftBoat = new THREE.Group();
+ftGrp.add(ftBoat);
+const FT_MEN = [[0, 1.15], [3.3, 1.33], [-4.6, 1.15]];
+{
+  const N = 30, L = 14, pos = [], idx = [];
+  for (let i = 0; i <= N; i++) {
+    const u = i / N, x = -L / 2 + L * u;
+    const taper = u < 0.55 ? 1 : Math.pow(Math.cos(((u - 0.55) / 0.45) * Math.PI / 2), 0.7);
+    const b = 1.8 * Math.max(taper, 0.03);
+    const sheer = 1.15 + 0.8 * Math.pow(Math.max(0, (u - 0.5) / 0.5), 2);
+    const keel = -0.7 + 1.5 * Math.pow(Math.max(0, (u - 0.7) / 0.3), 2);
+    const mid = (sheer + keel) / 2 - 0.15;
+    [[-b, sheer], [-b * 0.95, mid], [-b * 0.5, keel + 0.15], [0, keel], [b * 0.5, keel + 0.15], [b * 0.95, mid], [b, sheer]].forEach(([z, y]) => pos.push(x, y, z));
+  }
+  for (let i = 0; i < N; i++) for (let j = 0; j < 6; j++) { const a = i * 7 + j, b2 = a + 7; idx.push(a, b2, a + 1, a + 1, b2, b2 + 1); }
+  for (let i = 0; i < N; i++) { const a = i * 7, b2 = a + 7; idx.push(a, a + 6, b2, b2, a + 6, b2 + 6); }
+  for (let j = 1; j < 6; j++) idx.push(0, j, j + 1);
+  let g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g = g.toNonIndexed();
+  g.computeVertexNormals();
+  const hull = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vL; varying vec3 vN; varying vec3 vW; void main(){ vL = position; vN = normalize(mat3(modelMatrix)*normal); vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; varying vec3 vW;
+      void main(){ vec3 N = normalize(vN); vec3 Vd = normalize(cameraPosition - vW); if (dot(N, Vd) < 0.0) N = -N;
+        float u = (vL.x + 7.0)/14.0; float sheer = 1.15 + 0.8*pow(max(0.0,(u-0.5)/0.5), 2.0);
+        vec3 c = vec3(0.96,0.97,0.98);
+        if (vL.y < 0.08) c = vec3(0.62,0.20,0.17);
+        else if (vL.y > sheer - 0.3 && vL.y < sheer - 0.06) c = vec3(0.13,0.38,0.66);
+        if (abs(N.y) > 0.85 && vL.y > sheer - 0.03) c = vec3(0.80,0.83,0.85);
+        float diff = clamp(dot(N, normalize(vec3(0.3,1.0,0.6))),0.,1.); gl_FragColor = vec4(c*(0.55+0.55*diff), 1.0); }`,
+  }));
+  const white = ftLit(0xf4f6f7), blue = ftLit(0x1f5fa8), dark = ftLit(0x1c2b3a, { shine: 0.6 }), gray = ftLit(0x8a949c);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.9, 2.2), white); cabin.position.set(-2.0, 1.15 + 0.95, 0);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.14, 2.6), blue); roof.position.set(-2.0, 1.15 + 1.97, 0);
+  const win = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.62, 2.24), dark); win.position.set(-1.9, 1.15 + 1.3, 0);
+  const winF = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.62, 1.8), dark); winF.position.set(-0.28, 1.15 + 1.3, 0);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5, 8), gray); mast.position.set(-2.2, 1.15 + 2.75, 0);
+  const radar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.2), white); radar.position.set(-2.2, 1.15 + 3.3, 0);
+  // スパンカー（船尾の帆。船を風に立てる）
+  const sMast = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4.2, 8), gray); sMast.position.set(-6.4, 1.15 + 2.1, 0);
+  const sh = new THREE.Shape(); sh.moveTo(0, 0.5); sh.lineTo(0, 4.0); sh.lineTo(1.9, 0.5); sh.closePath();
+  const sail = new THREE.Mesh(new THREE.ShapeGeometry(sh), ftLit(0xf2a45a)); sail.position.set(-6.35, 1.15, 0);
+  // 手すり
+  const rail = new THREE.Group();
+  for (let i = 0; i < 9; i++) { const x = -6.2 + i * 1.35; if (x > -3.8 && x < -0.2) continue; const p0 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 6), gray); p0.position.set(x, 1.15 + 0.35 + (x > 0 ? 0.8 * Math.pow(Math.max(0, ((x + 7) / 14 - 0.5) / 0.5), 2) : 0), 1.72); rail.add(p0); }
+  ftBoat.add(hull, cabin, roof, win, winF, mast, radar, sMast, sail, rail);
+  FT_MEN.forEach(([x, y], i) => { const m = mannequin(i === 0 ? 0x8f9aa6 : 0x7d8a96, true); m.scale.setScalar(0.9);
+    const skin = ftLit(i === 1 ? 0xa9c0de : 0xc8d2dc), capM = ftLit(0x3a5a80), vestM = ftLit(0xff8a2a);
+    m.children.forEach((ch) => { ch.material = ch === m.userData.vest ? vestM : ch.geometry.type === "SphereGeometry" && ch.geometry.parameters.thetaLength < 3 ? capM : skin; }); m.position.set(x + 1, y, 1.15); ftBoat.add(m); });
+}
+// 竿（3本。0 が主役）
+const ftRods = [0, 1, 2].map(() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 1, 6).translate(0, 0.5, 0), ftLit(0x20262c, { shine: 0.5 })); world.add(m); extras.push(m); return m; });
+const _ftUp = V(0, 1, 0);
+function ftRodSet(m, a, b) { m.visible = true; m.position.copy(a); const dv = b.clone().sub(a); m.scale.set(1, dv.length(), 1); m.quaternion.setFromUnitVectors(_ftUp, dv.normalize()); }
+// テンヤ（実物大：全長約20cm。原点＝重心、+x が頭）
+const ftTenya = new THREE.Group();
+world.add(ftTenya);
+extras.push(ftTenya);
+{
+  const lead = ftLit(0xe4f4c4, { shine: 0.5 }), steel = ftLit(0xc3cad0, { shine: 0.9 });
+  const head = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16).scale(0.036, 0.021, 0.017), lead); head.position.set(0.012, 0, 0);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.0125, 0.03, 16).rotateZ(-Math.PI / 2), lead); nose.position.set(0.052, -0.001, 0);
+  ftTenya.add(head, nose);
+  [-1, 1].forEach((sd) => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.0055, 10, 8), new THREE.MeshBasicMaterial({ color: 0xd62828 })); e.position.set(0.032, 0.007, sd * 0.0135); const pu = new THREE.Mesh(new THREE.SphereGeometry(0.0026, 8, 6), new THREE.MeshBasicMaterial({ color: 0x111111 })); pu.position.set(0.0335, 0.0072, sd * 0.0178); ftTenya.add(e, pu); });
+  const shank = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.165, 6).rotateZ(Math.PI / 2), steel); shank.position.set(-0.068, -0.004, 0);
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.0025, 6, 20, Math.PI * 1.17), steel); hook.position.set(-0.15, 0.02, 0); hook.rotation.z = Math.PI / 3;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.0065, 0.0016, 6, 14), steel); ring.position.set(0, 0.027, 0);
+  const baitM = new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; void main(){ vec3 c = mix(vec3(0.90,0.93,0.95), vec3(0.20,0.38,0.52), smoothstep(-0.002, 0.008, vL.y));
+      c = mix(c, vec3(0.1), smoothstep(0.004, 0.003, length(vec2(vL.x - 0.05, vL.y - 0.003))) * step(0.0, abs(vL.z)));
+      float diff = clamp(dot(normalize(vN), normalize(vec3(0.3,1.0,0.6))),0.,1.); gl_FragColor = vec4(c*(0.6+0.55*diff), 1.0); }`,
+  });
+  const bait = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 12).scale(0.068, 0.0135, 0.0085), baitM); bait.position.set(-0.075, 0.0125, 0);
+  const ts = new THREE.Shape(); ts.moveTo(0, 0); ts.lineTo(-0.024, 0.015); ts.lineTo(-0.018, 0); ts.lineTo(-0.024, -0.015); ts.closePath();
+  const tail = new THREE.Mesh(new THREE.ShapeGeometry(ts), ftLit(0x6f8796)); tail.position.set(-0.139, 0.0125, 0);
+  ftTenya.add(shank, hook, ring, bait, tail);
+  for (let i = 0; i < 6; i++) { const w = new THREE.Mesh(new THREE.TorusGeometry(0.0125, 0.0011, 5, 14).rotateY(Math.PI / 2), ftLit(0xd9a441, { shine: 0.7 })); w.position.set(-0.03 - i * 0.019, 0.0075, 0); w.scale.set(1, 1.25, 0.9); w.rotation.z = 0.25; ftTenya.add(w); }
+}
+// ジグ（センターバランス＝青、リアバランス＝ピンク）。モデルの長さ 1.6 → 15cm
+const ftJigC = makeJigModel(0x1a4fd0, 0xd8dde4, false, 0.4), ftJigR = makeJigModel(0xd0306a, 0xf0e0e6, true, 0.4);
+const FT_JIG_U = 0.15 / 1.6;
+// タチウオ（板の長さ 1.05m のうち魚は約1m）
+const ftTachi = school("タチウオ", 30, 1.0, 2301, { amp: 0.035, freq: 3.5 });
+world.add(ftTachi);
+extras.push(ftTachi);
+const ftHero = [0, 1, 2].map(() => { const m = fishMesh("タチウオ", 1.05, { amp: 0.035, freq: 4 }); world.add(m); extras.push(m); return m; });
+// 砂の上の影（魚が海底から浮いているのがわかるように）
+const ftShadow = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x2a2416, transparent: true, opacity: 0.26, depthWrite: false }), 40);
+ftShadow.frustumCulled = false;
+ftShadow.renderOrder = 6;
+world.add(ftShadow);
+extras.push(ftShadow);
+let ftShadowN = 0;
+function ftShade(x, z, h, len) {
+  if (ftShadowN >= 40) return;
+  const k = clamp01(1.25 - h / 7);
+  _p.copy(FTp(x, FT_BOT + 0.02, z)); _q.identity(); _s.set(0.34 * len * k, 1, 0.13 * len * k);
+  _m.compose(_p, _q, _s);
+  ftShadow.setMatrixAt(ftShadowN++, _m);
+}
+const ftClear = (low) => { if (typeof window !== "undefined") window.__ftClear = Math.min(window.__ftClear ?? 99, low - FT_BOT); };
+// 群れ：立ち泳ぎ（頭が上）。下端が海底より 0.3m 以上、上になるように置く
+function ftSchoolPlace(T, o = {}) {
+  const { cx = 0, y0 = FT_BOT + 1.9, y1 = FT_BOT + 6.8, sx = 8, sz = 1.6, sc = 1, n = 30, zc = FT_LZ - 3.2 } = o;
+  ftTachi.visible = true;
+  const off = ftTachi.userData.off;
+  for (let i = 0; i < off.length; i++) {
+    const q = off[i];
+    if (i >= n) { _m.makeScale(0, 0, 0); ftTachi.setMatrixAt(i, _m); continue; }
+    const s = sc * q.s, half = 0.5 * s + 0.05;
+    let y = lerp(y0, y1, 0.5 + 0.5 * q.y) + Math.sin(T * 0.5 * q.w + q.p) * 0.2 * sc;
+    y = Math.max(y, FT_BOT + half + 0.9 * Math.min(sc, 2));
+    ftClear(y - half);
+    const fx = cx + q.x * sx + Math.sin(T * 0.2 * q.w + q.p) * 0.4 * sc, fz = zc + q.z * sz;
+    ftShade(fx, fz, y - half - FT_BOT, s);
+    _p.copy(FTp(fx, y, fz));
+    _e2.set(0, q.p > 3.14 ? Math.PI : 0, Math.PI / 2 - 0.12 + Math.sin(T * 0.4 + q.p) * 0.06);
+    _q.setFromEuler(_e2);
+    _s.setScalar(s);
+    _m.compose(_p, _q, _s);
+    ftTachi.setMatrixAt(i, _m);
+  }
+  ftTachi.instanceMatrix.needsUpdate = true;
+}
+// 主役の魚：頭の位置 (hx,hy) と体の向き ang（頭の向き）で置く
+function ftHeroAt(i, hx, hy, ang, dz = -0.06) {
+  const m = ftHero[i], len = 1.0;
+  const cx = hx - Math.cos(ang) * len * 0.5;
+  let cy = hy - Math.sin(ang) * len * 0.5;
+  let low = cy - Math.abs(Math.sin(ang)) * len * 0.5 - 0.1 * Math.abs(Math.cos(ang)) - 0.05;
+  if (low < FT_BOT + 0.5) { cy += FT_BOT + 0.5 - low; low = FT_BOT + 0.5; }
+  ftClear(low);
+  ftShade(cx, FT_LZ + dz, low - FT_BOT, len);
+  m.visible = true;
+  m.position.copy(FTp(cx, cy, FT_LZ + dz));
+  m.rotation.set(0, 0, ang);
+  return [hx, cy + Math.sin(ang) * len * 0.5];
+}
+function ftPut(obj, x, y, th, sc = 1, off = 0) { obj.visible = true; obj.position.copy(FTp(x + Math.cos(th) * off, y + Math.sin(th) * off, FT_LZ)); obj.rotation.set(0, 0, th); obj.scale.setScalar(sc); }
+let ftPend = [];
+function ftBase() { base(0); U.under.value = 0; ftGrp.visible = true; ftBand.visible = false; ftBoat.visible = true; ftPend = []; ftShadowN = 0; }
+// カメラを決めたあとに呼ぶ：糸・軌跡（画面の上に描く線）と影
+function ftFlush() { ftPend.forEach((f) => f()); ftPend = []; ftShadow.count = ftShadowN; ftShadow.visible = ftShadowN > 0; ftShadow.instanceMatrix.needsUpdate = true; }
+const _ftF = V(0, 0, 0);
+// 糸：カメラの後ろに回る部分は切って描く
+function ftSeg(p0, p1, col, w, dash = "") {
+  camera.getWorldDirection(_ftF);
+  const d0 = p0.clone().sub(camera.position).dot(_ftF), d1 = p1.clone().sub(camera.position).dot(_ftF);
+  if (d0 < 0.3 && d1 < 0.3) return;
+  let a = p0, b = p1;
+  if (d0 < 0.3) a = p1.clone().lerp(p0, ((d1 - 0.3) / (d1 - d0)) * 0.98);
+  if (d1 < 0.3) b = p0.clone().lerp(p1, ((d0 - 0.3) / (d0 - d1)) * 0.98);
+  pathLine([a, b], col, 1, w, dash);
+}
+function ftTrail(sim, ts, span, ox = 0, col = "#ffd39a") {
+  const n = 48, q = [];
+  for (let i = 0; i <= n; i++) { const tt = ts - span * (1 - i / n); if (tt < 0) continue; const a = sim.at(tt), p = project(FTp(a[0] + ox, a[1], FT_LZ)); if (!p.behind) q.push(p); }
+  if (q.length > 2) lines += `<polyline points="${q.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.62"/>`;
+}
+// 船・竿・糸・仕掛けを置く。o.obj：仕掛けのモデル、o.unit：モデルの縮尺、o.vis：見やすくする倍率、o.ox：横にずらす、o.th：向きを上書き
+function ftRig(T, sim, ts, o = {}) {
+  const a = sim.at(ts), c0 = sim.ctl(ts), ox = o.ox ?? 0, vis = o.vis ?? 1, th = o.th ?? a[2];
+  const bob = ftSurf(0, T) * 0.5;
+  ftBoat.position.set(-1, bob, 0);
+  ftBoat.rotation.z = Math.sin(T * 0.7) * 0.012;
+  const tip = FTp(ox, FT_TIP + a[4] + bob, FT_LZ);
+  if (o.rod !== false) ftRodSet(ftRods[o.rodI ?? 0], FTp(ox + 0.05, 2.25 + bob, 1.45), tip);
+  ftPut(o.obj, a[0] + ox, a[1], th, vis * (o.unit ?? 1), (o.off ?? 0) * vis);
+  const c = Math.cos(th), s = Math.sin(th), e = sim.body.eye;
+  const eye = FTp(a[0] + ox + (e[0] * c - e[1] * s) * vis, a[1] + (e[0] * s + e[1] * c) * vis, FT_LZ);
+  ftPend.push(() => { if (o.trail) ftTrail(sim, ts, o.trail, ox); ftSeg(tip, eye, "#ffb45e", o.lw ?? 4, a[3] < 0.05 && !c0.free ? "10 12" : ""); });
+  return { a, c0, tip, eye, x: a[0] + ox, y: a[1], th, T: a[3] };
+}
+// ほかの釣り人の竿と糸（見た目だけ）
+function ftOthers(T, depth = -66) {
+  const bob = ftSurf(0, T) * 0.5;
+  [[3.3, 1.33], [-4.6, 1.15]].forEach(([x, y], i) => {
+    const tip = FTp(x + 0.2, FT_TIP + 0.1 + bob, FT_LZ);
+    ftRodSet(ftRods[i + 1], FTp(x + 0.05, y + 1.1 + bob, 1.45), tip);
+    ftPend.push(() => ftSeg(tip, FTp(x + 0.2, depth + i * 1.5, FT_LZ), "#ffd9a8", 2));
+  });
+}
+function ftSmooth(sim, ts, w = 0.45) { let x = 0, y = 0; for (let i = 0; i < 7; i++) { const a = sim.at(Math.max(0, ts + (i / 6 - 0.5) * 2 * w)); x += a[0]; y += a[1]; } return [x / 7, y / 7]; }
+// 主役の魚が仕掛けの横に並び、止まると口を寄せる（イメージ）
+function ftFollow(i, st, sim, ts, T, o = {}) {
+  const side = o.side ?? -1, b = sim.at(Math.max(0, ts - (o.lag ?? 0.45))), c0 = st.c0;
+  const near = o.near ?? (c0.kind === "wait" && !c0.free ? ease((ts - c0.t0) / 1.8) : 0);
+  const bx = st.x - 0.085 * Math.cos(st.th), by = st.y - 0.085 * Math.sin(st.th) + 0.012;
+  const gap = lerp(o.far ?? 0.7, 0.03, near) - (near > 0.97 && o.nibble ? Math.max(0, Math.sin(T * 9)) * 0.03 : 0);
+  const hx = lerp(b[0] - 0.085, bx, 0.4 + 0.6 * near) + side * gap, hy = lerp(b[1], by, near) - (1 - near) * (o.below ?? 0.2);
+  return ftHeroAt(i, hx, hy, Math.PI / 2 + side * lerp(0.1, 0.5, near) + Math.sin(T * 1.3 + i) * 0.04, o.dz ?? -0.06);
+}
+
+// ---------- 画面の部品 ----------
+// 全体図（左上）：船と海の断面。オレンジの点＝いまの仕掛けの深さ、緑＝タナ
+function ftMini(depth, a = 1, tana = true) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, y = 40 + (clamp01(depth / 70)) * 224;
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 140}px;width:${P ? 190 : 200}px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px 10px 8px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:22px;font-weight:900;color:#10345a;margin:0 0 2px 6px">全体図</div>
+    <svg viewBox="0 0 180 290" width="100%"><defs><linearGradient id="ftg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6cc4e4"/><stop offset="1" stop-color="#1c5a8e"/></linearGradient></defs>
+    <rect x="0" y="0" width="180" height="40" fill="#cfe8f6"/><rect x="0" y="40" width="180" height="226" fill="url(#ftg)"/><rect x="0" y="264" width="180" height="26" fill="#b9a67c"/>
+    <path d="M40 40 L122 40 L132 27 L46 27 Z" fill="#fff" stroke="#10345a" stroke-width="2"/><rect x="62" y="14" width="30" height="13" fill="#2f6fb0"/>
+    ${tana ? `<rect x="0" y="230" width="180" height="32" fill="#2ecc71" opacity=".5"/><text x="8" y="252" font-size="17" font-weight="900" fill="#fff">タナ</text>` : ""}
+    <line x1="112" y1="30" x2="112" y2="${y}" stroke="#ffb45e" stroke-width="3"/><circle cx="112" cy="${y}" r="8" fill="#ffb45e" stroke="#fff" stroke-width="3"/>
+    ${[0, 35, 70].map((m) => `<text x="174" y="${54 + (m / 70) * 204}" text-anchor="end" font-size="15" font-weight="800" fill="#fff">${m}m</text>`).join("")}</svg>
+    <div style="text-align:center;font-size:24px;font-weight:900;color:#10345a">水深 <span style="color:#c2410c">${depth.toFixed(0)}m</span></div></div>`;
+}
+// 竿とリール（右上）：いまの操作と、糸の張り（計算した値）
+function ftCtl(st, a = 1, mode0) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, c0 = st.c0;
+  const mode = mode0 || (c0.free ? ["落とす", "#1f6fd1"] : c0.kind === "up" || c0.kind === "down" ? ["しゃくる", "#e3412b"] : c0.turning ? ["巻く", "#e08a2a"] : ["止める", "#2a9d5c"]);
+  const lift = st.a[4], bend = clamp01(st.T / 9), ang = (st.a[5] / FT_TURN) * 360;
+  const ty = 60 - lift * 70 + bend * 36;
+  html += `<div style="position:absolute;${P ? "right:40px;top:230px;width:400px" : "right:60px;top:240px;width:360px"};opacity:${a};background:rgba(255,255,255,.94);border-radius:22px;padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.3);color:#10345a">
+    <div style="display:flex;align-items:center"><b style="font-size:22px">竿とリール</b><span style="margin-left:auto;background:${mode[1]};color:#fff;font-weight:900;font-size:30px;padding:2px 18px;border-radius:12px">${mode[0]}</span></div>
+    <svg viewBox="0 0 330 124" width="100%"><path d="M18 100 Q 110 ${96 - lift * 46} 262 ${ty}" fill="none" stroke="#20262c" stroke-width="6" stroke-linecap="round"/>
+      <line x1="262" y1="${ty}" x2="262" y2="124" stroke="#ffb45e" stroke-width="3.5" ${st.T < 0.05 ? 'stroke-dasharray="5 6"' : ""}/>
+      <circle cx="62" cy="103" r="15" fill="#5a646c"/><g transform="rotate(${ang.toFixed(1)} 62 103)"><line x1="62" y1="103" x2="62" y2="79" stroke="#111" stroke-width="5"/><circle cx="62" cy="77" r="6.5" fill="#e3412b"/></g></svg>
+    <div style="display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800"><span>糸の張り</span><div style="flex:1;height:14px;background:#e6edf3;border-radius:7px;overflow:hidden"><div style="width:${(clamp01(st.T / 8) * 100).toFixed(1)}%;height:100%;background:#ffb45e"></div></div></div></div>`;
+}
+// 仕掛けの高さのグラフ（右。横画面だけ）。緑の帯＝止めている間
+function ftGraph(sim, ts, win, a = 1, title = "仕掛けの高さ（計算）") {
+  if (PORTRAIT || a <= 0.01) return;
+  const W0 = 330, H0 = 150, n = 110, ys = [];
+  let y0 = 1e9, y1 = -1e9;
+  for (let i = 0; i <= n; i++) { const v = sim.at((win * i) / n)[1]; ys.push(v); y0 = Math.min(y0, v); y1 = Math.max(y1, v); }
+  if (y1 - y0 < 0.5) y1 = y0 + 0.5;
+  const X = (i) => 8 + ((W0 - 16) * i) / n, Y = (v) => H0 - 10 - ((H0 - 24) * (v - y0)) / (y1 - y0);
+  const m = Math.floor(clamp01(ts / win) * n);
+  let stops = "";
+  for (let i = 0; i < n; i++) { const c = sim.ctl((win * (i + 0.5)) / n); if (c.kind === "wait" && !c.fish) stops += `<rect x="${X(i).toFixed(1)}" y="6" width="${((W0 - 16) / n + 0.5).toFixed(1)}" height="${H0 - 12}" fill="#2ecc71" opacity=".2"/>`; }
+  html += `<div style="position:absolute;right:60px;top:500px;width:360px;opacity:${a};background:rgba(255,255,255,.94);border-radius:22px;padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.3);color:#10345a"><b style="font-size:22px">${title}</b>
+    <svg viewBox="0 0 ${W0} ${H0}" width="100%">${stops}<polyline points="${ys.slice(0, m + 1).map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")}" fill="none" stroke="#e08a2a" stroke-width="4" stroke-linejoin="round"/><circle cx="${X(m)}" cy="${Y(ys[m])}" r="6" fill="#e08a2a" stroke="#fff" stroke-width="2"/></svg>
+    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:#3a5a78"><span>時間 →</span><span><i style="display:inline-block;width:14px;height:14px;background:#2ecc71;opacity:.5;margin-right:4px"></i>止めている間</span></div></div>`;
+}
+function ftChip(txt, col, a = 1, top) {
+  if (a <= 0.01) return;
+  html += `<div style="position:absolute;left:0;right:0;top:${top ?? (PORTRAIT ? 620 : 128)}px;text-align:center;opacity:${a}"><span style="display:inline-block;background:${col};color:#fff;font-weight:900;font-size:${PORTRAIT ? 50 : 46}px;padding:6px 30px;border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.35)">${txt}</span></div>`;
+}
+const ftNote = (txt = "仕掛けの動きは簡単な物理モデルの計算（重さ・水の抵抗・糸の張り）。魚の動きはイメージ") => { html += `<div style="position:absolute;${PORTRAIT ? "left:40px;right:40px;top:1300px" : "left:70px;bottom:196px"};color:#eaf6ff;font-size:${PORTRAIT ? 23 : 22}px;font-weight:800;text-shadow:0 2px 6px #000,0 0 3px #000">※${txt}</div>`; };
+const FT_LEG = [["#ffb45e", "糸と仕掛けの動き"], ["#2ecc71", "ねらう深さ（タナ）"]];
+// 魚探の画面（イメージ）
+function ftFinder(T, a = 1) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, r = rng(77);
+  let blobs = "";
+  for (let i = 0; i < 46; i++) { const x = r() * 200, y = 172 + r() * 42, sz = 3 + r() * 6; blobs += `<ellipse cx="${((x + T * 5) % 200).toFixed(1)}" cy="${y.toFixed(1)}" rx="${sz.toFixed(1)}" ry="${(sz * 0.6).toFixed(1)}" fill="${r() < 0.35 ? "#ff5a36" : "#ffd23c"}" opacity="${(0.55 + r() * 0.4).toFixed(2)}"/>`; }
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 140}px;width:${P ? 330 : 340}px;opacity:${a};background:#10202e;border:5px solid #c8d2da;border-radius:18px;padding:8px 10px;box-shadow:0 6px 18px rgba(0,0,0,.4)">
+    <div style="color:#bfe6ea;font-size:21px;font-weight:900">魚探の画面（イメージ）</div>
+    <svg viewBox="0 0 200 250" width="100%"><rect width="200" height="250" fill="#0b3a66"/>${blobs}<rect y="222" width="200" height="28" fill="#b3402a"/><rect y="218" width="200" height="6" fill="#ffd23c"/>
+    ${[0, 35, 70].map((m) => `<text x="196" y="${16 + (m / 70) * 196}" text-anchor="end" font-size="13" fill="#fff" font-weight="800">${m}m</text>`).join("")}
+    <rect x="3" y="166" width="150" height="52" fill="none" stroke="#2ecc71" stroke-width="3.5" stroke-dasharray="7 4"/><text x="6" y="158" font-size="15" font-weight="900" fill="#2ecc71">魚の反応 ＝ タナ</text></svg></div>`;
+}
+const ftWide = (t = 0) => (PORTRAIT ? look(FTp(2 + Math.sin(t * 0.03), -30, 64), FTp(2, -33, 0), 50) : look(FTp(6 + Math.sin(t * 0.03) * 2, -37, 104), FTp(6, -40, 0), 50));
+// 仕掛けを追うカメラ（near：手前までの距離）
+function ftCam(sim, ts, near, o = {}) {
+  const [sx, sy0] = ftSmooth(sim, ts), sy = Math.max(sy0 + (o.dy ?? 0), FT_BOT + (o.minY ?? 0.17 * near));
+  look(FTp(sx + (o.ox ?? 0), sy + 0.08, FT_LZ + near * (PORTRAIT ? 1.32 : 1)), FTp(sx + (o.ox ?? 0), sy, FT_LZ), 50);
+  ftFlush();
+  return [sx, sy];
+}
+const ftThumbText = (s, w = 1050) => `<div style="position:absolute;left:0;top:0;bottom:0;width:${w}px;background:linear-gradient(90deg,rgba(2,14,28,.85),rgba(2,14,28,0))"></div><div style="position:absolute;left:70px;top:200px;color:#fff;font-weight:900;text-shadow:0 8px 30px rgba(0,0,0,.7),0 0 3px #000"><span class="tag" style="font-size:54px">${s.tag}</span><div style="font-size:150px;line-height:1.1;margin-top:30px;-webkit-text-stroke:3px #06213a">${s.l1}<br><span style="color:#ffd166">${s.l2}</span></div></div>`;
+const ftCard = (P, inner, a, posL, posP) => card(P ? posP[0] : posL[0], P ? posP[1] : posL[1], P ? posP[2] : posL[2], inner, a, "padding:20px 28px");
+
+Object.assign(SHOTS, {
+  ft_thumb(t, d, s) {
+    ftBase();
+    const sim = ftRun("sg"), T = 3, st = ftRig(T, sim, 5.4, { obj: ftTenya, lw: 6 });
+    ftSchoolPlace(T, { cx: st.x + 1.5, n: 12, sx: 3.5, zc: FT_LZ - 2.4 });
+    ftHeroAt(0, st.x - 0.13, st.y + 0.035, Math.PI / 2 - 0.5);
+    ftHeroAt(1, st.x + 0.62, st.y + 0.3, Math.PI / 2 + 0.12, -0.45);
+    look(FTp(st.x - 0.42, st.y - 0.02, FT_LZ + 0.86), FTp(st.x - 0.3, st.y - 0.06, FT_LZ), 50);
+    ftFlush();
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：船から糸をたどって、水深70mの仕掛けまで潜る
+  ft_hook(t, d, s) {
+    ftBase();
+    const P = PORTRAIT, T = t, sim = ftRun("sg"), ts = t;
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 2.2 });
+    ftOthers(T);
+    ftSchoolPlace(T, { cx: st.x + 2, n: 14, sx: 5, zc: FT_LZ - 3.2 });
+    ftFollow(0, st, sim, ts, T, { side: -1, nibble: true });
+    ftFollow(1, st, sim, ts, T, { side: 1, far: 1.2, lag: 0.8, near: 0.15, dz: -0.5, below: 0.4 });
+    const k = ease((t - 0.9) / 4.4), [sx, sy] = ftSmooth(sim, ts);
+    const cx = lerp(-1, sx, k), cy = lerp(1.3, Math.max(sy - 0.15, FT_BOT + 0.4), k);
+    look(FTp(cx, cy + lerp(1.6, 0.08, k), FT_LZ + lerp(P ? 31 : 24, P ? 2.5 : 1.9, k)), FTp(cx, cy, FT_LZ), 50);
+    ftFlush();
+    const a = P ? 1 : clamp01(t / 0.25), depth = Math.max(0, -cy);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 400}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "船の下70m、<br>何が起きている？", "テンヤとジグの動きを計算で見える化", a);
+    html += `<div style="position:absolute;${P ? "right:40px;top:860px" : "right:70px;top:430px"};background:rgba(6,22,42,.85);border:4px solid #ffb45e;border-radius:20px;padding:8px 24px;color:#fff;font-weight:900;font-size:${P ? 40 : 38}px;opacity:${clamp01((t - 0.6) / 0.4)}">水深 <span style="font-size:${P ? 84 : 80}px;color:#ffd166">${depth.toFixed(0)}</span> m</div>`;
+    drawBar(s);
+  },
+  // どこで・いつ：k0 時期 → k1 水深と昼のタチウオ → k2 魚探とタナ
+  ft_where(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 20, sim = ftRun("sg"), st = ftRig(T, sim, 3 + (t % 30), { obj: ftTenya, lw: 4 });
+    ftOthers(T);
+    ftSchoolPlace(T, { cx: 4, sc: 6, n: 20, sx: 24, y0: FT_BOT + 4, y1: FT_BOT + 10, zc: FT_LZ - 4, sz: 2 });
+    ftWide(t);
+    ftFlush();
+    const q = project(FTp(st.x, st.y, FT_LZ));
+    html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:#ffb45e;border:5px solid #fff;box-shadow:0 0 16px #ffb45e"></div>`;
+    const t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k === 0) {
+      const cell = (m) => `<div style="flex:1;text-align:center;padding:8px 0;font-size:24px;font-weight:900;border-radius:8px;margin:0 2px;background:${m >= 7 ? "#e08a2a" : m <= 3 ? "#f6d7a8" : "#e6edf3"};color:${m >= 7 ? "#fff" : "#10345a"}">${m}</div>`;
+      html += ftCard(P, `<b style="font-size:36px">船で狙える時期</b><div style="display:flex;margin-top:12px">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(cell).join("")}</div><div style="font-size:28px;font-weight:900;margin-top:10px"><span style="color:#c2410c">7〜12月ごろ</span>　近年は3月ごろまで釣れることも</div>`, fadeIn(t, 0.4), [560, 150, 800], [60, 270, 880]);
+    }
+    if (k >= 1) {
+      pathLine([FTp(-24, 0, FT_LZ), FTp(-24, FT_BOT, FT_LZ)], "#ffffff", 1, 3);
+      [0, 10, 20, 30, 40, 50, 60, 70].forEach((m) => { const p = project(FTp(-24, -m, FT_LZ)); html += `<div style="position:absolute;left:${p.x - 12}px;top:${p.y}px;transform:translate(-100%,-50%);color:#fff;font-weight:900;font-size:${P ? 26 : 26}px;text-shadow:0 2px 6px #000;opacity:${fadeIn(t1, m / 70)}">${m}m</div>`; });
+      label(FTp(10, FT_BOT + 6.5, FT_LZ), "昼のタチウオ", "基本的に底の近くにいる", fadeIn(t1, 2.2), "gold", P ? 60 : 300, P ? -260 : -170);
+    }
+    if (k === 1) html += ftCard(P, `<b style="font-size:34px">ポイントの例（大阪湾）</b><div style="font-size:34px;font-weight:900;margin-top:8px">神戸沖　<span style="color:#1f6fd1">水深70m前後</span></div><div style="font-size:34px;font-weight:900">洲本沖　<span style="color:#1f6fd1">水深100m前後</span></div>`, fadeIn(t1, 0.3), [820, 150, 650], [60, 270, 880]);
+    if (k >= 2) {
+      ftBand.visible = true;
+      ftBand.position.set(4, FT_BOT + 6, FT_LZ - 3);
+      ftBand.scale.set(1, 10, 1);
+      ftBand.material.opacity = 0.26 * fadeIn(t2, 0.3);
+      ftFinder(T, fadeIn(t2, 0.2));
+      label(FTp(-6, FT_BOT + 6, FT_LZ), "タナ（ねらう深さ）", "船長が教えてくれる", fadeIn(t2, 0.5), "gold ans", P ? 40 : -60, P ? -330 : -260);
+    }
+    if (!P) legend(FT_LEG);
+    ftNote("魚は大きく表示");
+  },
+  // テンヤとは：k0 つくり → k1 重さと糸
+  ft_tenya(t, d, s, k) {
+    ftBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT;
+    ftPut(ftTenya, 0, -30, 0, 1);
+    ftTenya.rotation.y = Math.sin(t * 0.45) * 0.42;
+    ftTenya.updateMatrixWorld(true);
+    const Wp = (x, y, z = 0) => ftTenya.localToWorld(V(x, y, z));
+    look(FTp(-0.045, -29.975, FT_LZ + (P ? 0.68 : 0.5)), FTp(-0.045, -30.0, FT_LZ), 50);
+    ftFlush();
+    ftSeg(FTp(0, -27, FT_LZ), Wp(0, 0.033), "#ffb45e", 5);
+    label(Wp(0.03, 0.012), "オモリ（ヘッド）", "大きなハリと一体", fadeIn(t, 0.5), "gold", P ? 120 : 300, P ? -200 : -170);
+    label(Wp(-0.17, 0.03), "大きなハリ", "", fadeIn(t, 1.4), "", P ? -80 : -300, P ? -200 : 130);
+    label(Wp(-0.08, 0.002), "エサのイワシ", "細い針金で巻きつける", fadeIn(t, 2.3), "gold ans", P ? 0 : -80, P ? 300 : 250);
+    if (k >= 1) html += ftCard(P, `<div style="font-size:40px;font-weight:900">重さは <span style="color:#c2410c;font-size:56px">40号（約150g）</span> が標準のことが多い</div><div style="font-size:30px;font-weight:800;margin-top:6px">船が決めた重さを使う　／　道糸はPE2号が目安</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), [70, 140, 1000], [60, 270, 880]);
+  },
+  // 落とす：k0 沈み方 → k1 着底・糸ふけ・底を切る
+  ft_fall(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 40, sim = ftRun("fall"), ts = t, L = sim.landed, land0 = sim.at(L)[0];
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 1.5 });
+    ftSchoolPlace(T, { cx: land0 + 5, n: 10, sx: 4, zc: FT_LZ - 4.2 });
+    ftCam(sim, ts, 1.8);
+    const here = FTp(st.x, st.y, FT_LZ), land = sim.at(L);
+    if (ts < L - 0.3) label(here, "テンヤ", "頭を下にして沈む（計算）", fadeIn(t, 0.5), "gold", P ? 60 : 300, -170);
+    const pf = ts - L;
+    if (pf > 0 && pf < 1.5) {
+      const p = project(FTp(land[0], FT_BOT + 0.03, FT_LZ)), R = (70 + pf * 190) * (P ? 0.8 : 1);
+      html += `<div style="position:absolute;left:${p.x - R}px;top:${p.y - R * 0.5}px;width:${2 * R}px;height:${R}px;border-radius:50%;background:radial-gradient(ellipse at center, rgba(222,208,170,${(0.8 * (1 - pf / 1.5)).toFixed(2)}), rgba(222,208,170,0) 70%)"></div>`;
+    }
+    label(FTp(land[0], FT_BOT + 0.05, FT_LZ), "着底", "すぐに糸ふけを取る", fadeIn(ts, L + 0.1) * (1 - clamp01((ts - L - 2.6) / 0.4)), "gold ans", P ? 0 : 330, P ? -330 : -200);
+    if (ts > L + 3.2) label(here, "底を切る", "底から少し上げて、誘い始める", fadeIn(ts, L + 3.3), "gold ans", P ? 0 : 180, P ? -330 : -200);
+    if (k >= 1 && ts < L + 3) html += ftCard(P, `<b style="font-size:34px">糸ふけを出さないコツ</b><div style="font-size:30px;font-weight:900;margin-top:6px">スプールに<span style="color:#c2410c">軽く指を当てて</span>落とす</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), [70, 600, 560], [60, 1010, 880]);
+    ftMini(-st.y);
+    ftCtl(st);
+    if (!P) legend(FT_LEG);
+    ftNote();
+  },
+  // 誘い①：ストップ＆ゴー。k0 動かして止める → k1 2回巻いて3〜8秒待つ → k2 竿先を下げない
+  ft_sg(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 60, sim = ftRun("sg"), ts = t;
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 2.6 });
+    ftSchoolPlace(T, { cx: st.x + 2.5, n: 12, sx: 5, zc: FT_LZ - 3.4 });
+    const h = ftFollow(0, st, sim, ts, T, { side: -1, nibble: true });
+    ftFollow(1, st, sim, ts, T, { side: 1, far: 1.25, lag: 0.8, near: 0.15, dz: -0.55, below: 0.4 });
+    ftCam(sim, ts, 1.75, { dy: -0.16 });
+    if (ts < 1.5) ftChip("ストップ＆ゴー", "#10345a");
+    else if (st.c0.turning) ftChip("巻く：ハンドル2回転", "#e08a2a");
+    else ftChip("止める：3〜8秒 待つ", "#2a9d5c");
+    if (k === 0) label(FTp(h[0], h[1] - 0.45, FT_LZ), "タチウオ", "立ち泳ぎでついてくる（イメージ）", fadeIn(t, 2.0), "", P ? -60 : -380, -40);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:36px">止めるとき、<span style="color:#c2410c">竿先を下げない</span></b><div style="font-size:26px;font-weight:800;margin-top:4px">計算でも、止めた直後に少しゆれてから止まる</div>`, fadeIn(t - (s._k2 ?? 99), 0.2), [70, 600, 640], [60, 1010, 880]);
+    ftMini(-st.y);
+    ftCtl(st);
+    ftGraph(sim, ts, 24);
+    if (!P) legend(FT_LEG);
+    ftNote();
+    drawBar(s);
+  },
+  // 誘い②：ジャーク＆ステイ
+  ft_js(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 80, sim = ftRun("js"), ts = t;
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 2.6 });
+    ftSchoolPlace(T, { cx: st.x + 2.5, n: 12, sx: 5, zc: FT_LZ - 3.4 });
+    ftFollow(0, st, sim, ts, T, { side: -1, nibble: true });
+    ftCam(sim, ts, 1.75, { dy: -0.16 });
+    if (ts < 1.2) ftChip("ジャーク＆ステイ", "#10345a");
+    else if (st.c0.kind === "wait") ftChip("止める", "#2a9d5c");
+    else ftChip("巻きながら、2〜3回しゃくる", "#e3412b");
+    ftMini(-st.y);
+    ftCtl(st);
+    ftGraph(sim, ts, 22);
+    if (!P) legend(FT_LEG);
+    ftNote();
+  },
+  // 誘い③：ごくゆっくり巻く＋小さくしゃくる（上へ追わせる）
+  ft_bs(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 100, sim = ftRun("bs"), ts = t;
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 3.5 });
+    ftSchoolPlace(T, { cx: st.x + 2.5, n: 12, sx: 5, zc: FT_LZ - 3.4 });
+    ftFollow(0, st, sim, ts, T, { side: -1, near: 0.55, lag: 0.7, below: 0.3 });
+    ftFollow(1, st, sim, ts, T, { side: 1, far: 1.1, lag: 1.1, near: 0.3, dz: -0.5, below: 0.45 });
+    ftCam(sim, ts, 1.75, { dy: -0.16 });
+    ftChip("ごくゆっくり巻く ＋ 小さくしゃくる", "#e08a2a");
+    if (k >= 1) label(FTp(st.x, st.y + 0.05, FT_LZ), "少しずつ上へ動き続ける", "タチウオに上へ追わせる誘い（メーカーの解説）", fadeIn(t - (s._k1 ?? 99), 0.3), "gold ans", P ? 0 : -380, P ? -330 : 160);
+    ftMini(-st.y);
+    ftCtl(st);
+    ftGraph(sim, ts, 22);
+    if (!P) legend(FT_LEG);
+    ftNote();
+  },
+  // アタリ①：コツン、コツン → はっきり出たら合わせる
+  ft_nib(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 120, sim = ftRun("nib"), ts = t, mk = sim.marks, hooked = ts >= mk.hook + 0.25;
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 2 });
+    ftSchoolPlace(T, { cx: st.x + 2.5, n: 12, sx: 5, zc: FT_LZ - 3.4 });
+    const bx = st.x - 0.085 * Math.cos(st.th), by = st.y - 0.085 * Math.sin(st.th) + 0.012;
+    if (hooked) ftHeroAt(0, bx - 0.02, by, Math.PI / 2 - 0.5 + Math.sin(T * 13) * 0.22);
+    else ftFollow(0, st, sim, ts, T, { side: -1, near: ts < 2.2 ? 0 : ease((ts - 2.2) / 1.4), nibble: true });
+    ftCam(sim, ts, 1.75, { dy: -0.16 });
+    const bl = (m) => ts >= m && ts < m + 0.7;
+    if (bl(mk.n1) || bl(mk.n2)) ftChip("コツン…（少しずつかじる）", "#3a6ea5");
+    else if (ts >= mk.hook && ts < mk.hook + 0.25) ftChip("はっきり出た！", "#e3412b");
+    else if (hooked && ts < mk.hook + 3.5) ftChip("竿をあおって合わせる！", "#e3412b");
+    else if (hooked) ftChip("掛かった", "#2a9d5c");
+    ftMini(-st.y);
+    ftCtl(st, 1, hooked ? (ts < mk.hook + 1.1 ? ["合わせる", "#e3412b"] : ["掛かった", "#2a9d5c"]) : null);
+    if (!P) legend(FT_LEG);
+    ftNote("魚が引く力は仮の値。魚の動きはイメージ");
+  },
+  // アタリ②：食い上げ。重さが消えたら、巻いてから合わせる
+  ft_kui(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 140, sim = ftRun("kui"), ts = t, mk = sim.marks;
+    const held = ts >= mk.bite, hooked = ts >= mk.hook;
+    const st = ftRig(T, sim, ts, { obj: ftTenya, trail: 2.5, th: held && !hooked ? Math.PI / 2 - 0.25 : held ? 0.5 + Math.sin(T * 13) * 0.2 : undefined });
+    ftSchoolPlace(T, { cx: st.x + 2.5, n: 12, sx: 5, zc: FT_LZ - 3.4 });
+    if (!held) ftFollow(0, st, sim, ts, T, { side: -1, near: ease(ts / 0.9) });
+    else ftHeroAt(0, st.x + 0.02, st.y + 0.02, hooked ? Math.PI / 2 - 0.45 + Math.sin(T * 13) * 0.22 : Math.PI / 2 - 0.12 + Math.sin(T * 5) * 0.06);
+    ftCam(sim, ts, 1.9, { dy: -0.2 });
+    if (ts >= mk.bite + 0.3 && ts < mk.reel) ftChip("急に重さが消えた ＝ 食い上げ", "#1f6fd1");
+    else if (ts >= mk.reel && ts < mk.hook) ftChip("重さを感じるまで、素早く巻く", "#e08a2a");
+    else if (hooked && ts < mk.hook + 3.5) ftChip("重さを感じたら、合わせる！", "#e3412b");
+    else if (hooked) ftChip("掛かった", "#2a9d5c");
+    if (held && ts < mk.reel + 0.4) label(FTp(st.x, st.y, FT_LZ), "くわえて上へ泳ぐ", "糸がゆるむ（イメージ）", fadeIn(ts, mk.bite + 0.4), "gold", P ? 0 : 340, P ? 330 : 150);
+    ftMini(-st.y);
+    ftCtl(st, 1, hooked ? (ts < mk.hook + 1.0 ? ["合わせる", "#e3412b"] : ["掛かった", "#2a9d5c"]) : null);
+    if (!P) legend(FT_LEG);
+    ftNote("魚が引く力は仮の値。魚の動きはイメージ");
+  },
+  // ジグ：k0 150g前後 → k1 ワンピッチジャーク（跳ね上がる → 横を向いてスライド）
+  ft_jig(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 160, sim = ftRun("jig"), ts = t;
+    const st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, trail: 2.4 });
+    ftSchoolPlace(T, { cx: st.x + 2, n: 12, sx: 5, y0: FT_BOT + 1.2, y1: FT_BOT + 7.5, zc: FT_LZ - 3.4 });
+    ftCam(sim, ts, 1.5);
+    const c0 = st.c0, jerk = c0.kind === "up" || c0.kind === "down";
+    if (c0.free) ftChip("フォール（落とす）", "#1f6fd1");
+    else if (jerk) ftChip("ワンピッチ：1回しゃくって、1回巻く", "#e3412b");
+    else ftChip("ジギング", "#10345a");
+    if (k === 0) html += ftCard(P, `<div style="font-size:38px;font-weight:900">ジグは <span style="color:#c2410c;font-size:54px">150g前後</span> が多い</div><div style="font-size:26px;font-weight:800;margin-top:4px">東京湾・大阪湾の例</div>`, fadeIn(t, 0.6), [70, 600, 600], [60, 1010, 880]);
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2), up = jerk && st.T > 0.5, sl = !c0.free && st.T < 0.05;
+      const row = (on, n, h) => `<div style="display:flex;align-items:center;gap:14px;margin-top:10px;opacity:${on ? 1 : 0.5}"><b style="background:${on ? "#e08a2a" : "#8a96a3"};color:#fff;font-size:26px;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none">${n}</b><div style="font-size:${P ? 32 : 30}px;font-weight:900">${h}</div></div>`;
+      html += ftCard(P, `<b style="font-size:24px;color:#3a5a78">計算したジグの動き</b>${row(up, 1, "しゃくる → 頭から跳ね上がる")}${row(sl, 2, "糸がゆるむ → 横を向いてスライド")}${row(c0.free, 3, "フォール → ゆれながら落ちる")}`, a, [70, 575, 600], [60, 960, 880]);
+    }
+    ftMini(-st.y, 1, false);
+    ftCtl(st);
+    if (!P) legend([FT_LEG[0]]);
+    ftNote("ジグの動きは簡単な物理モデルの計算（重さ・水の抵抗・糸の張り）");
+  },
+  // ジグのフォール：落ちる間に食うことも多い
+  ft_jigfall(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 180, sim = ftRun("jigfall"), ts = t, mk = sim.marks;
+    const st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, trail: 2.4 });
+    const yF = sim.at(mk.fall + 2.2)[1], near = clamp01(1 - Math.abs(st.y - yF) / 1.3) * (ts > mk.fall ? 1 : 0);
+    ftSchoolPlace(T, { cx: st.x + 2, n: 12, sx: 5, y0: FT_BOT + 1.2, y1: FT_BOT + 7.5, zc: FT_LZ - 3.4 });
+    const fol = st.y < yF ? (st.y - yF) * 0.75 : 0;
+    const h = ftHeroAt(0, st.x - lerp(0.65, 0.1, near), yF + fol + 0.02, Math.PI / 2 - lerp(0.1, 0.55, near) + Math.sin(T * 1.3) * 0.04);
+    ftHeroAt(1, st.x + 0.9, yF - 0.5, Math.PI / 2 + 0.12 + Math.sin(T * 1.1) * 0.04, -0.5);
+    ftCam(sim, ts, 1.8, { dy: -0.12 });
+    const c0 = st.c0;
+    if (c0.free) ftChip("フォール（落とす）", "#1f6fd1");
+    else if (c0.kind === "up" || c0.kind === "down") ftChip("ワンピッチジャーク", "#e3412b");
+    if (ts > mk.fall + 1.6) label(FTp(h[0], h[1] - 0.3, FT_LZ), "フォール中に食うことも多い", "と言われます（魚の動きはイメージ）", fadeIn(ts, mk.fall + 1.7), "gold ans", P ? 0 : -150, P ? 330 : 280);
+    ftMini(-st.y, 1, false);
+    ftCtl(st);
+    if (!P) legend([FT_LEG[0]]);
+    ftNote("ジグの動きは簡単な物理モデルの計算。魚の動きはイメージ");
+  },
+  // クイズ：同じ150g。センターバランスとリアバランス、速く沈むのは？ k0 問い → k1 A・B → k2 答え（同時に落とす）→ k3 使い分け
+  ft_quiz(t, d, s, k) {
+    ftBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 200, t2 = t - (s._k2 ?? 99), ts = clamp01(t2 * 0.3 / 2.6) * 2.6, VIS = 5, ox = P ? 1.0 : 1.5; // 落ちるところはスロー（約 1/3）
+    const sC = ftRun("fallC"), sR = ftRun("fallR");
+    const a = ftRig(T, sC, ts, { obj: ftJigC, unit: FT_JIG_U, vis: VIS, ox: -ox, rod: false, trail: 2.6, lw: 3 });
+    const b = ftRig(T, sR, ts, { obj: ftJigR, unit: FT_JIG_U, vis: VIS, ox, rod: false, trail: 2.6, lw: 3, off: 0.03 });
+    const cy = (ftSmooth(sC, ts)[1] + ftSmooth(sR, ts)[1]) / 2;
+    look(FTp(0, cy + 0.3, FT_LZ + (P ? 10 : 7)), FTp(0, cy - 0.2, FT_LZ), 50);
+    ftFlush();
+    if (k >= 2) html += `<div class="slowtag" style="position:absolute;right:60px;top:120px;font-size:34px;font-weight:900;color:#fff;background:#e3412b;padding:6px 20px;border-radius:12px">スロー再生</div>`;
+    // 落ちた深さの目盛り（1mごと）
+    for (let m = Math.ceil(-30 - cy - 5); m <= Math.floor(-30 - cy + 6); m++) {
+      if (m < 0) continue;
+      const y = -30 - m, p0 = FTp(-(P ? 3.0 : 4.2), y, FT_LZ), p1 = FTp(P ? 3.0 : 4.2, y, FT_LZ);
+      pathLine([p0, p1], "rgba(255,255,255,0.45)", 1, 2, "6 10");
+      const p = project(p0);
+      html += `<div style="position:absolute;left:${p.x - 10}px;top:${p.y}px;transform:translate(-100%,-50%);color:#fff;font-weight:900;font-size:26px;text-shadow:0 2px 6px #000">${m}m</div>`;
+    }
+    const pa = FTp(a.x, a.y, FT_LZ), pb = FTp(b.x, b.y, FT_LZ);
+    if (k <= 1) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 130}px;font-size:${P ? 70 : 64}px">クイズ　同じ150gのジグ<br><span style="color:#ffd166">速く沈むのはどっち？</span></div>`;
+    }
+    if (k >= 1) {
+      const a1 = k === 1 ? fadeIn(t - (s._k1 ?? 0), 0.2) : 1, done = k >= 2 && ts > 1.3;
+      label(pa, done ? "A：ひらひら、ゆっくり" : "A　センター", done ? "横を向いて、ゆれながら落ちる" : "重心がまん中", a1, done ? "gold" : "", P ? -90 : -300, P ? -170 : -110);
+      label(pb, done ? "答え B：おしりから速く" : "B　リア", done ? "まっすぐ、すとんと落ちる" : "重心が後ろ", a1, done ? "gold ans" : "", P ? 90 : 340, P ? 230 : -70);
+    }
+    if (k >= 3) html += ftCard(P, `<b style="font-size:32px">使い分け（と言われます）</b><div style="font-size:32px;font-weight:900;margin-top:8px">速く沈めたい → <span style="color:#d0306a">後ろ重心</span></div><div style="font-size:32px;font-weight:900">ゆっくり見せたい → <span style="color:#1a4fd0">まん中</span></div>`, fadeIn(t - (s._k3 ?? 99), 0.2), [70, 600, 600], [60, 1010, 880]);
+    ftNote("ジグは大きく表示。動きは簡単な物理モデルの計算（重心の位置だけを変えた）");
+    drawBar(s);
+  },
+  // 安全：k0 歯 → k1 重さは船の指定・ライフジャケット
+  ft_safe(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 220, sim = ftRun("sg");
+    ftRig(T, sim, 3, { obj: ftTenya });
+    ftOthers(T);
+    if (P) look(FTp(-0.5, 5, 25), FTp(-0.5, 1.6, 0), 45);
+    else look(FTp(1.0 + t * 0.06, 4.2, 15.5), FTp(-0.8, 1.7, 0), 45);
+    ftFlush();
+    const bob = ftSurf(0, T) * 0.5;
+    if (k === 0) html += ftCard(P, `<b style="font-size:40px;color:#c2410c">タチウオの歯は、とても鋭い</b><div style="font-size:32px;font-weight:900;margin-top:8px">触れただけで切れることがある</div><div style="font-size:32px;font-weight:900">つかむときは<span style="color:#1f6fd1">フィッシュグリップ</span>で、頭のすぐ下を</div>`, fadeIn(t, 0.4), [70, 150, 880], [60, 270, 880]);
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      label(FTp(0, 1.15 + 1.2 + bob, 1.45), "ライフジャケット", "必ず着ける", a, "gold ans", P ? 0 : 420, P ? -330 : -230);
+      html += ftCard(P, `<b style="font-size:38px">テンヤの重さは、<span style="color:#c2410c">船の指定</span>に合わせる</b><div style="font-size:28px;font-weight:800;margin-top:6px">釣り方は、船長の指示を聞く</div>`, a, [70, 150, 760], [60, 270, 880]);
+    }
+  },
+  ft_sum(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 240, sim = ftRun("sg"), st = ftRig(T, sim, 3 + (t % 30), { obj: ftTenya });
+    ftOthers(T);
+    ftSchoolPlace(T, { cx: 4, sc: 6, n: 20, sx: 24, y0: FT_BOT + 4, y1: FT_BOT + 10, zc: FT_LZ - 4, sz: 2 });
+    ftWide(t);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["タナ", "昼は底の近く", "船長が教えてくれる深さをねらう", "#2a9d5c"], ["誘い", "動かして、止める", "ストップ＆ゴー：2回巻いて、3〜8秒待つ", "#c2410c"], ["ジグ", "しゃくると跳ねて、横へスライド", "後ろ重心は速く沈む（計算）", "#1f6fd1"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">船のタチウオ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 40 : 46}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 window.frame = function (o) {
