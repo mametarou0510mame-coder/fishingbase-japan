@@ -37,8 +37,9 @@ for vid in VIDEOS:
     print(f"::notice::{vid} {sn['title'][:30]} もしも {len(RX.findall(old))}本 → 残り {left}本 / 直接 {len(re.findall(r'tag=' + TAG, new))}本")
     if new == old:
         continue
+    os.makedirs("data/sns/yt-fixed", exist_ok=True)
+    open(f"data/sns/yt-fixed/{vid}-description.txt", "w", encoding="utf-8").write(new)
     if not apply:
-        print(old.split("\n")[0][:60], "|", [l for l in new.split("\n") if "tag=" in l][:1])
         continue
     body = {"id": vid, "snippet": {k: sn[k] for k in ("title", "categoryId") } | {"description": new} | {k: sn[k] for k in ("tags", "defaultLanguage") if k in sn}}
     http("PUT", "https://www.googleapis.com/youtube/v3/videos?part=snippet", body, H)
