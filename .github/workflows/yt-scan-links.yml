@@ -1,0 +1,16 @@
+name: YouTube scan links
+# 投稿済み動画の概要欄にある Amazon リンクの種類を数える（手動・読むだけ）
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python scripts/sns/yt_scan_links.py > /tmp/o.txt 2>&1 || { echo "::error::$(tail -c 700 /tmp/o.txt | tr "\n" " ")"; exit 1; }; cat /tmp/o.txt
