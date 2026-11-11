@@ -1,0 +1,137 @@
+name: Blender compare
+
+# Blender（Cycles）でタイラバとマダイの10秒を書き出し、three.js 版と見比べる動画を作る（2026-11-12 オーナー依頼）。
+# mode=test：4コマだけ低画質で（見た目の確認用）。mode=full：300コマを分けて書き出し、比較動画まで作る。
+# できたものは long-media ブランチの cg/compare/ に置く。
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test / full"
+        required: true
+        default: test
+      samples:
+        description: "Cycles のサンプル数"
+        required: true
+        default: "96"
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  BLENDER_URL: https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      chunks: ${{ steps.p.outputs.chunks }}
+    steps:
+      - id: p
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "full" ]; then
+            echo 'chunks=["1 20","21 40","41 60","61 80","81 100","101 120","121 140","141 160","161 180","181 200","201 220","221 240","241 260","261 280","281 300"]' >> $GITHUB_OUTPUT
+          else
+            echo 'chunks=["test"]' >> $GITHUB_OUTPUT
+          fi
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJson(needs.plan.outputs.chunks) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get update -qq || true
+            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 libxi6 libxxf86vm1 libxfixes3 libxrender1 libxkbcommon0 libsm6 libgl1 libegl1 > /dev/null; then break; fi
+            echo "apt retry $i"; sleep 30
+          done
+          for i in 1 2 3; do curl -fsSL --retry 3 "$BLENDER_URL" -o /tmp/b.tar.xz && break; sleep 20; done
+          mkdir -p /tmp/blender && tar -xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
+          /tmp/blender/blender --version | head -1
+      - name: Render
+        run: |
+          C="${{ matrix.chunk }}"
+          if [ "$C" = "test" ]; then
+            /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/tairaba_compare.py -- --frames 1,75,200,262 --out out/frames --samples 32 --res 960 540
+          else
+            set -- $C
+            /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/tairaba_compare.py -- --range $1 $2 --out out/frames --samples ${{ github.event.inputs.samples }} --res 1280 720
+          fi
+          ls out/frames | head
+          cat out/frames/timing-*.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bl-${{ strategy.job-index }}
+          path: out/frames/
+          retention-days: 5
+
+  finish:
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bl-*
+          path: frames/
+          merge-multiple: true
+      - name: Install
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get update -qq || true
+            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 fonts-noto-cjk ffmpeg > /dev/null; then break; fi
+            echo "apt retry $i"; sleep 30
+          done
+          command -v ffmpeg
+      - name: Encode and compare
+        run: |
+          mkdir -p out
+          cat frames/timing-*.txt | sort -n > out/timing.txt
+          python3 -c "
+          import statistics as s
+          r=[l.split() for l in open('out/timing.txt') if l.strip()]
+          sec=[float(x[1]) for x in r]; z=[float(x[2]) for x in r]
+          print(f'frames {len(r)}  avg {s.mean(sec):.1f}s/frame  max {max(sec):.1f}s  min fish clearance {min(z):.3f} m')
+          " | tee out/summary.txt
+          echo "::notice::$(cat out/summary.txt)"
+          if [ "${{ github.event.inputs.mode }}" = "full" ]; then
+            git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
+            for p in $(git ls-tree --name-only origin/long-media | grep "^cg-fune-tairaba.mp4.part-" | sort); do git show "origin/long-media:$p" >> /tmp/tr.mp4; done
+            ffmpeg -y -loglevel error -framerate 30 -i frames/f%04d.png -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p out/tairaba-blender.mp4
+            F=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc
+            ffmpeg -y -loglevel error -ss 57 -t 10 -i /tmp/tr.mp4 -i out/tairaba-blender.mp4 -filter_complex "\
+              color=c=0x0b1620:s=1920x1080:r=30:d=10[bg];\
+              [0:v]scale=944:531,setsar=1,fps=30[a];[1:v]scale=944:531,setsar=1[b];\
+              [bg][a]overlay=12:300[x];[x][b]overlay=964:300[y];\
+              [y]drawtext=fontfile=$F:text='同じ場面の見比べ（タイラバとマダイ・10秒）':fontsize=52:fontcolor=white:x=(w-tw)/2:y=110,\
+              drawtext=fontfile=$F:text='いまの映像（three.js・解説つき）':fontsize=38:fontcolor=0xffd27a:x=12+(944-tw)/2:y=230,\
+              drawtext=fontfile=$F:text='Blender（Cycles）':fontsize=38:fontcolor=0x8fe3ff:x=964+(944-tw)/2:y=230,\
+              drawtext=fontfile=$F:text='Blender 側は動きの見本（動きは同じ考え方の計算・魚は Fish Kit の madai）':fontsize=28:fontcolor=0xb8c4cc:x=(w-tw)/2:y=870[v]" \
+              -map "[v]" -an -c:v libx264 -preset slow -crf 19 -pix_fmt yuv420p out/tairaba-compare.mp4
+          else
+            mkdir -p out/test && cp frames/*.png out/test/
+          fi
+          ls -la out out/test 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-compare
+          path: out/
+          retention-days: 7
+      - name: Save to long-media
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          mkdir -p cg/compare && cp -r $GITHUB_WORKSPACE/out/* cg/compare/
+          git add -A && git commit -qm "Blender compare (${{ github.event.inputs.mode }})"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
