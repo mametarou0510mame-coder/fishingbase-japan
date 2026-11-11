@@ -35,7 +35,7 @@ def tackle_lines(guides, limit=6, amazon=False, media="instagram"):
 MOSHIMO_AMAZON = {"a_id": "5858728", "p_id": "170", "pc_id": "185", "pl_id": "4062"}
 MOSHIMO_A_ID = {"instagram": "5858728", "youtube": "5877693"}
 # 2026-11-11 からアソシエイト直接（トラッキングID。公開情報）。媒体ごとにIDを分けたら、ここだけ変える
-AMAZON_ASSOCIATE_TAG = {"instagram": "tsuredoki-22", "youtube": "tsuredoki-22"}
+AMAZON_ASSOCIATE_TAG = {"instagram": "tsuredoki-ig-22", "youtube": "tsuredoki-yt-22"}
 AMAZON_TAG = ""  # 互換のため。サイトでの提携が承認されるまで空（空の間は Amazon のリンクを出さない）
 
 
