@@ -34,6 +34,8 @@ def tackle_lines(guides, limit=6, amazon=False, media="instagram"):
 # サイトは lib/affiliate.ts のホームページ用 5873643（11/3 承認）
 MOSHIMO_AMAZON = {"a_id": "5858728", "p_id": "170", "pc_id": "185", "pl_id": "4062"}
 MOSHIMO_A_ID = {"instagram": "5858728", "youtube": "5877693"}
+# 2026-11-11 からアソシエイト直接（トラッキングID。公開情報）。媒体ごとにIDを分けたら、ここだけ変える
+AMAZON_ASSOCIATE_TAG = {"instagram": "tsuredoki-22", "youtube": "tsuredoki-22"}
 AMAZON_TAG = ""  # 互換のため。サイトでの提携が承認されるまで空（空の間は Amazon のリンクを出さない）
 
 
@@ -70,10 +72,10 @@ AMAZON_ASIN = {
 
 
 def amazon_search_url(keyword, force=False, media="instagram"):
-    """もしもの「どこでもリンク」形式の Amazon 検索リンク。force=True は承認済みの媒体（media：instagram / youtube）用"""
+    """Amazonアソシエイト直接の Amazon リンク（製品ページ dp/ASIN か検索）。force=True は承認済みの媒体（media：instagram / youtube）用"""
     if not (AMAZON_TAG or force):
         return None
-    m = dict(MOSHIMO_AMAZON, a_id=MOSHIMO_A_ID[media])
     asin = AMAZON_ASIN.get(keyword)
-    target = f"https://www.amazon.co.jp/dp/{asin}" if asin else f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}"
-    return f"https://af.moshimo.com/af/c/click?a_id={m['a_id']}&p_id={m['p_id']}&pc_id={m['pc_id']}&pl_id={m['pl_id']}&url={urllib.parse.quote(target, safe='')}"
+    if asin:
+        return f"https://www.amazon.co.jp/dp/{asin}?tag={AMAZON_ASSOCIATE_TAG[media]}"
+    return f"https://www.amazon.co.jp/s?k={urllib.parse.quote(keyword)}&tag={AMAZON_ASSOCIATE_TAG[media]}"
