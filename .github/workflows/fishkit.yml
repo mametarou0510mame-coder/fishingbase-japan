@@ -1,0 +1,30 @@
+name: Fish Kit import
+# 魚の3Dモデル集（Fish Kit、CC0 1.0。https://cda-social.github.io/fish/gallery.html）を scripts/cg/vendor/fishkit に取り込む（2026-11-12 オーナー指示）
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: download
+        run: |
+          set -e
+          curl -fsSL -o /tmp/kit.zip https://cda-social.github.io/fish/kit/fish-kit.zip
+          rm -rf /tmp/kit && mkdir -p /tmp/kit && unzip -q /tmp/kit.zip -d /tmp/kit
+          find /tmp/kit -maxdepth 3 | head -100
+          du -sh /tmp/kit
+          ROOT=$(dirname "$(find /tmp/kit -name fish-kit.js | head -1)")
+          rm -rf scripts/cg/vendor/fishkit && mkdir -p scripts/cg/vendor/fishkit
+          cp -r "$ROOT"/. scripts/cg/vendor/fishkit/
+          printf 'Fish Kit（CC0 1.0）\n出典：https://cda-social.github.io/fish/gallery.html\n取り込み：%s\n' "$(date -u +%F)" > scripts/cg/vendor/fishkit/SOURCE.txt
+          du -sh scripts/cg/vendor/fishkit; find scripts/cg/vendor/fishkit -size +20M
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/cg/vendor/fishkit
+          git commit -m "Fish Kit（CC0）を取り込み" || exit 0
+          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && break; sleep 5; done
