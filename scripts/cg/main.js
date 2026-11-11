@@ -6555,7 +6555,7 @@ function ftSim(b, ctl, opt = {}) {
     const c = Math.cos(th), s = Math.sin(th);
     const ex = b.eye[0] * c - b.eye[1] * s, ey = b.eye[0] * s + b.eye[1] * c;
     const px = b.cp * c, py = b.cp * s;
-    const wx = 0.03 * Math.sin(1.7 * t + 0.4) + 0.02 * Math.sin(4.1 * t + 1.3); // 水の小さなゆらぎ（横向き）
+    const wx = (opt.cur ?? 0) + 0.03 * Math.sin(1.7 * t + 0.4) + 0.02 * Math.sin(4.1 * t + 1.3); // 潮の流れ（opt.cur、+x 向き）＋水の小さなゆらぎ
     const ux = vx - wx - om * py, uy = vy + om * px;
     const ua = ux * c + uy * s, un = -ux * s + uy * c;
     const Fa = -b.ka * Math.abs(ua) * ua, Fn = -b.kn * Math.abs(un) * un - b.kl * Math.abs(ua) * un;
@@ -6580,6 +6580,8 @@ function ftSim(b, ctl, opt = {}) {
     const lx = T * dx / dist, ly = T * dy / dist;
     Fx += lx; Fy += ly; tau += ex * ly - ey * lx;
     if (c0.fish) { Fx += c0.fish[0]; Fy += c0.fish[1]; }
+    // 潮が糸を押す力（糸の長さ×流れの速さ²。opt.cline は目安の係数。2026-11-11 船の青物ジギング用。ふだんは 0）
+    if (opt.cline) Fx += opt.cline * L * (opt.cur ?? 0) * Math.abs(opt.cur ?? 0);
     if (i % REC === 0) out.push([x, y, th, T, c0.tip, c0.reel, c0.free ? 1 : 0, c0.turning ? 1 : 0]);
     vx += Fx / mt * dt; vy += Fy / mt * dt; om += tau / b.I * dt;
     x += vx * dt; y += vy * dt; th += om * dt;
@@ -7278,6 +7280,289 @@ Object.assign(SHOTS, {
     html += acDim(0.5);
     const rows = [["タナ", "昼は底の近く", "船長が教えてくれる深さをねらう", "#2a9d5c"], ["誘い", "動かして、止める", "ストップ＆ゴー：2回巻いて、3〜8秒待つ", "#c2410c"], ["ジグ", "しゃくると跳ねて、横へスライド", "後ろ重心は速く沈む（計算）", "#1f6fd1"]];
     html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">船のタチウオ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 40 : 46}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
+// =====================================================================
+// 船の青物ジギング（cg-fune-aomono、ag_*）2026-11-12 船釣り 見える化シリーズ 第2回。ft_*（船のタチウオ）の部品を使う
+// 参考：TSURI HACK「明石の船釣り・ジギング」（https://tsurihack.com/2683）：ハイシーズン7〜12月、ハマチ・メジロは6月中旬から、ブリは晩秋、
+//   明石の主なポイントは最深で約70m、潮は通常3〜5ノット・大潮の最強時は約11ノット、底から5〜10mが勝負、スロージギングが主流
+//   （ゆったりしゃくって潮に乗せ、フォールで食わせる。強くしゃくるとジグが浮いてタナを外れる）、底取りを最優先、ジグは60〜250gを潮や水深で使い分け
+// 仕掛けの動きは ftSim の計算。潮の場面（ag_tide）だけは、沈む速さと流れの足し算の模式図（「模式図」と表示）
+// =====================================================================
+const AG_REP = FT_REP;
+const AG_SOFT = [{ jerk: 0.35, up: 0.6, down: 0.8, turn: 0.7 }, { free: 0.5 }, { wait: 0.3 }];
+Object.assign(FT_SEQ, {
+  // 落とす → 着底 → 底から約6m巻き上げる → ゆったりしゃくる
+  ag_main: { body: "jigC", opt: { y0: -55, th0: 1.5 }, seq: [{ free: 7 }, { wait: 0.6 }, { reel: 9, dur: 3.2 }, { wait: 0.6 }, ...AG_REP(8, AG_SOFT)] },
+  ag_soft: { body: "jigC", opt: { y0: -63, th0: 1.5 }, seq: [{ wait: 1 }, ...AG_REP(8, AG_SOFT)] },
+  ag_hard: { body: "jigC", opt: { y0: -63, th0: 1.5 }, seq: [{ wait: 1 }, ...AG_REP(12, [{ jerk: 0.7, up: 0.22, down: 0.35, turn: 1 }]), { wait: 9 }] },
+  ag_bite: { body: "jigC", opt: { y0: -63, th0: 1.5 }, seq: [{ wait: 0.8 }, ...AG_REP(2, AG_SOFT), { jerk: 0.35, up: 0.6, down: 0.8, turn: 0.7 }, { mark: "fall" }, { free: 0.9 }, { mark: "bite" }, { free: 0.3, fish: [0.5, -5] }, { mark: "hook" }, { jerk: 0.6, up: 0.2, down: 0.6, fish: [0.5, -5] }, { wait: 8, fish: [0.3, -4] }] },
+});
+const AG_BAND = [FT_BOT + 5, FT_BOT + 10]; // 底から5〜10m
+// ハマチ（板の長さ0.9）：横向きに泳ぐ。下端が海底より上になるように置く
+const agSchool = school("ハマチ", 16, 0.9, 2401, { amp: 0.06, freq: 7 });
+world.add(agSchool);
+extras.push(agSchool);
+const agHero = [0, 1].map(() => { const m = fishMesh("ハマチ", 0.9, { amp: 0.07, freq: 8 }); world.add(m); extras.push(m); return m; });
+function agSchoolPlace(T, o = {}) {
+  const { cx = 0, y0 = AG_BAND[0] + 0.5, y1 = AG_BAND[1] - 0.5, sx = 6, sz = 1.4, sc = 1, n = 16, zc = FT_LZ - 3.2 } = o;
+  agSchool.visible = true;
+  const off = agSchool.userData.off;
+  for (let i = 0; i < off.length; i++) {
+    const q = off[i];
+    if (i >= n) { _m.makeScale(0, 0, 0); agSchool.setMatrixAt(i, _m); continue; }
+    const s = sc * q.s, dir = Math.sin(T * 0.12 + q.p) > 0 ? 1 : -1;
+    let y = lerp(y0, y1, 0.5 + 0.5 * q.y) + Math.sin(T * 0.5 * q.w + q.p) * 0.2;
+    y = Math.max(y, FT_BOT + 0.3 * s + 0.6);
+    ftClear(y - 0.3 * s);
+    const fx = cx + q.x * sx + Math.sin(T * 0.25 * q.w + q.p) * 1.2 * sc, fz = zc + q.z * sz;
+    ftShade(fx, fz, y - 0.3 * s - FT_BOT, s);
+    _p.copy(FTp(fx, y, fz));
+    _q.setFromEuler(_e2.set(0, dir > 0 ? 0 : Math.PI, Math.sin(T * 0.6 + q.p) * 0.06));
+    _s.setScalar(s);
+    _m.compose(_p, _q, _s);
+    agSchool.setMatrixAt(i, _m);
+  }
+  agSchool.instanceMatrix.needsUpdate = true;
+}
+// 主役のハマチ：頭の位置と向き（ang：0 で右向き）
+function agHeroAt(i, hx, hy, ang, dz = -0.08, len = 0.9) {
+  const m = agHero[i];
+  const cx = hx - Math.cos(ang) * len * 0.5;
+  let cy = hy - Math.sin(ang) * len * 0.5;
+  let low = cy - Math.abs(Math.sin(ang)) * len * 0.5 - 0.17 * len * Math.abs(Math.cos(ang));
+  if (low < FT_BOT + 0.5) { cy += FT_BOT + 0.5 - low; low = FT_BOT + 0.5; }
+  ftClear(low);
+  ftShade(cx, FT_LZ + dz, low - FT_BOT, len);
+  m.visible = true;
+  m.position.copy(FTp(cx, cy, FT_LZ + dz));
+  m.rotation.set(0, Math.abs(ang) > Math.PI / 2 ? Math.PI : 0, Math.abs(ang) > Math.PI / 2 ? Math.PI - ang : ang);
+  return [hx, hy];
+}
+// タナの帯（底から5〜10m）
+function agBand(a = 1) {
+  ftBand.visible = a > 0.01;
+  ftBand.position.set(4, (AG_BAND[0] + AG_BAND[1]) / 2, FT_LZ - 2.5);
+  ftBand.scale.set(1, AG_BAND[1] - AG_BAND[0], 1);
+  ftBand.material.opacity = 0.22 * a;
+}
+// 底からの高さのグラフ（右）。緑＝底から5〜10m。lines：[[sim, 色, 名前]]
+function agGraph(list, ts, win, a = 1, top = 500) {
+  if (PORTRAIT || a <= 0.01) return;
+  const W0 = 330, H0 = 170, n = 110, Y = (h) => H0 - 8 - ((H0 - 16) * h) / 16;
+  const X = (i) => 8 + ((W0 - 16) * i) / n, m = Math.floor(clamp01(ts / win) * n);
+  let svg = `<rect x="8" y="${Y(10)}" width="${W0 - 16}" height="${Y(5) - Y(10)}" fill="#2ecc71" opacity=".25"/><line x1="8" y1="${Y(0)}" x2="${W0 - 8}" y2="${Y(0)}" stroke="#b9a67c" stroke-width="4"/>`;
+  list.forEach(([sim, col]) => {
+    const pts = [];
+    for (let i = 0; i <= m; i++) pts.push(`${X(i).toFixed(1)},${Y(Math.min(16, sim.at((win * i) / n)[1] - FT_BOT)).toFixed(1)}`);
+    svg += `<polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="4" stroke-linejoin="round"/>`;
+  });
+  html += `<div style="position:absolute;right:60px;top:${top}px;width:360px;opacity:${a};background:rgba(255,255,255,.94);border-radius:22px;padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.3);color:#10345a"><b style="font-size:22px">底からの高さ（計算）</b>
+    <svg viewBox="0 0 ${W0} ${H0}" width="100%">${svg}<text x="12" y="${Y(10) + 18}" font-size="15" font-weight="900" fill="#1e7a36">底から5〜10m</text><text x="${W0 - 10}" y="${Y(0) - 6}" text-anchor="end" font-size="14" font-weight="800" fill="#7a6a44">海底</text></svg>
+    <div style="display:flex;gap:14px;font-size:18px;font-weight:800">${list.map(([, col, nm]) => `<span><i style="display:inline-block;width:16px;height:5px;background:${col};vertical-align:middle;margin-right:4px"></i>${nm}</span>`).join("")}</div></div>`;
+}
+// ジグを追うハマチ（フォールで近づく。イメージ）
+function agFollow(i, st, sim, ts, T, o = {}) {
+  const c0 = st.c0, fall = c0.free ? ease((ts - c0.t0) / 0.5) : 0;
+  const near = o.near ?? fall * 0.85;
+  const side = o.side ?? -1, b = sim.at(Math.max(0, ts - 0.6));
+  const hx = lerp(b[0] + side * 1.6, st.x + side * 0.12, near), hy = lerp(b[1] - 0.5, st.y, near);
+  return agHeroAt(i, hx, hy, side < 0 ? 0.15 * (1 - near) : Math.PI - 0.15 * (1 - near), o.dz ?? -0.08);
+}
+const AG_LEG = [["#ffb45e", "糸とジグの動き"], ["#2ecc71", "底から5〜10m"]];
+
+Object.assign(SHOTS, {
+  ag_thumb(t, d, s) {
+    ftBase();
+    const sim = ftRun("ag_bite"), T = 3, ts = sim.marks.fall + 0.75, st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, lw: 6 });
+    agSchoolPlace(T, { cx: st.x + 2, n: 10, sx: 3 });
+    agHeroAt(0, st.x + 0.1, st.y - 0.03, Math.PI - 0.1);
+    look(FTp(st.x - 0.75, st.y + 0.05, FT_LZ + 1.7), FTp(st.x - 0.7, st.y - 0.05, FT_LZ), 50);
+    ftFlush();
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：船から潜って、水深70mのジグとハマチの群れへ
+  ag_hook(t, d, s) {
+    ftBase();
+    const P = PORTRAIT, T = t, sim = ftRun("ag_soft"), ts = t + 1;
+    const st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, trail: 2.2 });
+    ftOthers(T, -62);
+    agSchoolPlace(T, { cx: st.x + 2.5, n: 14, sx: 5 });
+    agFollow(0, st, sim, ts, T, { near: 0.35 });
+    const k = ease((t - 0.9) / 4.4), [sx, sy] = ftSmooth(sim, ts);
+    const cx = lerp(-1, sx, k), cy = lerp(1.3, sy, k);
+    look(FTp(cx, cy + lerp(1.6, 0.1, k), FT_LZ + lerp(P ? 31 : 24, P ? 3.4 : 2.6, k)), FTp(cx, cy, FT_LZ), 50);
+    ftFlush();
+    const a = P ? 1 : clamp01(t / 0.25), depth = Math.max(0, -cy);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 400}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "船の青物ジギング、<br>ジグはどう動く？", "しゃくり方で、ジグの高さが変わる（計算）", a);
+    html += `<div style="position:absolute;${P ? "right:40px;top:860px" : "right:70px;top:430px"};background:rgba(6,22,42,.85);border:4px solid #ffb45e;border-radius:20px;padding:8px 24px;color:#fff;font-weight:900;font-size:${P ? 40 : 38}px;opacity:${clamp01((t - 0.6) / 0.4)}">水深 <span style="font-size:${P ? 84 : 80}px;color:#ffd166">${depth.toFixed(0)}</span> m</div>`;
+    drawBar(s);
+  },
+  // 時期と場所：k0 時期 → k1 水深・魚 → k2 潮の速さ
+  ag_where(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 20, sim = ftRun("ag_soft"), st = ftRig(T, sim, 2 + (t % 15), { obj: ftJigC, unit: FT_JIG_U, lw: 4 });
+    ftOthers(T, -62);
+    agSchoolPlace(T, { cx: 4, sc: 5, n: 14, sx: 22, zc: FT_LZ - 4, sz: 2 });
+    ftWide(t);
+    ftFlush();
+    const q = project(FTp(st.x, st.y, FT_LZ));
+    html += `<div style="position:absolute;left:${q.x}px;top:${q.y}px;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:#ffb45e;border:5px solid #fff;box-shadow:0 0 16px #ffb45e"></div>`;
+    const t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k === 0) {
+      const cell = (m) => `<div style="flex:1;text-align:center;padding:8px 0;font-size:24px;font-weight:900;border-radius:8px;margin:0 2px;background:${m >= 7 ? "#e08a2a" : m === 6 ? "#f6d7a8" : "#e6edf3"};color:${m >= 7 ? "#fff" : "#10345a"}">${m}</div>`;
+      html += ftCard(P, `<b style="font-size:34px">明石・淡路の青物ジギング</b><div style="display:flex;margin-top:12px">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(cell).join("")}</div><div style="font-size:28px;font-weight:900;margin-top:10px">ハイシーズンは<span style="color:#c2410c">7〜12月</span>　ブリは晩秋がチャンス</div>`, fadeIn(t, 0.4), [560, 150, 820], [60, 270, 880]);
+    }
+    if (k >= 1) {
+      pathLine([FTp(-24, 0, FT_LZ), FTp(-24, FT_BOT, FT_LZ)], "#ffffff", 1, 3);
+      [0, 10, 20, 30, 40, 50, 60, 70].forEach((m) => { const p = project(FTp(-24, -m, FT_LZ)); html += `<div style="position:absolute;left:${p.x - 12}px;top:${p.y}px;transform:translate(-100%,-50%);color:#fff;font-weight:900;font-size:26px;text-shadow:0 2px 6px #000;opacity:${fadeIn(t1, m / 70)}">${m}m</div>`; });
+      label(FTp(10, FT_BOT + 8, FT_LZ), "ハマチ・メジロ・ブリ", "底から5〜10mが勝負", fadeIn(t1, 1.6), "gold", P ? 60 : 300, P ? -260 : -170);
+      agBand(fadeIn(t1, 1.2));
+    }
+    if (k === 1) html += ftCard(P, `<b style="font-size:34px">明石のポイント</b><div style="font-size:34px;font-weight:900;margin-top:8px">深い所で <span style="color:#1f6fd1">水深約70m</span></div>`, fadeIn(t1, 0.3), [820, 150, 600], [60, 270, 880]);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:34px">明石海峡は、潮がとても速い</b><div style="font-size:32px;font-weight:900;margin-top:8px">ふだん <span style="color:#c2410c">3〜5ノット</span></div><div style="font-size:32px;font-weight:900">大潮のいちばん速い時 <span style="color:#c2410c">約11ノット</span>（時速約20km）</div>`, fadeIn(t2, 0.3), [560, 150, 820], [60, 270, 880]);
+    if (!P) legend(AG_LEG);
+    ftNote("魚は大きく表示");
+  },
+  // 潮とジグの重さ（模式図）：k0 問い → k1 A・B → k2 答え → k3 使い分け
+  ag_tide(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 40, t2 = t - (s._k2 ?? 99);
+    const tt = k >= 2 ? Math.max(0, t2) * 4.5 : 0;
+    const bob = ftSurf(0, T) * 0.5;
+    ftBoat.position.set(-1, bob, 0);
+    ftBoat.rotation.z = Math.sin(T * 0.7) * 0.012;
+    ftWide(t);
+    ftFlush();
+    // 模式図：沈む速さ（重いほど速い）と、潮に流される速さを足しただけ
+    [["軽いジグ", 1.5, -1.6, "#7fd3ff"], ["重いジグ", 3.1, 1.6, "#ffb45e"]].forEach(([nm, v, ox, col], i) => {
+      const yy = Math.max(FT_BOT + 0.3, -2 - v * tt), tl = Math.min(tt, 68 / v), xx = ox + 0.42 * tl;
+      const tip = FTp(ox, FT_TIP + bob, FT_LZ), end = FTp(xx, yy, FT_LZ), mid = FTp(ox + (xx - ox) * 0.85, (FT_TIP + yy) * 0.45, FT_LZ);
+      pathLine(bez(tip, mid, end), col, 1, 5);
+      const p = project(end);
+      html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:${col};border:5px solid #fff"></div>`;
+      if (k >= 1) label(end, i ? "B　重いジグ" : "A　軽いジグ", yy <= FT_BOT + 0.31 ? "底に着いた" : "", 1, k >= 2 && i === 1 && yy <= FT_BOT + 0.31 ? "gold ans" : "", i ? 280 : -280, i ? -40 : -140);
+    });
+    // 潮の向きの矢印
+    aoArrow(FTp(-30, -40, FT_LZ), FTp(-14, -40, FT_LZ), "#4cc3ff", 1, P ? 22 : 18);
+    label(FTp(-22, -40, FT_LZ), "潮の流れ", "", 1, "", 0, -50);
+    if (k <= 1) html += `<div class="big" style="top:${P ? 300 : 120}px;font-size:${P ? 66 : 58}px">潮が速いとき、<br><span style="color:#ffd166">底を取りやすいのはどっち？</span></div>`;
+    if (k >= 3) html += ftCard(P, `<b style="font-size:34px">ジグは <span style="color:#c2410c">60〜250g</span> を使い分ける</b><div style="font-size:30px;font-weight:900;margin-top:6px">潮が速い・深い → 重いジグ</div><div style="font-size:24px;color:#3a5a78;font-weight:800">重さは船の指定や、まわりの人に合わせる</div>`, fadeIn(t - (s._k3 ?? 99), 0.2), [1100, 140, 760], [60, 270, 880]);
+    html += aoTag("模式図（沈む速さと潮の流れを足しただけのイメージ）");
+    drawBar(s);
+  },
+  // 底取り：落とす → 着底 → すぐ巻き上げる
+  ag_fall(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 60, sim = ftRun("ag_main"), ts = t, L = sim.landed;
+    const st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, trail: 1.6 });
+    agSchoolPlace(T, { cx: 6, n: 12, sx: 4 });
+    agBand(1);
+    ftCam(sim, ts, 2.2);
+    const here = FTp(st.x, st.y, FT_LZ), c0 = st.c0;
+    if (c0.free) ftChip("フォール：底まで落とす", "#1f6fd1");
+    else if (L > 0 && ts > L && ts < L + 0.6) ftChip("着底！", "#c2410c");
+    else if (c0.turning && ts < 12) ftChip("すぐに巻き上げる", "#e08a2a");
+    else ftChip("ゆったりしゃくる", "#e3412b");
+    if (L > 0 && ts > L && ts < L + 3.2) label(here, "着底", "底取りを最優先", fadeIn(ts, L), "gold ans", P ? 0 : 300, P ? -330 : -200);
+    ftMini(-st.y);
+    ftCtl(st);
+    agGraph([[sim, "#e08a2a", "ジグ"]], ts, 26);
+    if (!P) legend(AG_LEG);
+    ftNote();
+  },
+  // ゆったりしゃくる：k0 ジャーク → k1 潮に乗せてフォール
+  ag_slow(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 80, sim = ftRun("ag_soft"), ts = t;
+    const st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, trail: 2.6 });
+    agSchoolPlace(T, { cx: st.x + 2.5, n: 12, sx: 4 });
+    agFollow(0, st, sim, ts, T);
+    agBand(1);
+    ftCam(sim, ts, 1.8, { dy: -0.1 });
+    const c0 = st.c0;
+    if (ts < 1) ftChip("スロージギング", "#10345a");
+    else if (c0.free) ftChip("フォール：ここで食わせる", "#1f6fd1");
+    else ftChip("ゆったり、しゃくる", "#e3412b");
+    ftMini(-st.y);
+    ftCtl(st);
+    agGraph([[sim, "#e08a2a", "ゆったり"]], ts, 18);
+    if (!P) legend(AG_LEG);
+    ftNote("ジグの動きは簡単な物理モデルの計算。魚の動きはイメージ");
+    drawBar(s);
+  },
+  // 強くしゃくると：左右に並べて比べる
+  ag_hard(t, d, s, k) {
+    ftBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 100, sS = ftRun("ag_soft"), sH = ftRun("ag_hard"), ts = Math.min(t, 11.8), ox = P ? 1.4 : 2.4;
+    const a = ftRig(T, sS, ts, { obj: ftJigC, unit: FT_JIG_U, vis: 2, ox: -ox, rod: false, trail: 2.5, lw: 3 });
+    const b = ftRig(T, sH, ts, { obj: ftJigR, unit: FT_JIG_U, vis: 2, ox, rod: false, trail: 2.5, lw: 3 });
+    agBand(1);
+    agSchoolPlace(T, { cx: 0, n: 10, sx: 5, zc: FT_LZ - 3.6 });
+    look(FTp(0, FT_BOT + 11, FT_LZ + (P ? 27 : 21)), FTp(0, FT_BOT + 10.5, FT_LZ), 50);
+    ftFlush();
+    label(FTp(a.x, a.y, FT_LZ), "ゆったり", "タナに残る", 1, "gold", P ? -80 : -260, -120);
+    label(FTp(b.x, b.y, FT_LZ), "強く速く", b.y > AG_BAND[1] ? "浮きすぎてタナを外れる" : "", 1, b.y > AG_BAND[1] ? "red" : "", P ? 80 : 280, -120);
+    const pb = project(FTp(P ? 0.3 : 5, AG_BAND[1], FT_LZ));
+    html += `<div style="position:absolute;left:${pb.x}px;top:${pb.y + 8}px;color:#2ecc71;font-weight:900;font-size:30px;text-shadow:0 2px 6px #000">底から5〜10m</div>`;
+    agGraph([[sS, "#1a4fd0", "ゆったり"], [sH, "#d0306a", "強く速く"]], ts, 12, 1, 240);
+    ftNote("ジグの動きは簡単な物理モデルの計算（同じジグで、しゃくり方だけを変えた）");
+  },
+  // アタリ：フォールで食う → 合わせる
+  ag_bite(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 120, sim = ftRun("ag_bite"), ts = t, mk = sim.marks, hooked = ts >= mk.bite;
+    const st = ftRig(T, sim, ts, { obj: ftJigC, unit: FT_JIG_U, trail: hooked ? 0 : 1.2, th: hooked ? 0.2 + Math.sin(T * 12) * 0.2 : undefined });
+    agSchoolPlace(T, { cx: st.x + 2.5, n: 10, sx: 4 });
+    if (hooked) agHeroAt(0, st.x + 0.05, st.y, Math.sin(T * 10) * 0.25);
+    else agFollow(0, st, sim, ts, T, { near: ts > mk.fall ? ease((ts - mk.fall) / 0.8) : 0.15 });
+    agBand(1);
+    ftCam(sim, ts, 1.9, { dy: -0.1 });
+    if (ts < mk.fall) ftChip("ゆったり、しゃくる", "#e3412b");
+    else if (!hooked) ftChip("フォール…", "#1f6fd1");
+    else if (ts < mk.hook + 2.5) ftChip("食った！ 合わせる", "#e3412b");
+    else ftChip("掛かった", "#2a9d5c");
+    ftMini(-st.y);
+    ftCtl(st, 1, hooked ? (ts < mk.hook + 1 ? ["合わせる", "#e3412b"] : ["掛かった", "#2a9d5c"]) : null);
+    if (!P) legend(AG_LEG);
+    ftNote("魚が引く力は仮の値。魚の動きはイメージ");
+  },
+  ag_safe(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 220, sim = ftRun("ag_soft");
+    ftRig(T, sim, 3, { obj: ftJigC, unit: FT_JIG_U });
+    ftOthers(T, -62);
+    if (P) look(FTp(-0.5, 5, 25), FTp(-0.5, 1.6, 0), 45);
+    else look(FTp(1.0 + t * 0.06, 4.2, 15.5), FTp(-0.8, 1.7, 0), 45);
+    ftFlush();
+    const bob = ftSurf(0, T) * 0.5;
+    if (k === 0) html += ftCard(P, `<b style="font-size:38px">潮が速い海では、<span style="color:#c2410c">船長の指示</span>を聞く</b><div style="font-size:30px;font-weight:900;margin-top:8px">ジグの重さも、船の指定に合わせる</div>`, fadeIn(t, 0.4), [70, 150, 880], [60, 270, 880]);
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      label(FTp(0, 1.15 + 1.2 + bob, 1.45), "ライフジャケット", "必ず着ける", a, "gold ans", P ? 0 : 420, P ? -330 : -230);
+      html += ftCard(P, `<b style="font-size:38px">船の上では、ライフジャケットを必ず</b>`, a, [70, 150, 760], [60, 270, 880]);
+    }
+  },
+  ag_sum(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 240, sim = ftRun("ag_soft");
+    ftRig(T, sim, 2 + (t % 15), { obj: ftJigC, unit: FT_JIG_U });
+    ftOthers(T, -62);
+    agSchoolPlace(T, { cx: 4, sc: 5, n: 14, sx: 22, zc: FT_LZ - 4, sz: 2 });
+    agBand(1);
+    ftWide(t);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["底取り", "まず底まで落とす", "潮が速いときは重いジグ", "#c2410c"], ["タナ", "底から5〜10m", "ここを長く通す", "#2a9d5c"], ["誘い", "ゆったりしゃくって、フォール", "強く速くだと浮きすぎる（計算）", "#1f6fd1"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">船の青物ジギング まとめ</div>`;
     rows.forEach(([a1, b1, c1, col], i) => {
       const a = fadeIn(t, 0.4 + i * 0.45);
       html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 40 : 46}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
