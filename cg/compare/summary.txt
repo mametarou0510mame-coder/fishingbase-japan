@@ -1,1 +1,1 @@
-frames 4  avg 95.3s/frame  max 108.5s  min fish clearance 0.328 m
+frames 300  avg 260.2s/frame  max 367.7s  min fish clearance 0.241 m
