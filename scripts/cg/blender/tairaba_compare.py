@@ -132,6 +132,9 @@ sc = bpy.context.scene
 sc.render.engine = "CYCLES"
 cy = sc.cycles
 cy.device = "CPU"
+# GitHub の機械（4コア）で全部使うと、ランナーが応答しなくなって落ちる。1コア残す
+sc.render.threads_mode = "FIXED"
+sc.render.threads = max((os.cpu_count() or 4) - 1, 1)
 cy.samples = SAMPLES
 cy.use_adaptive_sampling = True
 cy.adaptive_threshold = 0.02
