@@ -20,6 +20,3 @@ jobs:
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           APPLY: ${{ github.event.inputs.apply == 'true' && '1' || '0' }}
         run: python scripts/sns/yt_fix_links.py > /tmp/o.txt 2>&1 || { echo "::error::$(tail -c 700 /tmp/o.txt | tr "\n" " ")"; exit 1; }; cat /tmp/o.txt
-      - run: |
-          git config user.name github-actions; git config user.email actions@github.com
-          git add data/sns/yt-comments data/sns/yt-fixed; git commit -qm "固定コメントと概要欄の新しい文面（アソシエイト直接リンク）" || true; git pull -q --rebase; git push -q || true
