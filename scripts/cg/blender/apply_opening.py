@@ -135,6 +135,8 @@ def main():
     tp = os.path.join(tmp, "title.png")
     title_png(tp, bo["title"], bo.get("sub", ""))
     fo = max(min(cut * 0.62, cut - 1.5), 2.0)   # 後半（魚が食う所）は文字なしで見せる
+    if bo.get("title_until"):
+        fo = float(bo["title_until"])   # 場面ごとに、題を消す時刻（食う瞬間より前に）
     fc = (f"[1:v]fps=24,scale=1920:1080:flags=lanczos,trim=0:{cut:.3f},setpts=PTS-STARTPTS,format=yuv420p[c];"
           f"[2:v]format=rgba,fade=in:st=0.3:d=0.5:alpha=1,fade=out:st={fo:.2f}:d=0.6:alpha=1[tt];"
           f"[c][tt]overlay=0:0:shortest=1,format=yuv420p[op];"

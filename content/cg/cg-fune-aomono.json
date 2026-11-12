@@ -27,7 +27,9 @@
    "船の青物ジギング、",
    "ジグはどう動く？"
   ],
-  "sub": "しゃくり方で、ジグの高さが変わる（計算）"
+  "sub": "しゃくり方で、ジグの高さが変わる（計算）",
+  "title_until": 4.0,
+  "clip": "cg/open/cg-fune-aomono-open.mp4"
  },
  "thumb_shot": {
   "shot": "ag_thumb",
