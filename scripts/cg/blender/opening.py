@@ -468,7 +468,7 @@ def place_lure(t):
     up = Vector((0, 0, 1))
     if hooked:
         d = heading(t)
-        back = (-d).lerp(Vector((0, 0, -1)), 0.3).normalized()
+        back = (Vector((0, 0, -1)) * 0.75 + (-d) * 0.25).normalized()   # ヘッドから口（ハリ）を通って下へ垂れる
     else:
         back = Vector((0, 0, -1))
     head.location = L

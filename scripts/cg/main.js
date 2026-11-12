@@ -6747,8 +6747,10 @@ const FT_MEN = [[0, 1.15], [3.3, 1.33], [-4.6, 1.15]];
   const white = ftLit(0xf4f6f7), blue = ftLit(0x1f5fa8), dark = ftLit(0x1c2b3a, { shine: 0.6 }), gray = ftLit(0x8a949c);
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.9, 2.2), white); cabin.position.set(-2.0, 1.15 + 0.95, 0);
   const roof = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.14, 2.6), blue); roof.position.set(-2.0, 1.15 + 1.97, 0);
-  const win = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.62, 2.24), dark); win.position.set(-1.9, 1.15 + 1.3, 0);
-  const winF = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.62, 1.8), dark); winF.position.set(-0.28, 1.15 + 1.3, 0);
+  // 窓：船室の面から少し浮かせて、手前に描く（面が重なるとチラチラ点滅する。2026-11-12 オーナー指摘）
+  dark.polygonOffset = true; dark.polygonOffsetFactor = -4; dark.polygonOffsetUnits = -4;
+  const win = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.62, 2.34), dark); win.position.set(-1.9, 1.15 + 1.3, 0);
+  const winF = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.62, 1.8), dark); winF.position.set(-0.26, 1.15 + 1.3, 0);
   const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.5, 8), gray); mast.position.set(-2.2, 1.15 + 2.75, 0);
   const radar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.2), white); radar.position.set(-2.2, 1.15 + 3.3, 0);
   // スパンカー（船尾の帆。船を風に立てる）
@@ -7729,7 +7731,13 @@ function trMadai(i, tp, dist, T, o = {}) {
   const L = f.length, d = tp.dir, sd = o.side ?? -0.22, sk = 0.07 * (tp.vis ?? 1); // d：スカートが伸びる向き。sd：横へずらす量（斜め後ろから追う）。sk：スカートの長さ
   const mx = tp.x + d.x * (sk + dist) - d.y * sd, my = tp.y + d.y * (sk + dist) + d.x * sd;
   // 口がタイラバのスカートの先を向くように
-  const ang = Math.atan2(tp.y + d.y * sk * 0.85 - my, tp.x + d.x * sk * 0.85 - mx), cx = mx - Math.cos(ang) * L * 0.47, cy0 = my - Math.sin(ang) * L * 0.47;
+  let ang = Math.atan2(tp.y + d.y * sk * 0.85 - my, tp.x + d.x * sk * 0.85 - mx), cx = mx - Math.cos(ang) * L * 0.47, cy0 = my - Math.sin(ang) * L * 0.47;
+  if (o.hooked) {
+    // 掛かった：スカートの中ほどのハリが口にかかり、糸に引かれて頭を斜め上（約40°）に向ける。体は右下へ。首を振る（2026-11-12 オーナー：ヒットの絵を自然に）
+    const hx = tp.x + d.x * sk * 0.55, hy = tp.y + d.y * sk * 0.55;
+    ang = Math.PI - 0.7 + 0.14 * Math.sin(T * 6.5);
+    cx = hx - Math.cos(ang) * L * 0.47; cy0 = hy - Math.sin(ang) * L * 0.47;
+  }
   let cy = cy0;
   const low = cy - Math.abs(Math.sin(ang)) * L * 0.5 - 0.2 * L * Math.abs(Math.cos(ang));
   if (low < FT_BOT + 0.4) cy += FT_BOT + 0.4 - low;
@@ -7858,7 +7866,7 @@ Object.assign(SHOTS, {
     const st = trRig2(T, sim, ts, { trail: 1.5, vis: 2.5 });
     const hooked = ts >= mk.hook;
     const nib = (ts > mk.n1 - 0.2 && ts < mk.n1 + 0.5) || (ts > mk.n2 - 0.2 && ts < mk.n2 + 0.5);
-    trMadai(0, st.tp, hooked ? -0.07 * st.tp.vis * 0.4 : nib ? 0.0 : 0.25, T, { cm: 50, freq: hooked ? 4 : 2.4, amp: hooked ? 0.16 : 0.09, side: hooked ? -0.03 : -0.22 });
+    trMadai(0, st.tp, nib ? 0.0 : 0.25, T, { cm: 50, freq: hooked ? 4 : 2.4, amp: hooked ? 0.16 : 0.09, side: -0.22, hooked });
     ftCam(sim, ts, 1.6, { dy: -0.25 });
     if (k <= 1) {
       html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;

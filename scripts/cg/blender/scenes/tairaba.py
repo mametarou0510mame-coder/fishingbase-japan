@@ -60,7 +60,11 @@ def snout(t):
 
 
 def lure_now(t):
-    return lure(t) if t < T_BITE else snout(t)
+    """掛かったあとは、ハリが口にかかり、ヘッドは口の少し上（遊動式：糸がヘッドを通る）"""
+    if t < T_BITE:
+        return lure(t)
+    k = sstep(T_BITE, T_BITE + 0.25, t)
+    return snout(t).lerp(snout(t) + Vector((0, 0, 0.045)) + heading(t) * 0.006, k)
 
 
 def heading(t):
@@ -74,7 +78,9 @@ def heading(t):
     else:
         d = Vector((1, 0, 0))
     u = t - T_BITE
-    hk = Vector((0.75 * math.cos(0.5 * math.sin(2 * math.pi * 1.3 * u)), 0.75 * math.sin(0.5 * math.sin(2 * math.pi * 1.3 * u)), 0.62)).normalized()
+    # 掛かると糸に引かれて頭がやや上（約25°）。マダイ特有の首振り（叩き）で左右に振る（2026-11-12 オーナー：ヒットの絵を自然に）
+    yaw = 0.45 * math.sin(2 * math.pi * 2.2 * u)
+    hk = Vector((0.9 * math.cos(yaw), 0.9 * math.sin(yaw), 0.45)).normalized()
     k = sstep(T_BITE - 0.05, T_BITE + 0.35, t)
     return d.lerp(hk, k).normalized()
 
