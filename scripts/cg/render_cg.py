@@ -204,7 +204,7 @@ def finish(slug, d, timeline, total):
             seen.add(ch)
             m = int(it["start"])
             chapters.append(f"{m // 60}:{m % 60:02d} {ch}")
-    json.dump({"slug": slug, "duration": round(total, 1), "chapters": ["0:00 オープニング"] + chapters}, open(f"build/long/{slug}.meta.json", "w"), ensure_ascii=False, indent=1)
+    json.dump({"slug": slug, "duration": round(total, 1), "open_end": round(timeline[1]["start"], 3) if len(timeline) > 1 else None, "chapters": ["0:00 オープニング"] + chapters}, open(f"build/long/{slug}.meta.json", "w"), ensure_ascii=False, indent=1)
     with open(f"build/long/{slug}-chapters.txt", "w") as f:
         f.write("\n".join(["0:00 オープニング"] + chapters) + "\n")
     print("done", out, f"{total:.1f}s")

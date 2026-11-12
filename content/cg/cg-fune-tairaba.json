@@ -4,6 +4,7 @@
  "series": "見える化",
  "tags": ["見える化", "釣り", "船釣り", "タイラバ", "マダイ", "鯛ラバ", "等速巻き", "3D", "CG", "関西 釣り"],
  "links": ["/app/"],
+ "blender_open": {"scene": "tairaba", "title": ["タイラバ、", "巻くだけでなぜ釣れる？"], "sub": "海の中の動きを計算で見える化", "clip": "cg/compare/tairaba-blender.mp4"},
  "thumb_shot": {"shot": "tr_thumb", "tag": "見える化", "l1": "タイラバ", "l2": "巻くだけで？"},
  "video": {
   "scenes": [

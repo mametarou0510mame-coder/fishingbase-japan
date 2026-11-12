@@ -1,0 +1,210 @@
+name: CG Blender opening
+
+# 3DCG 長尺動画の冒頭（オープニングの章）とサムネイルを Blender（Cycles）の映像にする（2026-11-12 オーナー：共通ルール）。
+# 場面は content/cg/<slug>.json の blender_open.scene（scripts/cg/blender/scenes/<scene>.py）。
+# blender_open.clip があれば、その書き出し済みの映像（long-media の中のパス）を使い、サムネイルだけ書き出す。
+# mode=test：数コマとサムネイルを低画質で（long-media の cg/open/test/<slug>/ に置く）。
+# mode=full：書き出して、long-media の投稿用の動画（<slug>.mp4.part-*）とサムネイル（<slug>.jpg）を差しかえる。
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "slug（content/cg）"
+        required: true
+      video_run:
+        description: "その動画の CG video の実行 ID（narration の timeline.json を使う）"
+        required: true
+      mode:
+        description: "test / full"
+        required: true
+        default: full
+      samples:
+        description: "Cycles のサンプル数"
+        required: true
+        default: "64"
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  BLENDER_URL: https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+  S: ${{ github.event.inputs.slug }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      chunks: ${{ steps.p.outputs.chunks }}
+      scene: ${{ steps.p.outputs.scene }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          python3 - <<'E' >> $GITHUB_OUTPUT
+          import json, math, re
+          s = "${{ github.event.inputs.slug }}"
+          bo = json.load(open(f"content/cg/{s}.json", encoding="utf-8"))["blender_open"]
+          src = open(f"scripts/cg/blender/scenes/{bo['scene']}.py", encoding="utf-8").read()
+          nf = math.ceil(float(re.search(r"^SEC = ([\d.]+)", src, re.M).group(1)) * 24)
+          if "${{ github.event.inputs.mode }}" == "test":
+              ch = ["test"]
+          elif bo.get("clip"):
+              ch = ["none"]
+          else:
+              n = 15
+              ch = [f"{nf * i // n + 1} {nf * (i + 1) // n}" for i in range(n)]
+          print("chunks=" + json.dumps(ch))
+          print("scene=" + bo["scene"])
+          E
+          cat $GITHUB_OUTPUT
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJson(needs.plan.outputs.chunks) }}
+    steps:
+      - uses: actions/checkout@v4
+        if: matrix.chunk != 'none'
+      - name: Install Blender
+        if: matrix.chunk != 'none'
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get update -qq || true
+            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 libxi6 libxxf86vm1 libxfixes3 libxrender1 libxkbcommon0 libsm6 libgl1 libegl1 > /dev/null; then break; fi
+            echo "apt retry $i"; sleep 30
+          done
+          for i in 1 2 3; do curl -fsSL --retry 3 "$BLENDER_URL" -o /tmp/b.tar.xz && break; sleep 20; done
+          mkdir -p /tmp/blender && tar -xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
+          /tmp/blender/blender --version | head -1
+      - name: Render
+        if: matrix.chunk != 'none'
+        run: |
+          C="${{ matrix.chunk }}"
+          SC="${{ needs.plan.outputs.scene }}"
+          if [ "$C" = "test" ]; then
+            /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/opening.py -- --scene $SC --frames 1,48,120,200,230,280 --out out/frames --samples 24 --res 960 540
+          else
+            set -- $C
+            /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/opening.py -- --scene $SC --range $1 $2 --out out/frames --samples ${{ github.event.inputs.samples }} --res 1280 720
+          fi
+          cat out/frames/timing-*.txt
+      - uses: actions/upload-artifact@v4
+        if: matrix.chunk != 'none'
+        with:
+          name: op-${{ strategy.job-index }}
+          path: out/frames/
+          retention-days: 5
+
+  thumb:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get update -qq || true
+            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 libxi6 libxxf86vm1 libxfixes3 libxrender1 libxkbcommon0 libsm6 libgl1 libegl1 > /dev/null; then break; fi
+            echo "apt retry $i"; sleep 30
+          done
+          for i in 1 2 3; do curl -fsSL --retry 3 "$BLENDER_URL" -o /tmp/b.tar.xz && break; sleep 20; done
+          mkdir -p /tmp/blender && tar -xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
+          /tmp/blender/blender --version | head -1
+      - name: Render thumbnail
+        run: |
+          N=$([ "${{ github.event.inputs.mode }}" = "test" ] && echo 48 || echo 192)
+          /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/opening.py -- --scene ${{ needs.plan.outputs.scene }} --thumb --out out/thumb --samples $N --res 1280 720
+      - uses: actions/upload-artifact@v4
+        with:
+          name: op-thumb
+          path: out/thumb/
+          retention-days: 5
+
+  apply:
+    needs: [plan, render, thumb]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: op-*
+          path: frames/
+          merge-multiple: true
+      - name: Install
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get update -qq || true
+            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null; then break; fi
+            echo "apt retry $i"; sleep 30
+          done
+          command -v ffmpeg
+          pip install --quiet pillow
+      - name: Build opening and thumbnail
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p out
+          ls frames | head -50
+          cat frames/timing-*.txt 2>/dev/null | sort -n > out/timing.txt || true
+          if [ -s out/timing.txt ]; then
+            python3 -c "
+          r=[l.split() for l in open('out/timing.txt') if l.strip()]
+          print(f'frames {len(r)}  avg {sum(float(x[1]) for x in r)/len(r):.1f}s/frame  min fish clearance {min(float(x[2]) for x in r):.3f} m')
+          " | tee out/summary.txt
+            echo "::notice::$(cat out/summary.txt)"
+          fi
+          git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media
+          if [ "${{ github.event.inputs.mode }}" = "test" ]; then
+            python3 -c "
+          import sys; sys.path.insert(0, 'scripts/cg/blender'); import json, apply_opening as A
+          th = json.load(open('content/cg/$S.json', encoding='utf-8')).get('thumb_shot', {})
+          A.thumb_jpg('frames/thumb.png', 'out/thumb.jpg', th.get('tag', '見える化'), th.get('l1', ''), th.get('l2', ''))
+          "
+            cp frames/*.png out/
+            exit 0
+          fi
+          CLIP=$(python3 -c "import json;print(json.load(open('content/cg/$S.json',encoding='utf-8'))['blender_open'].get('clip',''))")
+          if [ -n "$CLIP" ]; then
+            git show "origin/long-media:$CLIP" > out/$S-open.mp4
+          else
+            ffmpeg -y -loglevel error -framerate 24 -i frames/f%04d.png -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p out/$S-open.mp4
+          fi
+          for p in $(git ls-tree --name-only origin/long-media | grep "^$S.mp4.part-" | sort); do git show "origin/long-media:$p" >> /tmp/long.mp4; done
+          git show "origin/long-media:$S-chapters.txt" > /tmp/chapters.txt
+          git show "origin/long-media:$S.jpg" > out/$S-old.jpg
+          gh run download ${{ github.event.inputs.video_run }} -n narration -D /tmp/nar
+          python3 scripts/cg/blender/apply_opening.py $S --long /tmp/long.mp4 --clip out/$S-open.mp4 --thumb frames/thumb.png \
+            --chapters /tmp/chapters.txt --timeline /tmp/nar/timeline.json --out-mp4 /tmp/new.mp4 --out-jpg out/$S.jpg
+          cp frames/thumb.png out/$S-thumb.png
+          for t in 1 4 8; do ffmpeg -y -loglevel error -ss $t -i /tmp/new.mp4 -frames:v 1 -vf scale=960:-1 out/$S-check-$t.jpg; done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-open
+          path: out/
+          retention-days: 7
+      - name: Save to long-media
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          if [ "${{ github.event.inputs.mode }}" = "test" ]; then
+            mkdir -p cg/open/test/$S && cp $GITHUB_WORKSPACE/out/* cg/open/test/$S/
+          else
+            mkdir -p cg/open && cp $GITHUB_WORKSPACE/out/$S-open.mp4 $GITHUB_WORKSPACE/out/$S-thumb.png $GITHUB_WORKSPACE/out/$S-old.jpg $GITHUB_WORKSPACE/out/$S-check-*.jpg cg/open/
+            cp $GITHUB_WORKSPACE/out/summary.txt cg/open/$S-summary.txt 2>/dev/null || true
+            # 投稿用：動画（90MB ずつ）とサムネイルを差しかえる
+            git rm -q --ignore-unmatch $S.mp4.part-*
+            split -b 90M -d -a 2 /tmp/new.mp4 $S.mp4.part-
+            cp $GITHUB_WORKSPACE/out/$S.jpg $S.jpg
+            mkdir -p cg && cp $GITHUB_WORKSPACE/out/$S.jpg cg/$S.jpg
+          fi
+          git add -A && git commit -qm "Blender opening (${{ github.event.inputs.mode }}): $S"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
