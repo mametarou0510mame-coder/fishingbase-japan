@@ -1,0 +1,22 @@
+name: Instagram permalink
+# 投稿IDから Instagram の投稿URL（permalink）を調べる（手動・読むだけ）
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: "空白区切りの投稿ID"
+        required: true
+permissions:
+  contents: read
+jobs:
+  get:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IDS: ${{ github.event.inputs.ids }}
+        run: |
+          for id in $IDS; do
+            u=$(curl -s "https://graph.facebook.com/v21.0/$id?fields=permalink&access_token=$IG_TOKEN" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('permalink') or d.get('error',{}).get('message','?'))")
+            echo "::notice::$id $u"
+          done
