@@ -1,5 +1,7 @@
-# 船の青物ジギング：メタルジグ（160g・約17cm）がフォールで着底 → ワンピッチでしゃくり上げる。
-# ブリ（Fish Kit buri、CC0）が下から追い、フォールで食う。うしろを群れが横切る。
+# 船の青物ジギング：メタルジグ（160g・約17cm）をワンピッチでしゃくり上げ、長いフォールに入れる。
+# ブリ（Fish Kit buri、CC0）が下から1本のなめらかな道すじで近づき、フォールで食う。うしろを群れが横切る。
+# 2026-11-12 オーナー：ブリが前後に行ったり来たりする動きはありえない → 道すじは前へ進むだけの曲線にし、
+# ジグのしゃくりには付いていかない（カメラもしゃくりの上下をならして追う）。
 # 動きは時刻 t（秒）だけで決まる。opening.py から読む。海底は z=0（単位 m）。
 import math
 from mathutils import Vector
@@ -12,11 +14,13 @@ CAM_OFF = (0.35, -1.9, -0.30)
 LENS = 40
 JIG_LEN = 0.17
 
-T_FALL_END = 1.3   # フォールして着底
-T_JERK = 1.55      # 着底からすぐしゃくり始める
+Z0 = 3.0           # しゃくり始めの高さ（底から3m。はじめは海底も見える）
 P = 0.78           # ワンピッチ 1 回の長さ（秒）
-T_BITE = T_JERK + P * 9.6   # 10 回目のフォール中に食う
-T_DASH = T_BITE - 0.35
+N_JERK = 6         # しゃくる回数
+T_FALL = P * N_JERK          # ここから長いフォール
+FALL_V = 0.8                 # フォールの沈む速さ m/s（ひらひら落ちる）
+T_BITE = T_FALL + 3.9        # フォールの途中で食う
+T_DASH = T_BITE - 0.5
 T_THUMB = T_BITE + 0.3
 THUMB_K = 1.35       # サムネイルは少し引いて、ブリを右に小さめに（左の文字と重ねない）
 THUMB_SHIFT = -0.24
@@ -27,66 +31,85 @@ def sstep(a, b, x):
     return x * x * (3 - 2 * x)
 
 
-def cyc_of(t):
-    c = (t - T_JERK) / P
+def jerk_z(t):
+    """ワンピッチ：0.4 拍で 0.55m 上がり、残りで 0.17m 落ちる（1回で 0.38m 上がる）"""
+    c = t / P
     n = int(math.floor(c))
-    return n, c - n
+    u = c - n
+    rise = 0.55 * (1 - (1 - min(u / 0.4, 1.0)) ** 2.2)
+    fall = 0.17 * sstep(0.42, 1.0, u)
+    return Z0 + n * 0.38 + rise - fall, n, u
+
+
+Z_TOP = Z0 + N_JERK * 0.38
 
 
 def jig(t):
     """ジグの頭（糸を結ぶ所）の位置"""
     t = max(t, 0.0)   # カメラは少し前の時刻も見るので、0 秒より前は 0 秒と同じ
-    if t < T_FALL_END:
-        k = t / T_FALL_END
-        z = 3.2 - 3.08 * k ** 1.25
-        x = 0.10 * math.sin(2 * math.pi * 1.4 * t) * (1 - k)
-        y = 0.05 * math.sin(2 * math.pi * 1.1 * t + 0.7) * (1 - k)
-        return Vector((x, y, z))
-    if t < T_JERK:
-        return Vector((0.0, 0.0, 0.12))
-    n, u = cyc_of(t)
-    rise = 0.55 * (1 - (1 - min(u / 0.4, 1.0)) ** 2.2)
-    fall = 0.17 * sstep(0.42, 1.0, u)
-    z = 0.12 + n * 0.38 + rise - fall
-    side = -1 if n % 2 else 1
-    x = 0.05 * side * math.sin(math.pi * min(u / 0.5, 1.0))
-    return Vector((x, 0.015 * math.sin(1.7 * t), z))
+    if t < T_FALL:
+        z, n, u = jerk_z(t)
+        side = -1 if n % 2 else 1
+        x = 0.05 * side * math.sin(math.pi * min(u / 0.5, 1.0))
+        return Vector((x, 0.015 * math.sin(1.7 * t), z))
+    u = t - T_FALL
+    # フォール：ひらひらと左右にゆれながら沈む（はじめの 0.3 秒で速さが乗る）
+    z = Z_TOP - FALL_V * (u - 0.3 * (1 - math.exp(-u / 0.3)))
+    k = min(u / 0.6, 1.0)
+    return Vector((0.09 * k * math.sin(2 * math.pi * 1.1 * u), 0.05 * k * math.sin(2 * math.pi * 0.8 * u + 0.6), z))
 
 
 def jig_axis_free(t):
-    """頭から尾への向き（フォールは横を向いてひらひら、しゃくると縦）"""
-    if t < T_FALL_END:
-        tilt = 1.0 + 0.25 * math.sin(2 * math.pi * 2.2 * t)
-        az = 2 * math.pi * 0.9 * t
-    elif t < T_JERK:
-        tilt, az = 1.45, 0.3
-    else:
-        n, u = cyc_of(t)
-        tilt = 0.15 + 0.95 * sstep(0.42, 0.6, u) + 0.15 * math.sin(2 * math.pi * 3 * u) * sstep(0.42, 0.6, u)
+    """頭から尾への向き（しゃくると縦、フォールは横を向いてひらひら）"""
+    t = max(t, 0.0)
+    if t < T_FALL:
+        _, n, u = jerk_z(t)
+        tilt = 0.15 + 0.85 * sstep(0.42, 0.6, u) + 0.12 * math.sin(2 * math.pi * 3 * u) * sstep(0.42, 0.6, u)
         az = n * 1.3 + 2 * math.pi * 0.8 * u
+    else:
+        u = t - T_FALL
+        tilt = 0.15 + 1.0 * sstep(0.0, 0.4, u) + 0.22 * math.sin(2 * math.pi * 2.2 * u)
+        az = 2 * math.pi * 0.55 * u + 1.0
     return Vector((math.sin(tilt) * math.cos(az), math.sin(tilt) * math.sin(az), -math.cos(tilt)))
 
 
-def follow(t):
-    f = jig(t) + Vector((-0.55 + 0.06 * math.sin(1.3 * t), 0.18 * math.sin(0.7 * t), -0.45 + 0.05 * math.sin(0.9 * t)))
-    f.z = max(f.z, 0.9)
-    return f
+def jig_smooth(t):
+    """カメラ用：しゃくりの上下をならした位置（1.6 秒の平均）"""
+    acc = Vector((0, 0, 0))
+    for i in range(17):
+        acc += jig(t - 1.6 + i * 0.1)
+    return acc / 17
 
 
-S0 = Vector((-2.6, 0.9, 1.0))
+# ブリの道すじ：下・左うしろから、食う点まで、前へ進むだけの3次ベジェ曲線（行ったり来たりしない）
+MEET = jig(T_BITE) + Vector((0, 0, -0.02))
+B0 = Vector((-2.6, 1.0, 1.0))
+B1 = Vector((-1.9, 0.75, 1.5))
+B2 = MEET + Vector((-0.5, 0.12, -0.6))   # 最後は斜め下から突き上げる
+B3 = MEET
+
+
+def bez(u):
+    a = 1 - u
+    return B0 * (a * a * a) + B1 * (3 * a * a * u) + B2 * (3 * a * u * u) + B3 * (u * u * u)
+
+
+def bez_d(u):
+    a = 1 - u
+    return (B1 - B0) * (3 * a * a) + (B2 - B1) * (6 * a * u) + (B3 - B2) * (3 * u * u)
+
+
+def path_u(t):
+    """道すじの進み具合：ゆっくり近づき、最後の 0.5 秒で一気に（だんだん速く。止まったり戻ったりしない）"""
+    x = min(max(t / T_BITE, 0.0), 1.0)
+    return 0.3 * x + 0.7 * x ** 3.5
 
 
 def snout_pre(t):
-    if t < 1.5:
-        return S0 + Vector((0.4 * (t - 1.5), 0, 0))
-    if t < 4.5:
-        return S0.lerp(follow(t), sstep(1.5, 4.5, t))
-    if t < T_DASH:
-        return follow(t)
-    return follow(t).lerp(jig(t) + Vector((0, 0, -0.02)), sstep(T_DASH, T_BITE, t))
+    return bez(path_u(t))
 
 
-SB = snout_pre(T_BITE)
+SB = MEET
 
 
 def snout(t):
@@ -98,13 +121,11 @@ def snout(t):
 
 
 def heading(t):
-    S = snout(t)
     if t < T_BITE:
-        v = snout(t + 0.05) - snout(t - 0.05)
-        v = v.normalized() if v.length > 1e-6 else Vector((1, 0, 0))
-        to = jig(t) - S
-        to = to.normalized() if to.length > 1e-4 else v
-        d = v.lerp(to, sstep(2.5, 4.5, t)).normalized()
+        d = bez_d(max(path_u(t), 0.02)).normalized()
+        to = jig(t) - snout(t)
+        if to.length > 1e-4:
+            d = d.lerp(to.normalized(), 0.3 * sstep(T_DASH - 0.6, T_DASH, t)).normalized()
     else:
         d = Vector((1, 0, 0))
     u = t - T_BITE
@@ -130,7 +151,7 @@ def lure_axis(t):
 def swim(t):
     def freq(x):
         if x < T_DASH:
-            return 1.6
+            return 1.5 + 0.6 * sstep(0, T_DASH, x)
         if x < T_BITE:
             return 4.5
         return 3.5
@@ -142,14 +163,14 @@ def swim(t):
 
 def sep(t):
     real = min((lure_now(t) - snout(t)).length, 2.4)
-    return 1.0 + (real - 1.0) * sstep(1.0, 3.0, t)
+    return 1.0 + (real - 1.0) * sstep(0.5, 2.5, t)
 
 
 def cam_target(t):
     def c(x):
         body = snout(x) - heading(x) * 0.3
-        k = sstep(1.0, 3.5, x)   # はじめはジグだけ、魚が寄ると魚も入れる
-        return jig(x).lerp(lure_now(x) * 0.4 + body * 0.6, k) + Vector((0, 0, 0.03))
+        k = sstep(0.5, 3.0, x)   # はじめはジグ中心、ブリが寄ると両方を入れる
+        return jig_smooth(x).lerp(jig_smooth(x) * 0.4 + body * 0.6, k) + Vector((0, 0, 0.03)) if x < T_BITE else lure_now(x) * 0.4 + body * 0.6
     acc = Vector((0, 0, 0))
     for i in range(9):
         acc += c(t + (i - 4) * 0.08)
@@ -157,19 +178,19 @@ def cam_target(t):
 
 
 def focus(t):
-    k = sstep(1.0, 3.5, t)
+    k = sstep(0.5, 3.0, t)
     return jig(t).lerp(snout(t), k)
 
 
 # うしろを横切る群れ（ヒーローとジグからは離す：y は 1.8m 以上うしろ）
 SCHOOL = [
     # (x0, y0, z0, 長さ, 位相)
-    (-6.0, 2.2, 1.6, 0.70, 0.0),
-    (-6.8, 2.9, 2.4, 0.78, 1.3),
-    (-5.2, 3.6, 1.9, 0.66, 2.1),
-    (-7.6, 2.5, 3.1, 0.74, 0.7),
-    (-4.6, 4.3, 2.8, 0.80, 2.9),
-    (-8.4, 3.3, 3.8, 0.72, 1.9),
+    (-6.0, 2.2, 2.0, 0.70, 0.0),
+    (-6.8, 2.9, 2.8, 0.78, 1.3),
+    (-5.2, 3.6, 2.3, 0.66, 2.1),
+    (-7.6, 2.5, 3.5, 0.74, 0.7),
+    (-4.6, 4.3, 3.2, 0.80, 2.9),
+    (-8.4, 3.3, 4.2, 0.72, 1.9),
 ]
 
 
