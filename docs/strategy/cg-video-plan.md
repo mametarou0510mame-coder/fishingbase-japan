@@ -63,6 +63,9 @@
 - 共通の部品（main.js の ft_*。第1回 cg-fune-tachiuo で作成）：海の断面（1=1m、海底 y=-70）、遊漁船（ftBoat）、全体図（ftMini）、竿とリールの表示（ftCtl）、高さのグラフ（ftGraph）、仕掛けを追うカメラ（ftCam）。
 - **仕掛けの動きは計算する**（2026-11-11 オーナー：「ジグ・テンヤの動きを忠実に演算すると参考になる」）：ftSim（重さ・浮力・水の抵抗・糸の張りの2次元モデル）に、操作の列（FT_SEQ：巻く・止める・しゃくる・クラッチを切る）を入れて動きを出す。係数は形と重さから決めた目安で実測ではないので、画面に「簡単な物理モデルの計算」と出し、計算で出た数値（沈む速さなど）は言わない。新しい仕掛けは FT_BODY に足す。
 - **魚は写真から作った3Dモデルを使う**（2026-11-12 オーナー）：Fish Kit（CC0 1.0、https://cda-social.github.io/fish/gallery.html）を scripts/cg/vendor/fishkit に取り込み済み。main.js の fkGet(id, i, cm)・fkPlace(f, 位置, 向き, 頭の上げ角, T)。使える魚：aji, seabass, mebaru, kasago, saba, tachiuo, sawara, kamasu, buri, hiramasa, kihada, magochi, kurodai, madai, katakuchi, isaki, onagagure, kuchibuto, shibudai（読み込む種類は FK の loadFish の配列に足す）。動きは時刻 T から決める（分割して書き出しても飛ばない）。
+- **イカは写真から作った Squid Kit を使う**（2026-11-12 オーナー）：Squid Kit（CC0 1.0、https://cda-social.github.io/fish/gallery#squid）を scripts/cg/vendor/squidkit に取り込み済み。アオリイカ（aori、胴30cm）とコウイカ（kouika、胴18cm）、エギ付き。glb ではなく、`loadSquids("vendor/squidkit/")`・`createSquid(id, { home, floorY })` で形を作り、`squid.update(dt)` で毎コマ頂点を動かす。動きは `setMotion`：hover・forward・backward・turn・escape（白くなって墨を吐いて逃げる）・follow（エギについて来る）・refuse（寄って離れる）・attack（触腕でエギを抱く）・hooked・surface・lifted・landed・rest・bury（コウイカだけ）。大きさは実寸（m）なので、海の断面（1=1m）に合わせて置く。`squid.object` を動かしたり拡大したりせず、home で置く。
+  - **分割書き出しで飛ばないようにする**：キットの中で Math.random を使い（29か所）、動きは update の積み重ねで決まる。動画では、各コマで「t=0 から固定の dt（1/60）で update を積み直す」か、作ってから T まで進める関数を用意し、そのあいだ Math.random を種つきの乱数（main.js の rng(seed)）に差しかえる。8分割で書き出した前後のコマがつながるか、境目の2コマを並べて確かめる。
+  - アオリイカの回（アカデミー・エギングの見える化など）はこれを使う。イカの動きは画面に「イメージ」と出す。
 - **魚を砂や根に埋めない**（2026-11-11 オーナー）：魚は ftHeroAt・ftSchoolPlace で置き、下端が海底より上になるようにしてある。書き出す前に、全コマで下端と海底のすきまを確かめる（今回は最小 0.5m）。根や岩を置く回は、魚の位置と重ならないことを同じように確かめる。
 
 | 順 | タイトル案 | 見どころ（CG） | 根拠・条件 |

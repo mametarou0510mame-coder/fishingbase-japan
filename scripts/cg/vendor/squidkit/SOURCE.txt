@@ -1,0 +1,4 @@
+Squid Kit（CC0 1.0）
+出典：https://cda-social.github.io/fish/gallery#squid（キット：https://cda-social.github.io/fish/kit/squid-kit.zip）
+取り込み：2026-11-12（オーナー指示「イカの動画はこれを使う」）
+example.html は three.js（MIT）を同梱しているため取り込んでいない。three は scripts/cg/vendor の three.module.min.js と addons/utils/BufferGeometryUtils.js を使う（importmap は index.html のまま動く。2026-11-12 に swiftshader で aori の hover・attack を描けることを確かめた）。
