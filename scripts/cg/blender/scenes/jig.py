@@ -18,6 +18,8 @@ P = 0.78           # ワンピッチ 1 回の長さ（秒）
 T_BITE = T_JERK + P * 9.6   # 10 回目のフォール中に食う
 T_DASH = T_BITE - 0.35
 T_THUMB = T_BITE + 0.3
+THUMB_K = 1.35       # サムネイルは少し引いて、ブリを右に小さめに（左の文字と重ねない）
+THUMB_SHIFT = -0.24
 
 
 def sstep(a, b, x):

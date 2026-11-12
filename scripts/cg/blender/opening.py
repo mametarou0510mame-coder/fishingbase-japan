@@ -593,11 +593,14 @@ sc.collection.objects.link(cam)
 sc.camera = cam
 
 
+CAM_K = 1.0   # サムネイルでは場面ごとに少し引く（THUMB_K）
+
+
 def place_cam(t):
     C = cam_target(t)
     # 魚とタイラバが離れているときは引いて、両方が入るようにする
     sep = sum(M.sep(t + (i - 4) * 0.08) for i in range(9)) / 9
-    k = min(1.0 + 0.55 * sep, 2.4)
+    k = min(1.0 + 0.55 * sep, 2.4) * CAM_K
     P = C + Vector(M.CAM_OFF) * k
     P.z = max(P.z, 0.14)
     cam.location = P
@@ -625,9 +628,10 @@ def clearance():
 if THUMB:
     # サムネイル：魚を右寄せ（左に文字を置く）。高めの画質で1枚
     t = M.T_THUMB
+    CAM_K = getattr(M, "THUMB_K", 1.0)
     sc.frame_set(int(t * FPS) + 1)
     place_all(t)
-    cam_d.shift_x = -0.17
+    cam_d.shift_x = getattr(M, "THUMB_SHIFT", -0.17)
     z = clearance()
     t0 = time.time()
     sc.render.filepath = os.path.join(OUT, "thumb.png")
