@@ -11,15 +11,16 @@ FISH_LEN = 0.75
 LURE = "jig"
 SEC = 13.0   # 冒頭の章（約12秒）より少し長く
 CAM_OFF = (0.35, -1.9, -0.30)
-LENS = 40
+LENS = 32         # 少し広角（上下に離れたジグとブリを同じ画面に入れる）
+CAM_KMAX = 3.0     # ジグとブリが上下に離れても両方が入るよう、少し引けるようにする
 JIG_LEN = 0.17
 
 Z0 = 3.0           # しゃくり始めの高さ（底から3m。はじめは海底も見える）
 P = 0.78           # ワンピッチ 1 回の長さ（秒）
-N_JERK = 6         # しゃくる回数
+N_JERK = 4         # しゃくる回数
 T_FALL = P * N_JERK          # ここから長いフォール
-FALL_V = 0.8                 # フォールの沈む速さ m/s（ひらひら落ちる）
-T_BITE = T_FALL + 3.9        # フォールの途中で食う
+FALL_V = 0.5                 # フォールの沈む速さ m/s（ひらひら落ちる。画面の中で食わせるため遅め）
+T_BITE = T_FALL + 4.6        # フォールの途中で食う
 T_DASH = T_BITE - 0.5
 T_THUMB = T_BITE + 0.3
 THUMB_K = 1.35       # サムネイルは少し引いて、ブリを右に小さめに（左の文字と重ねない）
@@ -77,15 +78,15 @@ def jig_smooth(t):
     """カメラ用：しゃくりの上下をならした位置（1.6 秒の平均）"""
     acc = Vector((0, 0, 0))
     for i in range(17):
-        acc += jig(t - 1.6 + i * 0.1)
+        acc += jig(t - 0.8 + i * 0.1)   # 前後 0.8 秒の平均（遅れない）
     return acc / 17
 
 
 # ブリの道すじ：下・左うしろから、食う点まで、前へ進むだけの3次ベジェ曲線（行ったり来たりしない）
 MEET = jig(T_BITE) + Vector((0, 0, -0.02))
-B0 = Vector((-2.6, 1.0, 1.0))
-B1 = Vector((-1.9, 0.75, 1.5))
-B2 = MEET + Vector((-0.5, 0.12, -0.6))   # 最後は斜め下から突き上げる
+B0 = Vector((-1.9, 0.8, 2.5))
+B1 = Vector((-1.5, 0.6, 2.6))
+B2 = MEET + Vector((-0.5, 0.12, -0.55))   # 最後は斜め下から突き上げる
 B3 = MEET
 
 
@@ -162,15 +163,15 @@ def swim(t):
 
 
 def sep(t):
-    real = min((lure_now(t) - snout(t)).length, 2.4)
+    real = min((lure_now(t) - snout(t)).length, 3.8)
     return 1.0 + (real - 1.0) * sstep(0.5, 2.5, t)
 
 
 def cam_target(t):
     def c(x):
         body = snout(x) - heading(x) * 0.3
-        k = sstep(0.5, 3.0, x)   # はじめはジグ中心、ブリが寄ると両方を入れる
-        return jig_smooth(x).lerp(jig_smooth(x) * 0.4 + body * 0.6, k) + Vector((0, 0, 0.03)) if x < T_BITE else lure_now(x) * 0.4 + body * 0.6
+        k = sstep(0.0, 1.5, x)   # はじめはジグ中心、すぐにブリも入れる
+        return jig_smooth(x).lerp(jig_smooth(x) * 0.5 + body * 0.5, k) + Vector((0, 0, 0.03)) if x < T_BITE else lure_now(x) * 0.4 + body * 0.6
     acc = Vector((0, 0, 0))
     for i in range(9):
         acc += c(t + (i - 4) * 0.08)

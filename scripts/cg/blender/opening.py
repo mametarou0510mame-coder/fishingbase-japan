@@ -600,7 +600,7 @@ def place_cam(t):
     C = cam_target(t)
     # 魚とタイラバが離れているときは引いて、両方が入るようにする
     sep = sum(M.sep(t + (i - 4) * 0.08) for i in range(9)) / 9
-    k = min(1.0 + 0.55 * sep, 2.4) * CAM_K
+    k = min(1.0 + 0.55 * sep, getattr(M, "CAM_KMAX", 2.4)) * CAM_K
     P = C + Vector(M.CAM_OFF) * k
     P.z = max(P.z, 0.14)
     cam.location = P
