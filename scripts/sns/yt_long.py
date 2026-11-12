@@ -75,7 +75,7 @@ def desc_fit(desc, limit=4950):
 
 
 # 自動の列からは出さず、long-upload の slug 指定で出す動画（2026-11-05 オーナー：道具紹介は2日に1本）
-HOLD = {"cg-gear-lure", "cg-gear-goods"}
+HOLD = {"cg-gear-lure", "cg-gear-goods", "cg-fune-aomono"}  # cg-fune-aomono：2026-11-12 オーナーの修正（軌道・ジグ・冒頭・時期と時間帯・エンディング）が終わるまで出さない
 
 
 def comment_text(src):
