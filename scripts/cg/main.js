@@ -6836,13 +6836,14 @@ function jigRealMat(back) {
         gl_FragColor = vec4(underwater(c, vW, distance(cameraPosition, vW)), 1.0); }`,
   });
 }
-function makeJigReal(back) {
+function makeJigReal(back, o = {}) {
+  const L = o.L ?? 1, hy = 0.8 * L - 0.8; // L：長さの倍率（ロングジグは 1.5）。hy：頭の位置のずれ
   const g = new THREE.Group();
   const prof = [];
   for (let i = 0; i <= 40; i++) {
     const f = i / 40; // 0=尾 1=頭
-    const r = 0.02 + 0.13 * Math.pow(Math.sin(Math.PI * Math.pow(f, 0.9)), 0.8) - 0.012 * Math.max(0, f - 0.93) / 0.07;
-    prof.push(new THREE.Vector2(Math.max(0.006, r), (f - 0.5) * 1.6));
+    const r = (0.02 + 0.13 * Math.pow(Math.sin(Math.PI * Math.pow(f, 0.9)), 0.8) - 0.012 * Math.max(0, f - 0.93) / 0.07) * (o.W ?? 1);
+    prof.push(new THREE.Vector2(Math.max(0.006, r), (f - 0.5) * 1.6 * L));
   }
   const geo = new THREE.LatheGeometry(prof, 28);
   geo.scale(1, 1, 0.48); // 平たい（厚みは幅の半分）
@@ -6850,30 +6851,52 @@ function makeJigReal(back) {
   const body = new THREE.Mesh(geo, jigRealMat(back));
   const gold = shadedMat(0xe8b923, { rough: 0.2 }), black = new THREE.MeshBasicMaterial({ color: 0x0a0a0a }), steel = shadedMat(0x9aa3ab, { rough: 0.08 });
   [-1, 1].forEach((sd) => {
-    const e = new THREE.Mesh(new THREE.SphereGeometry(0.034, 14, 10), gold); e.scale.set(1, 1, 0.35); e.position.set(0.012, 0.58, sd * 0.052);
-    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), black); pu.scale.set(1, 1, 0.4); pu.position.set(0.012, 0.58, sd * 0.064);
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.034, 14, 10), gold); e.scale.set(1, 1, 0.35); e.position.set(0.012, 0.58 + hy, sd * 0.052 * (o.W ?? 1));
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), black); pu.scale.set(1, 1, 0.4); pu.position.set(0.012, 0.58 + hy, sd * 0.064 * (o.W ?? 1));
     g.add(e, pu);
   });
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.009, 8, 18), steel); ring.position.set(0, 0.86, 0); ring.rotation.y = Math.PI / 2;
-  const split = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.007, 8, 18), steel); split.position.set(0, 0.93, 0);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.009, 8, 18), steel); ring.position.set(0, 0.86 + hy, 0); ring.rotation.y = Math.PI / 2;
+  const split = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.007, 8, 18), steel); split.position.set(0, 0.93 + hy, 0);
   g.add(body, ring, split);
   // アシストフック：リングから短い糸（約3cm）で2本、ジグの横に垂れる
   [-1, 1].forEach((sd) => {
     const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.3, 6), shadedMat(0xe9e3c9, { rough: 0.7 }));
-    cord.position.set(sd * 0.03, 0.78, 0); cord.rotation.z = sd * 0.25;
+    cord.position.set(sd * 0.03, 0.78 + hy, 0); cord.rotation.z = sd * 0.25;
     const hook = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.009, 6, 18, Math.PI * 1.35), steel);
-    hook.position.set(sd * 0.075, 0.6, 0); hook.rotation.set(0, 0, sd > 0 ? -2.2 : 0.9);
+    hook.position.set(sd * 0.075, 0.6 + hy, 0); hook.rotation.set(0, 0, sd > 0 ? -2.2 : 0.9);
     g.add(cord, hook);
   });
+  let blade = null;
+  if (o.blade) {
+    // 尾にスイベルとブレード（回って細かく光る）
+    const sw = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 8, 16), steel); sw.position.set(0, -0.8 * L - 0.04, 0);
+    blade = new THREE.Mesh(new THREE.CircleGeometry(1, 24).scale(0.07, 0.12, 1), metalMat(0xf2c94c, 0xfff2c0, { holo: 0.2 }));
+    blade.geometry.translate(0, -0.12, 0);
+    blade.position.set(0, -0.8 * L - 0.07, 0);
+    g.add(sw, blade);
+  }
   g.rotation.z = -Math.PI / 2;
   const p = new THREE.Group();
   p.add(g);
+  p.userData.blade = blade;
   world.add(p);
   extras.push(p);
   return p;
 }
 // 比べるときも同じ形・同じ重さ（色だけ変える）
 const ftJigC = makeJigReal(0x1a5fe0), ftJigR = makeJigReal(0xe0307a);
+// ジグの選び方（ag_jig）：ロング（タチウオに合わせる。銀）・ノーマル（イワシ）・ブレード付きの小さめ（マイクロベイト）
+const ftJigLong = makeJigReal(0xb8c4cc, { L: 1.55, W: 0.8 }), ftJigNorm = makeJigReal(0x1a5fe0), ftJigBlade = makeJigReal(0x2bb673, { L: 0.7, blade: true });
+// マイクロベイト（小さい小魚の群れ。銀の点）
+const ftMicro = (() => {
+  const n = 140, g = new THREE.BufferGeometry(), pos = new Float32Array(n * 3), ph = new Float32Array(n), r = rng(911);
+  for (let i = 0; i < n; i++) { pos[i * 3] = r() - 0.5; pos[i * 3 + 1] = r() - 0.5; pos[i * 3 + 2] = r() - 0.5; ph[i] = r() * 6.28; }
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("ph", new THREE.BufferAttribute(ph, 1));
+  const m = new THREE.ShaderMaterial({ uniforms: { ...U, sz: { value: 1 } }, transparent: true, depthWrite: false,
+    vertexShader: `attribute float ph; uniform float time; uniform float sz; varying float vF; void main(){ vec3 p = position; p.x += 0.12*sin(time*1.3 + ph); p.y += 0.06*sin(time*2.1 + ph*1.7); vec4 mv = modelViewMatrix*vec4(p,1.); vF = 0.5 + 0.5*sin(time*9.0 + ph*3.0); gl_PointSize = min(sz*40.0/-mv.z, 7.0); gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `varying float vF; void main(){ vec2 q = gl_PointCoord - 0.5; float d = length(vec2(q.x*0.6, q.y*1.8)); if (d > 0.5) discard; gl_FragColor = vec4(mix(vec3(0.7,0.8,0.85), vec3(1.0), vF), 0.9); }` });
+  const p = new THREE.Points(g, m); p.frustumCulled = false; world.add(p); extras.push(p); return p;
+})();
 const FT_JIG_U = 0.15 / 1.6;
 // タチウオ（板の長さ 1.05m のうち魚は約1m）
 const ftTachi = school("タチウオ", 30, 1.0, 2301, { amp: 0.035, freq: 3.5 });
@@ -7622,6 +7645,48 @@ Object.assign(SHOTS, {
     html += aoTag("模式図（沈む速さと潮の流れを足しただけのイメージ）");
     drawBar(s);
   },
+  // ジグの選び方（2026-11-12 オーナー）：k0 ベイトに合わせる → k1 タチウオ＝ロング → k2 イワシ＝ノーマル〜ショート・小さいベイト＝ブレード → k3 フックは頭側のアシストフック
+  ag_jig(t, d, s, k) {
+    ftBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 30, Y = -30, vis = 3.1, U0 = FT_JIG_U * vis;
+    const t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99), t3 = t - (s._k3 ?? 99);
+    // 列の位置（縦画面は縦に並べる）
+    const col = P ? [[-0.32, 0.8], [-0.32, 0], [-0.32, -0.8]] : [[-1.05, 0], [0, 0], [1.0, 0]];
+    const wob = (i) => Math.sin(T * 1.3 + i * 2) * 0.05;
+    const put = (obj, i, dx = 0) => { const [cx, cy] = col[i]; ftPut(obj, cx + dx, Y + cy + Math.sin(T * 0.9 + i) * 0.03, wob(i), U0); return FTp(cx + dx, Y + cy, FT_LZ); };
+    const pL = put(ftJigLong, 0, -0.1), pN = put(ftJigNorm, 1), pB = put(ftJigBlade, 2, 0.05);
+    if (ftJigBlade.userData.blade) ftJigBlade.userData.blade.rotation.y = T * 28;
+    // ベイト：タチウオ（ロングジグのうしろ）、イワシ（カタクチイワシの小さな群れ）、マイクロベイト（銀の点）
+    const tc = fkGet("tachiuo", 30, 90);
+    if (tc) { const [cx, cy] = col[0]; fkPlace(tc, FTp(cx - 0.05, Y + cy - (P ? 0.32 : 0.42), FT_LZ - 0.9), 0, 0.02, T, { freq: 2.2, amp: 0.05 }); }
+    for (let i = 0; i < 6; i++) {
+      const f = fkGet("katakuchi", 30 + i, 26), [cx, cy] = col[1];
+      fkPlace(f, FTp(cx - 0.35 + (i % 3) * 0.3 + Math.sin(T * 0.7 + i) * 0.04, Y + cy - 0.38 - Math.floor(i / 3) * 0.14, FT_LZ - 0.5 - (i % 2) * 0.2), 0, 0, T, { freq: 4, amp: 0.1, seed: i });
+    }
+    { const [cx, cy] = col[2]; ftMicro.visible = true; ftMicro.position.copy(FTp(cx, Y + cy - 0.4, FT_LZ - 0.4)); ftMicro.scale.set(0.9, 0.35, 0.5); ftMicro.material.uniforms.sz.value = 0.55; }
+    // カメラ：k3 は頭（アシストフック）に寄る
+    const zk = k >= 3 ? ease(clamp01(t3 / 1.4)) : 0;
+    const head = FTp(col[1][0] + 0.8 * U0 * 1.0, Y + col[1][1], FT_LZ);
+    const camW = FTp(0, Y - (P ? 0.35 : 0.06), FT_LZ + (P ? 3.0 : 2.9)), tgtW = FTp(0, Y - (P ? 0.35 : 0.14), FT_LZ);
+    const camH = head.clone().add(V(0.25, 0.08, 1.1)), tgtH = head.clone().add(V(-0.05, -0.02, 0));
+    look(camW.clone().lerp(camH, zk), tgtW.clone().lerp(tgtH, zk), 50);
+    ftFlush();
+    const hl = (i) => (k === 1 && i === 0) || (k === 2 && i >= 1);
+    if (zk < 0.3) {
+      const a = 1 - zk / 0.3;
+      const L = [[pL, "ロングジグ", "ベイトがタチウオのとき"], [pN, "ノーマル〜ショート", "ベイトがイワシ・イカナゴのとき"], [pB, "ブレード付き", "小さいベイト（マイクロベイト）のとき"]];
+      const lt = s.q ? t - (s._k1 ?? 3) + 0.6 : t; // ショートは問いのあとに出す
+      L.forEach(([p, a1, b1], i) => label(p, a1, b1, a * fadeIn(lt, 0.4 + i * 0.5), hl(i) ? "gold" : "", P ? 330 : 0, P ? -60 : -160));
+    }
+    if (k >= 3) label(head, "アシストフック", "頭側だけが基本", fadeIn(t3, 1.2), "gold ans", P ? -40 : -360, P ? -300 : -120);
+    if (k === 0 && s.q) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 380}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+      bigText(P ? 200 : 90, s.q, "答えは、ベイト（エサの小魚）で決まる", clamp01(t / 0.25));
+    } else if (k === 0) ftChip("ジグの形は、ベイト（エサの小魚）に合わせる", "#10345a");
+    ftNote("ジグとベイトは見やすい大きさで表示。動きはイメージ");
+    drawBar(s);
+  },
   // 底取り：落とす → 着底 → すぐ巻き上げる
   ag_fall(t, d, s, k) {
     ftBase();
@@ -7653,7 +7718,7 @@ Object.assign(SHOTS, {
     ftCam(sim, ts, 1.8, { dy: -0.1 });
     const c0 = st.c0;
     if (ts < 1) ftChip("スロージギング", "#10345a");
-    else if (c0.free) ftChip("フォール：ここで食わせる", "#1f6fd1");
+    else if (c0.free) ftChip("フォール：ここでも食う", "#1f6fd1");
     else ftChip("ゆったり、しゃくる", "#e3412b");
     ftMini(-st.y);
     ftCtl(st);
@@ -7673,11 +7738,12 @@ Object.assign(SHOTS, {
     agSchoolPlace(T, { cx: 0, n: 10, sx: 5, zc: FT_LZ - 3.6 });
     look(FTp(0, FT_BOT + 11, FT_LZ + (P ? 27 : 21)), FTp(0, FT_BOT + 10.5, FT_LZ), 50);
     ftFlush();
-    label(FTp(a.x, a.y, FT_LZ), "ゆったり", "タナに残る", 1, "gold", P ? -80 : -260, -120);
-    label(FTp(b.x, b.y, FT_LZ), "強く速く", b.y > AG_BAND[1] ? "浮きすぎてタナを外れる" : "", 1, b.y > AG_BAND[1] ? "red" : "", P ? 80 : 280, -120);
+    // 2026-11-12 オーナー：ゆったりも速くも、どちらも釣れる。違いはジグの上がり方（計算）
+    label(FTp(a.x, a.y, FT_LZ), "ゆったり", "タナに長くとどまる", 1, "gold", P ? -80 : -260, -120);
+    label(FTp(b.x, b.y, FT_LZ), "速く", b.y > AG_BAND[1] ? "早く上がる → 広く探れる。過ぎたら落とし直す" : "早く上がる → 広く探れる", 1, "gold", P ? 80 : -380, P ? -120 : 30);
     const pb = project(FTp(P ? 0.3 : 5, AG_BAND[1], FT_LZ));
     html += `<div style="position:absolute;left:${pb.x}px;top:${pb.y + 8}px;color:#2ecc71;font-weight:900;font-size:30px;text-shadow:0 2px 6px #000">底から5〜10m</div>`;
-    agGraph([[sS, "#1a4fd0", "ゆったり"], [sH, "#d0306a", "強く速く"]], ts, 12, 1, 240);
+    agGraph([[sS, "#1a4fd0", "ゆったり"], [sH, "#d0306a", "速く"]], ts, 12, 1, 240);
     if (!P) legend([["#8ff0ff", "ジグが通った道（点）"], ["#2ecc71", "底から5〜10m"]]);
     ftNote("ジグの動きは簡単な物理モデルの計算（同じジグで、しゃくり方だけを変えた）");
   },
@@ -7691,8 +7757,8 @@ Object.assign(SHOTS, {
     else agFollow(0, st, sim, ts, T, { near: ts > mk.fall ? ease((ts - mk.fall) / 0.8) : 0.15 });
     agBand(1);
     ftCam(sim, ts, 1.9, { dy: -0.1 });
-    if (ts < mk.fall) ftChip("ゆったり、しゃくる", "#e3412b");
-    else if (!hooked) ftChip("フォール…", "#1f6fd1");
+    if (ts < mk.fall) ftChip("しゃくっている最中も食う", "#e3412b");
+    else if (!hooked) ftChip("フォール中も食う", "#1f6fd1");
     else if (ts < mk.hook + 2.5) ftChip("食った！ 合わせる", "#e3412b");
     else ftChip("掛かった", "#2a9d5c");
     ftMini(-st.y);
@@ -7726,7 +7792,7 @@ Object.assign(SHOTS, {
     ftWide(t);
     ftFlush();
     html += acDim(0.5);
-    const rows = [["底取り", "まず底まで落とす", "潮が速いときは重いジグ", "#c2410c"], ["タナ", "底から5〜10m", "ここを長く通す", "#2a9d5c"], ["誘い", "ゆったりしゃくって、フォール", "強く速くだと浮きすぎる（計算）", "#1f6fd1"]];
+    const rows = [["底取り", "まず底まで落とす", "潮が速いときは重いジグ", "#c2410c"], ["タナ", "底から5〜10m", "ここを長く通す", "#2a9d5c"], ["誘い", "ゆったりでも、速くでも食う", "しゃくり中もフォール中もアタリ。ジグはベイトに合わせる", "#1f6fd1"]];
     html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">船の青物ジギング まとめ</div>`;
     rows.forEach(([a1, b1, c1, col], i) => {
       const a = fadeIn(t, 0.4 + i * 0.45);

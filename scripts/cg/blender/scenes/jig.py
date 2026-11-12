@@ -19,6 +19,7 @@ Z0 = 3.2           # しゃくり始めの高さ（底から3m。はじめは海
 P = 0.78           # ワンピッチ 1 回の長さ（秒）
 N_JERK = 3         # しゃくる回数
 T_FALL = P * N_JERK          # ここから長いフォール
+DRIFT = 0.35                 # フォール中にジグが流される速さ m/s（船の流れ）
 FALL_V = 0.45                 # フォールの沈む速さ m/s（ひらひら落ちる。画面の中で食わせるため遅め）
 T_BITE = T_FALL + 5.3        # フォールの途中で食う
 T_DASH = T_BITE - 0.5
@@ -57,7 +58,8 @@ def jig(t):
     # フォール：ひらひらと左右にゆれながら沈む（はじめの 0.3 秒で速さが乗る）
     z = Z_TOP - FALL_V * (u - 0.3 * (1 - math.exp(-u / 0.3)))
     k = min(u / 0.6, 1.0)
-    return Vector((0.09 * k * math.sin(2 * math.pi * 1.1 * u), 0.05 * k * math.sin(2 * math.pi * 0.8 * u + 0.6), z))
+    # 船が潮に流されるので、ジグも前（+x）へ流れながら沈む
+    return Vector((DRIFT * u + 0.09 * k * math.sin(2 * math.pi * 1.1 * u), 0.05 * k * math.sin(2 * math.pi * 0.8 * u + 0.6), z))
 
 
 def jig_axis_free(t):
@@ -82,34 +84,33 @@ def jig_smooth(t):
     return acc / 17
 
 
-# ブリの道すじ：下・左うしろから、食う点まで、前へ進むだけの3次ベジェ曲線（行ったり来たりしない）
-MEET = jig(T_BITE) + Vector((0, 0, -0.02))
-B0 = Vector((-1.9, 0.8, 2.9))
-B1 = Vector((-1.4, 0.6, 2.8))
-B2 = MEET + Vector((-0.5, 0.12, -0.55))   # 最後は斜め下から突き上げる
-B3 = MEET
+# ブリの動き（2026-11-12 オーナー：フォール中にブリがジグについていく形が自然）
+# しゃくっている間に左うしろから寄ってきて、フォールに入るとジグのうしろ・少し上について一緒に沈み、
+# 近づいていって食う。ジグがブリを追いかけるような位置関係にはしない。前後に行ったり来たりもしない。
+B0 = Vector((-1.9, 0.8, 3.2))
 
 
-def bez(u):
-    a = 1 - u
-    return B0 * (a * a * a) + B1 * (3 * a * a * u) + B2 * (3 * a * u * u) + B3 * (u * u * u)
+def approach(t):
+    """寄ってくるときの道（ゆっくり前へ、少し上へ）"""
+    return B0 + Vector((0.3 * t, -0.06 * t, 0.12 * t))
 
 
-def bez_d(u):
-    a = 1 - u
-    return (B1 - B0) * (3 * a * a) + (B2 - B1) * (6 * a * u) + (B3 - B2) * (3 * u * u)
-
-
-def path_u(t):
-    """道すじの進み具合：ゆっくり近づき、最後の 0.5 秒で一気に（だんだん速く。止まったり戻ったりしない）"""
-    x = min(max(t / T_BITE, 0.0), 1.0)
-    return 0.3 * x + 0.7 * x ** 3.5
+def trail_off(t):
+    """ジグに対するブリの口の位置：フォールが進むほど近づく（うしろ・少し上から）"""
+    k = sstep(T_FALL, T_DASH, t)
+    far = Vector((-0.75, 0.16, 0.32))
+    near = Vector((-0.32, 0.05, 0.12))
+    return far.lerp(near, k)
 
 
 def snout_pre(t):
-    return bez(path_u(t))
+    F = jig_smooth(t) + trail_off(t)
+    S = approach(t).lerp(F, sstep(0.3, T_FALL + 1.0, t))
+    # 最後のひと伸び：ジグそのものへ
+    return S.lerp(jig(t) + Vector((0, 0, 0.02)), sstep(T_DASH, T_BITE, t))
 
 
+MEET = jig(T_BITE) + Vector((0, 0, 0.02))
 SB = MEET
 
 
@@ -123,10 +124,15 @@ def snout(t):
 
 def heading(t):
     if t < T_BITE:
-        d = bez_d(max(path_u(t), 0.02)).normalized()
+        v = snout(t + 0.12) - snout(t - 0.12)
+        d = v.normalized() if v.length > 0.01 else Vector((1, 0, 0))
+        if abs(d.z) > 0.7:   # 真下・真上を向きすぎない（頭の上げ下げは 45° くらいまで）
+            d = Vector((d.x, d.y, 0.7 if d.z > 0 else -0.7))
+            h = math.hypot(d.x, d.y) or 1.0
+            d = Vector((d.x / h * 0.714, d.y / h * 0.714, d.z)).normalized()
         to = jig(t) - snout(t)
         if to.length > 1e-4:
-            d = d.lerp(to.normalized(), 0.3 * sstep(T_DASH - 0.6, T_DASH, t)).normalized()
+            d = d.lerp(to.normalized(), 0.5 * sstep(T_FALL, T_DASH, t)).normalized()
     else:
         d = Vector((1, 0, 0))
     u = t - T_BITE
