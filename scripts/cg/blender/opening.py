@@ -621,6 +621,7 @@ def place_all(t):
 
 # ---------------- 書き出し ----------------
 def clearance():
+    bpy.context.view_layer.update()   # 位置を入れた直後は matrix_world が古いので、先に更新する
     zs = [min((o.matrix_world @ v.co).z for v in o.data.vertices) for o in [fish] + mates]
     return min(zs)
 
