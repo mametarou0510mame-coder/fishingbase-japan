@@ -33,6 +33,7 @@ def cyc_of(t):
 
 def jig(t):
     """ジグの頭（糸を結ぶ所）の位置"""
+    t = max(t, 0.0)   # カメラは少し前の時刻も見るので、0 秒より前は 0 秒と同じ
     if t < T_FALL_END:
         k = t / T_FALL_END
         z = 3.2 - 3.08 * k ** 1.25
