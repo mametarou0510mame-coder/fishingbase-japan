@@ -1,5 +1,5 @@
 {
- "updatedOn": "2026-11-12",
+ "updatedOn": "2026-11-13",
  "categories": [
   {
    "key": "sabiki",
@@ -44,7 +44,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/esports/cabinet/6000-195/6000000143926.jpg?_ex=200x200",
      "shop": "YOCABITO 楽天市場店",
      "pointRate": 1,
-     "pointEnd": "2026-11-11 23:59",
+     "pointEnd": "",
      "review": 4,
      "reviewCount": 2
     },
@@ -55,7 +55,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/esports/cabinet/6000-149/6000000122734.jpg?_ex=200x200",
      "shop": "YOCABITO 楽天市場店",
      "pointRate": 1,
-     "pointEnd": "2026-11-11 23:59",
+     "pointEnd": "",
      "review": 0,
      "reviewCount": 0
     },
@@ -66,7 +66,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/esports/cabinet/6000-221/6000000143927.jpg?_ex=200x200",
      "shop": "YOCABITO 楽天市場店",
      "pointRate": 1,
-     "pointEnd": "2026-11-11 23:59",
+     "pointEnd": "",
      "review": 0,
      "reviewCount": 0
     },
@@ -77,7 +77,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/esports/cabinet/6000-163/6000000133619.jpg?_ex=200x200",
      "shop": "YOCABITO 楽天市場店",
      "pointRate": 1,
-     "pointEnd": "2026-11-11 23:59",
+     "pointEnd": "",
      "review": 0,
      "reviewCount": 0
     }
@@ -89,17 +89,6 @@
    "kind": "point",
    "unverified": false,
    "items": [
-    {
-     "name": "クーラーボックス 小型 保冷剤付き 5L 7L 10L 黒 ブラック UNPLUGGED CP アンプラグドキャンプ CHILL ハード 子",
-     "price": 2080,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tvybo.kz1wa32f.g00tvybo.kz1wb4fd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funplugged-cp%252Fchill-pop-oya%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funplugged-cp%252Fi%252F10000468%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tvybo.kz1wa32f.g00tvybo.kz1wb4fd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Funplugged-cp%252Fchill-pop-oya%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Funplugged-cp%252Fi%252F10000468%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/unplugged-cp/cabinet/chill-pop/pop-main-04.jpg?_ex=200x200",
-     "shop": "アンプラグドキャンプ",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.54,
-     "reviewCount": 757
-    },
     {
      "name": "保冷剤 ステンレス ステンレス保冷剤 氷 保冷 長時間 クーラーボックス 急速冷凍 急速冷却 強力 保冷ボックス クーラーバッグ 保冷バッグ",
      "price": 900,
@@ -123,24 +112,13 @@
      "reviewCount": 156
     },
     {
-     "name": "クーラーボックス 7L 小型 日本製 保冷剤付き 軽量 部活用 コンパクト ハードクーラー 取っ手付き 密閉 保冷保温 熱中症対策 弁当用 ",
-     "price": 3200,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qgpro.kz1wa1e4.g00qgpro.kz1wb46e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fb-bselect%252F4945296013234%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fb-bselect%252Fi%252F10016570%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qgpro.kz1wa1e4.g00qgpro.kz1wb46e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fb-bselect%252F4945296013234%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fb-bselect%252Fi%252F10016570%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/b-bselect/cabinet/00879062/2025_.jpg?_ex=200x200",
-     "shop": "B・Bセレクト楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.56,
-     "reviewCount": 91
-    },
-    {
      "name": "キャリーカート 荷物 運ぶ 買い物 小型 2輪 折りたたみ ショッピング キャスター付き 固定ロープ付き 安い 軽量 アウトドア 釣り キャ",
      "price": 2090,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ssuao.kz1wa075.g00ssuao.kz1wb930%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkohnan-eshop%252F4522831024742%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkohnan-eshop%252Fi%252F10055248%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ssuao.kz1wa075.g00ssuao.kz1wb930%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkohnan-eshop%252F4522831024742%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkohnan-eshop%252Fi%252F10055248%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/kohnan-eshop/cabinet/goods/201709/s7/4522831024742.jpg?_ex=200x200",
      "shop": "コーナンeショップ 楽天市場店",
-     "pointRate": 5,
-     "pointEnd": "2026-11-11 23:59",
+     "pointRate": 1,
+     "pointEnd": "",
      "review": 4.56,
      "reviewCount": 81
     },
@@ -151,9 +129,31 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/kures-store/cabinet/mainimg/2025nor/blgb-nor-4.jpg?_ex=200x200",
      "shop": "ACLUO楽天市場店",
      "pointRate": 5,
-     "pointEnd": "2026-11-11 23:59",
+     "pointEnd": "2026-11-12 23:59",
      "review": 4.45,
      "reviewCount": 73
+    },
+    {
+     "name": "保冷剤 ステンレス 驚きの保冷力 長持ち ステンレス保冷剤 SUS304 長時間冷却 薄型 軽量 コンパクト 高伝導 アイスパック 保冷 冷",
+     "price": 2760,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00u3kmo.kz1wa988.g00u3kmo.kz1wb9e5%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkures-store%252Fblgb-2%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkures-store%252Fi%252F10000582%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00u3kmo.kz1wa988.g00u3kmo.kz1wb9e5%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fkures-store%252Fblgb-2%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fkures-store%252Fi%252F10000582%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/kures-store/cabinet/mainimg/2025nor/blgb-nor-5.jpg?_ex=200x200",
+     "shop": "ACLUO楽天市場店",
+     "pointRate": 5,
+     "pointEnd": "2026-11-12 23:59",
+     "review": 4.66,
+     "reviewCount": 59
+    },
+    {
+     "name": "LVYUAN ポータブル冷蔵庫 車載冷蔵庫 9L 18L 小型 車載用 家庭用 -20℃〜20℃ 12V 24V車対応 AC DC電源対応 ",
+     "price": 16598,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00teflo.kz1wa7bb.g00teflo.kz1wb44f%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Flvyuan%252Fc9%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Flvyuan%252Fi%252F10000569%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00teflo.kz1wa7bb.g00teflo.kz1wb44f%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Flvyuan%252Fc9%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Flvyuan%252Fi%252F10000569%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/lvyuan/cabinet/13252572/3.jpg?_ex=200x200",
+     "shop": "LVYUAN楽天市場店",
+     "pointRate": 15,
+     "pointEnd": "2026-11-14 23:59",
+     "review": 4.47,
+     "reviewCount": 45
     }
    ]
   },
@@ -173,17 +173,6 @@
      "pointEnd": "2026-11-30 23:59",
      "review": 5,
      "reviewCount": 1
-    },
-    {
-     "name": "がまかつ TU168 喰い渋りタチウオ仕掛2 つらぬき仕様 3-8",
-     "price": 440,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00snbso.kz1wa153.g00snbso.kz1wbd94%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffto-r%252F4549018526721%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffto-r%252Fi%252F10175668%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00snbso.kz1wa153.g00snbso.kz1wbd94%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffto-r%252F4549018526721%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffto-r%252Fi%252F10175668%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fto-r/cabinet/image379/4549018526721_1.jpg?_ex=200x200",
-     "shop": "釣具のFTO",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 0,
-     "reviewCount": 0
     },
     {
      "name": "集魚灯 集魚ライト 3本セット 赤 白 青 3色set LED 夜釣り やんわり発光 水中 集魚ランプ 電池付き イカ釣り 烏賊 太刀魚 タ",
@@ -208,13 +197,13 @@
      "reviewCount": 0
     },
     {
-     "name": "ダイワ(Daiwa) 快適堤防タチウオ仕掛け平行2本針L",
-     "price": 462,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00snbso.kz1wa153.g00snbso.kz1wbd94%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffto-r%252F4960652685290%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffto-r%252Fi%252F10156070%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00snbso.kz1wa153.g00snbso.kz1wbd94%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffto-r%252F4960652685290%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffto-r%252Fi%252F10156070%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fto-r/cabinet/image329/4960652685290_1.jpg?_ex=200x200",
-     "shop": "釣具のFTO",
-     "pointRate": 1,
-     "pointEnd": "",
+     "name": "ササメ SASAME うきうき堤防太刀魚セット ( Mサイズ ) タチウオ釣り完成仕掛け W-666 直行仕掛け道糸にセットするだけ",
+     "price": 760,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qraio.kz1wac8d.g00qraio.kz1wb3bd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fe-westcoast%252F3243-sasame-a-001%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fe-westcoast%252Fi%252F10019406%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qraio.kz1wac8d.g00qraio.kz1wb3bd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fe-westcoast%252F3243-sasame-a-001%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fe-westcoast%252Fi%252F10019406%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/e-westcoast/cabinet/t/3243-sasame-a-001-5.jpg?_ex=200x200",
+     "shop": "ウエストコースト アウトドアShop",
+     "pointRate": 5,
+     "pointEnd": "2026-11-30 23:59",
      "review": 0,
      "reviewCount": 0
     },
@@ -237,17 +226,6 @@
    "kind": "point",
    "unverified": false,
    "items": [
-    {
-     "name": "ハヤブサ HS620 マジックサビキ ケイムラ 5本鈎 5-0.8",
-     "price": 206,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00snbso.kz1wa153.g00snbso.kz1wbd94%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffto-r%252F4993722175551%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffto-r%252Fi%252F10304609%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00snbso.kz1wa153.g00snbso.kz1wbd94%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffto-r%252F4993722175551%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffto-r%252Fi%252F10304609%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fto-r/cabinet/image655/4993722175551_1.jpg?_ex=200x200",
-     "shop": "釣具のFTO",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.5,
-     "reviewCount": 2
-    },
     {
      "name": "オーナー 遠投ヒラメサビキ 03 ハリス6号 ナチュラルキス",
      "price": 643,
@@ -282,24 +260,35 @@
      "reviewCount": 1
     },
     {
-     "name": "ハヤブサ｜Hayabusa 喰わせサビキ タテ釣りスペシャル ホロフラッシュアピールMIX 6本鈎(鈎6号/ハリス5号) SS423",
-     "price": 649,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r7ldo.kz1wa506.g00r7ldo.kz1wb61a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fbiccamera%252F4993722802426%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fbiccamera%252Fi%252F14085321%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r7ldo.kz1wa506.g00r7ldo.kz1wb61a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fbiccamera%252F4993722802426%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fbiccamera%252Fi%252F14085321%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/biccamera/cabinet/product/8046/00000011202544_a01.jpg?_ex=200x200",
-     "shop": "楽天ビック(ビックカメラ×楽天)",
+     "name": "オーナー（OWNER） 遠投ジグサビキ 9−4 S−3649",
+     "price": 514,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s41zo.kz1wa8b5.g00s41zo.kz1wbbf1%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fcasting%252F4953873208881%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fcasting%252Fi%252F10014978%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s41zo.kz1wa8b5.g00s41zo.kz1wbbf1%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fcasting%252F4953873208881%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fcasting%252Fi%252F10014978%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/casting/cabinet/009/4953873208881.jpg?_ex=200x200",
+     "shop": "釣具のキャスティング 楽天市場店",
      "pointRate": 1,
-     "pointEnd": "",
+     "pointEnd": "9999-12-31 23:59",
      "review": 0,
      "reviewCount": 0
     },
     {
-     "name": "ハヤブサ｜Hayabusa 小アジ専科 下カゴサビキセット リアルアミエビ（鈎：1号/ハリス：0.8号/幹糸：1.5号） HA212-1-0",
-     "price": 450,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r7ldo.kz1wa506.g00r7ldo.kz1wb61a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fbiccamera%252F4993722840831%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fbiccamera%252Fi%252F14085709%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00r7ldo.kz1wa506.g00r7ldo.kz1wb61a%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fbiccamera%252F4993722840831%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fbiccamera%252Fi%252F14085709%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/biccamera/cabinet/product/8041/00000011203058_a01.jpg?_ex=200x200",
-     "shop": "楽天ビック(ビックカメラ×楽天)",
-     "pointRate": 1,
-     "pointEnd": "",
+     "name": "ジグサビキセット ジグ 20g 2色セット 遠投 立体 3D 鱗 ただ巻き 6連 胴付き 仕掛け 3サイズ サビキ 針 釣り ティンセル フ",
+     "price": 2250,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00u5xpo.kz1wadf3.g00u5xpo.kz1wbde2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpaltwo%252Fps02-4a%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpaltwo%252Fi%252F10003611%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00u5xpo.kz1wadf3.g00u5xpo.kz1wbde2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpaltwo%252Fps02-4a%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpaltwo%252Fi%252F10003611%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/paltwo/cabinet/2024/ps02-4a_10.jpg?_ex=200x200",
+     "shop": "SHOPパル2",
+     "pointRate": 5,
+     "pointEnd": "2026-11-13 23:59",
+     "review": 0,
+     "reviewCount": 0
+    },
+    {
+     "name": "ジグサビキセット ジグ 20g 2色セット 遠投 立体 3D 鱗 ただ巻き 6連 胴付き 仕掛け 3サイズ サビキ 針 釣り ティンセル フ",
+     "price": 1680,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tymxo.kz1wadd6.g00tymxo.kz1wb04c%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpalone%252Fps02-4a%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpalone%252Fi%252F10004886%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tymxo.kz1wadd6.g00tymxo.kz1wb04c%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpalone%252Fps02-4a%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpalone%252Fi%252F10004886%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/palone/cabinet/2024/ps02-4a_10.jpg?_ex=200x200",
+     "shop": "SHOPパルワン",
+     "pointRate": 3,
+     "pointEnd": "2026-11-13 23:59",
      "review": 0,
      "reviewCount": 0
     }
