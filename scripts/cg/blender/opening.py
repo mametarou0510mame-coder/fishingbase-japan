@@ -558,6 +558,23 @@ if M.LURE == "jig":
     jigob.rotation_mode = "QUATERNION"
     jigob.data.materials.append(mat("jig", b_jig))
     ahooks = [make_curve(f"ahook{i}", 5, 0.0009, hookm) for i in range(2)]
+    # 2026-11-13 オーナー指摘（実物の写真）：ジグのアイ → スプリットリング → ソリッドリング。アシストフックは
+    # ソリッドリングから短い糸（約3.5cm）＋赤い熱収縮チューブ＋針で垂れる
+    def _b_cord(nt, n, l):
+        q = principled(nt); q.inputs["Base Color"].default_value = (0.93, 0.91, 0.84, 1); q.inputs["Roughness"].default_value = 0.8
+
+    def _b_tube(nt, n, l):
+        q = principled(nt); q.inputs["Base Color"].default_value = (0.7, 0.05, 0.06, 1); q.inputs["Roughness"].default_value = 0.4
+    cordm, tubem = mat("cord", _b_cord), mat("tube", _b_tube)
+    acords = [make_curve(f"acord{i}", 3, 0.0007, cordm) for i in range(2)]
+    atubes = [make_curve(f"atube{i}", 2, 0.0019, tubem) for i in range(2)]
+    arings = []
+    for rr, rm in ((0.0045, 0.0006), (0.004, 0.0009)):  # スプリットリング・ソリッドリング
+        bpy.ops.mesh.primitive_torus_add(major_radius=rr, minor_radius=rm, major_segments=24, minor_segments=8)
+        o = bpy.context.object
+        o.rotation_mode = "QUATERNION"
+        o.data.materials.append(hookm)
+        arings.append(o)
 
 
 def place_jig(t):
@@ -571,16 +588,34 @@ def place_jig(t):
     if side.length < 1e-3:
         side = Vector((1, 0, 0))
     side.normalize()
+    # リング：頭の前にスプリットリング、その先にソリッドリング（道糸とアシストフックをつなぐ）
+    RS, RD = J - ax * 0.006, J - ax * 0.0125
+    arings[0].location = RS
+    arings[0].rotation_quaternion = Vector((0, 0, 1)).to_track_quat("Z", "Y")
+    arings[1].location = RD
+    arings[1].rotation_quaternion = side.to_track_quat("Z", "Y")
+    line.location = RD + Vector((0, 0, 6.0))
+    # 垂れる向き：真下 0.65 ＋ 尾の側 0.35（水に流される）
+    dn = (Vector((0, 0, -1)) * 0.65 + ax * 0.35).normalized()
+    back = (ax - dn * ax.dot(dn))
+    back = back.normalized() if back.length > 1e-4 else side
     for k, ob in enumerate(ahooks):
         sgn = -1 if k == 0 else 1
+        sw = side * (sgn * 0.002 + 0.003 * math.sin(2 * math.pi * 2.3 * t + k))
+        C0 = RD + dn * 0.003
+        C1 = RD + dn * 0.034 + sw
+        cp = acords[k].data.splines[0].bezier_points
+        for j, q in enumerate([C0, C0.lerp(C1, 0.5) + sw * 0.5, C1]):
+            cp[j].co = q
+        tp = atubes[k].data.splines[0].bezier_points
+        tp[0].co, tp[1].co = C1 - dn * 0.002, C1 + dn * 0.009
+        # 針：チューブの中から軸がまっすぐ下へ、曲がって針先が上を向く
+        S = C1 + dn * 0.006
+        f = back * sgn
+        shape = [S, S + dn * 0.018, S + dn * 0.025 + f * 0.004, S + dn * 0.021 + f * 0.0085, S + dn * 0.012 + f * 0.009]
         pts = ob.data.splines[0].bezier_points
-        # 短い糸（4cm）の先にハリ。水に流されて、ジグの横へ垂れる
-        dn = (Vector((0, 0, -1)) * 0.6 + ax * 0.4).normalized()
-        sw = 0.006 * math.sin(2 * math.pi * 2.3 * t + k)
-        shape = [dn * 0.0, dn * 0.02 + side * (sgn * 0.006 + sw), dn * 0.04 + side * (sgn * 0.01 + sw),
-                 dn * 0.052 + side * (sgn * 0.016 + sw), dn * 0.046 + side * (sgn * 0.021 + sw)]
         for j, bp in enumerate(pts):
-            bp.co = J + shape[j]
+            bp.co = shape[j]
 
 
 # カメラ（横から少し見上げる）。ピントは魚の口先

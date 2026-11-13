@@ -6855,17 +6855,27 @@ function makeJigReal(back, o = {}) {
     const pu = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), black); pu.scale.set(1, 1, 0.4); pu.position.set(0.012, 0.58 + hy, sd * 0.064 * (o.W ?? 1));
     g.add(e, pu);
   });
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.009, 8, 18), steel); ring.position.set(0, 0.86 + hy, 0); ring.rotation.y = Math.PI / 2;
-  const split = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.007, 8, 18), steel); split.position.set(0, 0.93 + hy, 0);
-  g.add(body, ring, split);
-  // アシストフック：リングから短い糸（約3cm）で2本、ジグの横に垂れる
+  // 2026-11-13 オーナー指摘（実物の写真）：ジグのアイにスプリットリング → ソリッドリング。道糸とアシストフックはソリッドリングにつなぐ。
+  // アシストフックは短い糸（約3.5cm）の先に赤い熱収縮チューブと針。ジグには固定せず、ソリッドリングから下へ垂れて揺れる（ftPut で毎コマ向きを決める）
+  const split = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.008, 8, 20), steel); split.position.set(0, 0.86 + hy, 0); split.rotation.y = Math.PI / 2;
+  const solid = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.011, 8, 18), steel); solid.position.set(0, 0.95 + hy, 0);
+  g.add(body, split, solid);
+  const hang = new THREE.Group(); // 原点＝ソリッドリング。-y が垂れる向き
+  hang.position.set(0, 0.95 + hy, 0);
+  const cordM = shadedMat(0xf2efe2, { rough: 0.8 }), tubeM = shadedMat(0xc8202a, { rough: 0.45 });
   [-1, 1].forEach((sd) => {
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.3, 6), shadedMat(0xe9e3c9, { rough: 0.7 }));
-    cord.position.set(sd * 0.03, 0.78 + hy, 0); cord.rotation.z = sd * 0.25;
-    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.009, 6, 18, Math.PI * 1.35), steel);
-    hook.position.set(sd * 0.075, 0.6 + hy, 0); hook.rotation.set(0, 0, sd > 0 ? -2.2 : 0.9);
-    g.add(cord, hook);
+    const a = new THREE.Group(); // 1本分（糸・チューブ・針）
+    a.position.set(sd * 0.012, 0, sd * 0.03);
+    a.rotation.z = sd * 0.1;
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.3, 6), cordM); cord.position.y = -0.15;
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.11, 10), tubeM); tube.position.y = -0.33;
+    const shank = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.26, 8), steel); shank.position.y = -0.47;
+    const bend = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.009, 8, 18, Math.PI), steel); bend.position.set(sd * 0.06, -0.6, 0); bend.rotation.z = Math.PI;
+    const pt = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.13, 8), steel); pt.position.set(sd * 0.12, -0.53, 0);
+    a.add(cord, tube, shank, bend, pt);
+    hang.add(a);
   });
+  g.add(hang);
   let blade = null;
   if (o.blade) {
     // 尾にスイベルとブレード（回って細かく光る）
@@ -6879,6 +6889,7 @@ function makeJigReal(back, o = {}) {
   const p = new THREE.Group();
   p.add(g);
   p.userData.blade = blade;
+  p.userData.hang = hang;
   world.add(p);
   extras.push(p);
   return p;
@@ -6955,7 +6966,15 @@ function ftHeroAt(i, hx, hy, ang, dz = -0.06) {
   m.rotation.set(0, 0, ang);
   return [hx, cy + Math.sin(ang) * len * 0.5];
 }
-function ftPut(obj, x, y, th, sc = 1, off = 0) { obj.visible = true; obj.position.copy(FTp(x + Math.cos(th) * off, y + Math.sin(th) * off, FT_LZ)); obj.rotation.set(0, 0, th); obj.scale.setScalar(sc); }
+function ftPut(obj, x, y, th, sc = 1, off = 0) {
+  obj.visible = true; obj.position.copy(FTp(x + Math.cos(th) * off, y + Math.sin(th) * off, FT_LZ)); obj.rotation.set(0, 0, th); obj.scale.setScalar(sc);
+  const h = obj.userData.hang;
+  if (h) {
+    // 垂れる向き＝真下 0.65 ＋ 尾の側 0.35（水に流される）。少し揺れる。h の親は -90° 回した形の組（頭が +x）
+    const dx = -0.35 * Math.cos(th), dy = -0.65 - 0.35 * Math.sin(th), aw = Math.atan2(dy, dx) + 0.12 * Math.sin((U.time?.value ?? 0) * 2.3);
+    h.rotation.z = aw + Math.PI - th;
+  }
+}
 let ftPend = [];
 function ftBase() { base(0); U.under.value = 0; ftGrp.visible = true; ftBand.visible = false; ftBoat.visible = true; ftPend = []; ftShadowN = 0; }
 // カメラを決めたあとに呼ぶ：糸・軌跡（画面の上に描く線）と影
@@ -7402,7 +7421,9 @@ Object.assign(SHOTS, {
 // 仕掛けの動きは ftSim の計算。潮の場面（ag_tide）だけは、沈む速さと流れの足し算の模式図（「模式図」と表示）
 // =====================================================================
 const AG_REP = FT_REP;
-const AG_SOFT = [{ jerk: 0.35, up: 0.6, down: 0.8, turn: 0.7 }, { free: 0.5 }, { wait: 0.3 }];
+// 2026-11-13 オーナー指摘：スロージギングでもリールは巻くので、ジグはゆっくり上がっていく（その場で上下するだけではない）。
+// 1回しゃくるごとにハンドル1.5回転、短いフォール。計算では12秒で約3.5m上がる（強くしゃくる ag_hard は約6秒で約8m）
+const AG_SOFT = [{ jerk: 0.35, up: 0.6, down: 0.8, turn: 1.5 }, { free: 0.35 }, { wait: 0.3 }];
 Object.assign(FT_SEQ, {
   // 落とす → 着底 → 底から約6m巻き上げる → ゆったりしゃくる
   ag_main: { body: "jigC", opt: { y0: -55, th0: 1.5 }, seq: [{ free: 7 }, { wait: 0.6 }, { reel: 9, dur: 3.2 }, { wait: 0.6 }, ...AG_REP(8, AG_SOFT)] },
