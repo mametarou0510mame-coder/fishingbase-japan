@@ -3,12 +3,12 @@ name: SNS reels
 # 1日4回のリール投稿（Instagram／YouTube）。動画は投稿の約20分前に作り始め、時間ちょうどに投稿する。
 #   06:00 今日の釣れる時間（spots） 12:00 釣り方ガイド（guide） 18:00 お得情報・PR（deals） 00:00 釣りの豆知識（trivia）
 #   20:00 明日の釣れる時間（tomorrow）、金曜は週末の釣れる時間（weekend）
+# 18:00 お得情報（deals）の定期投稿は 2026-11-14 オーナー判断で停止（手動の workflow_dispatch では作れる）。
 # 定期投稿は data/sns/video-posts.json の enabled が true の時だけ。
 on:
   schedule:
     - cron: "40 20 * * *" # 05:40 JST → 06:00 spots
     - cron: "40 2 * * *" # 11:40 JST → 12:00 guide
-    - cron: "40 8 * * *" # 17:40 JST → 18:00 deals
     - cron: "40 14 * * *" # 23:40 JST → 00:00 trivia
     - cron: "40 10 * * *" # 19:40 JST → 20:00 明日の釣れる時間（金曜は週末の釣れる時間）
   workflow_dispatch:
@@ -59,7 +59,6 @@ jobs:
             case "${{ github.event.schedule }}" in
               "40 20 * * *") SLOT=spots ;;
               "40 2 * * *") SLOT=guide ;;
-              "40 8 * * *") SLOT=deals ;;
               "40 14 * * *") SLOT=trivia ;;
               "40 10 * * *") [ "$(TZ=Asia/Tokyo date +%u)" = 5 ] && SLOT=weekend || SLOT=tomorrow ;;
             esac
