@@ -2,6 +2,62 @@
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
   {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "niigata-higashiko-dai2-higashi-bohatei",
+   "text": "新潟東港 第2東防波堤（新潟県聖籠町）を掲載しました。有料の管理釣り場で、ライフジャケットの着用が必要です。2026年の開放は11月15日まで延長されています。",
+   "source": "https://www.niigata-kankou.or.jp/spot/detail_11907.html"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "niigata-nishikaigan-tottei",
+   "text": "新潟港海岸（西海岸地区）の第1〜4突堤（新潟市中央区）を掲載しました。新潟県が魚釣りに利用できる施設として案内しています。",
+   "source": "https://www.pref.niigata.lg.jp/sec/niigata_kouwan/1356894878931.html"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "onahama-2go-futo",
+   "text": "小名浜港 2号埠頭先端部（福島県いわき市）を掲載しました。20m以上の投げ釣りは禁止です。",
+   "source": "https://www.pref.fukushima.lg.jp/sec/41400a/turieriamap.html"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "iwaki-sun-marina-tsuri-sanbashi",
+   "text": "いわきサンマリーナの釣り桟橋（福島県いわき市）を掲載しました。夜は閉鎖されます。",
+   "source": "https://www.pref.fukushima.lg.jp/sec/41400a/turieriamap.html"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "atami-umizuri-shisetsu",
+   "text": "熱海港海釣り施設（静岡県熱海市）を掲載しました。熱海港のほかの岸壁・物揚場では釣りが禁止されています。",
+   "source": "https://www.pref.shizuoka.jp/machizukuri/dobokujimusho/atamidoboku/1047126/1047133.html"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "tateyama-yuhi-sanbashi",
+   "text": "館山港の多目的桟橋（館山夕日桟橋、千葉県館山市）を掲載しました。2号防波堤はまだ開放されていません。",
+   "source": "https://www.pref.chiba.lg.jp/kouwan/press/2024/documents/press-r6tsuribunka.pdf"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "ganryujima",
+   "text": "巌流島（山口県下関市）を掲載しました。連絡船で渡り、島の釣りデッキで釣りができます。",
+   "source": "https://yamaguchi-tourism.jp/spot/detail_10426.html"
+  },
+  {
+   "date": "2026-11-13",
+   "kind": "新規掲載",
+   "spot": "aokata-ko-tsuri",
+   "text": "青方港の釣り（長崎県新上五島町）を掲載しました。4〜11月の予約制で、船で沖の防波堤に渡ります。",
+   "source": "https://www.discover-nagasaki.com/en/sightseeing/101516"
+  },
+  {
    "date": "2026-11-06",
    "kind": "新規掲載",
    "spot": "yokosuka-umibe-tsuri-koen",

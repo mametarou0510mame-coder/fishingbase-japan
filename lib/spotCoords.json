@@ -450,5 +450,29 @@
   "address": "長崎県長崎市高島町1726",
   "matched": "長崎県長崎市高島町",
   "rough": false
+ },
+ "ganryujima": {
+  "lat": 33.9553,
+  "lon": 130.9297,
+  "manual": true,
+  "rough": true
+ },
+ "aokata-ko-tsuri": {
+  "lat": 32.9823,
+  "lon": 129.0548,
+  "manual": true,
+  "rough": false
+ },
+ "niigata-higashiko-dai2-higashi-bohatei": {
+  "lat": 38.0005,
+  "lon": 139.2395,
+  "manual": true,
+  "rough": true
+ },
+ "tateyama-yuhi-sanbashi": {
+  "lat": 34.9905,
+  "lon": 139.8435,
+  "manual": true,
+  "rough": true
  }
 }

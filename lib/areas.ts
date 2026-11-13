@@ -85,16 +85,16 @@ export const AREAS: Area[] = [
   },
   {
     slug: "shizuoka",
-    name: "静岡・駿河湾",
-    region: "静岡市清水区",
-    spots: ["shimizuko-umizuri-koen"],
-    intro: "駿河湾に面した中部のエリアです。2026年4月に、清水港に新しい海づり施設ができました。",
+    name: "静岡（駿河湾・熱海）",
+    region: "静岡市清水区・熱海市",
+    spots: ["shimizuko-umizuri-koen", "atami-umizuri-shisetsu"],
+    intro: "駿河湾と相模湾に面した静岡のエリアです。2026年4月に清水港に新しい海づり施設ができ、熱海港には一年中開いている海釣り施設があります。",
   },
   {
     slug: "yamaguchi-kitakyushu",
     name: "山口・北九州",
-    region: "山口県光市・福岡県北九州市",
-    spots: ["fishing-park-hikari", "wakita-umizuri-sanbashi"],
+    region: "山口県光市・下関市・福岡県北九州市",
+    spots: ["fishing-park-hikari", "ganryujima", "wakita-umizuri-sanbashi"],
     intro: "瀬戸内海の西の端と、響灘に面したエリアです。桟橋型の海釣り施設で、手ぶらでも釣りを始められます。",
   },
   {
@@ -114,8 +114,8 @@ export const AREAS: Area[] = [
   {
     slug: "tohoku",
     name: "東北（青森・福島）",
-    region: "青森市浅虫・福島県新地町",
-    spots: ["asamushi-umizuri-koen", "shinchi-umitsuri-koen"],
+    region: "青森市浅虫・福島県新地町・いわき市小名浜",
+    spots: ["asamushi-umizuri-koen", "shinchi-umitsuri-koen", "onahama-2go-futo", "iwaki-sun-marina-tsuri-sanbashi"],
     intro: "陸奥湾と福島の浜通りのエリアです。冬は休む施設もあるので、営業期間を確かめてから出かけましょう。",
   },
   {
@@ -142,9 +142,23 @@ export const AREAS: Area[] = [
   {
     slug: "nagasaki",
     name: "長崎",
-    region: "長崎市高島町",
-    spots: ["takashima-tobishima-isotsuri-koen"],
-    intro: "長崎港の沖、外海に面したエリアです。島の磯を整備した釣り公園があります。",
+    region: "長崎市高島町・新上五島町",
+    spots: ["takashima-tobishima-isotsuri-koen", "aokata-ko-tsuri"],
+    intro: "長崎港の沖と五島列島の、外海に面したエリアです。島の磯を整備した釣り公園や、漁協が案内する沖の防波堤の釣りがあります。",
+  },
+  {
+    slug: "niigata",
+    name: "新潟",
+    region: "新潟市・聖籠町",
+    spots: ["niigata-higashiko-dai2-higashi-bohatei", "niigata-nishikaigan-tottei"],
+    intro: "日本海に面した新潟のエリアです。新潟東港の防波堤が春から秋に管理釣り場として開放され、新潟西港の西側には突堤が並びます。",
+  },
+  {
+    slug: "chiba-boso",
+    name: "千葉・南房総",
+    region: "館山市",
+    spots: ["tateyama-yuhi-sanbashi"],
+    intro: "房総半島の南、館山湾のエリアです。館山港の長い桟橋が、無料の釣り場として開放されています。",
   },
 ];
 

@@ -46,6 +46,13 @@
 | 2026-11-06 | 苫小牧港海釣り施設「一本防波堤」（公式 https://ippon-b.com/ 。basic。運営は一社 苫小牧港釣り文化振興協会。地図は手入力の概略位置） |
 | 2026-11-06 | 観音東防波堤（広島県 https://www.pref.hiroshima.lg.jp/soshiki/221/park-park03.html 2024-12-17掲載。full） |
 | 2026-11-06 | 高島飛島磯釣り公園（長崎市の公式観光サイト https://www.at-nagasaki.jp/spot/399 。full） |
+| 2026-11-13 | 新潟東港 第2東防波堤（新潟県観光協会 https://www.niigata-kankou.or.jp/spot/detail_11907.html ・新潟県 新発田地域振興局 fishing.html。basic：料金は確認、時間は月ごと。2026年は11/15まで延長。地図は手入力の概略位置） |
+| 2026-11-13 | 新潟港海岸（西海岸地区）第1〜4突堤（新潟県新潟港湾事務所 https://www.pref.niigata.lg.jp/sec/niigata_kouwan/1356894878931.html 2022-07-25更新。basic） |
+| 2026-11-13 | 小名浜港 2号埠頭先端部・いわきサンマリーナ釣り桟橋（福島県「小名浜港釣りエリアマップ」 https://www.pref.fukushima.lg.jp/sec/41400a/turieriamap.html 2026-05-19更新。basic） |
+| 2026-11-13 | 熱海港海釣り施設（静岡県熱海土木事務所 https://www.pref.shizuoka.jp/machizukuri/dobokujimusho/atamidoboku/1047126/1047133.html 2023-01-13更新。時間・料金は国交省「釣り文化の振興に関する事例集2025」 https://www.mlit.go.jp/kowan/content/002026827.pdf 。basic） |
+| 2026-11-13 | 館山港 多目的桟橋（館山夕日桟橋）（千葉県港湾課 報道資料 2024-09-10 https://www.pref.chiba.lg.jp/kouwan/press/2024/documents/press-r6tsuribunka.pdf 。basic。地図は手入力の概略位置） |
+| 2026-11-13 | 巌流島（釣りデッキ）（山口県観光連盟 https://yamaguchi-tourism.jp/spot/detail_10426.html ・九州地方整備局 turi_ganryujima.pdf。basic。地図は手入力の概略位置） |
+| 2026-11-13 | 青方港の釣り（桟橋・沖の防波堤）（長崎県・県観光連盟「Discover Nagasaki」 https://www.discover-nagasaki.com/en/sightseeing/101516 。full。4〜11月・予約制） |
 
 ## オーナー承認待ちの公式URL（チャットに貼ってもらう）
 
@@ -69,6 +76,9 @@
 | 日本釣振興会「海釣り施設一覧」（全国の候補を拾うため） | 全国 | https://www.jsafishing.or.jp/海釣り施設一覧 （2026-10-30 サイト側のエラーで読めず） |
 | 鹿島港魚釣園の公式サイト（最新の料金・お知らせを確かめるため） | 茨城・鹿嶋市、海釣り施設 | https://kashima-fa.com/ （2026-11-06 承認待ちで時間切れ） |
 | 新地町海釣り公園の料金改定ページ（料金を full にするため） | 福島・新地町、海釣り施設 | https://www.shinchi-town.jp/soshiki/8/shinchimachi-tsurikouen-kaitei.html （2026-11-06 サイト側のエラーで読めず） |
+| 熱海港海釣り施設の案内PDF（画像のPDFで文字が読めない。最新の時間・料金を確かめて full にするため。熱海市の施設ページがあれば、そのURLでも可） | 静岡・熱海市、海釣り施設 | https://www.pref.shizuoka.jp/_res/projects/default_project/_page_/001/047/133/umiduri.pdf （2026-11-13） |
+| 国交省「釣り文化振興モデル港ガイドブック（令和8年5月版）」（全国21港の釣り場の時間・料金をまとめて確かめるため） | 全国 | https://www.mlit.go.jp/kowan/content/002026805.pdf （2026-11-13 サイト側のエラーで読めず） |
+| 気象庁の予報区コード表（2026-11-13 に足した5区域：新潟県下越150010・静岡県伊豆220020・千葉県南部120030・山口県西部350010・長崎県五島420040 を確かめるため） | 全国 | https://www.jma.go.jp/bosai/common/const/area.json （2026-11-13） |
 | 気象庁の予報区コード表（2026-11-06 に足した7区域：茨城県南部080020・青森県津軽020010・愛知県西部230010・福島県浜通り070020・北海道胆振地方015010・広島県南部340010・長崎県南部420010 を確かめるため。天気の自動取得で7区域とも取得できたことは確認済み） | 全国 | https://www.jma.go.jp/bosai/common/const/area.json （2026-11-06 も承認待ちで時間切れ） |
 
 robots.txt の確認結果（2026-10-20、オーナー承認後）:
@@ -90,7 +100,7 @@ robots.txt の確認結果（2026-10-20、オーナー承認後）:
 | 施設 | 府県・種類 | 公式URL |
 |---|---|---|
 | （解決済み）海上釣り堀 海釣ぽーと田尻・岬 | 大阪 | 大阪府のページ（2026-09-15更新）に載っていたため、2026-10-26 に basic で掲載 |
-| 国の「港湾における釣り施設一覧（令和7年3月時点）」 | 全国（関西の港の釣り施設を拾うため） | https://www.mlit.go.jp/kowan/content/001758857.pdf （国交省 https://www.mlit.go.jp/kowan/kowan_tk6_000032.html からのリンク。2026-10-26・10-27 とも読み込みエラー。オーナーにURLを貼ってもらえれば再確認） |
+| 国の「港湾における釣り施設一覧（令和7年3月時点）」 | 全国（関西の港の釣り施設を拾うため） | https://www.mlit.go.jp/kowan/content/001758857.pdf （国交省 https://www.mlit.go.jp/kowan/kowan_tk6_000032.html からのリンク。2026-10-26・10-27 とも読み込みエラー。2026-11-13：令和8年3月時点版 002026808.pdf は読めたが、港ごとの一覧はなく概要のみ。事例集2025で21港の内容を確認し、全国の候補表に反映） |
 
 ## 全国の候補（2026-10-30 初回調査）
 
@@ -110,15 +120,24 @@ robots.txt の確認結果（2026-10-20、オーナー承認後）:
 | 関東 | 茨城 | 鹿島港魚釣園（鹿嶋市） | https://city.kashima.ibaraki.jp/site/kankou/52891.html | 掲載済み（2026-11-06） |
 | 関東 | 茨城 | 大洗・日立の港の釣り施設 | 未発見 | 確認中 |
 | 中部 | 静岡 | 清水港海づり公園（静岡市） | https://www.city.shizuoka.lg.jp/s7524/s013047.html | 掲載済み（2026-10-30） |
+| 中部 | 静岡 | 熱海港海釣り施設（熱海市） | https://www.pref.shizuoka.jp/machizukuri/dobokujimusho/atamidoboku/1047126/1047133.html | 掲載済み（2026-11-13、basic） |
+| 関東 | 千葉 | 館山港 多目的桟橋（館山夕日桟橋） | https://www.pref.chiba.lg.jp/kouwan/press/2024/documents/press-r6tsuribunka.pdf | 掲載済み（2026-11-13、basic）。2号防波堤は未開放 |
 | 中部 | 愛知 | 碧南釣り広場（碧南市） | https://nishimikawanavi.jp/spots/detail/579/ | 掲載済み（2026-11-06、basic） |
 | 中部北陸 | 石川 | 能登島臨海公園の海づり公園（七尾市） | 未発見 | 保留（令和6年能登半島地震の影響を公式で確かめてから） |
-| 中部北陸 | 新潟・富山・福井 | 公共の海釣り施設 | 未発見 | 確認中 |
+| 中部北陸 | 新潟 | 新潟東港 第2東防波堤（聖籠町） | https://www.niigata-kankou.or.jp/spot/detail_11907.html | 掲載済み（2026-11-13、basic） |
+| 中部北陸 | 新潟 | 新潟港海岸（西海岸地区）第1〜4突堤 | https://www.pref.niigata.lg.jp/sec/niigata_kouwan/1356894878931.html | 掲載済み（2026-11-13、basic） |
+| 中部北陸 | 新潟 | 直江津港 第3東防波堤（上越市、NPO法人ハッピーフィッシング） | 県のページ https://www.pref.niigata.lg.jp/sec/jouetsu_kikaku/1356891222364.html は2019年更新で料金・期間なし | 確認中（今年の開放の公式情報を探す） |
+| 中部北陸 | 新潟 | 姫津漁港 西防波堤（佐渡市、5〜10月）・出雲崎漁港 離岸堤（4〜11月） | https://www.pref.niigata.lg.jp/sec/gyoko/kaihouturiba.html （2022-12-05更新） | 確認中（更新が古いので、市町のページで今も開放か確かめる） |
+| 中部北陸 | 富山・福井 | 公共の海釣り施設 | 未発見 | 確認中 |
+| 東北 | 福島 | 小名浜港 2号埠頭先端部・いわきサンマリーナ釣り桟橋 | https://www.pref.fukushima.lg.jp/sec/41400a/turieriamap.html | 掲載済み（2026-11-13、basic） |
+| 東北 | 秋田 | 秋田港外港地区 北防波堤（土日祝・4〜11月、有料） | 2020年の記者発表 https://www.pa.thr.mlit.go.jp/akita/100/CONT000000000000006267.pdf と国交省事例集2025のみ | 確認中（今年の開放・料金の公式ページを探す） |
 | 東北 | 福島 | 新地町海釣り公園（相馬港5号ふ頭防波堤） | https://www.fukushima-dc-cp.jp/spot/新地町海釣り公園/ | 掲載済み（2026-11-06、basic） |
 | 東北 | 青森 | 浅虫海づり公園（青森市） | https://www.city.aomori.aomori.jp/sangyo_koyou/nourinsuisangyou/1004278/1004288.html | 掲載済み（2026-11-06） |
 | 東北 | 宮城・岩手 | 公共の海釣り施設 | 未発見 | 確認中 |
 | 北海道 | 北海道 | 苫小牧港海釣り施設「一本防波堤」 | https://ippon-b.com/ | 掲載済み（2026-11-06、basic） |
 | 北海道 | 北海道 | ほかの公共の海釣り施設 | 未発見 | 確認中 |
 | 中国 | 山口 | フィッシングパーク光（光市） | https://www.city.hikari.lg.jp/kanko_bunka/fishingpark/index.html | 掲載済み（2026-10-30。公式ページは承認待ち） |
+| 中国 | 山口 | 巌流島（下関市） | https://yamaguchi-tourism.jp/spot/detail_10426.html | 掲載済み（2026-11-13、basic） |
 | 中国 | 広島 | 観音東防波堤（広島県） | https://www.pref.hiroshima.lg.jp/soshiki/221/park-park03.html | 掲載済み（2026-11-06） |
 | 中国 | 岡山・鳥取・島根 | 公共の海釣り施設 | 未発見 | 確認中 |
 | 四国 | 香川 | 直島つり公園（直島町） | 未確認（JAPAN 47 GO に掲載。町・観光協会のページを探す） | 確認中 |
@@ -129,9 +148,14 @@ robots.txt の確認結果（2026-10-20、オーナー承認後）:
 | 九州 | 鹿児島 | 鴨池海づり公園（鹿児島市） | https://www.city.kagoshima.lg.jp/seisanryutu/shisetsu/kanko/017.html | 掲載済み（2026-10-30、basic） |
 | 九州 | 鹿児島 | 桜島海づり公園（鹿児島市） | https://www.city.kagoshima.lg.jp/seisanryutu/shisetsu/kanko/018.html | 掲載済み（2026-10-30、basic） |
 | 九州 | 長崎 | 高島飛島磯釣り公園（長崎市） | https://www.at-nagasaki.jp/spot/399 | 掲載済み（2026-11-06） |
+| 九州 | 長崎 | 青方港の釣り（新上五島町） | https://www.discover-nagasaki.com/en/sightseeing/101516 | 掲載済み（2026-11-13） |
+| 九州 | 大分 | 別府国際観光港・餅ヶ浜桟橋（別府市、8:00〜17:00無料） | 国交省事例集2025のみ | 確認中（別府市のページを探す） |
+| 九州 | 福岡 | 北九州港 大里第2物揚場（北九州市、無料・365日） | 国交省事例集2025のみ | 確認中（北九州市のページを探す） |
+| 北海道・福岡・長崎・鹿児島・高知 | 室蘭港・江差港・芦屋港・比田勝港・志布志港・高知港 | 国の「釣り文化振興モデル港」 | https://www.mlit.go.jp/kowan/kowan_tk6_000032.html | 保留（国交省事例集2025で未開放・試行・イベントのみ。開放が公式で確かめられたら載せる） |
 | 九州 | 熊本・大分・宮崎 | 公共の海釣り施設 | 未発見 | 確認中 |
 | 沖縄 | 沖縄 | 公共の海釣り施設 | 未発見 | 確認中 |
 
+メモ（2026-11-13）：国交省の「港湾における釣り施設一覧」は令和8年3月時点版 https://www.mlit.go.jp/kowan/content/002026808.pdf に更新（全国59港、うち釣り専用の桟橋は9港）。PDFは概要のみで港ごとの一覧は読めない。各港の時間・料金は「事例集2025」https://www.mlit.go.jp/kowan/content/002026827.pdf にあるが、時点が古いので掲載時は自治体・観光協会のページでも確かめる。
 メモ：静岡市の旧「清水港海づり公園」（袖師）は2011年に廃止。今の施設は興津の新しいもの。
 メモ（2026-11-06）：広島市の観音マリーナ海浜公園そのものは釣り禁止（広島県）。釣りは隣の観音東防波堤だけ。
 メモ（2026-11-06）：浅虫（4/29〜10/12）・一本防波堤（4〜10月の土日祝）は季節営業。冬の間も掲載は続け、営業期間を表示している。
