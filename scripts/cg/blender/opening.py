@@ -553,7 +553,8 @@ if M.LURE == "jig":
     jigob = bpy.context.object
     bpy.ops.object.shade_smooth()
     # 頭から尾が -Z。頭を原点に：長さ JIG_LEN、幅 2.6cm、厚み 1.4cm
-    jigob.data.transform(__import__("mathutils").Matrix.Diagonal((0.012, 0.007, M.JIG_LEN / 2, 1.0)))
+    JW = getattr(M, "JIG_W", 1.0)   # 小さいジグは幅と厚みも細く（ふだんは 1）
+    jigob.data.transform(__import__("mathutils").Matrix.Diagonal((0.012 * JW, 0.007 * JW, M.JIG_LEN / 2, 1.0)))
     jigob.data.transform(__import__("mathutils").Matrix.Translation((0, 0, -M.JIG_LEN / 2)))
     jigob.rotation_mode = "QUATERNION"
     jigob.data.materials.append(mat("jig", b_jig))
@@ -582,7 +583,14 @@ def place_jig(t):
     ax = M.lure_axis(t)
     jigob.location = J
     jigob.rotation_quaternion = (-ax).to_track_quat("Z", "Y")
-    line.location = J + Vector((0, 0, 6.0))
+    ld = getattr(M, "LINE_DIR", None)   # 糸の向き（サーフは岸の竿先へ、ほぼ横）。ふだんは真上
+    if ld:
+        ld = Vector(ld).normalized()
+        line.rotation_mode = "QUATERNION"
+        line.rotation_quaternion = ld.to_track_quat("Z", "Y")
+        line.location = J + ld * 6.0
+    else:
+        line.location = J + Vector((0, 0, 6.0))
     line.scale = (1, 1, 12.0)
     side = ax.cross(Vector((0, 0, 1)))
     if side.length < 1e-3:

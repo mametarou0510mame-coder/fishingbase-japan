@@ -6563,10 +6563,11 @@ function ftControl(seq) {
   return f;
 }
 function ftSim(b, ctl, opt = {}) {
-  const dt = 1 / 2000, dur = opt.dur ?? ctl.dur, N = Math.round(dur / dt), BOT = opt.bot ?? -70, tip0 = 2, REC = 20;
-  let x = 0, y = opt.y0 ?? -60, vx = 0, vy = 0, th = opt.th0 ?? 0, om = opt.om0 ?? 0;
+  // opt.x0：はじめの横の位置（竿先が x=0）、opt.tip0：竿先の高さ、opt.botf(x)：場所で変わる海底の高さ（サーフのかけあがりなど）。ふだんは平らな海底
+  const dt = 1 / 2000, dur = opt.dur ?? ctl.dur, N = Math.round(dur / dt), BOT0 = opt.bot ?? -70, tip0 = opt.tip0 ?? 2, REC = 20, botf = opt.botf;
+  let x = opt.x0 ?? 0, y = opt.y0 ?? -60, vx = 0, vy = 0, th = opt.th0 ?? 0, om = opt.om0 ?? 0;
   const eye0 = b.eye[0] * Math.sin(th) + b.eye[1] * Math.cos(th);
-  let L = tip0 - (y + eye0); L -= b.W * L / FT_EA;
+  let L = Math.hypot(x, tip0 - (y + eye0)); L -= b.W * L / FT_EA;
   let Lbase = L, reelBase = 0, wasFree = false, prevReel = 0, prevTip = 0, landed = -1;
   const mt = b.m + (b.ma ?? 0), out = [];
   for (let i = 0; i <= N; i++) {
@@ -6605,7 +6606,9 @@ function ftSim(b, ctl, opt = {}) {
     vx += Fx / mt * dt; vy += Fy / mt * dt; om += tau / b.I * dt;
     x += vx * dt; y += vy * dt; th += om * dt;
     const low = y - Math.abs(Math.sin(th)) * b.len / 2 - b.r;
-    if (low < BOT) { y += BOT - low; if (vy < 0) vy = 0; vx *= 0.97; om *= 0.9; if (landed < 0) landed = t; }
+    if (opt.top != null && y > opt.top) { y = opt.top; if (vy > 0) vy = 0; } // 水面より上には出さない（opt.top。ふだんは使わない）
+    const BOT = botf ? botf(x) : BOT0;
+    if (low < BOT) { y += BOT - low; if (vy < 0) vy = 0; vx *= opt.fric ?? 0.97; om *= 0.9; if (landed < 0) landed = t; }
   }
   return { rec: out, hz: 2000 / REC, dur, landed, at(t) { const u = Math.max(0, Math.min(out.length - 1.001, t * this.hz)), i = Math.floor(u), f = u - i, a = out[i], q = out[i + 1]; return a.map((v, k) => v + (q[k] - v) * f); } };
 }
@@ -7834,7 +7837,7 @@ const FK = { ok: false, mod: null, pool: {} };
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }
@@ -8170,6 +8173,474 @@ Object.assign(SHOTS, {
     rows.forEach(([a1, b1, c1, col], i) => {
       const a = fadeIn(t, 0.4 + i * 0.45);
       html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 34 : 38}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 38 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
+// =====================================================================
+// サーフ、どこに投げる？（cg-surf、sf_*）2026-11-13 見える化。ft_*（船のタチウオ）の作り（ftSim・Fish Kit・魚を埋めない確認）を基準にする
+// 参考：Honda釣り倶楽部「ヒラメ釣り徹底攻略」2022年11月（STEP1：ブレイクライン＝浅い所から深くなる所、白い波は沖に瀬がある目印、
+//   離岸流＝打ち寄せた波が集まって沖へ戻る流れで底が掘られて深い・小魚とそれを狙う魚が集まる・波が崩れる所にはさまれた静かで細い筋、
+//   まずめ（朝がいちばん）・潮が動く時間・大潮前後、濁り・強い向かい風・高波は不向き／STEP2：波打ち際から数m離れて立つ、離岸流の所は引き波が強いので海に入らない
+//   ／STEP3：ストップ＆ゴー＝底まで沈めて5〜7回巻いて1秒止める、1秒に2〜3回転、ヒラメは底より少し上、マゴチは底をはわせる／4〜6月・10〜12月がハイシーズン）
+//   TSURI HACK「サーフのポイント見極め術」（離岸流は流れの真ん中ではなく、わきから探る）、ダイワ（離岸流は溝が掘れている、カケアガリと並ぶ一級ポイント）
+//   海上保安庁（離岸流：幅10〜30m、速さ最大で秒速2m程度、流されたら慌てず助けを求め、岸と平行に泳ぐ、自信がなければ浮くことに専念）
+// 地形・流れは模式図（場所・日で変わる）。ジグの動きは ftSim の計算（botf で場所で変わる海底を入れる）。マゴチの動きはイメージ
+// =====================================================================
+const SF_SY = 2.5; // 断面では深さを2.5倍に強調（水より上はそのまま）
+const sfSm = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+// 海底の高さ（実際の m）。u：波打ち際から沖へ、w：岸に沿った向き（w=0 が離岸流の溝）。w を省くと、瀬のある所の断面
+function sfBed(u, w = 99) {
+  if (u < 0) return -0.06 * u;
+  const base = -0.045 * u - 4.5 * sfSm((u - 50) / 18) - 0.012 * Math.max(0, u - 68);
+  const bar = 1.6 * Math.exp(-(((u - 44) / 6) ** 2)) - 0.5 * Math.exp(-(((u - 32) / 5) ** 2));
+  const g = 1 - Math.exp(-((w / 13) ** 2));
+  return base + g * bar - (1 - g) * 0.9 * Math.exp(-(((u - 40) / 14) ** 2)) * sfSm(u / 6);
+}
+const sfDy = (y) => (y > 0 ? y : y * SF_SY);
+// ---- 断面（横から） ----
+const SF = V(0, 0, -3400);
+const SFd = (u, yd, z = 0) => V(SF.x + u, SF.y + yd, SF.z + z); // 画面の座標（yd は強調ずみ）
+const SFp = (u, y, z = 0) => SFd(u, sfDy(y), z); // 実際の高さ y から
+const SF_LZ = 1.5; // ジグと魚を置く奥行き
+const sfGrp = new THREE.Group();
+sfGrp.position.copy(SF);
+world.add(sfGrp);
+extras.push(sfGrp);
+{
+  // 奥の壁：空と、深さで色が変わる水
+  const wallM = new THREE.Mesh(new THREE.PlaneGeometry(600, 300).translate(40, -60, 0), new THREE.ShaderMaterial({
+    uniforms: { time: U.time },
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL;
+      void main(){ vec2 p = vL.xy; float surf = 0.12*sin(p.x*0.5+time*1.2); vec3 c;
+        if (p.y > surf) c = mix(vec3(0.80,0.91,0.98), vec3(0.50,0.74,0.94), smoothstep(0.0, 40.0, p.y));
+        else { float d = clamp(-p.y/26.0, 0.0, 1.0); c = mix(vec3(0.42,0.80,0.88), vec3(0.12,0.42,0.62), pow(d, 0.8));
+          float ray = smoothstep(0.55, 1.0, sin(p.x*0.25 + p.y*0.08 + time*0.15)*sin(p.x*0.07 - time*0.05 + 1.0)); c += vec3(0.08,0.10,0.08)*ray*(1.0-d);
+          c = mix(c, vec3(0.93,0.98,1.0), 0.5*smoothstep(0.6, 0.0, surf - p.y)); }
+        gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  wallM.position.z = -10;
+  // 砂の断面：上の面（u × 奥行き）と手前の切り口
+  const pos = [], idx = [], nrm = [], U0 = -30, U1 = 140, du = 0.5, n = Math.round((U1 - U0) / du), Z0 = -10, Z1 = 5, BOT = -34;
+  for (let i = 0; i <= n; i++) { const u = U0 + i * du, y = sfDy(sfBed(u)); pos.push(u, y, Z0, u, y, Z1, u, y, Z1, u, BOT, Z1); nrm.push(0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1); }
+  for (let i = 0; i < n; i++) { const a = i * 4, b = a + 4; idx.push(a, a + 1, b, b, a + 1, b + 1, a + 2, a + 3, b + 2, b + 2, a + 3, b + 3); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("normal", new THREE.Float32BufferAttribute(nrm, 3));
+  g.setIndex(idx);
+  const bed = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      void main(){ vec3 c;
+        if (vN.y > 0.5) { float nn = hash(floor(vL.xz*6.0)); float rip = 0.5+0.5*sin(vL.x*3.1 + sin(vL.z*1.3)*1.4);
+          c = vec3(0.86,0.79,0.62)*(0.82+0.10*nn+0.10*rip); if (vL.y > 0.15) c = mix(c, vec3(0.93,0.88,0.74), 0.6); c *= 0.80 + 0.20*smoothstep(-10.0, 5.0, vL.z); }
+        else { c = mix(vec3(0.55,0.47,0.34), vec3(0.70,0.62,0.46), 0.5+0.5*sin(vL.y*1.2+sin(vL.x*0.15)*1.5)); c *= 0.9 + 0.1*smoothstep(-34.0, 0.0, vL.y); }
+        gl_FragColor = vec4(c,1.); }`,
+  }));
+  // 海面（u>=0 だけ）。白い波（瀬の上と波打ち際）は surfFoam で別に描く
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(140, 15).rotateX(-Math.PI / 2).translate(70, 0.02, -2.5), new THREE.ShaderMaterial({
+    uniforms: { time: U.time }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL;
+      float foamAt(float u){ return smoothstep(37.0, 41.0, u)*smoothstep(50.0, 46.0, u) + smoothstep(6.0, 1.0, u); }
+      void main(){ float w = pow(abs(sin(vL.x*1.1+time)*sin(vL.z*1.5-time*0.8)), 4.0);
+        float f = foamAt(vL.x) * (0.55 + 0.45*smoothstep(0.2, 0.9, sin(vL.x*0.9 + time*2.2 + sin(vL.z*0.7)*1.5)));
+        vec3 c = mix(vec3(0.18,0.55,0.74), vec3(0.85,0.96,1.0), w*0.5);
+        if (gl_FrontFacing) gl_FragColor = vec4(mix(c, vec3(1.0), f*0.9), 0.9);
+        else gl_FragColor = vec4(mix(vec3(0.85,0.97,1.0), vec3(1.0), f), 0.25 + 0.3*w + 0.5*f); }`,
+  }));
+  top.renderOrder = 9;
+  sfGrp.add(wallM, bed, top);
+}
+// 断面の白波（瀬の上と波打ち際。泡の粒がふくらんだり縮んだりする）
+const sfFoam = (() => {
+  const g = new THREE.Group(), r = rng(1313), mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+  for (let i = 0; i < 70; i++) {
+    const shore = i < 22, u = shore ? r() * 4.5 : 38 + r() * 11, m = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), mat);
+    m.position.set(u, 0.12, -8 + r() * 13); m.userData = { s: 0.6 + r() * 0.8, ph: r() * 6.28 };
+    g.add(m);
+  }
+  sfGrp.add(g);
+  return g;
+})();
+function sfFoamUpdate(T) { sfFoam.children.forEach((m) => { const k = 0.6 + 0.4 * Math.sin(T * 1.7 + m.userData.ph); m.scale.set(m.userData.s * 1.8 * k, m.userData.s * 0.55 * k, m.userData.s * k); }); }
+// 砂の上の影（魚が底から浮いているのがわかるように）
+const sfShadow = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x2a2416, transparent: true, opacity: 0.25, depthWrite: false }), 12);
+sfShadow.frustumCulled = false;
+sfShadow.renderOrder = 6;
+world.add(sfShadow);
+extras.push(sfShadow);
+let sfShadowN = 0;
+function sfShade(u, z, h, len) {
+  if (sfShadowN >= 12) return;
+  const k = clamp01(1.25 - h / 3);
+  _p.copy(SFd(u, sfDy(sfBed(u)) + 0.03, z)); _q.identity(); _s.set(0.34 * len * k, 1, 0.13 * len * k);
+  _m.compose(_p, _q, _s);
+  sfShadow.setMatrixAt(sfShadowN++, _m);
+}
+// 釣り人（砂浜、波打ち際から4m）と竿
+const SF_MAN_U = -4.5, SF_TIP = [-2.6, 2.7]; // 竿先（u, 高さ m）
+const sfMan = mannequin(0x7d8a96, true);
+sfMan.scale.setScalar(0.9);
+sfGrp.add(sfMan);
+sfMan.position.set(SF_MAN_U, sfBed(SF_MAN_U), SF_LZ);
+sfMan.rotation.y = Math.PI / 2; // 海（+u）を向く
+{
+  const skin = ftLit(0xc8d2dc), capM = ftLit(0x3a5a80), vestM = ftLit(0xff8a2a);
+  sfMan.children.forEach((ch) => { ch.material = ch === sfMan.userData.vest ? vestM : ch.geometry.type === "SphereGeometry" && ch.geometry.parameters.thetaLength < 3 ? capM : skin; });
+}
+const sfRod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 1, 6).translate(0, 0.5, 0), ftLit(0x20262c, { shine: 0.5 }));
+world.add(sfRod);
+extras.push(sfRod);
+// ジグ 30g（約8cm、ピンク）。原点＝重心、+x が頭
+const sfJig = makeJigReal(0xff4f9a);
+const SF_JIG_U = 0.08 / 1.6;
+// ---- ジグの動きの計算 ----
+const SF_TURN = 0.95; // サーフ用リール（ハイギア）のハンドル1回転で巻ける糸の目安 [m]
+FT_BODY.surfJig = { m: 0.03, ma: 0.006, W: G_W(0.03, 11.34), I: 2.2e-5, len: 0.08, r: 0.007, eye: [0.04, 0], cp: 0, ka: 0.02, kn: 0.45, kl: 0, km: 0.005, kw: 6e-5, kw1: 2e-5 };
+const sfK = SF_TURN / FT_TURN;
+const SF_CAST = 66; // 着水する場所（波打ち際から 66m、かけあがりの少し先）
+const SF_OPT = { x0: SF_CAST - SF_TIP[0], y0: -0.05, th0: -0.3, tip0: SF_TIP[1], top: -0.1, fric: 0.9995, botf: (x) => sfBed(x + SF_TIP[0]) };
+Object.assign(FT_SEQ, {
+  // 着水 → 底まで沈める → ストップ＆ゴー（5回巻いて1秒止める。1秒に約2.3回転）
+  sf_main: { body: "surfJig", opt: SF_OPT, seq: [{ free: 6, thumb: 0.03 }, { mark: "land" }, { wait: 0.6 }, { mark: "go" }, ...FT_REP(13, [{ reel: 5 * sfK, dur: 2.2, lin: 1 }, { wait: 1 }])] },
+});
+// シミュレーションの位置 → 画面の座標
+function sfAt(sim, ts) { const a = sim.at(ts); return { u: a[0] + SF_TIP[0], y: a[1], th: a[2], T: a[3], a }; }
+// 竿・糸・ジグを置く。vis：ジグを大きく見せる倍率
+function sfRig(T, sim, ts, o = {}) {
+  const q = sfAt(sim, ts), c0 = sim.ctl(ts), vis = o.vis ?? 1, lift = q.a[4];
+  sfMan.position.y = sfBed(SF_MAN_U);
+  const hand = SFd(SF_MAN_U + 0.35, sfBed(SF_MAN_U) + 1.15, SF_LZ - 0.3), tip = SFd(SF_TIP[0], SF_TIP[1] + lift, SF_LZ);
+  ftRodSet(sfRod, hand, tip);
+  // ジグは画面の座標（深さを強調）に置く。向きは強調した高さでの進む向き
+  const yd = sfDy(q.y);
+  sfJig.visible = true;
+  sfJig.position.copy(SFd(q.u, yd, SF_LZ));
+  sfJig.rotation.set(0, 0, q.th);
+  sfJig.scale.setScalar(SF_JIG_U * vis);
+  const eye = SFd(q.u + Math.cos(q.th) * 0.04 * vis, yd + Math.sin(q.th) * 0.04 * vis, SF_LZ);
+  ftPend.push(() => {
+    if (o.trail) sfTrail(sim, ts, o.trail);
+    ftSeg(tip, eye, "#ffb45e", o.lw ?? 4, q.T < 0.05 && !c0.free ? "10 12" : "");
+  });
+  return { ...q, yd, c0, tip, eye, x: q.u, a: q.a };
+}
+function sfTrail(sim, ts, span) {
+  const n = 60, pts = [];
+  for (let i = 0; i <= n; i++) { const tt = ts - span * (1 - i / n); if (tt < 0) continue; const q = sfAt(sim, tt), p = project(SFd(q.u, sfDy(q.y), SF_LZ)); if (!p.behind) pts.push(p); }
+  if (pts.length > 2) lines += `<polyline points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#8ff0ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.1 20" opacity="0.95"/>`;
+}
+// 魚と海底のすきま（画面の座標で）を記録する。下端は頭・まん中・尾の3点で確かめる
+function sfClearAt(cu, cy, ang, L, hh) {
+  let low = 99;
+  [-0.5, 0, 0.5].forEach((f) => { const u = cu + Math.cos(ang) * L * f, y = cy + Math.sin(ang) * L * f - hh; low = Math.min(low, y - sfDy(sfBed(u))); });
+  return low;
+}
+// マゴチ（Fish Kit）：ジグのうしろ（沖側）について泳ぐ。dist：口からジグまで。底から 0.35m（画面の座標）以上は離す
+function sfMagochi(i, jp, dist, T, o = {}) {
+  const f = fkGet("magochi", i, o.cm ?? 50);
+  if (!f) return null;
+  const L = f.length, hh = 0.09 * L;
+  let mx = jp.u + dist + (o.du ?? 0), my = jp.yd - (o.below ?? 0.05);
+  let ang = Math.atan2(jp.yd - my, jp.u - mx); // 口がジグを向く（左向き＝π 付近）
+  ang = Math.PI + Math.max(-0.45, Math.min(0.45, ((ang - Math.PI + 3 * Math.PI) % (2 * Math.PI)) - Math.PI));
+  let cx = mx - Math.cos(ang) * L * 0.47, cy = my - Math.sin(ang) * L * 0.47;
+  let low = sfClearAt(cx, cy, ang, L, hh);
+  if (low < 0.35) { cy += 0.35 - low; low = 0.35; }
+  if (typeof window !== "undefined") window.__ftClear = Math.min(window.__ftClear ?? 99, low);
+  sfShade(cx, SF_LZ + (o.dz ?? -0.1), low, L);
+  fkPlace(f, SFd(cx, cy, SF_LZ + (o.dz ?? -0.1)), Math.PI, Math.PI - ang, T + i, { freq: o.freq ?? 2.0, amp: o.amp ?? 0.08, seed: i });
+  return [cx, cy];
+}
+function sfBase() { base(0); U.under.value = 0; sfGrp.visible = true; sfFoamUpdate(U.time.value); ftPend = []; sfShadowN = 0; sfMan.visible = true; }
+function sfFlush() { ftPend.forEach((f) => f()); ftPend = []; sfShadow.count = sfShadowN; sfShadow.visible = sfShadowN > 0; sfShadow.instanceMatrix.needsUpdate = true; }
+// 断面の全体を見る（u：見る中心）
+const sfWide = (t = 0, cu = 38, dist = 62) => (PORTRAIT ? look(SFd(cu + Math.sin(t * 0.04) * 1.5, -2, dist * 1.75), SFd(cu, -5, 0), 50) : look(SFd(cu + Math.sin(t * 0.04) * 2, -1, dist), SFd(cu, -4.5, 0), 50));
+// ジグを追うカメラ
+function sfCam(sim, ts, near, o = {}) {
+  let sx = 0, sy = 0;
+  for (let i = 0; i < 7; i++) { const q = sfAt(sim, Math.max(0, ts + (i / 6 - 0.5) * 0.9)); sx += q.u; sy += sfDy(q.y); }
+  sx /= 7; sy /= 7;
+  sy += o.dy ?? 0;
+  look(SFd(sx + (o.ox ?? 0), sy + 0.15 * near, SF_LZ + near * (PORTRAIT ? 1.35 : 1)), SFd(sx + (o.ox ?? 0), sy, SF_LZ), 50);
+  sfFlush();
+  return [sx, sy];
+}
+// 全体図（左上）：断面の小さな絵。オレンジの点＝いまのジグ
+function sfMini(u, y, a = 1) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, X = (uu) => 6 + ((uu + 10) / 120) * 168, Y = (yy) => 40 - sfDy(yy) * 4.2;
+  let d = "M0 90";
+  for (let uu = -10; uu <= 110; uu += 2) d += ` L${X(uu).toFixed(1)} ${Y(sfBed(uu)).toFixed(1)}`;
+  d += " L180 90 Z";
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 180}px;width:${P ? 300 : 300}px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px 10px 8px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:22px;font-weight:900;color:#10345a;margin:0 0 2px 6px">全体図（横から）</div>
+    <svg viewBox="0 0 180 92" width="100%"><rect x="0" y="0" width="180" height="40" fill="#cfe8f6"/><rect x="0" y="40" width="180" height="52" fill="#3f93c4"/>
+    <path d="${d}" fill="#d9c79c"/><rect x="${X(37)}" y="36" width="${X(49) - X(37)}" height="5" fill="#fff"/>
+    <circle cx="${X(SF_MAN_U)}" cy="${Y(sfBed(SF_MAN_U)) - 6}" r="4" fill="#ff8a2a"/>
+    ${u != null ? `<line x1="${X(SF_TIP[0])}" y1="${Y(sfBed(SF_MAN_U)) - 10}" x2="${X(u)}" y2="${Y(y)}" stroke="#ffb45e" stroke-width="1.6"/><circle cx="${X(u)}" cy="${Y(y)}" r="5" fill="#ffb45e" stroke="#fff" stroke-width="2"/>` : ""}</svg></div>`;
+}
+const SF_LEG = [["#ffb45e", "糸とジグの動き"], ["#8ff0ff", "ジグが通った道（点）"]];
+const sfNote = (txt) => ftNote(txt);
+const sfTag = (txt = "地形は模式図（深さは2.5倍に強調。場所・日で変わる）") => { html += `<div style="position:absolute;${PORTRAIT ? "left:36px;top:150px" : "left:70px;top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${PORTRAIT ? 26 : 24}px;z-index:5">${txt}</div>`; };
+
+// ---- 上から見た砂浜と離岸流 ----
+const SFT = V(3000, 0, 20); // 原点＝波打ち際（w=0）。world x = w、world z = u
+const SFTp = (u, y, w) => V(SFT.x + w, SFT.y + y, SFT.z + u);
+const sfTop = new THREE.Group();
+sfTop.position.copy(SFT);
+world.add(sfTop);
+extras.push(sfTop);
+const SF_GLSL = `float sm(float x){ x = clamp(x,0.,1.); return x*x*(3.-2.*x); }
+  float bed(float u, float w){ if (u < 0.0) return -0.06*u;
+    float base = -0.045*u - 4.5*sm((u-50.)/18.) - 0.012*max(0., u-68.);
+    float bar = 1.6*exp(-pow((u-44.)/6., 2.)) - 0.5*exp(-pow((u-32.)/5., 2.));
+    float g = 1. - exp(-pow(w/13., 2.));
+    return base + g*bar - (1.-g)*0.9*exp(-pow((u-40.)/14., 2.))*sm(u/6.); }`;
+{
+  const NU = 170, NW = 240, U0 = -26, U1 = 144, W0 = -160, W1 = 160;
+  const g = new THREE.PlaneGeometry(W1 - W0, U1 - U0, NW, NU).rotateX(-Math.PI / 2).translate((W0 + W1) / 2, 0, (U0 + U1) / 2);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, sfBed(p.getZ(i), p.getX(i)));
+  g.computeVertexNormals();
+  const sand = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      void main(){ float nn = hash(floor(vL.xz*3.0)); float diff = clamp(dot(normalize(vN), normalize(vec3(0.3,1.0,0.5))), 0., 1.);
+        vec3 s = vec3(0.90,0.83,0.66)*(0.9+0.08*nn); vec3 c;
+        if (vL.y > 0.05) c = mix(s*0.92, vec3(0.95,0.91,0.80), smoothstep(0.1, 0.6, vL.y));
+        else { float d = -vL.y; c = mix(vec3(0.42,0.66,0.66), vec3(0.04,0.24,0.42), 1.0 - exp(-d*0.38)); c = mix(c, s*0.85, 0.35*exp(-d*2.5)); }
+        gl_FragColor = vec4(c*(0.72+0.34*diff), 1.0); }`,
+  }));
+  // 水面：うすい膜と、白く崩れる波（瀬の上と波打ち際。離岸流の溝の上は波が崩れにくい）
+  const sg = new THREE.PlaneGeometry(900, 500, 1, 1).rotateX(-Math.PI / 2).translate(0, 0.05, 250);
+  // 遠くの深い海（海底の板の外。画面の隅が黒くならないように）
+  const deep = new THREE.Mesh(new THREE.PlaneGeometry(1400, 900).rotateX(-Math.PI / 2).translate(0, -11.5, 380), new THREE.MeshBasicMaterial({ color: 0x0b3554 }));
+  const land = new THREE.Mesh(new THREE.PlaneGeometry(1400, 300).rotateX(-Math.PI / 2).translate(0, 1.4, -170), new THREE.MeshBasicMaterial({ color: 0xd9ceb0 }));
+  sfTop.add(deep, land);
+  const surf = new THREE.Mesh(sg, new THREE.ShaderMaterial({
+    uniforms: { time: U.time, foamK: { value: 1 } }, transparent: true, depthWrite: false,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; uniform float foamK; varying vec3 vL; ${SF_GLSL}
+      void main(){ float u = vL.z, w = vL.x, d = -bed(u, w);
+        float zone = smoothstep(0.9, 0.45, d) * smoothstep(34.0, 38.0, u) * step(abs(w), 160.0) + smoothstep(5.0, 1.0, u)*step(0.0, u);
+        float band = smoothstep(0.35, 0.95, sin(u*0.55 + time*1.6 + sin(w*0.08)*0.8));
+        float f = clamp(zone, 0., 1.) * (0.35 + 0.65*band) * foamK;
+        float glint = pow(abs(sin(u*0.9 + time*0.7)*sin(w*0.6 - time*0.5)), 6.0);
+        vec3 c = mix(vec3(0.55,0.85,0.95), vec3(1.0), f);
+        gl_FragColor = vec4(c, step(0.0, u)*(0.08 + 0.08*glint + 0.85*f)); }`,
+  }));
+  surf.renderOrder = 10;
+  sfTop.add(sand, surf);
+  sfTop.userData.surf = surf;
+}
+// 流れ：波で岸へ寄せられた水が、岸に沿って溝（w=0）へ集まり、細い筋になって沖へ出る（模式図）
+FIELDS.sfRip = () => (x, z) => {
+  const w = x - SFT.x, u = z - SFT.z, aw = Math.abs(w), sg = w < 0 ? -1 : 1;
+  const core = Math.exp(-((w / 8) ** 2)), neck = sfSm((u - 2) / 8) * (1 - sfSm((u - 58) / 30));
+  const zone = sfSm((48 - u) / 10) * sfSm((u - 1) / 4);
+  const head = Math.exp(-(((u - 64) / 14) ** 2));
+  let vw = -sg * 0.7 * zone * (1 - core) * sfSm(aw / 10) * Math.exp(-aw / 60) + sg * 0.55 * head * Math.exp(-((w / 18) ** 2)) * (aw / 18) + 0.06;
+  let vu = 1.3 * core * neck - 0.16 * zone * (1 - core) + 0.45 * head * Math.exp(-((w / 22) ** 2));
+  return [vw, vu];
+};
+const sfFlow = (T, opts = {}) => { FIELD = FIELDS.sfRip(); updateFlow(T, { x0: SFT.x - 85, x1: SFT.x + 85, z0: SFT.z + 1, z1: SFT.z + 95, y: 0.4, solid: (x, z) => z < SFT.z + 0.8, ...opts }); };
+// 岸の上から沖を見る（下が岸、上が沖）
+function sfTopView(cu = 38, cw = 0, dist = 1, t = 0) {
+  const P = PORTRAIT, k = Math.sin(t * 0.05) * 2;
+  if (P) look(SFTp(cu - 52 * dist, 112 * dist, cw * 0.5 + k), SFTp(cu + 8, 0, cw * 0.5), 52);
+  else look(SFTp(cu - 62 * dist, 74 * dist, cw + k), SFTp(cu - 4, 0, cw), 50);
+}
+const SF_PINS = [[40, 0], [40, 14], [16, -34]]; // A=離岸流のまん中、B=わき、C=変化のない浅い所
+const sfPin = (i, txt, a, col) => mapPin(SFTp(SF_PINS[i][0], 0.6, SF_PINS[i][1]), txt, a, col);
+const sfTarget = (u, w, r, a, t, two) => (two ? target2 : target)(SFT.x + w, SFT.z + u, r, a, t);
+const SF_TLEG = [["#4cc3ff", "速い流れ（離岸流）"], ["#ff9f40", "ゆるい流れ"], ["#ffffff", "白く崩れる波"]];
+function sfTopMini(hi, a = 1) {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 190}px;width:${P ? 250 : 260}px;opacity:${a};background:rgba(255,255,255,.92);border-radius:22px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:${P ? 24 : 22}px;font-weight:900;color:#10345a;margin:0 0 4px 6px">全体図（上から）</div>
+    <svg viewBox="0 0 100 80" width="100%"><rect width="100" height="80" fill="#2b6f9e"/><rect y="62" width="100" height="18" fill="#e6d9b6"/>
+    <rect x="0" y="34" width="40" height="5" fill="#fff" opacity=".85"/><rect x="60" y="34" width="40" height="5" fill="#fff" opacity=".85"/><rect y="58" width="100" height="4" fill="#fff" opacity=".85"/>
+    <path d="M50 56 L50 22" stroke="#4cc3ff" stroke-width="5" marker-end="url(#sfa)"/><path d="M14 52 Q 40 52 47 50" stroke="#4cc3ff" stroke-width="2" fill="none" opacity=".8"/><path d="M86 52 Q 60 52 53 50" stroke="#4cc3ff" stroke-width="2" fill="none" opacity=".8"/>
+    <defs><marker id="sfa" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#4cc3ff"/></marker></defs>
+    <text x="4" y="76" font-size="8" fill="#10345a" font-weight="900">砂浜</text><text x="60" y="15" font-size="8" fill="#fff" font-weight="900">沖</text>
+    ${hi ? `<circle cx="${hi[0]}" cy="${hi[1]}" r="8" fill="none" stroke="#2ecc71" stroke-width="3"/>` : ""}</svg></div>`;
+}
+function sfTopBase() { base(0); U.under.value = 0; sky.visible = true; sfTop.visible = true; wall.visible = top.visible = false; if (WALL_BAR) WALL_BAR.visible = false; sfTop.userData.surf.material.uniforms.foamK.value = 1; }
+
+Object.assign(SHOTS, {
+  sf_thumb(t, d, s) {
+    sfTopBase();
+    sfFlow(40);
+    sfTopView(36, 8, 0.85);
+    sfTarget(40, 14, 5, 1, 0);
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：上から見た砂浜と、沖へ出る光る流れ（最初の1秒から）
+  sf_hook(t, d, s) {
+    sfTopBase();
+    sfFlow(t + 30, { focus: { x: SFT.x, z: SFT.z + 40, r: 16, dim: 0.45 } });
+    sfTopView(lerp(34, 38, ease(t / Math.max(d, 1))), 0, 1, t);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${PORTRAIT ? 760 : 380}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(PORTRAIT ? 0 : 20, PORTRAIT ? "サーフ、<br>どこに投げる？" : "サーフ、どこに投げる？", "海の中の地形と流れを見える化", a);
+    ["A", "B", "C"].forEach((n, i) => sfPin(i, n, PORTRAIT ? 1 : clamp01((t - 1.0 - i * 0.3) / 0.3)));
+    icPremise();
+  },
+  // 地形：k0 波打ち際と浅い所 → k1 沖の砂の盛り上がり（瀬）で白い波 → k2 その先、急に深くなる所（かけあがり）
+  sf_sec(t, d, s, k) {
+    sfBase();
+    sfJig.visible = false;
+    const T = t + 10;
+    sfMan.position.y = sfBed(SF_MAN_U);
+    ftRodSet(sfRod, SFd(SF_MAN_U + 0.35, sfBed(SF_MAN_U) + 1.15, SF_LZ - 0.3), SFd(SF_TIP[0], SF_TIP[1], SF_LZ));
+    sfWide(t);
+    sfFlush();
+    const P = PORTRAIT, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    label(SFp(3, sfBed(3)), "波打ち際", "", fadeIn(t, 0.4), "", P ? 120 : 160, P ? -260 : -190);
+    label(SFp(20, sfBed(20)), "浅い所", "", fadeIn(t, 1.4), "", 0, P ? -260 : -170);
+    if (k >= 1) {
+      label(SFp(44, sfBed(44)), "沖の砂の盛り上がり（瀬）", "上で波が白く崩れる", fadeIn(t1, 0.2), k === 1 ? "gold ans" : "gold", P ? 40 : 60, P ? -330 : -230);
+    }
+    if (k >= 2) {
+      const a2 = fadeIn(t2, 0.3);
+      label(SFp(59, sfBed(59)), "ここ！ かけあがり", "浅い所から急に深くなる（ブレイクライン）", a2, "gold ans", P ? 0 : 60, P ? 260 : 190);
+      pathLine([SFp(50, sfBed(50) + 0.15, 0.5), SFp(68, sfBed(68) + 0.15, 0.5)], "#2ecc71", a2, 12);
+    }
+    sfTag();
+  },
+  // 離岸流：k0 集まって沖へ戻る流れ（溝） → k1 小魚と魚が集まる → k2 見分け方
+  sf_rip(t, d, s, k) {
+    sfTopBase();
+    const focus = k >= 1 ? { x: SFT.x, z: SFT.z + 36, r: 16, dim: 0.35 } : null;
+    sfFlow(t + 50, { focus });
+    sfTopView(k >= 1 ? 34 : 38, 0, k >= 1 ? 0.78 : 1, t);
+    const P = PORTRAIT, t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k === 0) {
+      arrow(0, SFT.x - 46, SFT.z + 14, SFT.x - 12, SFT.z + 14, "#4cc3ff", fadeIn(t0, 0.8), 2.4);
+      arrow(1, SFT.x + 46, SFT.z + 14, SFT.x + 12, SFT.z + 14, "#4cc3ff", fadeIn(t0, 0.8), 2.4);
+      arrow(2, SFT.x, SFT.z + 18, SFT.x, SFT.z + 56, "#4cc3ff", fadeIn(t0, 1.6), 3.2);
+      label(SFTp(56, 0.5, 0), "離岸流", "岸から沖へ戻る、細く速い流れ", fadeIn(t0, 1.8), "gold ans", P ? 0 : 300, -60);
+    }
+    if (k >= 1) label(SFTp(38, 0.5, 0), "底がえぐれた溝", "小魚と、それをねらう魚が集まる", k === 1 ? fadeIn(t1, 0.3) : 1, "gold", P ? 0 : 320, P ? -260 : -120);
+    if (k >= 2) {
+      html += acCard(`<div style="font-size:${P ? 34 : 32}px;font-weight:900;color:#10345a">離岸流のサイン</div><div style="font-size:${P ? 30 : 28}px;font-weight:800;margin-top:10px;line-height:1.5">・まわりは波が崩れるのに、<span style="color:#c2410c">静かな細い筋</span><br>・海面が<span style="color:#c2410c">ざわつく</span>、波の形がちがう<br>・<span style="color:#c2410c">ゴミ</span>が集まる</div><div style="font-size:21px;color:#3a5a78;margin-top:10px">海上保安庁・Honda釣り倶楽部の解説から</div>`, fadeIn(t2, 0.2), P ? [60, 1130, 960] : [1240, 470, 610]);
+    }
+    sfTopMini(k >= 1 ? [50, 40] : null);
+    legend(SF_TLEG);
+    icPremise();
+  },
+  // クイズ：k0 問い → k1 A・B・C → k2 答え（B：流れのわき）
+  sf_quiz(t, d, s, k) {
+    sfTopBase();
+    sfFlow(t + 70, { alpha: k >= 2 ? 1 : 0.85 });
+    sfTopView(36, -14, 1.05, 0);
+    const P = PORTRAIT, t2 = t - (s._k2 ?? 99);
+    if (k <= 1) {
+      ["A", "B", "C"].forEach((n, i) => sfPin(i, n, k === 1 ? fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.3) : 0));
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 300}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 64 : 56}px">クイズ　離岸流を見つけた！<br><span style="color:#ffd166">どこに投げる？</span></div>`;
+      if (k === 1) {
+        const o = [["A", "流れのまん中"], ["B", "流れのわき"], ["C", "変化のない浅い所"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 1180}px;top:${P ? 1500 : 420}px;width:${P ? 840 : 640}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      sfTarget(40, 14, 5, fadeIn(t2, 0.3), t);
+      sfTarget(40, -14, 5, fadeIn(t2, 0.6), t, true);
+      label(SFTp(40, 0.6, 14), "答え B：流れのわき", "まん中ではなく、わきから探る", fadeIn(t2, 0.3), "gold ans", P ? 0 : 330, -70);
+      noMark(SFTp(SF_PINS[2][0], 0.5, SF_PINS[2][1]), "C：浅くて変化がない", fadeIn(t2, 1.4));
+    }
+    sfTopMini(k >= 2 ? [58, 40] : null);
+    legend(SF_TLEG);
+    icPremise();
+  },
+  // 引き方（計算）：k0 着水して底まで沈める → k1 ストップ＆ゴー → k2 かけあがりでは底にそって上がる
+  sf_lure(t, d, s, k) {
+    sfBase();
+    const P = PORTRAIT, T = t + 100, sim = ftRun("sf_main"), mk = sim.marks;
+    const t1 = s._k1 ?? 99, t2 = s._k2 ?? 99;
+    // セリフに合わせて、計算の時刻を進める（k1 からストップ＆ゴー、k2 でかけあがりの所）
+    let ts = k === 0 ? Math.min(t * 0.9, mk.go) : k === 1 ? mk.go + (t - t1) * 0.85 : 13 + (t - t2) * 0.9;
+    ts = Math.min(ts, 24);
+    const st = sfRig(T, sim, ts, { vis: 4, trail: k === 0 ? 0 : 4 });
+    if (k >= 1) sfMagochi(0, st, 1.0 + 0.2 * Math.sin(t * 0.8), T, { cm: 50, below: 0.1 });
+    sfCam(sim, ts, k === 0 ? 5 : 4.2, { dy: 0.35, ox: P ? 0.3 : 0.5 });
+    const c0 = st.c0;
+    if (c0.free) ftChip("着水 → 底まで沈める", "#1f6fd1");
+    else if (c0.turning) ftChip(k >= 2 ? "かけあがり：底にそって上がる" : "5〜7回 巻く", "#e08a2a");
+    else ftChip(ts < mk.go + 0.1 ? "着底" : "1秒 止める", "#2a9d5c");
+    sfMini(st.u, st.y);
+    const T0 = { a: [0, 0, 0, st.T, 0, st.a[5], c0.free ? 1 : 0, c0.turning ? 1 : 0], c0, T: st.T };
+    ftCtl(T0, 1, c0.free ? ["沈める", "#1f6fd1"] : c0.turning ? ["巻く", "#e08a2a"] : ["止める", "#2a9d5c"]);
+    if (!P) legend(SF_LEG);
+    ftNote("ジグの動きは簡単な物理モデルの計算（30g・重さ・水の抵抗・糸の張り）。ジグは大きく、深さは2.5倍で表示。マゴチはイメージ");
+  },
+  // 魚の泳ぐ層：ヒラメは底より少し上、マゴチは底をはわせる
+  sf_fish(t, d, s, k) {
+    sfBase();
+    const P = PORTRAIT, T = t + 130, sim = ftRun("sf_main"), ts = 8.2 + (t % 4) * 0.8;
+    const st = sfRig(T, sim, ts, { vis: 3 });
+    sfMagochi(0, st, 0.55 + 0.12 * Math.sin(t), T, { cm: 50, below: 0.12 });
+    sfCam(sim, ts, 2.4, { dy: 0.15, ox: P ? 0.3 : 0.9 });
+    const t1 = t - (s._k1 ?? 99);
+    html += ftCard(P, `<div style="font-size:${P ? 34 : 32}px;font-weight:900"><span style="color:#1f6fd1">ヒラメ</span>：底より<span style="color:#c2410c">少し上</span>を通す</div><div style="font-size:${P ? 24 : 22}px;font-weight:800;color:#3a5a78;margin-top:4px">底の少し上を泳ぐイワシなどの小魚を食べる</div>`, fadeIn(t, 0.3), [1080, 470, 760], [60, 1080, 960]);
+    if (k >= 1) html += ftCard(P, `<div style="font-size:${P ? 34 : 32}px;font-weight:900"><span style="color:#1f6fd1">マゴチ</span>：底を<span style="color:#c2410c">はわせる</span>イメージ</div><div style="font-size:${P ? 24 : 22}px;font-weight:800;color:#3a5a78;margin-top:4px">ハゼやキス、カニなど底のエサを好む</div>`, fadeIn(t1, 0.2), [1080, 690, 760], [60, 1310, 960]);
+    sfMini(st.u, st.y);
+    ftNote("Honda釣り倶楽部の解説から。マゴチの動きはイメージ。ジグは大きく表示");
+  },
+  // 時間と時期：まずめ・潮が動く時間・大潮前後、4〜6月と10〜12月
+  sf_time(t, d, s, k) {
+    sfTopBase();
+    sfFlow(t + 90, { alpha: 0.7 });
+    sfTopView(36, 0, 1.1, t);
+    const P = PORTRAIT;
+    html += acDim(0.35);
+    const rows = [["時間", "朝まずめがいちばん。夕まずめも", "小魚が浅い所から出て、魚が活発になる"], ["潮", "潮が動いている時間・大潮の前後", "上げでも下げでも、動いていればチャンス"], ["時期", "4〜6月と10〜12月がハイシーズン", "秋は特に釣りやすいと言われる"]];
+    html += `<div class="big" style="top:${P ? 520 : 110}px;font-size:${P ? 62 : 58}px;opacity:${fadeIn(t, 0.1)}">いつ行く？</div>`;
+    rows.forEach(([a1, b1, c1], i) => {
+      const a = fadeIn(t - (s[`_k${i}`] ?? i * 3), 0.3);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 720 : 230) + i * (P ? 230 : 190)}px;width:${P ? 880 : 1200}px;padding:18px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${["#e08a2a", "#1f6fd1", "#2a9d5c"][i]};color:#fff;font-size:${P ? 34 : 36}px;padding:10px 0;width:${P ? 160 : 180}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 36 : 40}px;font-weight:900">${b1}</div><div style="font-size:${P ? 26 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    html += `<div style="position:absolute;${P ? "left:40px;right:40px;top:1440px" : "left:330px;bottom:196px"};color:#eaf6ff;font-size:22px;font-weight:800;text-shadow:0 2px 6px #000">※Honda釣り倶楽部の解説から（地域や年で変わる）</div>`;
+  },
+  // 安全：k0 波打ち際から離れて立つ・海に入らない → k1 流されたら（海上保安庁）
+  sf_safe(t, d, s, k) {
+    const P = PORTRAIT;
+    if (k === 0) {
+      sfBase();
+      sfJig.visible = false;
+      ftRodSet(sfRod, SFd(SF_MAN_U + 0.35, sfBed(SF_MAN_U) + 1.15, SF_LZ - 0.3), SFd(SF_TIP[0], SF_TIP[1], SF_LZ));
+      if (P) look(SFd(4, 3, 30), SFd(2, 0.5, 0), 50);
+      else look(SFd(6 + t * 0.08, 3.2, 17), SFd(3, 0.4, 0), 50);
+      sfFlush();
+      label(SFd(SF_MAN_U, sfBed(SF_MAN_U) + 1.3, SF_LZ), "ライフジャケット", "必ず着ける", fadeIn(t, 1.4), "gold ans", P ? 120 : 220, P ? 260 : 200);
+      html += ftCard(P, `<b style="font-size:36px">波打ち際から<span style="color:#c2410c">数m離れて</span>立つ</b><div style="font-size:28px;font-weight:900;margin-top:8px">離岸流がある所は引き波が強い。<br>海の中には入らない。波が高い日はやめる</div>`, fadeIn(t, 0.4), [960, 150, 880], [60, 1080, 960]);
+    } else {
+      sfTopBase();
+      sfFlow(t + 110);
+      sfTopView(34, 0, 0.9, 0);
+      const t1 = t - (s._k1 ?? 0);
+      arrow(0, SFT.x, SFT.z + 22, SFT.x, SFT.z + 48, "#4cc3ff", fadeIn(t1, 0.2), 3.0);
+      arrow(1, SFT.x + 1, SFT.z + 34, SFT.x + 30, SFT.z + 34, "#2ecc71", fadeIn(t1, 1.4), 2.6);
+      label(SFTp(34, 0.5, 30), "岸と平行に泳いで抜ける", "", fadeIn(t1, 1.8), "gold ans", P ? 0 : -60, P ? -120 : -90);
+      html += acCard(`<div style="font-size:${P ? 34 : 32}px;font-weight:900;color:#e3412b">もし離岸流に流されたら</div><div style="font-size:${P ? 30 : 28}px;font-weight:800;margin-top:10px;line-height:1.55">① あわてず、まわりに助けを求める<br>② 岸に向かって流れにさからわない<br>③ <span style="color:#1f8a4c">岸と平行</span>に泳いで流れの外へ<br>④ 泳ぎに自信がなければ、浮くことに専念</div><div style="font-size:21px;color:#3a5a78;margin-top:10px">海上保安庁の呼びかけから。離岸流は幅10〜30m、速さは最大で秒速2m程度</div>`, fadeIn(t1, 0.3), P ? [50, 300, 980] : [1150, 300, 650]);
+    }
+  },
+  sf_sum(t, d, s, k) {
+    sfTopBase();
+    sfFlow(t + 130, { alpha: 0.7 });
+    sfTopView(38, 0, 1.1, t);
+    const P = PORTRAIT;
+    html += acDim(0.5);
+    const rows = [["かけあがり", "浅い所から急に深くなる所", "白い波の先がねらい目", "#2a9d5c"], ["離岸流", "まん中ではなく、わきから", "静かな細い筋・ざわつきがサイン", "#1f6fd1"], ["引き方", "底まで沈めて、ストップ＆ゴー", "5〜7回巻いて、1秒止める", "#e08a2a"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">サーフ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 34}px;padding:10px 0;width:${P ? 220 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 38 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
     });
   },
 });
