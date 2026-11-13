@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export type MapView = { w: number; h: number; lon0: number; lat1: number; k: number; c: number; bbox: number[]; path: string };
-export type MapSpot = { slug: string; name: string; href: string; type: string; area: string; lat: number; lon: number; rough: boolean; recent: string[] };
+export type MapSpot = { slug: string; name: string; href: string; type: string; area: string; lat: number; lon: number; rough: boolean; recent: string[]; catches?: { species: string; days: number }[] };
 
 const COLORS: Record<string, string> = {
   海釣り施設: "#d9480f",
@@ -22,8 +22,15 @@ function inView(v: MapView, s: MapSpot) {
 export default function SpotMap({ views, spots }: { views: { key: string; label: string; view: MapView }[]; spots: MapSpot[] }) {
   const [tab, setTab] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
+  const [fish, setFish] = useState("");
   const v = views[tab].view;
-  const shown = spots.filter((s) => inView(v, s));
+  const inTab = spots.filter((s) => inView(v, s));
+  // 魚で絞る：最近30日の公開釣果にその魚がある釣り場だけを濃く表示する（ほかは薄く）
+  const daysOf = (s: MapSpot) => (fish ? s.catches?.find((c) => c.species === fish)?.days ?? 0 : 0);
+  const fishOptions = Array.from(new Set(inTab.flatMap((s) => (s.catches ?? []).map((c) => c.species))))
+    .map((sp) => ({ sp, n: inTab.filter((s) => s.catches?.some((c) => c.species === sp)).length }))
+    .sort((a, b) => b.n - a.n || a.sp.localeCompare(b.sp, "ja"));
+  const shown = fish ? inTab.filter((s) => daysOf(s) > 0) : inTab;
   const r = tab === 0 ? 7 : 11;
   const cur = spots.find((s) => s.slug === sel);
   const xy = (s: MapSpot) => [(s.lon - v.lon0) * v.c * v.k, (v.lat1 - s.lat) * v.k];
@@ -31,21 +38,38 @@ export default function SpotMap({ views, spots }: { views: { key: string; label:
     <section>
       <div className="tide-tabs" role="tablist" aria-label="地図の範囲">
         {views.map((x, i) => (
-          <button key={x.key} role="tab" aria-selected={i === tab} className={i === tab ? "on" : ""} onClick={() => { setTab(i); setSel(null); }}>
+          <button key={x.key} role="tab" aria-selected={i === tab} className={i === tab ? "on" : ""} onClick={() => { setTab(i); setSel(null); setFish(""); }}>
             {x.label}
           </button>
         ))}
       </div>
+      {fishOptions.length > 0 && (
+        <p className="small">
+          <label>
+            魚で絞る：{" "}
+            <select value={fish} onChange={(e) => { setFish(e.target.value); setSel(null); }}>
+              <option value="">すべての釣り場</option>
+              {fishOptions.map((o) => (
+                <option key={o.sp} value={o.sp}>{o.sp}（{o.n}か所）</option>
+              ))}
+            </select>
+          </label>
+          {fish && <> 最近30日の公開釣果に「{fish}」がある{shown.length}か所を表示中。点が大きいほど釣れた日が多い場所です。</>}
+        </p>
+      )}
       <svg className="spot-map" viewBox={`0 0 ${v.w} ${v.h}`} role="img" aria-label={`${views[tab].label}の釣り場の地図`}>
         <rect width={v.w} height={v.h} className="sea" />
         <path d={v.path} className="land" />
-        {shown.map((s) => {
+        {inTab.map((s) => {
           const [x, y] = xy(s);
+          const d = daysOf(s);
+          const dim = !!fish && d === 0;
+          const rr = fish && d > 0 ? r * Math.min(1 + d / 6, 2.2) : r;
           return (
-            <g key={s.slug} className="pin" onClick={() => setSel(s.slug)} role="button" tabIndex={0} aria-label={s.name}
+            <g key={s.slug} className="pin" opacity={dim ? 0.2 : 1} onClick={() => setSel(s.slug)} role="button" tabIndex={0} aria-label={s.name}
               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSel(s.slug)}>
-              <circle cx={x} cy={y} r={sel === s.slug ? r * 1.5 : r} fill={COLORS[s.type] ?? "#333"} stroke="#fff" strokeWidth={2} />
-              <title>{s.name}</title>
+              <circle cx={x} cy={y} r={sel === s.slug ? rr * 1.5 : rr} fill={COLORS[s.type] ?? "#333"} stroke="#fff" strokeWidth={2} />
+              <title>{fish && d > 0 ? `${s.name}（${fish}：${d}日）` : s.name}</title>
             </g>
           );
         })}
