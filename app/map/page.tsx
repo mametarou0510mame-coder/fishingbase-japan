@@ -29,11 +29,18 @@ export default function MapPage() {
       lon: coords[s.slug].lon,
       rough: !!coords[s.slug].rough,
       recent: summarize([s.slug]).list.slice(0, 3).map((x) => x.species.replace(/（.*?）/g, "")),
+      catches: Object.entries(
+        summarize([s.slug]).list.reduce<Record<string, number>>((m, x) => {
+          const k = x.species.replace(/（.*?）/g, "");
+          m[k] = Math.max(m[k] ?? 0, x.days);
+          return m;
+        }, {}),
+      ).map(([species, days]) => ({ species, days })),
     }));
   return (
     <>
       <h1>地図から釣り場を探す</h1>
-      <p className="lead">関西の釣り場を地図に並べました。点の色は釣り場の種類です。「大阪湾まわり」に切り替えると、神戸・大阪・泉州を大きく見られます。</p>
+      <p className="lead">関西の釣り場を地図に並べました。点の色は釣り場の種類です。「魚で絞る」で、最近その魚が釣れている場所だけを表示できます。「大阪湾まわり」に切り替えると、神戸・大阪・泉州を大きく見られます。</p>
       <SpotMap
         views={[
           { key: "bay", label: "大阪湾まわり", view: MAP.bay },
