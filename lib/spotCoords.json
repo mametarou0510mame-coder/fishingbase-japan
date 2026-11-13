@@ -474,5 +474,33 @@
   "lon": 139.8435,
   "manual": true,
   "rough": true
+ },
+ "niigata-nishikaigan-tottei": {
+  "lat": 37.9249,
+  "lon": 139.0503,
+  "address": "新潟県新潟市中央区西海岸",
+  "matched": "新潟県新潟市中央区西厩島町",
+  "rough": false
+ },
+ "onahama-2go-futo": {
+  "lat": 36.945,
+  "lon": 140.8873,
+  "address": "福島県いわき市小名浜",
+  "matched": "福島県いわき市小名浜",
+  "rough": false
+ },
+ "iwaki-sun-marina-tsuri-sanbashi": {
+  "lat": 36.9454,
+  "lon": 140.9021,
+  "address": "福島県いわき市小名浜字辰巳町",
+  "matched": "福島県いわき市小名浜辰巳町",
+  "rough": false
+ },
+ "atami-umizuri-shisetsu": {
+  "lat": 35.0898,
+  "lon": 139.0794,
+  "address": "静岡県熱海市和田浜南町",
+  "matched": "静岡県熱海市和田浜南町",
+  "rough": false
  }
 }
