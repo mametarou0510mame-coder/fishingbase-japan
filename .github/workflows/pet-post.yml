@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       id:
-        description: "例 mame-01"
+        description: "例 mame-01。delete のときは 'delete <IGのID> <YouTubeのID>'"
         required: true
 
 permissions:
