@@ -40,7 +40,7 @@ with sync_playwright() as p:
     pg = b.new_page()
     logs = []
     pg.on("console", lambda m: logs.append(m.text.replace("\n", " | ")))
-    pg.goto(f"{SITE}/aquarium/")
+    pg.goto(f"{SITE}/gyotaku/")
     try:
         for line in pg.evaluate(JS.replace("__IMG__", IMG)):
             print(f"::notice::{line}")

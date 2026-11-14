@@ -15,7 +15,7 @@ with sync_playwright() as p:
     logs = []
     pg.on("console", lambda m: logs.append(f"{m.type}: {m.text}"))
     pg.on("pageerror", lambda e: logs.append(f"pageerror: {e}"))
-    pg.goto(f"{SITE}/aquarium/")
+    pg.goto(f"{SITE}/gyotaku/")
     pg.wait_for_timeout(1500)
     pg.get_by_role("tab", name="釣果を登録").click()
     pg.wait_for_timeout(800)

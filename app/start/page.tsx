@@ -87,7 +87,7 @@ export default function StartPage() {
 
       <h2>釣れたら</h2>
       <p>
-        釣った魚は<Link href="/aquarium/">マイ水族館</Link>に登録して、自分だけの水族館を作ってみましょう。
+        釣った魚は<Link href="/gyotaku/">魚拓・釣果記録</Link>に登録して、デジタル魚拓にしてみましょう。
       </p>
     </>
   );
