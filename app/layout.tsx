@@ -62,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/guide/">釣り方</Link>
               <Link href="/gear/">道具</Link>
               <Link href="/gear/sale/">セール</Link>
+              <Link href="/gyotaku/">魚拓</Link>
             </nav>
           </div>
           <svg className="header-wave" viewBox="0 0 1200 24" preserveAspectRatio="none" aria-hidden="true">
@@ -82,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <li><Link href="/data-deletion/">データ削除のご依頼</Link></li>
               <li><Link href="/request/">要望の書き込み箱</Link></li>
               <li><Link href="/aquarium/">マイ水族館</Link></li>
+              <li><Link href="/gyotaku/">デジタル魚拓を作る</Link></li>
               <li><Link href="/goods/">オリジナルグッズ</Link></li>
               <li><Link href="/contact/">お問い合わせ</Link></li>
             </ul>

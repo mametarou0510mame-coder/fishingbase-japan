@@ -58,6 +58,11 @@ export default function Aquarium({ siteKey }: { siteKey: string }) {
   const [cut, setCut] = useState<{ id: string; file: File } | null>(null);
   const [photos, setPhotos] = useState<Record<string, { url: string; aspect: number }>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  // /aquarium/?tab=add で「釣果を登録」から開く（魚拓ページのボタン）
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "add" || t === "zukan" || t === "avatar" || t === "backup") setTab(t);
+  }, []);
 
   // 端末に保存した写真を読み込む
   const loadPhotos = async () => {

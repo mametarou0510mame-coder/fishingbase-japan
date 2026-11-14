@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 BASE = os.environ.get("BASE", "https://tsuredoki-kansai.mametarou0510mame.workers.dev")
 PHOTO = os.environ.get("PHOTO", "scripts/test/ishidai.jpg")
 SPECIES = os.environ.get("SPECIES", "イシダイ")
-SIZE = os.environ.get("SIZE", "")
+SIZE = os.environ.get("SIZE", "40")
 TAP = [float(v) for v in os.environ.get("TAP", "0.5,0.45").split(",")]
 os.makedirs("shots", exist_ok=True)
 ok = True
