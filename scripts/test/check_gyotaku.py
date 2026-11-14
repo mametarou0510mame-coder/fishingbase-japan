@@ -12,7 +12,7 @@ os.makedirs("shots", exist_ok=True)
 ok = True
 with sync_playwright() as p:
     b = p.chromium.launch()
-    pg = b.new_page(viewport={"width": 940, "height": 1100}, device_scale_factor=1, accept_downloads=True)
+    pg = b.new_page(viewport={"width": 940, "height": 1600}, device_scale_factor=1, accept_downloads=True)
     pg.add_init_script("""if (!localStorage.getItem('tsuredoki:aquarium:v1')) localStorage.setItem('tsuredoki:aquarium:v1', JSON.stringify({v:1,nickname:'ツレドキ',fish:[]}));""")
     logs = []
     pg.on("pageerror", lambda e: logs.append(f"pageerror: {e}"))
@@ -31,8 +31,9 @@ with sync_playwright() as p:
         if "タップしてください" in msg():
             break
     c = pg.locator(".cutout-canvas")
+    c.scroll_into_view_if_needed()
     bb = c.bounding_box()
-    pg.mouse.click(bb["x"] + bb["width"] * TAP[0], bb["y"] + bb["height"] * TAP[1])
+    c.click(position={"x": bb["width"] * TAP[0], "y": bb["height"] * TAP[1]})
     for _ in range(120):
         pg.wait_for_timeout(1000)
         if "水色" in msg() or "自動で選べ" in msg():
