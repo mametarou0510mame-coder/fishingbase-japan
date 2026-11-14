@@ -7,6 +7,7 @@ BASE = os.environ.get("BASE", "https://tsuredoki-kansai.mametarou0510mame.worker
 PHOTO = os.environ.get("PHOTO", "scripts/test/ishidai.jpg")
 SPECIES = os.environ.get("SPECIES", "イシダイ")
 SIZE = os.environ.get("SIZE", "40")
+FLIP = os.environ.get("FLIP", "1") == "1"  # この写真は切り抜くと頭が右（魚拓で右）になるので反転して頭を左に
 TAP = [float(v) for v in os.environ.get("TAP", "0.5,0.45").split(",")]
 os.makedirs("shots", exist_ok=True)
 ok = True
@@ -43,6 +44,10 @@ with sync_playwright() as p:
     c.screenshot(path="shots/gy-0-select.png")
     pg.get_by_role("button", name="次へ").click()
     pg.wait_for_timeout(1000)
+    if FLIP:
+        pg.get_by_role("button", name="左右を反転").click()
+        pg.wait_for_timeout(500)
+    pg.locator(".cutout-preview").screenshot(path="shots/gy-1-confirm.png")
     pg.get_by_role("button", name="これで決定").click()
     pg.wait_for_timeout(5000)
     for mode in ("写真の魚拓", "墨の魚拓"):

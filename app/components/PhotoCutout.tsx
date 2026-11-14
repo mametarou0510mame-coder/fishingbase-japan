@@ -3,7 +3,7 @@
 // 釣った魚の写真から、魚だけを切り抜く。
 // 1) 魚をタップすると自動で選ぶ（Google の MediaPipe の画像認識モデルを、この端末の中で動かす）
 // 2) うまく選べない時は、指で魚のまわりをなぞる。はみ出しは「消す」、足りない所は「足す」で直す
-// 3) 魚の向きを横にそろえて切り抜き、頭が右になるように左右を選ぶ
+// 3) 魚の向きを横にそろえて切り抜き、頭が右になるように左右を選ぶ（確認の画面は魚拓と同じ頭が左で見せる）
 // 写真はこの端末の中だけで処理し、どこにも送らない。
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -309,9 +309,10 @@ export default function PhotoCutout({ file, onDone, onCancel }: { file: File; on
         </>
       ) : (
         <>
-          <p className="small">魚の頭が<b>右</b>を向くようにしてください。</p>
+          <p className="small">魚拓と同じ向きで見せています。魚の頭が<b>左</b>になるように、違っていたら「左右を反転」を押してください。</p>
           <div className="cutout-preview">
-            <canvas ref={preview} />
+            {/* 保存する絵は頭が右（水槽で右へ泳ぐ向き）。魚拓は左右を反転して頭が左になるので、ここも反転して見せる */}
+            <canvas ref={preview} style={{ transform: "scaleX(-1)" }} />
           </div>
           <div className="gyotaku-actions">
             <button className="submit" onClick={done}>これで決定</button>
