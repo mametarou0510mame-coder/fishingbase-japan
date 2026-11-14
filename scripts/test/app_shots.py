@@ -4,7 +4,7 @@ os.makedirs("shots", exist_ok=True)
 from playwright.sync_api import sync_playwright
 
 SITE = "https://tsuredoki-kansai.mametarou0510mame.workers.dev"
-PAGES = [("tide-osaka", "/tide/os/"), ("tide-hakodate", "/tide/hk/"), ("aquarium", "/aquarium/")]
+PAGES = [("tide-osaka", "/tide/os/"), ("tide-hakodate", "/tide/hk/"), ("gyotaku", "/gyotaku/")]
 with sync_playwright() as p:
     b = p.chromium.launch()
     pg = b.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True)

@@ -106,9 +106,9 @@ export default function Home() {
 
       <div className="card aq-promo">
         <h3>
-          <Link href="/aquarium/">マイ水族館</Link>：釣った魚を登録して、あなただけの水族館に
+          <Link href="/gyotaku/">魚拓・釣果記録</Link>：釣った魚の写真から、デジタル魚拓を無料で
         </h3>
-        <p>アバターを作って、釣った魚を入れると水槽で泳ぎ出します。図鑑とバッジも集められます（ログイン不要）。</p>
+        <p>釣果を記録して、墨の魚拓・写真の魚拓を作れます。Instagram・X に合う形で保存・共有できます（ログイン不要）。</p>
       </div>
 
       <h2>エリア</h2>
@@ -147,13 +147,9 @@ export default function Home() {
 
       <h2>ツレドキだけの機能</h2>
       <div className="cards">
-        <Link href="/aquarium/" className="card card-link">
-          <h3>デジタル魚拓</h3>
+        <Link href="/gyotaku/" className="card card-link">
+          <h3>デジタル魚拓・釣果記録</h3>
           <p>釣った魚の写真から、和紙に写したような魚拓を作れます。墨・写真の2種類、全長の目盛りと日付・釣り場入り。画像で保存・共有できます。</p>
-        </Link>
-        <Link href="/aquarium/" className="card card-link">
-          <h3>マイ水族館</h3>
-          <p>釣った魚を登録すると、あなたの水族館で泳ぎ出します。写真の魚をタップで切り抜いてそのまま泳がせたり、海に返す（リリース）ことも。図鑑とバッジも集められます。</p>
         </Link>
         <Link href="/" className="card card-link">
           <h3>今日・週末のねらい目ランキング</h3>

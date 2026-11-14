@@ -142,7 +142,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
       const file = new File([b], fileName, { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
       if (nav.canShare?.({ files: [file] })) {
-        await nav.share({ files: [file], text: `${shareText}\n${site}/aquarium/\n${tags}` });
+        await nav.share({ files: [file], text: `${shareText}\n${site}/gyotaku/\n${tags}` });
       } else {
         await save();
       }
@@ -155,7 +155,7 @@ export default function Gyotaku({ data, onClose }: { data: GyotakuData; onClose?
   // X：画像は投稿画面に自動では付かないので、先に保存してから投稿画面を開く
   const postX = async () => {
     await save();
-    const u = `https://x.com/intent/post?text=${encodeURIComponent(`${shareText}\n${tags}`)}&url=${encodeURIComponent(`${site}/aquarium/`)}`;
+    const u = `https://x.com/intent/post?text=${encodeURIComponent(`${shareText}\n${tags}`)}&url=${encodeURIComponent(`${site}/gyotaku/`)}`;
     window.open(u, "_blank", "noopener");
   };
 

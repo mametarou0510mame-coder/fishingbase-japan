@@ -10,7 +10,7 @@ import path from "node:path";
 // Instagram・YouTube のプロフィールのリンク用ページ。投稿文のリンクは押せないため、ここにまとめる。
 export const metadata: Metadata = {
   title: "ツレドキのリンク集（今アツい情報・おすすめ道具）",
-  description: "Instagram・YouTube から来た人向けのページです。今アツい釣り情報、今日・明日のねらい目、動画で紹介した道具（楽天市場）、マイ水族館・デジタル魚拓へのリンクをまとめています。",
+  description: "Instagram・YouTube から来た人向けのページです。今アツい釣り情報、今日・明日のねらい目、動画で紹介した道具（楽天市場）、デジタル魚拓・釣果記録へのリンクをまとめています。",
   alternates: { canonical: "/links/" },
 };
 
@@ -66,7 +66,7 @@ export default function LinksPage() {
         <Link className="link-btn app" href="/app/">📱 アプリ：地図で釣り場を選んで、潮・天気・おすすめの釣り方</Link>
         <Link className="link-btn" href="/">今日・明日・週末のねらい目ランキング</Link>
         <Link className="link-btn" href="/kansai/area/">エリア別：最近釣れている魚</Link>
-        <Link className="link-btn" href="/aquarium/">デジタル魚拓・マイ水族館</Link>
+        <Link className="link-btn" href="/gyotaku/">デジタル魚拓・釣果記録</Link>
         <Link className="link-btn" href="/guide/">釣り方ガイド（動画30本）</Link>
         <Link className="link-btn" href="/map/">地図から釣り場を探す</Link>
         <Link className="link-btn" href="/start/">はじめての釣り 1回目プラン</Link>

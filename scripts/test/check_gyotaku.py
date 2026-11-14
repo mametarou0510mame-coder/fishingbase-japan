@@ -17,7 +17,7 @@ with sync_playwright() as p:
     pg.add_init_script("""if (!localStorage.getItem('tsuredoki:aquarium:v1')) localStorage.setItem('tsuredoki:aquarium:v1', JSON.stringify({v:1,nickname:'ツレドキ',fish:[]}));""")
     logs = []
     pg.on("pageerror", lambda e: logs.append(f"pageerror: {e}"))
-    pg.goto(f"{BASE}/aquarium/")
+    pg.goto(f"{BASE}/gyotaku/")
     pg.wait_for_timeout(1500)
     pg.get_by_role("tab", name="釣果を登録").click()
     pg.wait_for_timeout(800)
@@ -63,6 +63,12 @@ with sync_playwright() as p:
             except Exception as e:
                 ok = False
                 print(f"::error::{mode} {f}: {e}")
+    pg.get_by_role("tab").nth(1).click()
+    pg.wait_for_timeout(1000)
+    pg.locator(".catch-list").screenshot(path="shots/gy-2-list.png")
+    pg.goto(f"{BASE}/aquarium/")
+    pg.wait_for_timeout(2500)
+    print(f"::notice::aquarium redirect -> {pg.url}")
     for l in logs[-8:]:
         print(f"::notice::log {l[:300]}")
     b.close()

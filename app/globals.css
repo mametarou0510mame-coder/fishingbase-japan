@@ -665,3 +665,9 @@ body.app-mode main.wrap { max-width: none; padding: 0; margin: 0; }
 .mt-grid .mt-h { color: #607386; font-size: 12px; }
 .mt-grid i { font-style: normal; font-size: 11px; margin-right: 1px; }
 .fa-tidechip { background: #fff; color: #1f6fb2; border: 2px solid #1f6fb2; }
+/* 釣果の記録（2026-11-15 マイ水族館から変更） */
+.catch-list { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 10px; }
+.catch-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid var(--line, #d9d9d9); border-radius: 12px; }
+.catch-thumb { width: 96px; height: 64px; object-fit: contain; flex: none; display: flex; align-items: center; justify-content: center; background: #f1e9d6; border-radius: 8px; }
+.catch-body { flex: 1; min-width: 0; }
+.catch-body .aq-card-actions { flex-direction: row; flex-wrap: wrap; margin: 6px 0 0; gap: 10px; align-items: center; }
