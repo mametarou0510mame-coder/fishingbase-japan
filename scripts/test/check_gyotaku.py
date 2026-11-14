@@ -25,14 +25,19 @@ with sync_playwright() as p:
         pg.locator("input[type=number]").first.fill(SIZE)
     pg.locator("input[type=file]").set_input_files(PHOTO)
     pg.locator("form button[type=submit]").click()
-    pg.wait_for_timeout(1500)
+    msg = lambda: pg.locator(".cutout p.small").first.inner_text()
+    for _ in range(30):
+        pg.wait_for_timeout(1000)
+        if "タップしてください" in msg():
+            break
     c = pg.locator(".cutout-canvas")
     bb = c.bounding_box()
     pg.mouse.click(bb["x"] + bb["width"] * TAP[0], bb["y"] + bb["height"] * TAP[1])
-    for _ in range(90):
+    for _ in range(120):
         pg.wait_for_timeout(1000)
-        if "探しています" not in pg.locator(".cutout p.small").first.inner_text():
+        if "水色" in msg() or "自動で選べ" in msg():
             break
+    print(f"::notice::cutout: {msg()}")
     pg.wait_for_timeout(500)
     c.screenshot(path="shots/gy-0-select.png")
     pg.get_by_role("button", name="次へ").click()
