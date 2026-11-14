@@ -1,4 +1,4 @@
-// マイ水族館の魚の写真（切り抜いたもの）を、端末のブラウザの IndexedDB に保存する。サーバーには送らない。
+// 魚拓・釣果記録の魚の写真（DB の名前は前のマイ水族館のまま）（切り抜いたもの）を、端末のブラウザの IndexedDB に保存する。サーバーには送らない。
 const DB = "tsuredoki-aquarium";
 const STORE = "photos";
 
