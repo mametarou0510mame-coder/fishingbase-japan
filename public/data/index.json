@@ -1,5 +1,5 @@
 {
- "generatedOn": "2026-11-15",
+ "generatedOn": "2026-11-16",
  "method": "季節×潮×最近の傾向（過去の公開釣果から算出）",
  "spots": {
   "kishiwada-ichimonji": {
@@ -9,42 +9,6 @@
     "activeDays": 1631
    },
    "days": [
-    {
-     "date": "2026-11-15",
-     "tideClass": "小",
-     "top": [
-      {
-       "species": "アジ・サバ・イワシ",
-       "index": 87,
-       "stage": "シーズン中"
-      },
-      {
-       "species": "ヒラメ",
-       "index": 63,
-       "stage": "最盛期"
-      },
-      {
-       "species": "スズキ",
-       "index": 56,
-       "stage": "シーズン中"
-      },
-      {
-       "species": "タチウオ",
-       "index": 35,
-       "stage": "シーズン中"
-      },
-      {
-       "species": "タコ",
-       "index": 34,
-       "stage": "シーズン外"
-      },
-      {
-       "species": "カワハギ",
-       "index": 22,
-       "stage": "最盛期"
-      }
-     ]
-    },
     {
      "date": "2026-11-16",
      "tideClass": "小",
@@ -227,6 +191,42 @@
     },
     {
      "date": "2026-11-21",
+     "tideClass": "中",
+     "top": [
+      {
+       "species": "アジ・サバ・イワシ",
+       "index": 79,
+       "stage": "最盛期"
+      },
+      {
+       "species": "スズキ",
+       "index": 62,
+       "stage": "シーズン中"
+      },
+      {
+       "species": "ヒラメ",
+       "index": 57,
+       "stage": "最盛期"
+      },
+      {
+       "species": "タチウオ",
+       "index": 38,
+       "stage": "シーズン外"
+      },
+      {
+       "species": "タコ",
+       "index": 25,
+       "stage": "シーズン外"
+      },
+      {
+       "species": "チヌ（クロダイ）",
+       "index": 23,
+       "stage": "シーズン外"
+      }
+     ]
+    },
+    {
+     "date": "2026-11-22",
      "tideClass": "中",
      "top": [
       {
@@ -481,48 +481,12 @@
    },
    "days": [
     {
-     "date": "2026-11-15",
-     "tideClass": "中",
-     "top": [
-      {
-       "species": "ハマチ・ブリ",
-       "index": 50,
-       "stage": "シーズン中"
-      },
-      {
-       "species": "スズキ",
-       "index": 36,
-       "stage": "最盛期"
-      },
-      {
-       "species": "メバル",
-       "index": 32,
-       "stage": "最盛期"
-      },
-      {
-       "species": "カワハギ",
-       "index": 30,
-       "stage": "最盛期"
-      },
-      {
-       "species": "マダイ",
-       "index": 28,
-       "stage": "最盛期"
-      },
-      {
-       "species": "アコウ（キジハタ）",
-       "index": 20,
-       "stage": "最盛期"
-      }
-     ]
-    },
-    {
      "date": "2026-11-16",
      "tideClass": "中",
      "top": [
       {
        "species": "ハマチ・ブリ",
-       "index": 50,
+       "index": 47,
        "stage": "シーズン中"
       },
       {
@@ -532,22 +496,22 @@
       },
       {
        "species": "メバル",
-       "index": 32,
-       "stage": "最盛期"
-      },
-      {
-       "species": "カワハギ",
-       "index": 30,
+       "index": 34,
        "stage": "最盛期"
       },
       {
        "species": "マダイ",
-       "index": 28,
+       "index": 30,
+       "stage": "最盛期"
+      },
+      {
+       "species": "カワハギ",
+       "index": 25,
        "stage": "最盛期"
       },
       {
        "species": "アコウ（キジハタ）",
-       "index": 20,
+       "index": 21,
        "stage": "最盛期"
       }
      ]
@@ -558,7 +522,7 @@
      "top": [
       {
        "species": "ハマチ・ブリ",
-       "index": 50,
+       "index": 47,
        "stage": "シーズン中"
       },
       {
@@ -568,22 +532,22 @@
       },
       {
        "species": "メバル",
-       "index": 32,
-       "stage": "最盛期"
-      },
-      {
-       "species": "カワハギ",
-       "index": 30,
+       "index": 34,
        "stage": "最盛期"
       },
       {
        "species": "マダイ",
-       "index": 28,
+       "index": 30,
+       "stage": "最盛期"
+      },
+      {
+       "species": "カワハギ",
+       "index": 25,
        "stage": "最盛期"
       },
       {
        "species": "アコウ（キジハタ）",
-       "index": 20,
+       "index": 21,
        "stage": "最盛期"
       }
      ]
@@ -594,32 +558,32 @@
      "top": [
       {
        "species": "ハマチ・ブリ",
-       "index": 51,
+       "index": 48,
        "stage": "シーズン中"
       },
       {
        "species": "メバル",
-       "index": 30,
+       "index": 32,
        "stage": "最盛期"
       },
       {
        "species": "マダイ",
-       "index": 29,
+       "index": 30,
        "stage": "最盛期"
       },
       {
        "species": "アコウ（キジハタ）",
-       "index": 26,
-       "stage": "最盛期"
-      },
-      {
-       "species": "カワハギ",
-       "index": 26,
+       "index": 27,
        "stage": "最盛期"
       },
       {
        "species": "スズキ",
        "index": 26,
+       "stage": "最盛期"
+      },
+      {
+       "species": "カワハギ",
+       "index": 22,
        "stage": "最盛期"
       }
      ]
@@ -630,17 +594,17 @@
      "top": [
       {
        "species": "ハマチ・ブリ",
-       "index": 48,
+       "index": 46,
        "stage": "シーズン中"
       },
       {
        "species": "メバル",
-       "index": 32,
+       "index": 34,
        "stage": "最盛期"
       },
       {
        "species": "マダイ",
-       "index": 29,
+       "index": 30,
        "stage": "最盛期"
       },
       {
@@ -649,13 +613,13 @@
        "stage": "最盛期"
       },
       {
-       "species": "カワハギ",
-       "index": 24,
+       "species": "アコウ（キジハタ）",
+       "index": 23,
        "stage": "シーズン中"
       },
       {
-       "species": "アコウ（キジハタ）",
-       "index": 23,
+       "species": "カワハギ",
+       "index": 19,
        "stage": "シーズン中"
       }
      ]
@@ -666,17 +630,17 @@
      "top": [
       {
        "species": "ハマチ・ブリ",
-       "index": 48,
+       "index": 46,
        "stage": "シーズン中"
       },
       {
        "species": "メバル",
-       "index": 32,
+       "index": 34,
        "stage": "最盛期"
       },
       {
        "species": "マダイ",
-       "index": 29,
+       "index": 30,
        "stage": "最盛期"
       },
       {
@@ -685,13 +649,13 @@
        "stage": "最盛期"
       },
       {
-       "species": "カワハギ",
-       "index": 24,
+       "species": "アコウ（キジハタ）",
+       "index": 23,
        "stage": "シーズン中"
       },
       {
-       "species": "アコウ（キジハタ）",
-       "index": 23,
+       "species": "カワハギ",
+       "index": 19,
        "stage": "シーズン中"
       }
      ]
@@ -702,17 +666,17 @@
      "top": [
       {
        "species": "ハマチ・ブリ",
-       "index": 48,
+       "index": 46,
        "stage": "シーズン中"
       },
       {
        "species": "メバル",
-       "index": 32,
+       "index": 34,
        "stage": "最盛期"
       },
       {
        "species": "マダイ",
-       "index": 29,
+       "index": 30,
        "stage": "最盛期"
       },
       {
@@ -721,13 +685,49 @@
        "stage": "最盛期"
       },
       {
-       "species": "カワハギ",
-       "index": 24,
+       "species": "アコウ（キジハタ）",
+       "index": 23,
        "stage": "シーズン中"
+      },
+      {
+       "species": "カワハギ",
+       "index": 19,
+       "stage": "シーズン中"
+      }
+     ]
+    },
+    {
+     "date": "2026-11-22",
+     "tideClass": "小",
+     "top": [
+      {
+       "species": "ハマチ・ブリ",
+       "index": 46,
+       "stage": "シーズン中"
+      },
+      {
+       "species": "メバル",
+       "index": 34,
+       "stage": "最盛期"
+      },
+      {
+       "species": "マダイ",
+       "index": 30,
+       "stage": "最盛期"
+      },
+      {
+       "species": "スズキ",
+       "index": 28,
+       "stage": "最盛期"
       },
       {
        "species": "アコウ（キジハタ）",
        "index": 23,
+       "stage": "シーズン中"
+      },
+      {
+       "species": "カワハギ",
+       "index": 19,
        "stage": "シーズン中"
       }
      ]
