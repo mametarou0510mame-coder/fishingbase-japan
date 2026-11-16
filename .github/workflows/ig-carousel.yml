@@ -1,0 +1,28 @@
+name: Instagram carousel
+
+# オーナーが確認したカルーセルを投稿する（content/sns/ig/<name>/1.jpg… と caption.txt）
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "例 anglers-club"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ig-images
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python scripts/sns/ig_carousel.py "${{ github.event.inputs.name }}"
