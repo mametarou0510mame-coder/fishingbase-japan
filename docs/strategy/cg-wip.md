@@ -55,7 +55,7 @@
 - [x] 3. narrate.py --silent → render_cg.py --stills / --thumb / --portrait --stills を全部見て直す。魚のすきま（window.__ftClear 0.3m 以上）
 - [x] 4. Blender：opening.py に ENV="reef"（根・海藻）と LURE="sabiki" を足す、scenes/mebaru.py。bpy なしで式だけ確かめる
 - [x] 5.（1回目は確認ずみ。見た目を直して2回目を実行中）push → cg-blender-open.yml を mode=test（video_run は何でもよい）→ long-media の cg/open/test/cg-fune-mebaru/ の絵を見て直す
-- [ ] 6. cg-video.yml（slug=cg-fune-mebaru, chunks=8）→ cg-compress.yml（run_id, slug）
+- [x] 6.（cg-video 43832760823・cg-compress 43835214218 とも成功。長さ 3分04秒。書き出した動画を数コマ見て確認ずみ）cg-video.yml（slug=cg-fune-mebaru, chunks=8）→ cg-compress.yml（run_id, slug）
 - [ ] 7. cg-blender-open.yml mode=full, samples=64, video_run=<6 の実行ID> → cg/open/cg-fune-mebaru-check-*.jpg と summary（すきま 0.2m 以上）
 - [x] 8. 固定コメントの道具紹介 data/sns/yt-comments/cg-fune-mebaru.txt（ASIN を確かめる）
 - [ ] 9. yt_long.py の ORDER に入れる → **投稿日はオーナーに確かめる**（今回は定期タスクではなくオーナーとの会話から作っている）
@@ -63,11 +63,16 @@
 - [ ] 11. cg-video-plan.md の「制作済み」へ移し、このファイルの「作りかけ 1」を消す
 
 ### 次にやること
-Blender の test（2回目）の絵を見る：long-media の cg/open/test/cg-fune-mebaru/。1回目は動いた（メバル・海藻・サビキは出た）が、根が砂のように白くなめらかだったので、色を暗く・形を押し出すように直した。よければ 6（cg-video は実行ずみ。成功を確かめて cg-compress）→ 7（full）。Blender は download.blender.org が 403 を返すことがあるので、workflow に保存とミラーを足してある。
+7 の結果を待つ：cg-blender-open（mode=full, samples=64）実行 ID 43836340256（18:10 ごろ開始、約1時間半）。
+- 成功したら：long-media の cg/open/cg-fune-mebaru-check-1.jpg・-4.jpg・-8.jpg と cg/open/cg-fune-mebaru-summary.txt（すきま 0.2m 以上）を見る。
+- 一部の分割だけ失敗したら（Blender の取得 403 など）：その実行を「失敗したジョブだけ再実行」する。full が直らなければ、元の three.js の冒頭のまま出してよい（long-media の cg-fune-mebaru.mp4.part-00 は cg-compress ずみで投稿できる状態）。
+- そのあと 9（ORDER に入れる。**投稿日はオーナーの返事を待つ**）→ 10（ショート）→ 11。
 
 ### 実行の記録（実行 ID など）
 - 2026-11-16 17:31 cg-blender-open（test）43831943344（失敗：頂点の取り方のエラーと Blender の取得 403。直した）→ 17:37 43832757090（成功）
 - 2026-11-16 17:37 cg-video（slug=cg-fune-mebaru, chunks=8）実行 ID 43832760823
+- 2026-11-16 17:52 cg-blender-open（test 2回目）43834611374 成功：根が岩らしくなり、サムネイルもよい
+- 2026-11-16 18:10 cg-blender-open（full）43836340256
 - 固定コメント：data/sns/yt-comments/cg-fune-mebaru.txt（作成ずみ）
 - 確認ずみ：`render_cg.py cg-fune-mebaru --clear` 最小 0.75m、`check_scene.py mebaru` 最小 0.59m、長さ 約2分55秒
 
