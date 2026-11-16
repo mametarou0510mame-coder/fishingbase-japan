@@ -50,10 +50,10 @@
 
 ### 進み具合（終わったら [x] にして push）
 - [x] 0. 事実の確認・構成（このファイル）
-- [ ] 1. main.js：根と海藻（ne*）、サビキ仕掛け（sb*）、メバルの群れ、`mb_*` の場面、`mb_thumb`
-- [ ] 2. 台本 content/cg/cg-fune-mebaru.json（blender_open・thumb_shot 入り）と short-cg-fune-mebaru.json
-- [ ] 3. narrate.py --silent → render_cg.py --stills / --thumb / --portrait --stills を全部見て直す。魚のすきま（window.__ftClear 0.3m 以上）
-- [ ] 4. Blender：opening.py に ENV="reef"（根・海藻）と LURE="sabiki" を足す、scenes/mebaru.py。bpy なしで式だけ確かめる
+- [x] 1. main.js：根と海藻（ne*）、サビキ仕掛け（sb*）、メバルの群れ、`mb_*` の場面、`mb_thumb`
+- [x] 2. 台本 content/cg/cg-fune-mebaru.json（blender_open・thumb_shot 入り）と short-cg-fune-mebaru.json
+- [x] 3. narrate.py --silent → render_cg.py --stills / --thumb / --portrait --stills を全部見て直す。魚のすきま（window.__ftClear 0.3m 以上）
+- [x] 4. Blender：opening.py に ENV="reef"（根・海藻）と LURE="sabiki" を足す、scenes/mebaru.py。bpy なしで式だけ確かめる
 - [ ] 5. push → cg-blender-open.yml を mode=test（video_run は何でもよい）→ long-media の cg/open/test/cg-fune-mebaru/ の絵を見て直す
 - [ ] 6. cg-video.yml（slug=cg-fune-mebaru, chunks=8）→ cg-compress.yml（run_id, slug）
 - [ ] 7. cg-blender-open.yml mode=full, samples=64, video_run=<6 の実行ID> → cg/open/cg-fune-mebaru-check-*.jpg と summary（すきま 0.2m 以上）
@@ -63,10 +63,11 @@
 - [ ] 11. cg-video-plan.md の「制作済み」へ移し、このファイルの「作りかけ 1」を消す
 
 ### 次にやること
-1 から。
+5 の結果を見る：long-media の cg/open/test/cg-fune-mebaru/（f0001.png など6コマと thumb.jpg）。Blender の部品（parts.py）は Blender で動かして確かめる前なので、エラーが出たらログを見て直す。よければ 6 → 7。
 
 ### 実行の記録（実行 ID など）
-- （まだなし）
+- 2026-11-16 17:31 cg-blender-open（test）実行 ID 43831943344
+- 確認ずみ：`render_cg.py cg-fune-mebaru --clear` 最小 0.75m、`check_scene.py mebaru` 最小 0.59m、長さ 約2分55秒
 
 ---
 

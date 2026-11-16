@@ -8971,7 +8971,7 @@ const MB_LEG = [["#ffb45e", "糸と仕掛け"], ["#2ecc71", "底から1〜5m"]];
 const MB_HOME = [[0.8, -0.25], [0.95, 0.1], [0.7, 0.3], [1.3, -0.5]]; // ハリのそばで待つ位置（ハリから）
 // まわりで待つメバル（3匹）：ハリ j のそば
 function mbWaiters(st, T, list = [[0, 1], [1, 2], [2, 3]], o = {}) {
-  list.forEach(([i, j]) => mbBiter(i, st.hooks[j], -9, T, { off: MB_HOME[i], cm: 24 + i, ...o }));
+  list.forEach(([i, j]) => mbBiter(i, st.hooks[j], -9, T, { off: MB_HOME[i], cm: 27 + i, ...o }));
 }
 
 Object.assign(SHOTS, {
@@ -9064,7 +9064,7 @@ Object.assign(SHOTS, {
     const ts = k >= 1 ? mk.land + 0.2 + Math.max(0, t - (s._k1 ?? 0) - 0.3) : Math.min(0.2 + t * 0.85, mk.land + 0.2);
     const st = sbRig(T, sim, ts, { vis: 2.5 });
     // 待っているメバル：仕掛けより少し右、根の上 1〜2m
-    [[0, 1.0, 1.2], [1, 1.5, 1.9], [2, 0.8, 2.4]].forEach(([i, x, h]) => mbAt(i, x + 0.05 * Math.sin(T * 0.8 + i), rfY(x) + h + 0.04 * Math.sin(T * 1.1 + i * 2), Math.PI - 0.16, T, { cm: 24 + i }));
+    [[0, 1.0, 1.2], [1, 1.5, 1.9], [2, 0.8, 2.4]].forEach(([i, x, h]) => mbAt(i, x + 0.05 * Math.sin(T * 0.8 + i), rfY(x) + h + 0.04 * Math.sin(T * 1.1 + i * 2), Math.PI - 0.16, T, { cm: 27 + i }));
     mbKasago(0, 1.7, FT_LZ - 0.6, T);
     ftCam(sim, ts, 3.2, { dy: 0.55, ox: 0.5 });
     const c0 = st.c0;
@@ -9115,7 +9115,7 @@ Object.assign(SHOTS, {
     const st = sbRig(T, sim, ts, { vis: 2.5 });
     const c0 = st.c0, up = c0.kind === "up" ? ease((ts - c0.t0) / 1.2) : c0.kind === "down" ? 1 - ease((ts - c0.t0) / 1.0) : 0;
     // 上げている間、メバルがハリに寄る（イメージ）
-    [[0, 1], [1, 2], [2, 3]].forEach(([i, j]) => mbBiter(i, st.hooks[j], -0.7 + 0.42 * up * (i === 1 ? 1 : 0.7), T, { off: MB_HOME[i], cm: 24 + i }));
+    [[0, 1], [1, 2], [2, 3]].forEach(([i, j]) => mbBiter(i, st.hooks[j], -0.7 + 0.42 * up * (i === 1 ? 1 : 0.7), T, { off: MB_HOME[i], cm: 27 + i }));
     mbSchool(T, { cx: 3.6, sx: 2.2, n: 6, zc: FT_LZ - 2 });
     mbKasago(0, 1.7, FT_LZ - 0.6, T);
     ftCam(sim, ts, 3.3, { dy: 0.75, ox: 0.45 });
@@ -9136,9 +9136,9 @@ Object.assign(SHOTS, {
     const ts = k >= 2 ? mk.pre + Math.max(0, t2) : Math.min(t, mk.pre);
     const hooked = ts >= mk.hook, nib = ts > mk.bite - 0.15 && ts < mk.hook + 0.4;
     const st = sbRig(T, sim, ts, { vis: 2.5, hooked: ts >= mk.bite ? { 1: true } : null });
-    mbBiter(0, st.hooks[1], ts - mk.bite, T, { off: MB_HOME[0], cm: 26 });
-    mbBiter(1, st.hooks[2], -9, T, { off: MB_HOME[1], cm: 24 });
-    mbBiter(2, st.hooks[3], -9, T, { off: MB_HOME[2], cm: 25 });
+    mbBiter(0, st.hooks[1], ts - mk.bite, T, { off: MB_HOME[0], cm: 29 });
+    mbBiter(1, st.hooks[2], -9, T, { off: MB_HOME[1], cm: 27 });
+    mbBiter(2, st.hooks[3], -9, T, { off: MB_HOME[2], cm: 28 });
     mbKasago(0, 1.7, FT_LZ - 0.6, T);
     ftCam(sim, ts, P ? 2.5 : 3.3, { dy: P ? 1.3 : 0.85, ox: P ? 0.25 : 0.45 });
     if (k <= 1) {
@@ -9166,10 +9166,10 @@ Object.assign(SHOTS, {
     const ts = Math.min(mk.hook + 1.2 + t * 1.15, sim.dur - 0.5);
     const n = 1 + (ts >= mk.b2 ? 1 : 0) + (ts >= mk.b3 ? 1 : 0);
     const st = sbRig(T, sim, ts, { vis: 2.5, hooked: { 1: true, 2: ts >= mk.b2, 3: ts >= mk.b3 } });
-    mbBiter(0, st.hooks[1], 1, T, { cm: 26 });
-    mbBiter(1, st.hooks[2], ts - mk.b2, T, { off: MB_HOME[1], cm: 24 });
-    mbBiter(2, st.hooks[3], ts - mk.b3, T, { off: MB_HOME[2], cm: 25 });
-    mbBiter(3, st.hooks[0], -9, T, { off: [1.5, 0.2], cm: 23, dz: -0.5 });
+    mbBiter(0, st.hooks[1], 1, T, { cm: 29 });
+    mbBiter(1, st.hooks[2], ts - mk.b2, T, { off: MB_HOME[1], cm: 27 });
+    mbBiter(2, st.hooks[3], ts - mk.b3, T, { off: MB_HOME[2], cm: 28 });
+    mbBiter(3, st.hooks[0], -9, T, { off: [1.5, 0.2], cm: 26, dz: -0.5 });
     ftCam(sim, ts, P ? 2.6 : 3.2, { dy: P ? 1.5 : 1.3, ox: P ? 0.2 : 0.4 });
     const fl = (ts > mk.b2 - 0.1 && ts < mk.b2 + 0.9) || (ts > mk.b3 - 0.1 && ts < mk.b3 + 0.9);
     ftChip(fl ? `${n}匹目！ 追い食い` : "掛かっても、ゆっくり巻き続ける", fl ? "#c2410c" : "#e08a2a");
