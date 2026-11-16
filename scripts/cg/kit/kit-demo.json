@@ -1,0 +1,13 @@
+{
+ "title": "部品の見本（動画にはしない。scripts/cg/kit/README.md）",
+ "video": {
+  "scenes": [
+   {"type": "kit_reef", "nocap": true, "min": 6, "lines": ["根と海藻、サビキ仕掛け、群れの見本です。"]},
+   {"type": "kit_tetra", "nocap": true, "min": 6, "lines": ["テトラ帯の断面の見本です。"]},
+   {"type": "kit_slope", "nocap": true, "min": 6, "lines": ["漁港のスロープ、昼の見本です。"]},
+   {"type": "kit_slope", "nocap": true, "night": 1, "min": 6, "lines": ["漁港のスロープ、夜の見本です。"]},
+   {"type": "kit_flow", "nocap": true, "min": 6, "lines": ["潮の流れの粒、二枚潮の見本です。"]},
+   {"type": "kit_bait", "nocap": true, "min": 6, "lines": ["エサを付けた胴付き仕掛けの見本です。"]}
+  ]
+ }
+}

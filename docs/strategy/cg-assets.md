@@ -12,6 +12,12 @@
 | **根（岩礁）と海藻** | `rfBase()`、`rfH(x)`・`rfY(x)`・`rfY3(x, z)`、`RF_HILLS`、`rfKelp`、`rfClear(gap)` | 砂の底を水深30m（`RF_BOT`）にして、岩の山と海藻を出す。`RF_HILLS`（[中心, 幅, 高さ]）を変えると地形が変わる。`opt.botf: (x) => rfY(x)` で ftSim の底になる。船のカサゴ・アジ・根魚、堤防の根まわりの回に |
 | **サビキ・胴付き仕掛け** | `sbPlace(T, S, tip, vel, o)`、`sbRigAt`、`sbRig(T, sim, ts, o)`、`FT_BODY.omori30`、`SB_POS` | オモリ（ナス型30号）・幹糸・枝（ハリス）・ハリ・魚の皮・ビーズ。`o.n` でハリの数、`o.vis` で拡大、`o.hooked` で魚が掛かったハリ。`sbRig` の戻り値は `ftCtl` にそのまま渡せる。船のアジ・イワシのサビキ、胴付きのカサゴ・カワハギにも |
 | **メバルの群れ・食いつく魚** | `mbAt(i, mx, my, ang, T, o)`、`mbSchool(T, o)`、`mbBiter(i, hk, dt, T, o)`、`mbKasago` | Fish Kit の魚を「口の位置と頭の向き」で置く（`o.id` でほかの魚種にも使える）。根より 0.3m 以上、上に自動で上げる。`mbBiter` は「待つ → 0.7秒前から寄る → 掛かって体を振る」 |
+| **岸の断面の土台** | `makeSection({ origin, bed(u), kind(u), depth })`、`secMat(sec, 色)`、`secAngler(sec, u, y)`、`secBase(sec, 夜の強さ)` | 空・水・地形・海面を、地形の式から作る。kind＝0 砂・1 岩・2 コンクリート・3 ぬれて藻のついたコンクリート。夜（nightK=1）は暗くなり、`sec.uni.lamp`（光の中心・半径）の中だけ明るい。新しい釣り場の断面（磯・河口・砂浜の堤防など）はこれで作る |
+| **テトラ帯の断面** | `ttBase(夜)`、`ttY(u)`（テトラの上の面・海底）、`ttTip()`（竿先）、`ttWide(t)`、`TT_HOLES`（すき間）、`TT_PINS`（穴・際・沖の境目）、`TTp(u, y, z)` | 防波堤（手すり・釣り人）の沖にテトラの山と砂。釣り人は防波堤の上（テトラには乗らない）。企画「テトラ帯、どこに投げる？」にそのまま使える。見本の絵：cg-assets/kit_tetra.jpg |
+| **漁港のスロープの断面** | `spBase(夜)`、`spBed(u)`、`spTip()`、`spWide(t)`、`SP_PINS`（段差・かけあがり・明暗の境目）、`SPp(u, y, z)` | 岸壁（常夜灯・係船柱・釣り人）から坂が下り、終わりに段差、その先は砂のかけあがり。昼と夜。企画「漁港のスロープ、どこに投げる？」に。見本：kit_slope.jpg・kit_slope_night.jpg |
+| **魚を置く（どの断面でも）** | `fkPut(id, i, 口のx, 口のy, 向き, T, { at, floor, z, cm })`、`fkSchool(id, T, { at, floor, cx, sx, h0, h1, n, cm, face })` | Fish Kit の魚を口の位置で置く・群れで置く。`floor(x, z)` を渡すと埋まらないように上げる（すきまは `--clear` で確かめられる）。使える魚に seabass（シーバス）を足した |
+| **潮の流れの粒（船の断面）** | `ftFlow(濃さ, { mid, v1, v2 })` | 深さ mid より上は v1、下は v2 の速さで横に流れる粒（水色＝右、オレンジ＝左）。二枚潮・潮の速さの説明に。見本：kit_flow.jpg |
+| **エサ付きの胴付き仕掛け** | `sbRigAt(…, { n: 3, bait: "ebi" })` | サビキの皮の代わりにエビ。カサゴ・メバルのエサ釣りの回に。見本：kit_bait.jpg |
 | 船が流れる場面（模式図） | `MB_DRIFT.at(t)`・`MB_DRIFT.ev` | 底から約1mを保ち、当たったら巻き、5秒ごとに取り直す動きを前もって作ったもの |
 | タナの帯・全体図・グラフ | `mbBand(x0, x1, lo, hi, a, 濃さ)`、`mbMini(sx, sy, bx)`、`mbGraph(sim, ts, win)` | 根の形に沿った緑の帯、根の入った全体図（水深30m）、底からの高さのグラフ |
 | 画面の部品 | `ftMini`・`ftCtl`（竿とリール）・`ftGraph`・`agGraph`・`ftChip`・`ftNote`・`ftCard`・`ftFinder`・`ftThumbText`、`label`・`legend`・`bigText`・`card`・`drawBar` | 左上の全体図、右上の竿とリール、字幕チップ、注記など |
@@ -19,6 +25,9 @@
 | イカ（Squid Kit） | `loadSquids`・`createSquid` | アオリイカ・コウイカ（cg-video-plan.md の注意を読む） |
 | ルアー・仕掛けの模型 | `ftTenya`、`makeJigReal`、`trRig`（タイラバ）、`sfJig` | テンヤ・メタルジグ・タイラバ |
 | サーフ | `sfBed`・`sfBase`・`sfRig`・`sfTopView` など | 砂浜の断面と上からの絵（離岸流） |
+
+### 見本の場面（部品の確かめ方）
+`python3 scripts/video/narrate.py scripts/cg/kit/kit-demo.json --silent` → `python3 scripts/cg/render_cg.py kit-demo --stills` で、部品ごとの見本（kit_*）の静止画ができる。部品を直したら、これと既存の動画の `--stills` を見て、ほかの動画が変わっていないことを確かめる。見本の絵は docs/strategy/cg-assets/ に置いてある。
 
 ## 2. Blender（scripts/cg/blender/）：冒頭とサムネイル
 

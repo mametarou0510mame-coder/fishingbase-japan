@@ -6980,7 +6980,7 @@ function ftPut(obj, x, y, th, sc = 1, off = 0) {
   }
 }
 let ftPend = [];
-function ftBase() { base(0); U.under.value = 0; ftGrp.visible = true; ftGrp.userData.bed.visible = true; ftBand.visible = false; ftBoat.visible = true; ftPend = []; ftShadowN = 0; }
+function ftBase() { base(0); U.under.value = 0; ftGrp.visible = true; ftGrp.userData.bed.visible = true; ftBand.visible = false; ftBoat.visible = true; ftPend = []; ftShadowN = 0; ftFlowPts.visible = false; }
 // カメラを決めたあとに呼ぶ：糸・軌跡（画面の上に描く線）と影
 function ftFlush() { ftPend.forEach((f) => f()); ftPend = []; ftShadow.count = ftShadowN; ftShadow.visible = ftShadowN > 0; ftShadow.instanceMatrix.needsUpdate = true; }
 const _ftF = V(0, 0, 0);
@@ -7835,10 +7835,11 @@ const FK = { ok: false, mod: null, pool: {} };
   const hemi = new THREE.HemisphereLight(0xcfeaff, 0x3a4a58, 1.3);
   const sun = new THREE.DirectionalLight(0xffffff, 1.6);
   sun.position.set(0.4, 1, 0.6);
+  FK.lights = [hemi, sun]; // 夜の場面（secBase）で暗くする。毎コマ window.frame で元に戻す
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }
@@ -8801,7 +8802,15 @@ const sbUnits = SB_POS.map((_, j) => {
   sg.setAttribute("ph", new THREE.Float32BufferAttribute(new Array(sg.attributes.position.count).fill(j * 1.7), 1));
   const skin = new THREE.Mesh(sg, sbSkinMat);
   const bead = new THREE.Mesh(new THREE.SphereGeometry(0.0016, 8, 6), new THREE.MeshBasicMaterial({ color: j % 2 ? 0xb6ff6a : 0xffe45e })); bead.position.x = -0.0005;
-  u.add(shank, bend, skin, bead);
+  // エサのエビ（約4cm。o.bait: "ebi" のときだけ出す）
+  const ebi = new THREE.Group(), ebiM = ftLit(0xe3d2c2, { shine: 0.7 });
+  ebi.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(0.002, 0.001, 0), V(0.014, 0.005, 0), V(0.027, 0.003, 0), V(0.037, -0.006, 0)]), 12, 0.0034, 8), ebiM));
+  const fan = new THREE.Mesh(new THREE.ConeGeometry(0.005, 0.009, 6).rotateZ(Math.PI / 2), ftLit(0xd98a6a, { shine: 0.4 })); fan.position.set(0.0, 0.0005, 0); fan.scale.set(1, 0.4, 1.3);
+  ebi.add(fan);
+  [-1, 1].forEach((sd) => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.0011, 6, 5), new THREE.MeshBasicMaterial({ color: 0x111111 })); e.position.set(0.036, -0.003, sd * 0.003); ebi.add(e); });
+  ebi.visible = false;
+  u.add(shank, bend, skin, bead, ebi);
+  u.userData = { skin, ebi };
   world.add(u);
   extras.push(u);
   return u;
@@ -8829,6 +8838,8 @@ function sbPlace(T, S, tip, vel, o = {}) {
     u.position.copy(FTp(ex, ey, FT_LZ));
     u.rotation.set(0, 0, Math.atan2(dy, dx));
     u.scale.setScalar(vis);
+    u.userData.skin.visible = o.bait !== "ebi";
+    u.userData.ebi.visible = o.bait === "ebi";
     hooks.push({ px, py, x: ex, y: ey, dx, dy });
   }
   const top = [S[0] + ux * SB_TOP, S[1] + uy * SB_TOP];
@@ -9214,6 +9225,315 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 使い回せる部品 その2（2026-11-16 オーナー：「他の動画にも使える素材を作っておく」）。一覧と見本の絵は docs/strategy/cg-assets.md
+//   makeSection … 岸の断面の土台（空・水・地形・海面）を、地形の式から作る
+//   tt*  … テトラ帯の断面（防波堤・テトラの山・砂）。「テトラ帯、どこに投げる？」などに
+//   sp*  … 漁港のスロープの断面（岸壁・斜路・先の段差・常夜灯。昼と夜）。「漁港のスロープ、どこに投げる？」などに
+//   fkPut / fkSchool … Fish Kit の魚を「口の位置と向き」で置く・群れで置く（海底の式を渡すと、埋まらないように上げる）
+//   ftFlow … 船の断面に潮の流れの粒（上と下で向きが違う「二枚潮」も）
+//   sbPlace の o.bait: "ebi" … 胴付き仕掛けのエサ（エビ）
+// 地形はどれも模式図（実在の場所ではない）。見本の場面は kit_*（scripts/cg/kit/kit-demo.json）
+// =====================================================================
+// ---- 魚を置く（どの断面でも使える）----
+// (mx, my)：口の位置、ang：頭の向き（0＝右、π＝左、π/2＝上）。o.at(x, y, z)：断面の座標 → ワールド、o.floor(x, z)：海底の高さ、o.gap：海底から離す最小の距離
+function fkPut(id, i, mx, my, ang, T, o = {}) {
+  const f = fkGet(id, i, o.cm);
+  if (!f) return null;
+  const at = o.at ?? FTp, floor = o.floor ?? (() => FT_BOT), need = o.gap ?? 0.3;
+  const sc = o.sc ?? 1, L = f.length * sc, z = o.z ?? FT_LZ - 0.1, c = Math.cos(ang), s = Math.sin(ang), hh = (o.deep ?? 0.19) * L;
+  const cx = mx - c * L * 0.47;
+  let cy = my - s * L * 0.47, gap = 99;
+  [-0.5, 0, 0.5].forEach((k) => { gap = Math.min(gap, cy + s * L * k - hh * Math.abs(c) - floor(cx + c * L * k, z)); });
+  if (gap < need) { cy += need - gap; gap = need; }
+  if (!o.noClear) rfClear(gap);
+  f.object.scale.setScalar(sc);
+  const right = c >= 0;
+  fkPlace(f, at(cx, cy, z), right ? 0 : Math.PI, right ? ang : Math.PI - ang, T + i * 1.3, { freq: o.freq ?? 1.5, amp: o.amp ?? 0.05, seed: i });
+  return { cx, cy, L, mx: cx + c * L * 0.47, my: cy + s * L * 0.47 };
+}
+// 群れ：o.cx・o.sx（横の中心と広がり）、o.h0〜o.h1（海底からの高さ）、o.zc・o.sz（奥行き）、o.face（-1＝左向き、1＝右向き、0＝ゆっくり行き来）
+const FK_OFF = (() => { const r = rng(7741); return Array.from({ length: 24 }, () => ({ x: r() * 2 - 1, h: r(), z: r() * 2 - 1, p: r() * 6.28, w: 0.6 + r() * 0.8, k: r() })); })();
+function fkSchool(id, T, o = {}) {
+  const { cx = 0, sx = 4, h0 = 1, h1 = 2.5, zc = FT_LZ - 1.7, sz = 1.2, n = 12, i0 = 60, cm = 22, face = -1, pitch = 0.1 } = o;
+  const floor = o.floor ?? (() => FT_BOT);
+  for (let i = 0; i < Math.min(n, FK_OFF.length); i++) {
+    const q = FK_OFF[i], z = zc + q.z * sz, dir = face || (Math.sin(T * 0.12 + q.p) > 0 ? 1 : -1);
+    const x = cx + q.x * sx + Math.sin(T * 0.21 * q.w + q.p) * (face ? 0.25 : 1.2);
+    const y = floor(x, z) + lerp(h0, h1, q.h) + Math.sin(T * 0.5 * q.w + q.p) * 0.08;
+    fkPut(id, i0 + i, x, y, dir > 0 ? pitch : Math.PI - pitch, T, { ...o, cm: Math.round(cm * (0.85 + 0.3 * q.k)), z, freq: o.freq ?? 1.3 });
+  }
+}
+
+// ---- 岸の断面の土台 ----
+// o.origin：置く場所、o.bed(u)：地面の高さ（海面が 0）、o.kind(u)：0＝砂 1＝岩 2＝コンクリート 3＝ぬれて藻のついたコンクリート、o.depth：色がいちばん深くなる水深
+function makeSection(o) {
+  const { origin, bed, kind = () => 0, u0 = -30, u1 = 90, du = 0.25, z0 = -10, z1 = 5, depth = 12, water0 = 0 } = o;
+  const grp = new THREE.Group();
+  grp.position.copy(origin);
+  world.add(grp);
+  extras.push(grp);
+  const uni = { time: U.time, nt: { value: 0 }, lamp: { value: new THREE.Vector4(0, 0, 1, 0) } }; // lamp：光の中心 (u, y)・半径・強さ
+  const NIGHT = `uniform float nt; uniform vec4 lamp;
+    vec3 night(vec3 c, vec2 p){ float g = lamp.w * exp(-pow(distance(p, lamp.xy) / lamp.z, 2.0)); return mix(c, c * (0.16 + 1.5 * g) + vec3(0.16, 0.13, 0.05) * g, nt); }`;
+  const wallM = new THREE.Mesh(new THREE.PlaneGeometry(u1 - u0 + 500, 300).translate((u0 + u1) / 2, -60, 0), new THREE.ShaderMaterial({
+    uniforms: uni,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL; ${NIGHT}
+      void main(){ vec2 p = vL.xy; float surf = 0.10*sin(p.x*0.5+time*1.2); vec3 c;
+        if (p.y > surf) c = mix(mix(vec3(0.80,0.91,0.98), vec3(0.50,0.74,0.94), smoothstep(0.0, 40.0, p.y)), vec3(0.03,0.05,0.12), nt);
+        else { float d = clamp(-p.y/${depth.toFixed(1)}, 0.0, 1.0); c = mix(vec3(0.42,0.80,0.88), vec3(0.12,0.42,0.62), pow(d, 0.8));
+          float ray = smoothstep(0.55, 1.0, sin(p.x*0.25 + p.y*0.08 + time*0.15)*sin(p.x*0.07 - time*0.05 + 1.0)); c += vec3(0.08,0.10,0.08)*ray*(1.0-d)*(1.0-nt);
+          c = mix(c, vec3(0.93,0.98,1.0), 0.5*smoothstep(0.6, 0.0, surf - p.y)*(1.0-nt)); c = night(c, p); }
+        gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  wallM.position.z = z0 - 0.5;
+  const pos = [], nrm = [], kd = [], idx = [], n = Math.round((u1 - u0) / du), BOT = -depth - 30;
+  for (let i = 0; i <= n; i++) {
+    const u = u0 + i * du, y = bed(u), k = kind(u);
+    pos.push(u, y, z0, u, y, z1, u, y, z1, u, BOT, z1);
+    nrm.push(0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1);
+    kd.push(k, k, k, k);
+  }
+  for (let i = 0; i < n; i++) { const a = i * 4, b = a + 4; idx.push(a, a + 1, b, b, a + 1, b + 1, a + 2, a + 3, b + 2, b + 2, a + 3, b + 3); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("normal", new THREE.Float32BufferAttribute(nrm, 3));
+  g.setAttribute("kind", new THREE.Float32BufferAttribute(kd, 1));
+  g.setIndex(idx);
+  const bedM = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    uniforms: uni, side: THREE.DoubleSide,
+    vertexShader: `attribute float kind; varying vec3 vL; varying vec3 vN; varying float vK; void main(){ vL = position; vN = normal; vK = kind; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; varying vec3 vN; varying float vK; ${NIGHT}
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+      void main(){ bool topF = vN.y > 0.5; vec2 q = topF ? vL.xz : vL.xy; float nn = noise(q*5.0), n2 = noise(q*1.1 + 9.0);
+        vec3 sand = vec3(0.86,0.79,0.62)*(0.84+0.10*hash(floor(q*6.0))+0.10*(0.5+0.5*sin(vL.x*3.1 + sin(vL.z*1.3)*1.4)));
+        vec3 rock = mix(vec3(0.27,0.25,0.24), vec3(0.54,0.50,0.45), 0.6*nn + 0.4*n2);
+        vec3 conc = vec3(0.72,0.73,0.72)*(0.90+0.12*nn) * (0.94 + 0.06*step(0.5, fract(vL.x*0.25)));
+        vec3 wet = mix(conc*0.62, vec3(0.30,0.42,0.22), 0.35 + 0.45*n2);
+        vec3 c = vK < 0.5 ? sand : vK < 1.5 ? rock : (vK < 2.5 || !topF) ? conc : wet;
+        if (!topF) c *= vec3(0.66,0.62,0.58) * (0.9 + 0.1*smoothstep(-30.0, 0.0, vL.y));
+        else c *= 0.82 + 0.18*smoothstep(-10.0, 5.0, vL.z);
+        if (vL.y < 0.0) c *= mix(vec3(1.0), vec3(0.62,0.86,0.95), clamp(-vL.y/6.0, 0.0, 1.0));
+        gl_FragColor = vec4(night(c, vL.xy), 1.0); }`,
+  }));
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(u1 - water0, z1 - z0).rotateX(-Math.PI / 2).translate((u1 + water0) / 2, 0.02, (z0 + z1) / 2), new THREE.ShaderMaterial({
+    uniforms: uni, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; uniform float nt; varying vec3 vL;
+      void main(){ float w = pow(abs(sin(vL.x*1.1+time)*sin(vL.z*1.5-time*0.8)), 4.0);
+        vec3 c = mix(vec3(0.18,0.55,0.74), vec3(0.85,0.96,1.0), w*0.5) * mix(1.0, 0.22, nt);
+        if (gl_FrontFacing) gl_FragColor = vec4(c, 0.9); else gl_FragColor = vec4(mix(vec3(0.85,0.97,1.0), vec3(0.2,0.3,0.4), nt), 0.25 + 0.3*w); }`,
+  }));
+  top.renderOrder = 9;
+  grp.add(wallM, bedM, top);
+  return { grp, uni, NIGHT, P: (u, y, z = 0) => V(origin.x + u, origin.y + y, origin.z + z) };
+}
+// 断面に置く物の材質（夜は暗く、常夜灯の光の中だけ明るい。インスタンスにも使える）
+function secMat(sec, hex, shine = 0.2) {
+  return new THREE.ShaderMaterial({
+    uniforms: { ...sec.uni, col: { value: new THREE.Color(hex) }, shine: { value: shine }, org: { value: sec.grp.position } }, side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vN; varying vec3 vW; void main(){ mat4 mm = modelMatrix;
+      #ifdef USE_INSTANCING
+      mm = modelMatrix * instanceMatrix;
+      #endif
+      vN = normalize(mat3(mm)*normal); vec4 w = mm*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform vec3 col; uniform float shine; uniform vec3 org; varying vec3 vN; varying vec3 vW; ${sec.NIGHT}
+      void main(){ vec3 N = normalize(vN); vec3 Vd = normalize(cameraPosition - vW); if (dot(N, Vd) < 0.0) N = -N;
+        vec3 Ld = normalize(vec3(0.3,1.0,0.6)); float diff = clamp(dot(N, Ld),0.,1.);
+        vec3 c = col*(0.50+0.62*diff) + vec3(1.0)*pow(max(dot(reflect(-Ld, N), Vd),0.), 24.0)*shine;
+        vec2 p = (vW - org).xy; if (p.y < 0.0) c *= mix(vec3(1.0), vec3(0.62,0.86,0.95), clamp(-p.y/6.0, 0.0, 1.0));
+        gl_FragColor = vec4(night(c, p), 1.0); }`,
+  });
+}
+// 断面に立つ釣り人と竿（ライフジャケット着用）。戻り値の rod を ftRodSet(rod, 手元, 竿先) で置く
+function secAngler(sec, u, y, z = 1.2) {
+  const man = mannequin(0x7d8a96, true);
+  man.scale.setScalar(0.9);
+  const skin = ftLit(0xc8d2dc), capM = ftLit(0x3a5a80), vestM = ftLit(0xff8a2a);
+  man.children.forEach((ch) => { ch.material = ch === man.userData.vest ? vestM : ch.geometry.type === "SphereGeometry" && ch.geometry.parameters.thetaLength < 3 ? capM : skin; });
+  man.position.set(u, y, z);
+  man.rotation.y = Math.PI / 2; // 海（+u）を向く
+  sec.grp.add(man);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 1, 6).translate(0, 0.5, 0), ftLit(0x20262c, { shine: 0.5 }));
+  world.add(rod);
+  extras.push(rod);
+  return { man, rod };
+}
+function secBase(sec, nightK = 0) {
+  base(0);
+  U.under.value = 0;
+  sec.grp.visible = true;
+  sec.uni.nt.value = nightK;
+  if (FK.lights) { FK.lights[0].intensity = lerp(1.3, 0.5, nightK); FK.lights[1].intensity = lerp(1.6, 0.35, nightK); }
+  ftPend = [];
+}
+
+// ---- テトラ帯の断面（tt*）----
+// 防波堤（上の面は +2.4m）の沖側にテトラの山（0〜16m）、その先は砂。1 = 1m、海面 y=0。釣り人は防波堤の上（テトラには乗らない）
+const TT = V(0, 0, -4600), TT_LZ = 1.5, TT_END = 16, TT_TIP = [-0.3, 4.7];
+const ttBed = (u) => (u < -5 ? 1.0 : u < 0 ? 2.4 : u < TT_END ? -1.2 - 5.0 * (u / TT_END) : -6.2 - 0.06 * (u - TT_END));
+// テトラの山の上の面（目安）。魚を埋めない確認と、ルアーの計算の「底」（opt.botf）に使う
+const ttTop = (u) => 1.5 - 7.5 * Math.pow(clamp01(u / TT_END), 1.1) + 0.3 * Math.sin(u * 2.1) + 0.15 * Math.sin(u * 5.3 + 1);
+const ttY = (u) => (u >= 0 && u <= TT_END + 0.4 ? Math.max(ttBed(u), ttTop(u)) : ttBed(u));
+const ttSec = makeSection({ origin: TT, bed: ttBed, kind: (u) => (u < 0 ? 2 : u < TT_END ? 1 : 0), u0: -30, u1: 90, depth: 12 });
+const TTp = ttSec.P;
+// テトラのすき間（魚が入る穴）の目安：[u, y]。手前の列（z = 3.6）のすき間
+const TT_HOLES = [[3.1, -1.0], [6.3, -2.6], [9.4, -4.0], [12.6, -5.4]];
+// ねらう場所の見本：穴（テトラのすき間）・際（山のすそ）・沖の境目（砂との境目の少し先）
+const TT_PINS = { ana: [6.3, -2.2], kiwa: [TT_END + 0.8, -6.0], oki: [TT_END + 7, -6.4] };
+{
+  const g = tetrapodGeometry(0.66), r = rng(8821), list = [];
+  for (let zi = 0; zi < 7; zi++) {
+    const z = -9 + zi * 2.1;
+    for (let layer = 0; layer < 3; layer++) {
+      for (let u = 0.7 + (zi % 2) * 0.8 + layer * 0.5; u < TT_END - 0.2; u += 1.65) {
+        const y = ttTop(u) - 0.85 - layer * 1.35;
+        if (y < ttBed(u) + 0.5) continue;
+        // 手前の列は、穴の場所をあけておく
+        if (zi === 6 && TT_HOLES.some(([hu, hy]) => Math.abs(hu - u) < 0.9 && Math.abs(hy - y) < 1.0)) continue;
+        list.push([u + (r() - 0.5) * 0.4, y + (r() - 0.5) * 0.25, z + (r() - 0.5) * 0.5, r() * 6.28, r() * 6.28, r() * 6.28]);
+      }
+    }
+  }
+  const im = new THREE.InstancedMesh(g, secMat(ttSec, 0xb4b8ba, 0.12), list.length);
+  list.forEach(([x, y, z, a, b, c], i) => { _p.set(x, y, z); _q.setFromEuler(_e2.set(a, b, c)); _s.setScalar(1); _m.compose(_p, _q, _s); im.setMatrixAt(i, _m); });
+  im.frustumCulled = false;
+  // 手すり（防波堤の沖側のふち）
+  const railM = secMat(ttSec, 0xd8dde0, 0.3);
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 15), railM); rail.position.set(-0.15, 3.5, -2.5);
+  ttSec.grp.add(im, rail);
+  for (let i = 0; i < 8; i++) { const p0 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 6), railM); p0.position.set(-0.15, 2.95, -9.5 + i * 2); ttSec.grp.add(p0); }
+}
+const ttMan = secAngler(ttSec, -1.6, 2.4, TT_LZ - 0.3);
+function ttBase(nightK = 0) { secBase(ttSec, nightK); ttMan.man.visible = true; }
+// 竿先の位置（lift：竿を上げた量）。糸は ftSeg(ttTip(), TTp(u, y, TT_LZ), "#ffb45e", 4) で描く
+function ttTip(lift = 0) { const tip = TTp(TT_TIP[0], TT_TIP[1] + lift, TT_LZ); ftRodSet(ttMan.rod, TTp(-1.25, 3.45, TT_LZ - 0.3), tip); return tip; }
+const ttWide = (t = 0, cu = 10, dist = 58) => look(TTp(cu + Math.sin(t * 0.04), -2.4, dist * (PORTRAIT ? 1.7 : 1)), TTp(cu, -2.2, 0), 20); // 遠くから望遠で（断面が平らに見える）。カメラは海面より下
+
+// ---- 漁港のスロープの断面（sp*）----
+// 岸壁の上（+1.3m）から、コンクリートの坂（斜路）が海へ下りる。坂の終わり（14m）に段差、その先は砂のかけあがり。常夜灯つき（夜は nightK = 1）。見やすいように、坂は実物より急に描いてある
+const SP = V(0, 0, -5800), SP_LZ = 1.5, SP_END = 14, SP_TIP = [-0.6, 3.6];
+const spBed = (u) => (u < 0 ? 1.3 : u < SP_END ? 1.3 - 0.235 * u : u < SP_END + 0.4 ? -1.99 - 2.0 * (u - SP_END) : Math.max(-5.6, -2.8 - 0.17 * (u - SP_END - 0.4)));
+const spSec = makeSection({ origin: SP, bed: spBed, kind: (u) => (u < 3 ? 2 : u < SP_END ? 3 : 0), u0: -30, u1: 90, depth: 8, water0: 5.5 });
+const SPp = spSec.P;
+const SP_LAMP = [-2.2, 6.3]; // 灯りの位置（u, 高さ）
+// ねらう場所の見本：坂の途中（ぬれて滑る。立たない）・坂の終わりの段差・その先のかけあがり・常夜灯の明暗の境目
+const SP_PINS = { dan: [SP_END + 0.7, -2.6], kake: [SP_END + 8, -4.0], meian: [10.5, -0.6] };
+{
+  const poleM = secMat(spSec, 0x5a646c, 0.3);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 5.2, 10), poleM); pole.position.set(-3.4, 1.3 + 2.6, -1.5);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.08), poleM); arm.position.set(-2.75, 6.45, -1.5);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 10), new THREE.ShaderMaterial({ uniforms: spSec.uni, vertexShader: `void main(){ gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`, fragmentShader: `uniform float nt; void main(){ gl_FragColor = vec4(mix(vec3(0.75,0.76,0.74), vec3(1.0,0.95,0.75), nt), 1.0); }` }));
+  bulb.position.set(SP_LAMP[0], SP_LAMP[1], -1.5);
+  // 係船柱（岸壁のふち）
+  const bit = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.45, 10), secMat(spSec, 0x30363b, 0.4)); bit.position.set(-0.6, 1.3 + 0.22, 3.6);
+  spSec.grp.add(pole, arm, bulb, bit);
+}
+const spMan = secAngler(spSec, -1.8, 1.3, SP_LZ - 0.3);
+function spBase(nightK = 0) {
+  secBase(spSec, nightK);
+  spMan.man.visible = true;
+  spSec.uni.lamp.value.set(SP_LAMP[0] + 7, -0.4, 6.5, 1); // 光が水面に当たるあたり
+}
+function spTip(lift = 0) { const tip = SPp(SP_TIP[0], SP_TIP[1] + lift, SP_LZ); ftRodSet(spMan.rod, SPp(-1.45, 2.35, SP_LZ - 0.3), tip); return tip; }
+const spWide = (t = 0, cu = 13, dist = 50) => look(SPp(cu + Math.sin(t * 0.04), -1.5, dist * (PORTRAIT ? 1.7 : 1)), SPp(cu, -1.2, 0), 20); // 遠くから望遠で。カメラは海面より下
+
+// ---- 潮の流れの粒（船の断面 ft* 用）----
+// ftFlow(a, { mid, v1, v2 })：深さ mid（y）より上は速さ v1、下は v2 で横へ流れる（正＝右、負＝左、[m/s] の目安）。同じ向きにすれば、ふつうの潮
+const ftFlowPts = (() => {
+  const n = 900, pos = new Float32Array(n * 3), ph = new Float32Array(n), r = rng(6113);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (r() - 0.5) * 80; pos[i * 3 + 1] = -r(); pos[i * 3 + 2] = -7 + r() * 9; ph[i] = r(); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("ph", new THREE.BufferAttribute(ph, 1));
+  const p = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: { time: U.time, hpx: { value: H }, bot: { value: FT_BOT }, mid: { value: -35 }, v1: { value: 0.6 }, v2: { value: -0.4 }, op: { value: 1 } }, transparent: true, depthWrite: false,
+    vertexShader: `uniform float time; uniform float hpx; uniform float bot; uniform float mid; uniform float v1; uniform float v2; attribute float ph; varying float vA; varying float vS;
+      void main(){ vec3 p = position; p.y = position.y * (-bot); float sp = p.y > mid ? v1 : v2; vS = sp;
+        p.x = mod(position.x + 40.0 + sp * time * 3.0, 80.0) - 40.0; p.y += 0.15*sin(time*0.6 + ph*40.0);
+        vec4 mv = modelViewMatrix*vec4(p,1.); float s = 1.5 * projectionMatrix[1][1] * hpx * 0.5 / -mv.z;
+        vA = smoothstep(40.0, 30.0, abs(p.x)) * smoothstep(0.0, 1.5, abs(p.y - mid)); gl_PointSize = clamp(s, 3.0, 40.0); gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `uniform float op; varying float vA; varying float vS;
+      void main(){ vec2 q = gl_PointCoord - 0.5; float tail = vS > 0.0 ? q.x : -q.x; float d = length(vec2(q.x*0.9, q.y*3.2)); if (d > 0.5) discard;
+        vec3 c = vS > 0.0 ? vec3(0.45,0.85,1.0) : vec3(1.0,0.72,0.35); gl_FragColor = vec4(c, (0.5 + 0.5*smoothstep(-0.4, 0.4, tail)) * smoothstep(0.5, 0.2, d) * vA * op); }`,
+  }));
+  p.frustumCulled = false;
+  p.renderOrder = 8;
+  ftGrp.add(p);
+  p.visible = false;
+  return p;
+})();
+function ftFlow(a = 1, o = {}) {
+  const u = ftFlowPts.material.uniforms;
+  ftFlowPts.visible = a > 0.01;
+  u.op.value = a; u.bot.value = o.bot ?? FT_BOT; u.mid.value = o.mid ?? (o.bot ?? FT_BOT) / 2; u.v1.value = o.v1 ?? 0.6; u.v2.value = o.v2 ?? o.v1 ?? 0.6;
+}
+
+Object.assign(SHOTS, {
+  // ---------- 見本の場面（部品の確認用。動画には使わない）----------
+  kit_reef(t, d, s) {
+    rfBase();
+    const T = t + 5, sim = ftRun("mb_sasoi"), st = sbRig(T, sim, 2 + t, { vis: 2.5 });
+    mbSchool(T, { cx: 2.2, sx: 3.6, n: 12 });
+    mbKasago(0, 1.6, FT_LZ - 0.7, T);
+    look(FTp(1.2, st.y + 1.6, FT_LZ + 6.5), FTp(1.2, st.y + 1.2, FT_LZ), 50);
+    ftFlush();
+    label(FTp(-2.2, rfY(-2.2), FT_LZ), "根と海藻（rfBase）", "rfY(x) が海底の高さ", 1, "", -260, -170);
+    label(FTp(st.hooks[2].x, st.hooks[2].y, FT_LZ), "サビキ仕掛け（sbRig）", "", 1, "gold", -330, -60);
+    label(FTp(3, rfY(3) + 1.8, FT_LZ - 1.7), "群れ（mbSchool / fkSchool）", "", 1, "", 330, -150);
+  },
+  kit_tetra(t, d, s) {
+    ttBase(s.night ?? 0);
+    const T = t + 5, tip = ttTip();
+    TT_HOLES.forEach(([u, y], i) => fkPut("kasago", 10 + i, u + 0.12, y, i % 2 ? Math.PI - 0.1 : 0.1, T * 0.3, { at: TTp, floor: () => -99, z: 3.6, cm: 22, noClear: true, freq: 0.5, amp: 0.02 }));
+    fkSchool("mebaru", T, { at: TTp, floor: (x) => ttY(x), cx: TT_END + 1.5, sx: 2.2, h0: 0.6, h1: 1.8, zc: TT_LZ - 1, sz: 0.8, n: 6, cm: 22 });
+    const lu = TT_END + 0.8, ly = -5.2 + 0.3 * Math.sin(T);
+    ttWide(t);
+    ftSeg(tip, TTp(lu, ly, TT_LZ), "#ffb45e", 4);
+    const p = project(TTp(lu, ly, TT_LZ));
+    html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;width:22px;height:22px;transform:translate(-50%,-50%);border-radius:50%;background:#ff6a1a;border:4px solid #fff"></div>`;
+    [["A 穴", TT_PINS.ana, "テトラのすき間"], ["B 際", TT_PINS.kiwa, "山のすそ"], ["C 沖の境目", TT_PINS.oki, "砂との境目の先"]].forEach(([n, [u, y], sub], i) => label(TTp(u, y, TT_LZ), n, sub, 1, i === 1 ? "gold" : "", i === 0 ? -40 : 200, i === 0 ? -260 : -220 + i * 40));
+    label(TTp(-1.6, 4.1, TT_LZ), "釣り人は防波堤の上", "テトラには乗らない", 1, "", -120, -120);
+    ftNote("見本：テトラ帯の断面（ttBase・ttY・TT_HOLES・TT_PINS）。地形は模式図");
+  },
+  kit_slope(t, d, s) {
+    const nk = s.night ?? 0;
+    spBase(nk);
+    const T = t + 5, tip = spTip();
+    fkPut("seabass", 0, SP_PINS.dan[0] + 1.8, SP_PINS.dan[1] + 0.8, Math.PI - 0.05, T, { at: SPp, floor: (x) => spBed(x), z: SP_LZ - 0.2, cm: 60, freq: 1.2, amp: 0.07 });
+    fkSchool("aji", T, { at: SPp, floor: (x) => spBed(x), cx: 10.5, sx: 1.6, h0: 0.35, h1: 0.8, zc: SP_LZ - 1, sz: 0.8, n: 8, cm: 18, face: 0 });
+    const lu = SP_END + 3, ly = -2.6 + 0.2 * Math.sin(T);
+    spWide(t);
+    ftSeg(tip, SPp(lu, ly, SP_LZ), "#ffb45e", 4);
+    [["坂の終わりの段差", SP_PINS.dan, ""], ["その先のかけあがり", SP_PINS.kake, ""], [nk > 0.5 ? "明暗の境目" : "ぬれた坂は滑る", SP_PINS.meian, nk > 0.5 ? "常夜灯の光の端" : "坂には立たない"]].forEach(([n, [u, y], sub], i) => label(SPp(u, y, SP_LZ), n, sub, 1, i === 0 ? "gold" : "", i === 2 ? -120 : 160, i === 2 ? -230 : -200 - i * 50));
+    ftNote(`見本：漁港のスロープの断面（spBase(${nk > 0.5 ? "夜" : "昼"})・spBed・SP_PINS）。地形は模式図`);
+  },
+  kit_flow(t, d, s) {
+    ftBase();
+    const T = t + 5, sim = ftRun("sg"), st = ftRig(T, sim, 5 + (t % 10), { obj: ftTenya, vis: 6 });
+    ftOthers(T, -66);
+    ftFlow(1, { mid: -38, v1: 0.7, v2: -0.45 });
+    ftWide(t);
+    ftFlush();
+    label(FTp(14, -18, FT_LZ), "上の潮 →", "", 1, "", 200, -60);
+    label(FTp(14, -56, FT_LZ), "← 底の潮", "二枚潮（上と下で向きが違う）", 1, "gold", 220, -40);
+    ftNote("見本：潮の流れの粒（ftFlow）。mid・v1・v2 で層の境目と速さを変える");
+  },
+  kit_bait(t, d, s) {
+    rfBase();
+    ftBoat.visible = false;
+    const T = t + 5, S = [0, rfY(0) + 0.6];
+    const st = sbRigAt(T, S, 0, [0, 0], { rod: false, vis: 5, n: 3, bait: "ebi", lw: 5 });
+    fkPut("kasago", 3, 0.75, S[1] + 0.35, Math.PI - 0.05, T, { floor: rfY3, cm: 24, freq: 0.8, amp: 0.03 });
+    look(FTp(0.35, S[1] + 0.9, FT_LZ + 2.6), FTp(0.35, S[1] + 0.85, FT_LZ), 50);
+    ftFlush();
+    label(FTp(st.hooks[1].x, st.hooks[1].y, FT_LZ), "胴付き仕掛け＋エビ", "sbRigAt(…, { n: 3, bait: \"ebi\" })", 1, "gold", -330, -120);
+    ftNote("見本：エサ（エビ）を付けた胴付き仕掛け。カサゴ・メバルのエサ釣りの回に");
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 window.frame = function (o) {
@@ -9221,6 +9541,7 @@ window.frame = function (o) {
   U.time.value = o.T;
   html = "";
   lines = "";
+  if (FK.lights) { FK.lights[0].intensity = 1.3; FK.lights[1].intensity = 1.6; }
   const fn = SHOTS[o.shot] || SHOTS.title;
   fn(o.t, o.d, o.s || {}, o.k ?? 0);
   rays.children.forEach((r, i) => (r.position.x = r.userData.x0 + Math.sin(o.T * 0.1 * r.userData.sp + i) * 4));
