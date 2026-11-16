@@ -31,12 +31,12 @@ def b_reefrock(nt, n, l):
     l.new(tc.outputs["Object"], noi.inputs["Vector"])
     ramp = n.new("ShaderNodeValToRGB")
     e = ramp.color_ramp.elements
-    e[0].position, e[0].color = 0.30, (0.06, 0.055, 0.05, 1)
-    e[1].position, e[1].color = 0.62, (0.30, 0.27, 0.22, 1)
+    e[0].position, e[0].color = 0.30, (0.016, 0.015, 0.014, 1)
+    e[1].position, e[1].color = 0.62, (0.13, 0.115, 0.095, 1)
     a = e.new(0.47)
-    a.color = (0.16, 0.15, 0.13, 1)
+    a.color = (0.05, 0.047, 0.042, 1)
     b = e.new(0.72)
-    b.color = (0.14, 0.22, 0.09, 1)    # 緑の藻
+    b.color = (0.06, 0.11, 0.035, 1)    # 緑の藻
     l.new(noi.outputs["Fac"], ramp.inputs["Fac"])
     l.new(ramp.outputs["Color"], p.inputs["Base Color"])
     p.inputs["Roughness"].default_value = 0.88
@@ -52,8 +52,8 @@ def b_reefrock(nt, n, l):
     l.new(fine.outputs["Fac"], add.inputs[0])
     l.new(vor.outputs["Distance"], add.inputs[1])
     bump = n.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.9
-    bump.inputs["Distance"].default_value = 0.03
+    bump.inputs["Strength"].default_value = 1.0
+    bump.inputs["Distance"].default_value = 0.06
     l.new(add.outputs[0], bump.inputs["Height"])
     l.new(bump.outputs["Normal"], p.inputs["Normal"])
 
@@ -76,6 +76,14 @@ def build_reef(hfn, mat, x0=-7.0, x1=7.0, y0=-4.0, y1=10.0, step=0.07):
     ob = bpy.data.objects.new("reef", me)
     bpy.context.scene.collection.objects.link(ob)
     me.materials.append(mat("reefrock", b_reefrock))
+    # 岩のごつごつ：形そのものを細かく押し出す（大きな割れ目＋細かい凹凸）。reef_h とのずれは 0.1m ほどなので、魚のすきまは余裕を見る
+    for nm, kind, scale, strength in (("crag", "VORONOI", 0.42, 0.16), ("grain", "CLOUDS", 0.11, 0.07)):
+        tx = bpy.data.textures.new("reef_" + nm, kind)
+        tx.noise_scale = scale
+        dm = ob.modifiers.new(nm, "DISPLACE")
+        dm.texture = tx
+        dm.strength = strength
+        dm.mid_level = 0.75
     return ob
 
 
@@ -88,9 +96,9 @@ def b_kelp(nt, n, l):
     l.new(tc.outputs["Object"], noi.inputs["Vector"])
     ramp = n.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.35
-    ramp.color_ramp.elements[0].color = (0.035, 0.06, 0.012, 1)
+    ramp.color_ramp.elements[0].color = (0.025, 0.035, 0.008, 1)
     ramp.color_ramp.elements[1].position = 0.70
-    ramp.color_ramp.elements[1].color = (0.20, 0.19, 0.03, 1)
+    ramp.color_ramp.elements[1].color = (0.16, 0.12, 0.02, 1)
     l.new(noi.outputs["Fac"], ramp.inputs["Fac"])
     l.new(ramp.outputs["Color"], p.inputs["Base Color"])
     p.inputs["Roughness"].default_value = 0.42
@@ -102,7 +110,7 @@ class Kelp:
     """帯の葉の海藻。roots：[(x, y, z, 長さ, 向き, 位相)]。update(t) で毎コマゆらす（動きは時刻 t だけで決まる）"""
     NS = 10
 
-    def __init__(self, roots, mat, width=0.09, lean=(0.16, 0.0)):
+    def __init__(self, roots, mat, width=0.05, lean=(0.2, 0.0)):
         self.r = np.array(roots, dtype=float)
         self.lean = lean
         self.width = width
@@ -125,7 +133,7 @@ class Kelp:
         r, ns = self.r, self.NS
         u = np.linspace(0.0, 1.0, ns + 1)[None, :]                     # 根もと 0 → 先 1
         L, yaw, ph = r[:, 3:4], r[:, 4:5], r[:, 5:6]
-        sway = self.lean[0] + 0.14 * np.sin(1.1 * t + ph + 2.4 * u)     # 潮の向き（+x）へなびく＋ゆれ
+        sway = self.lean[0] + 0.16 * np.sin(1.1 * t + ph + 3.4 * u) + 0.05 * np.sin(2.3 * t + 1.7 * ph + 7.0 * u)     # 潮の向き（+x）へなびく＋ゆれ
         cx = r[:, 0:1] + sway * u * u * L
         cy = r[:, 1:2] + (self.lean[1] + 0.06 * np.cos(0.9 * t + 1.3 * ph + 2.0 * u)) * u * u * L
         cz = r[:, 2:3] + u * L * (1.0 - 0.12 * u)
@@ -138,7 +146,7 @@ class Kelp:
         self.ob.data.update()
 
 
-def kelp_roots(hfn, n=140, seed=11, x=(-5.0, 5.0), y=(0.5, 7.0), hmin=0.45, keep_out=None):
+def kelp_roots(hfn, n=300, seed=11, x=(-5.0, 5.0), y=(0.5, 7.0), hmin=0.45, keep_out=None):
     """根の上（高さ hmin 以上）に海藻を生やす場所を選ぶ。keep_out(x, y) が True の所（魚と仕掛けの通り道）には生やさない"""
     rng = np.random.default_rng(seed)
     out = []
@@ -149,10 +157,10 @@ def kelp_roots(hfn, n=140, seed=11, x=(-5.0, 5.0), y=(0.5, 7.0), hmin=0.45, keep
         h = hfn(px, py)
         if h < hmin or (keep_out and keep_out(px, py)):
             continue
-        for _ in range(int(rng.integers(2, 5))):
+        for _ in range(int(rng.integers(4, 9))):
             if len(out) >= n:
                 break
-            out.append((px + rng.uniform(-0.08, 0.08), py + rng.uniform(-0.08, 0.08), h - 0.03, rng.uniform(0.45, 1.25), rng.uniform(0, math.pi), rng.uniform(0, 6.28)))
+            out.append((px + rng.uniform(-0.1, 0.1), py + rng.uniform(-0.1, 0.1), h - 0.12, rng.uniform(0.35, 1.05), rng.uniform(0, math.pi), rng.uniform(0, 6.28)))
     return out
 
 
@@ -165,7 +173,7 @@ def b_skin(nt, n, l):
     p.inputs["Roughness"].default_value = 0.22
     _set(p, "Coat Weight", 0.6)
     _set(p, "Emission Color", (0.9, 1.0, 0.9, 1))
-    _set(p, "Emission Strength", 0.25)
+    _set(p, "Emission Strength", 0.45)
 
 
 def b_bead(nt, n, l):
@@ -193,7 +201,7 @@ class Sabiki:
     """オモリ・幹糸・枝（ハリス）・ハリ・魚の皮・ビーズ。
     update(sink, hooks)：sink＝オモリの上の端（Vector）、hooks＝[(幹糸の結び目 P, ハリスの先 E)]。幹糸と道糸は line（opening.py の糸）をそのまま使う"""
 
-    def __init__(self, n, mat, make_curve, make_ribbon, hookm, line, k=1.3):
+    def __init__(self, n, mat, make_curve, make_ribbon, hookm, line, k=1.6):
         self.n, self.k, self.line = n, k, line
         bm, sm, dm = mat("sb_branch", b_branch), mat("sb_skin", b_skin), mat("sb_bead", b_bead)
         self.branch = [make_curve(f"sb_br{i}", 3, 0.00035, bm) for i in range(n)]
