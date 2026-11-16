@@ -691,7 +691,7 @@ def clearance():
         g = 99.0
         for o in [fish] + mates:
             mw = o.matrix_world
-            for v in o.data.vertices[::4]:
+            for v in list(o.data.vertices)[::4]:
                 w = mw @ v.co
                 g = min(g, w.z - M.reef_h(w.x, w.y))
         return g

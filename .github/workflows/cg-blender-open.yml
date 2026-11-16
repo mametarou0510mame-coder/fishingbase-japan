@@ -70,6 +70,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         if: matrix.chunk != 'none'
+      - uses: actions/cache@v4
+        if: matrix.chunk != 'none'
+        with:
+          path: /tmp/b.tar.xz
+          key: blender-4.2.3-linux-x64
       - name: Install Blender
         if: matrix.chunk != 'none'
         run: |
@@ -78,7 +83,13 @@ jobs:
             if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 libxi6 libxxf86vm1 libxfixes3 libxrender1 libxkbcommon0 libsm6 libgl1 libegl1 > /dev/null; then break; fi
             echo "apt retry $i"; sleep 30
           done
-          for i in 1 2 3; do curl -fsSL --retry 3 "$BLENDER_URL" -o /tmp/b.tar.xz && break; sleep 20; done
+          # download.blender.org は GitHub の機械からだと 403 になることがある（2026-11-16）。保存してあればそれを使い、なければ公式のミラーも順に試す
+          if [ ! -s /tmp/b.tar.xz ]; then
+            for u in "$BLENDER_URL" "https://mirror.clarkson.edu/blender/release/${BLENDER_URL#*/release/}" "https://ftp.nluug.nl/pub/graphics/blender/release/${BLENDER_URL#*/release/}" "https://mirrors.ocf.berkeley.edu/blender/release/${BLENDER_URL#*/release/}" "$BLENDER_URL"; do
+              curl -fsSL --retry 2 "$u" -o /tmp/b.tar.xz && xz -t /tmp/b.tar.xz && break
+              rm -f /tmp/b.tar.xz; echo "download failed: $u"; sleep 15
+            done
+          fi
           mkdir -p /tmp/blender && tar -xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
           /tmp/blender/blender --version | head -1
       - name: Render
@@ -87,10 +98,10 @@ jobs:
           C="${{ matrix.chunk }}"
           SC="${{ needs.plan.outputs.scene }}"
           if [ "$C" = "test" ]; then
-            /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/opening.py -- --scene $SC --frames 1,48,120,200,230,280 --out out/frames --samples 24 --res 960 540
+            /tmp/blender/blender -b --factory-startup --python-exit-code 1 -P scripts/cg/blender/opening.py -- --scene $SC --frames 1,48,120,200,230,280 --out out/frames --samples 24 --res 960 540
           else
             set -- $C
-            /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/opening.py -- --scene $SC --range $1 $2 --out out/frames --samples ${{ github.event.inputs.samples }} --res 1280 720
+            /tmp/blender/blender -b --factory-startup --python-exit-code 1 -P scripts/cg/blender/opening.py -- --scene $SC --range $1 $2 --out out/frames --samples ${{ github.event.inputs.samples }} --res 1280 720
           fi
           cat out/frames/timing-*.txt
       - uses: actions/upload-artifact@v4
@@ -106,6 +117,10 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: /tmp/b.tar.xz
+          key: blender-4.2.3-linux-x64
       - name: Install Blender
         run: |
           for i in 1 2 3 4; do
@@ -113,13 +128,19 @@ jobs:
             if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 libxi6 libxxf86vm1 libxfixes3 libxrender1 libxkbcommon0 libsm6 libgl1 libegl1 > /dev/null; then break; fi
             echo "apt retry $i"; sleep 30
           done
-          for i in 1 2 3; do curl -fsSL --retry 3 "$BLENDER_URL" -o /tmp/b.tar.xz && break; sleep 20; done
+          # download.blender.org は GitHub の機械からだと 403 になることがある（2026-11-16）。保存してあればそれを使い、なければ公式のミラーも順に試す
+          if [ ! -s /tmp/b.tar.xz ]; then
+            for u in "$BLENDER_URL" "https://mirror.clarkson.edu/blender/release/${BLENDER_URL#*/release/}" "https://ftp.nluug.nl/pub/graphics/blender/release/${BLENDER_URL#*/release/}" "https://mirrors.ocf.berkeley.edu/blender/release/${BLENDER_URL#*/release/}" "$BLENDER_URL"; do
+              curl -fsSL --retry 2 "$u" -o /tmp/b.tar.xz && xz -t /tmp/b.tar.xz && break
+              rm -f /tmp/b.tar.xz; echo "download failed: $u"; sleep 15
+            done
+          fi
           mkdir -p /tmp/blender && tar -xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
           /tmp/blender/blender --version | head -1
       - name: Render thumbnail
         run: |
           N=$([ "${{ github.event.inputs.mode }}" = "test" ] && echo 48 || echo 192)
-          /tmp/blender/blender -b --factory-startup -P scripts/cg/blender/opening.py -- --scene ${{ needs.plan.outputs.scene }} --thumb --out out/thumb --samples $N --res 1280 720
+          /tmp/blender/blender -b --factory-startup --python-exit-code 1 -P scripts/cg/blender/opening.py -- --scene ${{ needs.plan.outputs.scene }} --thumb --out out/thumb --samples $N --res 1280 720
       - uses: actions/upload-artifact@v4
         with:
           name: op-thumb
