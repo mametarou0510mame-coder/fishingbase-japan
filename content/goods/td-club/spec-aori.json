@@ -89,7 +89,7 @@
   },
   {
    "title": "ANGLER'S CLUB アオリイカ（モノクロ）キャップ",
-   "texture": "content/goods/td-club/print/aori-mono-light-art.png",
+   "texture": "content/goods/td-club/print/aori-mono-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "aori|mono|light|cap",
@@ -102,15 +102,8 @@
     }
    ],
    "old_material_ids": [
-    21384440
-   ],
-   "material_id": 21387742,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384440,
+    21387742
    ]
   },
   {
@@ -202,7 +195,7 @@
   },
   {
    "title": "ANGLER'S CLUB アオリイカ（モノクロ・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/aori-mono-dark-art.png",
+   "texture": "content/goods/td-club/print/aori-mono-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "aori|mono|dark|cap",
@@ -215,15 +208,8 @@
     }
    ],
    "old_material_ids": [
-    21384448
-   ],
-   "material_id": 21387753,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384448,
+    21387753
    ]
   },
   {
@@ -338,7 +324,7 @@
   },
   {
    "title": "ANGLER'S CLUB アオリイカ（カラー）キャップ",
-   "texture": "content/goods/td-club/print/aori-color-light-art.png",
+   "texture": "content/goods/td-club/print/aori-color-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "aori|color|light|cap",
@@ -351,15 +337,8 @@
     }
    ],
    "old_material_ids": [
-    21384459
-   ],
-   "material_id": 21387760,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384459,
+    21387760
    ]
   },
   {
@@ -451,7 +430,7 @@
   },
   {
    "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/aori-color-dark-art.png",
+   "texture": "content/goods/td-club/print/aori-color-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "aori|color|dark|cap",
@@ -464,15 +443,8 @@
     }
    ],
    "old_material_ids": [
-    21384466
-   ],
-   "material_id": 21387767,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384466,
+    21387767
    ]
   },
   {

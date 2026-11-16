@@ -89,7 +89,7 @@
   },
   {
    "title": "ANGLER'S CLUB シーバス（モノクロ）キャップ",
-   "texture": "content/goods/td-club/print/seabass-mono-light-art.png",
+   "texture": "content/goods/td-club/print/seabass-mono-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "seabass|mono|light|cap",
@@ -102,15 +102,8 @@
     }
    ],
    "old_material_ids": [
-    21384549
-   ],
-   "material_id": 21387828,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384549,
+    21387828
    ]
   },
   {
@@ -202,7 +195,7 @@
   },
   {
    "title": "ANGLER'S CLUB シーバス（モノクロ・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/seabass-mono-dark-art.png",
+   "texture": "content/goods/td-club/print/seabass-mono-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "seabass|mono|dark|cap",
@@ -215,15 +208,8 @@
     }
    ],
    "old_material_ids": [
-    21384560
-   ],
-   "material_id": 21387834,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384560,
+    21387834
    ]
   },
   {
@@ -338,7 +324,7 @@
   },
   {
    "title": "ANGLER'S CLUB シーバス（カラー）キャップ",
-   "texture": "content/goods/td-club/print/seabass-color-light-art.png",
+   "texture": "content/goods/td-club/print/seabass-color-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "seabass|color|light|cap",
@@ -351,15 +337,8 @@
     }
    ],
    "old_material_ids": [
-    21384570
-   ],
-   "material_id": 21387841,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384570,
+    21387841
    ]
   },
   {
@@ -451,7 +430,7 @@
   },
   {
    "title": "ANGLER'S CLUB シーバス（カラー・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/seabass-color-dark-art.png",
+   "texture": "content/goods/td-club/print/seabass-color-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "seabass|color|dark|cap",
@@ -464,15 +443,8 @@
     }
    ],
    "old_material_ids": [
-    21384578
-   ],
-   "material_id": 21387849,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384578,
+    21387849
    ]
   },
   {

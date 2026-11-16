@@ -93,7 +93,7 @@
   },
   {
    "title": "ANGLER'S CLUB サワラ（モノクロ）キャップ",
-   "texture": "content/goods/td-club/print/sawara-mono-light-art.png",
+   "texture": "content/goods/td-club/print/sawara-mono-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "sawara|mono|light|cap",
@@ -106,15 +106,8 @@
     }
    ],
    "old_material_ids": [
-    21384078
-   ],
-   "material_id": 21387386,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384078,
+    21387386
    ]
   },
   {
@@ -210,7 +203,7 @@
   },
   {
    "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/sawara-mono-dark-art.png",
+   "texture": "content/goods/td-club/print/sawara-mono-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "sawara|mono|dark|cap",
@@ -223,15 +216,8 @@
     }
    ],
    "old_material_ids": [
-    21384085
-   ],
-   "material_id": 21387393,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384085,
+    21387393
    ]
   },
   {
@@ -350,7 +336,7 @@
   },
   {
    "title": "ANGLER'S CLUB サワラ（カラー）キャップ",
-   "texture": "content/goods/td-club/print/sawara-color-light-art.png",
+   "texture": "content/goods/td-club/print/sawara-color-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "sawara|color|light|cap",
@@ -363,15 +349,8 @@
     }
    ],
    "old_material_ids": [
-    21384093
-   ],
-   "material_id": 21387401,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384093,
+    21387401
    ]
   },
   {
@@ -467,7 +446,7 @@
   },
   {
    "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/sawara-color-dark-art.png",
+   "texture": "content/goods/td-club/print/sawara-color-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "sawara|color|dark|cap",
@@ -480,15 +459,8 @@
     }
    ],
    "old_material_ids": [
-    21384107
-   ],
-   "material_id": 21387413,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384107,
+    21387413
    ]
   },
   {

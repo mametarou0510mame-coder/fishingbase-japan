@@ -89,7 +89,7 @@
   },
   {
    "title": "ANGLER'S CLUB ブリ（モノクロ）キャップ",
-   "texture": "content/goods/td-club/print/buri-mono-light-art.png",
+   "texture": "content/goods/td-club/print/buri-mono-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "buri|mono|light|cap",
@@ -102,15 +102,8 @@
     }
    ],
    "old_material_ids": [
-    21384303
-   ],
-   "material_id": 21387539,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384303,
+    21387539
    ]
   },
   {
@@ -202,7 +195,7 @@
   },
   {
    "title": "ANGLER'S CLUB ブリ（モノクロ・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/buri-mono-dark-art.png",
+   "texture": "content/goods/td-club/print/buri-mono-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "buri|mono|dark|cap",
@@ -215,15 +208,8 @@
     }
    ],
    "old_material_ids": [
-    21384311
-   ],
-   "material_id": 21387549,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384311,
+    21387549
    ]
   },
   {
@@ -338,7 +324,7 @@
   },
   {
    "title": "ANGLER'S CLUB ブリ（カラー）キャップ",
-   "texture": "content/goods/td-club/print/buri-color-light-art.png",
+   "texture": "content/goods/td-club/print/buri-color-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "buri|color|light|cap",
@@ -351,15 +337,8 @@
     }
    ],
    "old_material_ids": [
-    21384319
-   ],
-   "material_id": 21387555,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384319,
+    21387555
    ]
   },
   {
@@ -451,7 +430,7 @@
   },
   {
    "title": "ANGLER'S CLUB ブリ（カラー・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/buri-color-dark-art.png",
+   "texture": "content/goods/td-club/print/buri-color-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "buri|color|dark|cap",
@@ -464,15 +443,8 @@
     }
    ],
    "old_material_ids": [
-    21384328
-   ],
-   "material_id": 21387561,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384328,
+    21387561
    ]
   },
   {

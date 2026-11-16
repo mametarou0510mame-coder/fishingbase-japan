@@ -89,7 +89,7 @@
   },
   {
    "title": "ANGLER'S CLUB 真鯛（モノクロ）キャップ",
-   "texture": "content/goods/td-club/print/madai-mono-light-art.png",
+   "texture": "content/goods/td-club/print/madai-mono-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "madai|mono|light|cap",
@@ -102,15 +102,8 @@
     }
    ],
    "old_material_ids": [
-    21384379
-   ],
-   "material_id": 21387635,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384379,
+    21387635
    ]
   },
   {
@@ -202,7 +195,7 @@
   },
   {
    "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/madai-mono-dark-art.png",
+   "texture": "content/goods/td-club/print/madai-mono-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "madai|mono|dark|cap",
@@ -215,15 +208,8 @@
     }
    ],
    "old_material_ids": [
-    21384385
-   ],
-   "material_id": 21387642,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384385,
+    21387642
    ]
   },
   {
@@ -338,7 +324,7 @@
   },
   {
    "title": "ANGLER'S CLUB 真鯛（カラー）キャップ",
-   "texture": "content/goods/td-club/print/madai-color-light-art.png",
+   "texture": "content/goods/td-club/print/madai-color-light-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "madai|color|light|cap",
@@ -351,15 +337,8 @@
     }
    ],
    "old_material_ids": [
-    21384394
-   ],
-   "material_id": 21387649,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384394,
+    21387649
    ]
   },
   {
@@ -451,7 +430,7 @@
   },
   {
    "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）キャップ",
-   "texture": "content/goods/td-club/print/madai-color-dark-art.png",
+   "texture": "content/goods/td-club/print/madai-color-dark-cap.png",
    "price": 219,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "madai|color|dark|cap",
@@ -464,15 +443,8 @@
     }
    ],
    "old_material_ids": [
-    21384400
-   ],
-   "material_id": 21387657,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+    21384400,
+    21387657
    ]
   },
   {
