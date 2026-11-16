@@ -25,6 +25,20 @@ def load(sp, var, mono):
     return im
 
 
+def center_text(im):
+    # 文字（TSUREDOKI / ANGLER'S CLUB）の中心が画像の真ん中に来るよう、片側に透明の余白を足す（2026-11-16 オーナー：文字をセンターに）
+    a = np.array(im)[..., 3]
+    rows = np.where((a > 40).sum(1) > 0)[0]
+    gaps = np.where(np.diff(rows) > im.height * 0.01)[0]
+    top = rows[gaps[-2] + 1]
+    cols = np.where((a[top:] > 40).sum(0) > 0)[0]
+    tc = (cols[0] + cols[-1]) / 2
+    d = int(round(2 * tc - im.width))  # >0 なら右に余白、<0 なら左に余白
+    out = Image.new("RGBA", (im.width + abs(d), im.height), (0, 0, 0, 0))
+    out.alpha_composite(im, (0 if d >= 0 else -d, 0))
+    return out
+
+
 def fit(im, w):
     return im.resize((w, int(im.height * w / im.width)), Image.LANCZOS)
 
@@ -54,13 +68,14 @@ files = {}
 for var in ("light", "dark"):
     tb = textblock(var)
     c = canvas(3000, 3600)
-    c.alpha_composite(fit(tb, 820), (1880, 420))
+    t = fit(tb, 1000)
+    c.alpha_composite(t, ((3000 - t.width) // 2, 420))  # 前の文字は胸の真ん中
     files[("front-text", var)] = save(c, f"front-text-{var}")
 for sp, ja in FISH:
     for mono in (True, False):
         mk = "mono" if mono else "color"
         for var in ("light", "dark"):
-            art = load(sp, var, mono)
+            art = center_text(load(sp, var, mono))
             # Tシャツ：左胸ワンポイント
             c = canvas(3000, 3600)
             a = fit(art, 760)

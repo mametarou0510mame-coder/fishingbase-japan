@@ -45,8 +45,9 @@
    ],
    "old_material_id": 21384074,
    "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
-   "material_id": 21384223,
-   "created_prices": "（保存に失敗したため手で記入）"
+   "old_material_ids": [
+    21384223
+   ]
   },
   {
    "title": "ANGLER'S CLUB サワラ（モノクロ）パーカー",
@@ -68,13 +69,8 @@
      ]
     }
    ],
-   "material_id": 21384076,
-   "created_prices": [
-    [
-     "hoodie",
-     5544,
-     null
-    ]
+   "old_material_ids": [
+    21384076
    ]
   },
   {
@@ -91,13 +87,8 @@
      "resizeMode": "contain"
     }
    ],
-   "material_id": 21384078,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+   "old_material_ids": [
+    21384078
    ]
   },
   {
@@ -145,8 +136,9 @@
    ],
    "old_material_id": 21384080,
    "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
-   "material_id": 21384225,
-   "created_prices": "（保存に失敗したため手で記入）"
+   "old_material_ids": [
+    21384225
+   ]
   },
   {
    "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）パーカー",
@@ -168,13 +160,8 @@
      ]
     }
    ],
-   "material_id": 21384083,
-   "created_prices": [
-    [
-     "hoodie",
-     6180,
-     null
-    ]
+   "old_material_ids": [
+    21384083
    ]
   },
   {
@@ -191,13 +178,8 @@
      "resizeMode": "contain"
     }
    ],
-   "material_id": 21384085,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+   "old_material_ids": [
+    21384085
    ]
   },
   {
@@ -268,8 +250,9 @@
    ],
    "old_material_id": 21384088,
    "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
-   "material_id": 21384227,
-   "created_prices": "（保存に失敗したため手で記入）"
+   "old_material_ids": [
+    21384227
+   ]
   },
   {
    "title": "ANGLER'S CLUB サワラ（カラー）パーカー",
@@ -291,13 +274,8 @@
      ]
     }
    ],
-   "material_id": 21384091,
-   "created_prices": [
-    [
-     "hoodie",
-     5544,
-     null
-    ]
+   "old_material_ids": [
+    21384091
    ]
   },
   {
@@ -314,13 +292,8 @@
      "resizeMode": "contain"
     }
    ],
-   "material_id": 21384093,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+   "old_material_ids": [
+    21384093
    ]
   },
   {
@@ -368,8 +341,9 @@
    ],
    "old_material_id": 21384098,
    "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
-   "material_id": 21384230,
-   "created_prices": "（保存に失敗したため手で記入）"
+   "old_material_ids": [
+    21384230
+   ]
   },
   {
    "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）パーカー",
@@ -391,13 +365,8 @@
      ]
     }
    ],
-   "material_id": 21384103,
-   "created_prices": [
-    [
-     "hoodie",
-     6180,
-     null
-    ]
+   "old_material_ids": [
+    21384103
    ]
   },
   {
@@ -414,13 +383,8 @@
      "resizeMode": "contain"
     }
    ],
-   "material_id": 21384107,
-   "created_prices": [
-    [
-     "toms-club-cap-for-shop",
-     1817,
-     null
-    ]
+   "old_material_ids": [
+    21384107
    ]
   },
   {
