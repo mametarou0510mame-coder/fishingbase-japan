@@ -32,10 +32,10 @@ jobs:
           SUZURI_TOKEN: ${{ secrets.SUZURI_TOKEN }}
         run: python scripts/goods/suzuri.py ${{ github.event.inputs.action }} ${{ github.event.inputs.spec }}
       - name: Save results
-        if: github.event.inputs.action == 'items' || github.event.inputs.action == 'preview'
+        if: always() && (github.event.inputs.action == 'items' || github.event.inputs.action == 'preview' || github.event.inputs.action == 'create')
         run: |
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/goods
+          git add data/goods content/goods
           git commit -qm "SUZURI のアイテム一覧を更新" || exit 0
           git pull -q --rebase && git push -q

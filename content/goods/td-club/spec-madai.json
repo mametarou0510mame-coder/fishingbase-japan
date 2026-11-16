@@ -1,0 +1,322 @@
+{
+ "materials": [
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）ドライTシャツ",
+   "texture": "content/goods/td-club/print/madai-mono-light-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|mono|light|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5780,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|mono|light|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5442,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）キャップ",
+   "texture": "content/goods/td-club/print/madai-mono-light-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|mono|light|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7769,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）ドライTシャツ",
+   "texture": "content/goods/td-club/print/madai-mono-dark-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|mono|dark|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5782,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5444,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）キャップ",
+   "texture": "content/goods/td-club/print/madai-mono-dark-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|mono|dark|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7773,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）ステッカー",
+   "texture": "content/goods/td-club/print/madai-mono-light-art.png",
+   "price": 78,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※ステッカーです。",
+   "key": "madai|mono|light|sticker",
+   "products": [
+    {
+     "itemId": 11,
+     "exemplaryItemVariantId": 606,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）ドライTシャツ",
+   "texture": "content/goods/td-club/print/madai-color-light-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|color|light|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5780,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|color|light|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5442,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）キャップ",
+   "texture": "content/goods/td-club/print/madai-color-light-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|color|light|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7769,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）ドライTシャツ",
+   "texture": "content/goods/td-club/print/madai-color-dark-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|color|dark|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5782,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|color|dark|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5444,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）キャップ",
+   "texture": "content/goods/td-club/print/madai-color-dark-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|color|dark|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7773,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）ステッカー",
+   "texture": "content/goods/td-club/print/madai-color-light-art.png",
+   "price": 78,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※ステッカーです。",
+   "key": "madai|color|light|sticker",
+   "products": [
+    {
+     "itemId": 11,
+     "exemplaryItemVariantId": 606,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  }
+ ]
+}

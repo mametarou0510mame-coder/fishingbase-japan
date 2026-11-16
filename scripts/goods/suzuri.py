@@ -56,6 +56,8 @@ def texture(path):
 def cmd_create(spec_path):
     spec = json.load(open(os.path.join(ROOT, spec_path), encoding="utf-8"))
     for m in spec["materials"]:
+        if m.get("material_id"):
+            continue  # 作成済み（途中で止まったときの再実行用）
         prods = []
         for p in m["products"]:
             q = {k: v for k, v in p.items() if k != "sub_materials"}
@@ -69,6 +71,10 @@ def cmd_create(spec_path):
             body["price"] = m["price"]
         r = req("POST", "/materials", body)
         mat = r.get("material", {})
+        # 作った material id を SPEC に書き戻す（公開・値段の変更に使う）
+        m["material_id"] = mat.get("id")
+        m["created_prices"] = [(pr.get("item", {}).get("name"), pr.get("price"), pr.get("priceWithoutTax")) for pr in r.get("products", [])]
+        json.dump(spec, open(os.path.join(ROOT, spec_path), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         summary(f"### {m['title']}\nmaterial id {mat.get('id')}")
         for pr in r.get("products", []):
             summary(f"- {pr.get('item', {}).get('humanizeName')}：{pr.get('sampleUrl') or pr.get('url') or ''}（published={pr.get('published')}）")

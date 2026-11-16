@@ -1,0 +1,322 @@
+{
+ "materials": [
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ドライTシャツ",
+   "texture": "content/goods/td-club/print/sawara-mono-light-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5780,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5442,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）キャップ",
+   "texture": "content/goods/td-club/print/sawara-mono-light-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7769,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）ドライTシャツ",
+   "texture": "content/goods/td-club/print/sawara-mono-dark-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|mono|dark|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5782,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5444,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）キャップ",
+   "texture": "content/goods/td-club/print/sawara-mono-dark-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|mono|dark|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7773,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ステッカー",
+   "texture": "content/goods/td-club/print/sawara-mono-light-art.png",
+   "price": 78,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※ステッカーです。",
+   "key": "sawara|mono|light|sticker",
+   "products": [
+    {
+     "itemId": 11,
+     "exemplaryItemVariantId": 606,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）ドライTシャツ",
+   "texture": "content/goods/td-club/print/sawara-color-light-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|color|light|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5780,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|color|light|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5442,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-light-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）キャップ",
+   "texture": "content/goods/td-club/print/sawara-color-light-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|color|light|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7769,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）ドライTシャツ",
+   "texture": "content/goods/td-club/print/sawara-color-dark-tee.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|color|dark|tee",
+   "products": [
+    {
+     "itemId": 910,
+     "exemplaryItemVariantId": 5782,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）ドライ長袖Tシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 300,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|color|dark|longt",
+   "products": [
+    {
+     "itemId": 887,
+     "exemplaryItemVariantId": 5444,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": false,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-dark-back.png",
+       "printSide": "back"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）キャップ",
+   "texture": "content/goods/td-club/print/sawara-color-dark-art.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|color|dark|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7773,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）ステッカー",
+   "texture": "content/goods/td-club/print/sawara-color-light-art.png",
+   "price": 78,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※ステッカーです。",
+   "key": "sawara|color|light|sticker",
+   "products": [
+    {
+     "itemId": 11,
+     "exemplaryItemVariantId": 606,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ]
+  }
+ ]
+}
