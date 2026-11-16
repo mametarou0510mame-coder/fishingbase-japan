@@ -40,6 +40,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-aori",
          "cg-fune-tachiuo",
          "cg-fune-tairaba", "cg-fune-aomono",
+         "cg-surf",  # 2026-11-16 見える化 サーフ（11/13 に書き出しと Blender の冒頭まで済み。オーナー「サーフ出して」→ 11/16 18:17 の枠）
          # 第8弾（2026-11-16。書き出し済み。冬の堤防は11月下旬〜12月上旬に出す）
          "long-fuyu-teibou", "long-hajimete-ichinichi", "long-shun-quiz"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
 REC = "data/sns/long-posts.json"
