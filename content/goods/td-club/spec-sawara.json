@@ -24,15 +24,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB サワラ（モノクロ）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-light.png",
-   "price": 300,
+   "price": 470,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "sawara|mono|light|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5442,
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -43,14 +43,8 @@
      ]
     }
    ],
-   "material_id": 21384074,
-   "created_prices": [
-    [
-     "glimmer-4-4oz-dry-long-sleeve-t-shirt-for-shop",
-     2815,
-     null
-    ]
-   ]
+   "old_material_id": 21384074,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま"
   },
   {
    "title": "ANGLER'S CLUB サワラ（モノクロ）パーカー",
@@ -128,15 +122,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-dark.png",
-   "price": 300,
+   "price": 513,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "sawara|mono|dark|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5444,
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -147,14 +141,8 @@
      ]
     }
    ],
-   "material_id": 21384080,
-   "created_prices": [
-    [
-     "glimmer-4-4oz-dry-long-sleeve-t-shirt-for-shop",
-     2815,
-     null
-    ]
-   ]
+   "old_material_id": 21384080,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま"
   },
   {
    "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）パーカー",
@@ -255,15 +243,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB サワラ（カラー）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB サワラ（カラー）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-light.png",
-   "price": 300,
+   "price": 470,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "sawara|color|light|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5442,
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -274,14 +262,8 @@
      ]
     }
    ],
-   "material_id": 21384088,
-   "created_prices": [
-    [
-     "glimmer-4-4oz-dry-long-sleeve-t-shirt-for-shop",
-     2815,
-     null
-    ]
-   ]
+   "old_material_id": 21384088,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま"
   },
   {
    "title": "ANGLER'S CLUB サワラ（カラー）パーカー",
@@ -359,15 +341,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-dark.png",
-   "price": 300,
+   "price": 513,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "sawara|color|dark|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5444,
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -378,14 +360,8 @@
      ]
     }
    ],
-   "material_id": 21384098,
-   "created_prices": [
-    [
-     "glimmer-4-4oz-dry-long-sleeve-t-shirt-for-shop",
-     2815,
-     null
-    ]
-   ]
+   "old_material_id": 21384098,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま"
   },
   {
    "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）パーカー",

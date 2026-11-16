@@ -16,15 +16,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB チヌ（モノクロ）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB チヌ（モノクロ）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-light.png",
-   "price": 300,
+   "price": 470,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "chinu|mono|light|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5442,
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -88,15 +88,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB チヌ（モノクロ・濃い色用）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB チヌ（モノクロ・濃い色用）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-dark.png",
-   "price": 300,
+   "price": 513,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "chinu|mono|dark|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5444,
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -175,15 +175,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB チヌ（カラー）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB チヌ（カラー）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-light.png",
-   "price": 300,
+   "price": 470,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
    "key": "chinu|color|light|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5442,
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
@@ -247,15 +247,15 @@
    ]
   },
   {
-   "title": "ANGLER'S CLUB チヌ（カラー・濃い色用）ドライ長袖Tシャツ",
+   "title": "ANGLER'S CLUB チヌ（カラー・濃い色用）ロングTシャツ",
    "texture": "content/goods/td-club/print/front-text-dark.png",
-   "price": 300,
+   "price": 513,
    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
    "key": "chinu|color|dark|longt",
    "products": [
     {
-     "itemId": 887,
-     "exemplaryItemVariantId": 5444,
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
      "published": false,
      "resizeMode": "contain",
      "sub_materials": [
