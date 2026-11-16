@@ -6607,7 +6607,7 @@ function ftSim(b, ctl, opt = {}) {
     x += vx * dt; y += vy * dt; th += om * dt;
     const low = y - Math.abs(Math.sin(th)) * b.len / 2 - b.r;
     if (opt.top != null && y > opt.top) { y = opt.top; if (vy > 0) vy = 0; } // 水面より上には出さない（opt.top。ふだんは使わない）
-    const BOT = botf ? botf(x) : BOT0;
+    const BOT = botf ? botf(x, t) : BOT0;
     if (low < BOT) { y += BOT - low; if (vy < 0) vy = 0; vx *= opt.fric ?? 0.97; om *= 0.9; if (landed < 0) landed = t; }
   }
   return { rec: out, hz: 2000 / REC, dur, landed, at(t) { const u = Math.max(0, Math.min(out.length - 1.001, t * this.hz)), i = Math.floor(u), f = u - i, a = out[i], q = out[i + 1]; return a.map((v, k) => v + (q[k] - v) * f); } };
@@ -6706,6 +6706,7 @@ const ftLit = (hex, o = {}) => new THREE.ShaderMaterial({
   }));
   top.renderOrder = 9;
   ftGrp.add(wallM, bed, top);
+  ftGrp.userData.bed = bed; // 根のある海底（rf*）に差しかえるときに隠す
 }
 // 水中のただよう粒（深さの感じを出す）
 const ftSnow = (() => {
@@ -6979,7 +6980,7 @@ function ftPut(obj, x, y, th, sc = 1, off = 0) {
   }
 }
 let ftPend = [];
-function ftBase() { base(0); U.under.value = 0; ftGrp.visible = true; ftBand.visible = false; ftBoat.visible = true; ftPend = []; ftShadowN = 0; }
+function ftBase() { base(0); U.under.value = 0; ftGrp.visible = true; ftGrp.userData.bed.visible = true; ftBand.visible = false; ftBoat.visible = true; ftPend = []; ftShadowN = 0; }
 // カメラを決めたあとに呼ぶ：糸・軌跡（画面の上に描く線）と影
 function ftFlush() { ftPend.forEach((f) => f()); ftPend = []; ftShadow.count = ftShadowN; ftShadow.visible = ftShadowN > 0; ftShadow.instanceMatrix.needsUpdate = true; }
 const _ftF = V(0, 0, 0);
@@ -7837,7 +7838,7 @@ const FK = { ok: false, mod: null, pool: {} };
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }
@@ -8641,6 +8642,574 @@ Object.assign(SHOTS, {
     rows.forEach(([a1, b1, c1, col], i) => {
       const a = fadeIn(t, 0.4 + i * 0.45);
       html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 34}px;padding:10px 0;width:${P ? 220 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 38 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
+// =====================================================================
+// 使い回せる部品：根（岩礁）と海藻（rf*）、サビキ・胴付き仕掛け（sb*）　2026-11-16
+// 船の根魚・メバル・アジなど「根の上を釣る」回で使う。使い方は docs/strategy/cg-assets.md
+//   rfBase()            … ftBase() のあとに呼ぶ。平らな砂の底を隠して、根のある海底と海藻を出す（海面・船・壁は ft* のまま）
+//   rfH(x) / rfY(x)     … 仕掛けを下ろす面（z=FT_LZ）での根の高さ（砂の底から m）／その高さの y。ftSim の opt.botf に入れる
+//   rfY3(x, z)          … 奥行き z での根の高さ（魚を埋めない確認に使う）
+//   sbPlace(T, S, tip, vel, o) … オモリ S=[x,y] から竿先 tip へ伸びる幹糸に、ハリを o.n 本（ふつう5本）並べる
+// 1 = 1m。砂の底は RF_BOT（例えば水深30m）。地形は模式図（実在の場所ではない）
+// =====================================================================
+const RF_BOT = -30;
+const RF_HILLS = [[0, 5.5, 5.0], [12.5, 3.5, 2.6], [-15, 4, 2.2], [24, 6, 4.0], [-28, 6, 3.0]]; // 根の山：[中心 x, 幅, 高さ]
+function rfH3(x, z) {
+  const dz = z - FT_LZ, xs = x + 0.8 * Math.sin(dz * 0.4);
+  let b = 0;
+  for (const [c, w, h] of RF_HILLS) b += h * Math.exp(-(((xs - c) / w) ** 2));
+  // 手前（カメラ側）は低くして、仕掛けを下ろす面が尾根になるようにする（仕掛けと魚が岩に隠れない）
+  const fall = dz > 0 ? 1 - 0.3 * clamp01(dz / 3) : 1 - 0.25 * clamp01(-dz / 12);
+  const rk = dz > 0 ? 1 - 0.6 * clamp01(dz / 2) : 1;
+  const rough = 0.38 * Math.sin(xs * 1.7) * Math.sin(xs * 0.53 + 1 + dz * 0.6) + 0.2 * Math.sin(xs * 4.1 + 2 + dz * 1.9) * Math.cos(dz * 2.3) + 0.3 * Math.abs(Math.sin(xs * 2.7 + dz * 1.1)) * Math.sin(xs * 1.1 + dz * 0.8 + 0.5) + 0.12 * Math.sin(xs * 7.3 + dz * 3.1) * Math.sin(dz * 4.3 + xs);
+  return Math.max(0, b * fall + rough * rk * clamp01(b / 0.8));
+}
+const rfH = (x) => rfH3(x, FT_LZ);
+const rfY = (x) => RF_BOT + rfH(x);
+const rfY3 = (x, z) => RF_BOT + rfH3(x, z);
+const rfGrp = new THREE.Group();
+rfGrp.position.copy(FT);
+world.add(rfGrp);
+extras.push(rfGrp);
+{
+  // 上の面（x × 奥行き）。x は根のあたりだけ細かく
+  const xs = [-900];
+  for (let x = -60; x <= 60.001; x += 0.25) xs.push(x);
+  xs.push(900);
+  const Z0 = -14, Z1 = 12, dz = 0.5, nz = Math.round((Z1 - Z0) / dz), nx = xs.length;
+  const pos = [], idx = [];
+  for (let i = 0; i < nx; i++) for (let j = 0; j <= nz; j++) { const z = Z0 + j * dz; pos.push(xs[i], RF_BOT + rfH3(xs[i], z), z); }
+  for (let i = 0; i < nx - 1; i++) for (let j = 0; j < nz; j++) { const a = i * (nz + 1) + j, b = a + nz + 1; idx.push(a, a + 1, b, b, a + 1, b + 1); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const GL = `float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+    float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+    vec3 rockCol(vec3 q, float up){ float m = noise(q.xz*1.3 + 3.0), m2 = noise(q.xz*5.0 + q.y*3.0), m3 = noise(q.xz*17.0 + q.y*9.0);
+      vec3 r = mix(vec3(0.25,0.24,0.23), vec3(0.56,0.53,0.47), 0.55*m2 + 0.45*m3);
+      r *= 0.72 + 0.5*noise(q.xz*2.6 + q.y*1.7 + 11.0);                                       // 岩のくぼみの暗さ
+      r = mix(r, vec3(0.52,0.36,0.40), smoothstep(0.62, 0.85, m)*0.32);                       // 石灰藻（赤むらさき）をところどころ
+      r = mix(r, vec3(0.30,0.40,0.20), smoothstep(0.55, 0.9, noise(q.xz*0.9 + 7.0))*0.5*up);  // 緑の藻
+      return r; }`;
+  const topM = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    uniforms: { time: U.time },
+    vertexShader: `varying vec3 vL; varying vec3 vN; void main(){ vL = position; vN = normal; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; varying vec3 vL; varying vec3 vN; ${GL}
+      void main(){ vec3 N = normalize(vN); float h = vL.y - (${RF_BOT.toFixed(1)});
+        float n = hash(floor(vL.xz*7.0)); float rip = 0.5+0.5*sin(vL.x*2.6 + sin(vL.z*1.1)*1.6);
+        vec3 sand = vec3(0.80,0.74,0.58)*(0.80+0.10*n+0.12*rip);
+        vec3 rock = rockCol(vL, clamp(N.y, 0.0, 1.0));
+        float k = smoothstep(0.12, 0.55, h + 0.25*(noise(vL.xz*2.0)-0.5));
+        float diff = clamp(dot(N, normalize(vec3(0.3,1.0,0.6))), 0.0, 1.0);
+        vec3 c = mix(sand, rock*(0.50+0.78*diff), k);
+        float ca = pow(abs(sin(vL.x*1.1+sin(vL.z*1.4+time*0.7))*sin(vL.z*0.9+sin(vL.x*0.7-time*0.55))), 6.0);
+        c += vec3(0.75,0.95,0.95)*ca*0.10*max(N.y, 0.0);
+        c *= 0.78 + 0.22*smoothstep(-14.0, 12.0, vL.z);
+        gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  // 手前の切り口（z = Z1）
+  const p2 = [], i2 = [];
+  for (let i = 0; i < nx; i++) { p2.push(xs[i], RF_BOT + rfH3(xs[i], Z1), Z1, xs[i], RF_BOT - 60, Z1); }
+  for (let i = 0; i < nx - 1; i++) { const a = i * 2, b = a + 2; i2.push(a, a + 1, b, b, a + 1, b + 1); }
+  const g2 = new THREE.BufferGeometry();
+  g2.setAttribute("position", new THREE.Float32BufferAttribute(p2, 3));
+  g2.setIndex(i2);
+  const cut = new THREE.Mesh(g2, new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vL; ${GL}
+      void main(){ float h = vL.y - (${RF_BOT.toFixed(1)});
+        vec3 sand = mix(vec3(0.40,0.33,0.25), vec3(0.56,0.48,0.35), 0.5+0.5*sin(vL.y*1.5+sin(vL.x*0.3)*1.2));
+        vec3 rock = mix(vec3(0.24,0.23,0.23), vec3(0.42,0.40,0.37), noise(vec2(vL.x*0.9, vL.y*2.4))) * (0.85+0.3*noise(vL.xy*6.0));
+        gl_FragColor = vec4(mix(sand, rock, smoothstep(-0.25, 0.1, h)), 1.0); }`,
+  }));
+  rfGrp.add(topM, cut);
+}
+// 海藻（カジメ・ワカメのような帯の葉）。仕掛けを下ろす面より奥の岩にだけ生やす（手前に生やすと仕掛けと魚が隠れる）
+const rfKelp = (() => {
+  const N = 420, g = new THREE.PlaneGeometry(0.2, 1, 2, 10).translate(0, 0.5, 0), r = rng(4127);
+  const ph = new Float32Array(N), m = new THREE.InstancedMesh(g, new THREE.ShaderMaterial({
+    uniforms: { time: U.time }, side: THREE.DoubleSide,
+    vertexShader: `attribute float ph; uniform float time; varying vec2 vUv; varying float vPh;
+      void main(){ vUv = uv; vPh = ph; vec3 p = position; float u = uv.y;
+        p.x *= 1.0 - 0.55*u*u + 0.25*sin(u*9.0 + ph)*u;
+        p.x += (0.22 + 0.2*sin(time*1.1 + ph + u*2.4))*u*u;
+        p.z += 0.09*cos(time*0.9 + ph*1.3 + u*2.0)*u*u;
+        gl_Position = projectionMatrix*viewMatrix*modelMatrix*instanceMatrix*vec4(p,1.); }`,
+    fragmentShader: `varying vec2 vUv; varying float vPh;
+      void main(){ float k = fract(vPh*0.37);
+        vec3 c = mix(vec3(0.16,0.22,0.08), mix(vec3(0.46,0.42,0.14), vec3(0.34,0.44,0.16), k), 0.25 + 0.75*vUv.y);
+        c *= 0.75 + 0.25*smoothstep(0.0, 0.12, abs(vUv.x-0.5));
+        gl_FragColor = vec4(c, 1.0); }`,
+  }), N);
+  let n = 0, guard = 0;
+  while (n < N && guard++ < 6000) {
+    const x = -34 + r() * 68, z = -12 + r() * (FT_LZ - 0.9 + 12), h = rfH3(x, z);
+    if (h < 0.9 || (Math.abs(x) < 2.4 && z > FT_LZ - 2.6)) continue; // 仕掛けを下ろす場所のすぐ後ろには生やさない
+    const cnt = 3 + Math.floor(r() * 4), len = 0.6 + r() * 1.3;
+    for (let k = 0; k < cnt && n < N; k++) {
+      _p.copy(V(x + (r() - 0.5) * 0.25, RF_BOT + h - 0.05, z + (r() - 0.5) * 0.25));
+      _q.setFromEuler(_e2.set(0, r() * Math.PI, (r() - 0.5) * 0.3));
+      _s.set(0.7 + r() * 0.8, len * (0.7 + r() * 0.5), 1);
+      _m.compose(_p, _q, _s);
+      m.setMatrixAt(n, _m);
+      ph[n++] = r() * 100;
+    }
+  }
+  m.count = n;
+  g.setAttribute("ph", new THREE.InstancedBufferAttribute(ph, 1));
+  m.frustumCulled = false;
+  rfGrp.add(m);
+  return m;
+})();
+// 根のある海底にする（ftBase のあとで呼ぶ）
+function rfBase() { ftBase(); ftGrp.userData.bed.visible = false; rfGrp.visible = true; }
+// 魚と根のすきまを記録する（render_cg.py の確認で読む。0.3m 以上）
+const rfClear = (gap) => { if (typeof window !== "undefined") window.__ftClear = Math.min(window.__ftClear ?? 99, gap); };
+
+// ---- サビキ・胴付き仕掛け ----
+// オモリ 30号（約110g・ナス型、長さ約4.5cm）。動きは ftSim で計算（係数は形と重さから決めた目安。実物の計測値ではない）
+FT_BODY.omori30 = { m: 0.1125, ma: 0.02, W: G_W(0.1125, 11.34), I: 3e-5, len: 0.045, r: 0.011, eye: [0, 0.03], cp: 0, ka: 0.3, kn: 0.3, kl: 0, km: 0, kw: 3e-5, kw1: 3e-5 };
+const SB_POS = [0.6, 1.05, 1.5, 1.95, 2.4, 2.85]; // オモリから各ハリの枝までの長さ [m]（5本なら全長 約3m）
+const SB_TOP = 3.0, SB_BR = 0.14;                  // 仕掛けの上の端（サルカン）までの長さ、枝（ハリス）の長さ
+const sbSink = new THREE.Group();
+world.add(sbSink);
+extras.push(sbSink);
+{
+  const prof = [];
+  for (let i = 0; i <= 24; i++) { const f = i / 24; prof.push(new THREE.Vector2(Math.max(0.0008, 0.0115 * Math.pow(Math.sin(Math.PI * Math.pow(f, 0.62)), 0.85)), (f - 0.5) * 0.048)); }
+  const lead = new THREE.Mesh(new THREE.LatheGeometry(prof, 20), ftLit(0xb9c3ca, { shine: 0.7 }));
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.004, 0.0009, 6, 14), ftLit(0xc3cad0, { shine: 0.9 })); ring.position.y = 0.027;
+  sbSink.add(lead, ring);
+}
+// ハリ（原点＝ハリスを結ぶ所、+x がハリスの先の向き）：軸・曲がり・魚の皮（サビキ）・ビーズ
+const sbSkinMat = new THREE.ShaderMaterial({
+  uniforms: { time: U.time }, side: THREE.DoubleSide,
+  vertexShader: `uniform float time; attribute float ph; varying vec2 vUv; varying float vPh; void main(){ vUv = uv; vPh = ph; vec3 p = position; p.y += 0.0035*sin(time*7.0 + ph + p.x*120.0)*smoothstep(0.0, 0.03, p.x); gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
+  fragmentShader: `uniform float time; varying vec2 vUv; varying float vPh; void main(){ float d = abs(vUv.y-0.5)*2.0; if (d > 1.0 - 0.75*pow(abs(vUv.x-0.45)*1.8, 2.0)) discard;
+    vec3 c = mix(vec3(0.95,1.0,0.96), 0.5 + 0.5*cos(6.28*(vec3(0.0,0.33,0.67) + vUv.x*1.5 + time*0.3 + vPh)), 0.28); gl_FragColor = vec4(c, 1.0); }`,
+});
+const sbUnits = SB_POS.map((_, j) => {
+  const u = new THREE.Group(), st = ftLit(0xc3cad0, { shine: 0.9 });
+  const shank = new THREE.Mesh(new THREE.CylinderGeometry(0.0005, 0.0005, 0.012, 5).rotateZ(Math.PI / 2), st); shank.position.x = 0.006;
+  const bend = new THREE.Mesh(new THREE.TorusGeometry(0.0035, 0.0005, 5, 14, Math.PI * 1.15), st); bend.position.set(0.012, -0.0035, 0); bend.rotation.z = -Math.PI / 2;
+  const sg = new THREE.PlaneGeometry(0.03, 0.009, 8, 1).translate(0.014, 0.001, 0);
+  sg.setAttribute("ph", new THREE.Float32BufferAttribute(new Array(sg.attributes.position.count).fill(j * 1.7), 1));
+  const skin = new THREE.Mesh(sg, sbSkinMat);
+  const bead = new THREE.Mesh(new THREE.SphereGeometry(0.0016, 8, 6), new THREE.MeshBasicMaterial({ color: j % 2 ? 0xb6ff6a : 0xffe45e })); bead.position.x = -0.0005;
+  u.add(shank, bend, skin, bead);
+  world.add(u);
+  extras.push(u);
+  return u;
+});
+// 仕掛けを置く。S：オモリの位置 [x, y]、tip：竿先 [x, y]、vel：オモリの速さ [vx, vy]（ハリスは動きと反対へなびく）
+// o.n：ハリの数（5）、o.vis：ハリを大きく見せる倍率、o.cur：潮（+x 向きの強さ）、o.hooked：{ハリの番号: true}＝魚が掛かっている（枝は下へ引かれる）
+function sbPlace(T, S, tip, vel, o = {}) {
+  const vis = o.vis ?? 1, n = o.n ?? 5, cur = o.cur ?? 0.5;
+  let ux = tip[0] - S[0], uy = tip[1] - S[1];
+  const ul = Math.hypot(ux, uy) || 1;
+  ux /= ul; uy /= ul;
+  sbSink.visible = true;
+  sbSink.position.copy(FTp(S[0], S[1], FT_LZ));
+  sbSink.scale.setScalar(o.sinkVis ?? Math.min(vis, 3));
+  sbSink.rotation.set(0, 0, Math.atan2(uy, ux) - Math.PI / 2);
+  const hooks = [], bl = SB_BR * (o.brVis ?? Math.min(vis, 1.8));
+  for (let j = 0; j < n; j++) {
+    const px = S[0] + ux * SB_POS[j], py = S[1] + uy * SB_POS[j];
+    let dx = cur - vel[0] * 1.2 + 0.18 * Math.sin(T * 1.3 + j * 1.7), dy = -vel[1] * 1.2 - 0.12 + 0.14 * Math.sin(T * 1.7 + j * 2.3);
+    if (o.hooked && o.hooked[j]) { dx = 0.3 * Math.sin(T * 7 + j * 2); dy = -1; }
+    const dl = Math.hypot(dx, dy) || 1;
+    dx /= dl; dy /= dl;
+    const ex = px + dx * bl, ey = py + dy * bl, u = sbUnits[j];
+    u.visible = true;
+    u.position.copy(FTp(ex, ey, FT_LZ));
+    u.rotation.set(0, 0, Math.atan2(dy, dx));
+    u.scale.setScalar(vis);
+    hooks.push({ px, py, x: ex, y: ey, dx, dy });
+  }
+  const top = [S[0] + ux * SB_TOP, S[1] + uy * SB_TOP];
+  ftPend.push(() => {
+    ftSeg(FTp(S[0], S[1] + 0.027 * (o.sinkVis ?? Math.min(vis, 3)), FT_LZ), FTp(top[0], top[1], FT_LZ), "#ffb45e", o.lw ?? 4, o.slack ? "10 12" : "");
+    hooks.forEach((h) => ftSeg(FTp(h.px, h.py, FT_LZ), FTp(h.x, h.y, FT_LZ), "#ffe9c9", 2));
+  });
+  return { hooks, top, sink: S, u: [ux, uy] };
+}
+// 船・竿・道糸・仕掛けをまとめて置く。o.bx：船の横の位置（船が流れる場面）
+function sbRigAt(T, S, lift, vel, o = {}) {
+  ftHeroT = T;
+  const bx = o.bx ?? 0, bob = ftSurf(0, T) * 0.5;
+  ftBoat.position.set(-1 + bx, bob, 0);
+  ftBoat.rotation.z = Math.sin(T * 0.7) * 0.012;
+  const tip = FTp(bx, FT_TIP + lift + bob, FT_LZ);
+  if (o.rod !== false) ftRodSet(ftRods[0], FTp(bx + 0.05, 2.25 + bob, 1.45), tip);
+  const rig = sbPlace(T, S, [bx, FT_TIP + lift + bob], vel, o);
+  ftPend.push(() => ftSeg(FTp(rig.top[0], rig.top[1], FT_LZ), tip, "#ffb45e", o.lw ?? 4, o.slack ? "10 12" : ""));
+  return { ...rig, tip, x: S[0], y: S[1] };
+}
+// ftSim の結果から置く（st.c0・st.a・st.T は ftCtl にそのまま渡せる）
+function sbRig(T, sim, ts, o = {}) {
+  const a = sim.at(ts), b = sim.at(Math.max(0, ts - 0.2)), c0 = sim.ctl(ts), bx = o.bx ?? 0;
+  const r = sbRigAt(T, [a[0] + bx, a[1]], a[4], [(a[0] - b[0]) / 0.2, (a[1] - b[1]) / 0.2], { ...o, slack: a[3] < 0.05 && !c0.free });
+  return { ...r, a, c0, T: a[3], th: a[2] };
+}
+
+// =====================================================================
+// 船のメバル（cg-fune-mebaru、mb_*）2026-11-16 船釣り 見える化シリーズ 第4回。根（rf*）・サビキ仕掛け（sb*）・Fish Kit のメバルとカサゴを使う
+// 参考：TSURI HACK「元釣具屋が船メバルサビキを語る」（冬〜春が盛り／鈎4〜6号・ハリス0.8号・5〜6本針／警戒心が強くストンと落とすと逃げる→そっと置く／
+//   着底したらすぐ1mほど巻いて底を切る／すべての動作をゆっくり、サビキがフワフワ漂うように／アタリが多いのは竿をゆっくり上げている時／アワセ不要、ゆっくり巻く→連掛け）
+//   ダイワ「メバル・カサゴ（胴付き）」（視力が良い→細ハリス／根周り・岩礁帯の上・海草周辺／ロックフィッシュの多くは底、メバルは群れで活発に動くので数m上まで探る／
+//   船は潮で流されるのでマメに底を取る＝誘いになる／オモリが頻繁に当たる＝かけあがり、当たらなくなったら下がっている→落とし込む／底から50cm〜1m）
+//   週刊つりニュース「船から狙うメバル釣り3種」（サビキは3m前後の竿／底から1〜2m、時には5m上まで／向こうアワセ／動くものに積極的に反応→多点掛け／防寒）
+//   釣りの記事（明石のメバルサビキ：瀬戸内で冬から春、全長3m前後、オモリ20号・30号）
+// オモリの動きは ftSim の計算（係数は目安）。根の形・船が流れる場面は模式図。メバルとカサゴの動きはイメージ。魚は rfY3 で根より 0.3m 以上、上に置く
+// =====================================================================
+Object.assign(FT_SEQ, {
+  // 落とす → 着底の前にブレーキ → そっと着底 → すぐ約1m巻いて底を切る
+  mb_fall: { body: "omori30", opt: { y0: rfY(0) + 7, th0: 0, botf: (x) => rfY(x) }, seq: [{ free: 2.6, thumb: 0.15 }, { mark: "brake" }, { free: 5.9, thumb: 0.86 }, { mark: "land" }, { wait: 0.5 }, { mark: "cut" }, { reel: 1.55, dur: 1.8 }, { mark: "done" }, { wait: 8 }] },
+  // 誘い：竿をゆっくり 1m 上げて、ゆっくり下げる
+  mb_sasoi: { body: "omori30", opt: { y0: rfY(0) + 1.0, th0: 0, botf: (x) => rfY(x) }, seq: [{ wait: 1 }, ...FT_REP(7, [{ jerk: 1.0, up: 2.6, down: 2.6 }, { wait: 1.2 }])] },
+  // ゆっくり上げている時にアタリ → 合わせずに、そのままゆっくり巻く → 2匹目・3匹目（魚が引く力は仮の値）
+  mb_bite: { body: "omori30", opt: { y0: rfY(0) + 1.0, th0: 0, botf: (x) => rfY(x) }, seq: [{ wait: 0.6 }, { jerk: 1.0, up: 2.6, down: 2.6 }, { wait: 0.4 }, { mark: "pre" }, { wait: 0.3 }, { reel: 0.9, dur: 2.0, lin: 1 }, { mark: "bite" }, { reel: 0.25, dur: 0.5, lin: 1, fish: [0, -1.6] }, { mark: "hook" }, { reel: 2.4, dur: 5.5, lin: 1, fish: [0, -1.3] }, { mark: "b2" }, { reel: 2.4, dur: 5.5, lin: 1, fish: [0, -2.4] }, { mark: "b3" }, { reel: 4, dur: 9, lin: 1, fish: [0, -3.4] }, { wait: 4, fish: [0, -3.2] }] },
+});
+// メバルを置く（Fish Kit）。(mx, my)：口の位置、ang：頭の向き（0＝右、π＝左、π/2＝上）。根より 0.3m 以上、上に置く
+function mbAt(i, mx, my, ang, T, o = {}) {
+  const f = fkGet(o.id ?? "mebaru", i, o.cm ?? 24);
+  if (!f) return null;
+  const sc = o.sc ?? 1, L = f.length * sc, z = o.z ?? FT_LZ + (o.dz ?? -0.1), c = Math.cos(ang), s = Math.sin(ang);
+  const cx = mx - c * L * 0.47;
+  let cy = my - s * L * 0.47, gap = 99;
+  [-0.5, 0, 0.5].forEach((k) => { gap = Math.min(gap, cy + s * L * k - 0.19 * L * Math.abs(c) - rfY3(cx + c * L * k, z)); });
+  if (gap < 0.3) { cy += 0.3 - gap; gap = 0.3; }
+  rfClear(gap);
+  f.object.scale.setScalar(sc);
+  const right = c >= 0;
+  fkPlace(f, FTp(cx, cy, z), right ? 0 : Math.PI, right ? ang : Math.PI - ang, T + i * 1.3, { freq: o.freq ?? 1.5, amp: o.amp ?? 0.05, seed: i });
+  return { cx, cy, L, mx: cx + c * L * 0.47, my: cy + s * L * 0.47 };
+}
+// 根の上に浮く群れ：頭を少し上げて、同じ向きで定位する（イメージ）。12匹は底から1〜2.3m、残りは3〜5m
+const MB_OFF = (() => { const r = rng(5531); return Array.from({ length: 16 }, (_, i) => ({ x: r() * 2 - 1, h: i % 6 === 5 ? 3.2 + r() * 1.6 : 1 + r() * 1.3, z: r() * 2 - 1, p: r() * 6.28, w: 0.6 + r() * 0.8, cm: 20 + Math.floor(r() * 4) * 2 })); })();
+function mbSchool(T, o = {}) {
+  const { cx = 1, sx = 5, zc = FT_LZ - 1.7, sz = 1.2, n = 14, sc = 1, i0 = 40 } = o;
+  for (let i = 0; i < n; i++) {
+    const q = MB_OFF[i], z = zc + q.z * sz, x = cx + q.x * sx + Math.sin(T * 0.21 * q.w + q.p) * 0.25;
+    const y = rfY3(x, z) + q.h + Math.sin(T * 0.5 * q.w + q.p) * 0.08;
+    mbAt(i0 + i, x, y, Math.PI - 0.16 - 0.08 * Math.sin(T * 0.4 + q.p), T, { cm: q.cm, sc, z, freq: 1.2, amp: 0.045 });
+  }
+}
+// 根に着くカサゴ（底の魚。動きはイメージ）
+function mbKasago(i, x, z, T, left = true) {
+  const f = fkGet("kasago", i, 22);
+  if (!f) return;
+  const L = f.length, top = Math.max(rfY3(x - L * 0.4, z), rfY3(x, z), rfY3(x + L * 0.4, z));
+  f.object.scale.setScalar(1);
+  fkPlace(f, FTp(x, top + 0.2 * L + 0.05, z), left ? Math.PI : 0, 0.05, T * 0.25 + i, { freq: 0.5, amp: 0.015, seed: i });
+}
+// ハリの近くで待つメバル → 食う 0.7 秒前から寄る → 掛かる（口はハリ。頭を糸の側に向けて体を振る）。hk：ハリ {x, y}、dt：食う瞬間からの時間
+function mbBiter(i, hk, dt, T, o = {}) {
+  if (dt >= 0) return mbAt(i, hk.x, hk.y, Math.PI / 2 + 0.25 + 0.5 * Math.sin(T * 7.3 + i * 2.1), T, { cm: o.cm, sc: o.sc, freq: 4.2, amp: 0.14, dz: 0 });
+  const off = o.off ?? [0.75, -0.25], k = ease((dt + 0.7) / 0.7), w = 1 - k;
+  const hx = hk.x + (off[0] + 0.06 * Math.sin(T * 0.9 + i)) * w, hy = hk.y + (off[1] + 0.05 * Math.sin(T * 1.3 + i * 2)) * w;
+  let aim = Math.atan2(hk.y - hy, hk.x - hx);
+  if (aim < 0) aim += Math.PI * 2;
+  return mbAt(i, hx, hy, lerp(Math.PI - 0.16, k > 0.02 ? aim : Math.PI - 0.16, k), T, { cm: o.cm, sc: o.sc, freq: lerp(1.5, 4.5, k), amp: lerp(0.05, 0.11, k), dz: o.dz ?? -0.1 * w });
+}
+// 船が流れる場面（模式図）：オモリを底から約1mに保ち、底に当たったら巻き上げ、5秒ごとに底を取り直す
+const MB_DRIFT = (() => {
+  const dt = 1 / 60, N = Math.round(44 / dt), out = [], ev = [], bxAt = (t) => -9 + 0.77 * t;
+  let y = rfY(bxAt(0)) + 1.0, mode = "hold", timer = 3.2;
+  for (let i = 0; i <= N; i++) {
+    const t = i * dt, bot = rfY(bxAt(t)) + 0.035;
+    if (mode === "hold") { timer -= dt; if (y <= bot) { ev.push([t, "hit"]); mode = "lift"; } else if (timer <= 0) { mode = "lower"; ev.push([t, "lower"]); } }
+    else if (mode === "lower") { y -= 1.2 * dt; if (y <= bot) { ev.push([t, "touch"]); mode = "lift"; } }
+    else { y += 0.9 * dt; if (y >= bot + 1.0) { mode = "hold"; timer = 5; ev.push([t, "hold"]); } }
+    y = Math.max(y, bot);
+    out.push([bxAt(t), y, mode === "lift" ? 0.9 : mode === "lower" ? -1.2 : 0, mode === "lift" ? 1 : mode === "lower" ? -1 : 0]);
+  }
+  return { ev, at(t) { const u = Math.max(0, Math.min(N - 0.001, t / dt)), i = Math.floor(u), f = u - i, a = out[i], b = out[i + 1]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2], a[3]]; } };
+})();
+// タナの帯（根の形に沿って、底から lo〜hi m）。画面の上に描く
+function mbBand(x0, x1, lo, hi, a = 1, op = 0.26, edge = true, z = FT_LZ) {
+  if (a <= 0.01) return;
+  const up = [], dn = [];
+  for (let x = x0; x <= x1 + 0.001; x += 0.5) { const p = project(FTp(x, rfY(x) + hi, z)), q = project(FTp(x, rfY(x) + lo, z)); if (p.behind || q.behind) return; up.push(`${p.x.toFixed(1)},${p.y.toFixed(1)}`); dn.unshift(`${q.x.toFixed(1)},${q.y.toFixed(1)}`); }
+  lines += `<polygon points="${up.concat(dn).join(" ")}" fill="#2ecc71" opacity="${(op * a).toFixed(3)}"/>${edge ? `<polyline points="${dn.join(" ")}" fill="none" stroke="#2ecc71" stroke-width="4" stroke-dasharray="14 10" opacity="${(0.9 * a).toFixed(3)}"/>` : ""}`;
+}
+// 全体図（左上）：船・根・タナ・オモリの深さ。bx：船の横の位置
+function mbMini(sx, sy, bx = 0, a = 1, tana = true) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, K = 224 / 30, X = (x) => 90 + (x - bx) * K, Y = (y) => 40 - y * K;
+  let d = `M0 290`, b1 = "", b2 = "";
+  for (let x = bx - 12; x <= bx + 12.01; x += 0.5) { d += ` L${X(x).toFixed(1)} ${Y(rfY(x)).toFixed(1)}`; b1 += `${X(x).toFixed(1)},${Y(rfY(x) + 5).toFixed(1)} `; b2 = `${X(x).toFixed(1)},${Y(rfY(x) + 1).toFixed(1)} ` + b2; }
+  d += ` L180 290 Z`;
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 140}px;width:${P ? 190 : 200}px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px 10px 8px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:22px;font-weight:900;color:#10345a;margin:0 0 2px 6px">全体図</div>
+    <svg viewBox="0 0 180 290" width="100%"><defs><linearGradient id="mbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6cc4e4"/><stop offset="1" stop-color="#2a6fa6"/></linearGradient></defs>
+    <rect x="0" y="0" width="180" height="40" fill="#cfe8f6"/><rect x="0" y="40" width="180" height="250" fill="url(#mbg)"/>
+    ${tana ? `<polygon points="${b1}${b2}" fill="#2ecc71" opacity=".55"/>` : ""}<path d="${d}" fill="#6b6259"/><rect x="0" y="264" width="180" height="26" fill="#b9a67c"/>
+    <path d="M49 40 L131 40 L141 27 L55 27 Z" fill="#fff" stroke="#10345a" stroke-width="2"/><rect x="71" y="14" width="30" height="13" fill="#2f6fb0"/>
+    ${sy != null ? `<line x1="97" y1="30" x2="${X(sx).toFixed(1)}" y2="${Y(sy).toFixed(1)}" stroke="#ffb45e" stroke-width="3"/><circle cx="${X(sx).toFixed(1)}" cy="${Y(sy).toFixed(1)}" r="7" fill="#ffb45e" stroke="#fff" stroke-width="3"/>` : ""}
+    ${[0, 15, 30].map((m) => `<text x="174" y="${54 + (m / 30) * 204}" text-anchor="end" font-size="15" font-weight="800" fill="#fff">${m}m</text>`).join("")}</svg>
+    ${sy != null ? `<div style="text-align:center;font-size:24px;font-weight:900;color:#10345a">底から <span style="color:#c2410c">${Math.max(0, sy - rfY(sx)).toFixed(1)}m</span></div>` : `<div style="text-align:center;font-size:22px;font-weight:900;color:#10345a">例：水深30m</div>`}</div>`;
+}
+// オモリの高さのグラフ（右。横画面だけ）。h(t)：底からの高さ。緑＝上げている間
+function mbGraph(sim, ts, win, a = 1, top = 500) {
+  if (PORTRAIT || a <= 0.01) return;
+  const W0 = 330, H0 = 150, n = 120, hmax = 2.6, X = (i) => 8 + ((W0 - 16) * i) / n, Y = (h) => H0 - 10 - ((H0 - 24) * Math.min(hmax, h)) / hmax, m = Math.floor(clamp01(ts / win) * n);
+  let ups = "";
+  const pts = [];
+  for (let i = 0; i < n; i++) { const c = sim.ctl((win * (i + 0.5)) / n); if (c.kind === "up" || (c.turning && !c.fish)) ups += `<rect x="${X(i).toFixed(1)}" y="6" width="${((W0 - 16) / n + 0.5).toFixed(1)}" height="${H0 - 16}" fill="#2ecc71" opacity=".22"/>`; }
+  for (let i = 0; i <= m; i++) { const q = sim.at((win * i) / n); pts.push(`${X(i).toFixed(1)},${Y(q[1] - rfY(q[0])).toFixed(1)}`); }
+  html += `<div style="position:absolute;right:60px;top:${top}px;width:360px;opacity:${a};background:rgba(255,255,255,.94);border-radius:22px;padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.3);color:#10345a"><b style="font-size:22px">オモリの高さ（計算）</b>
+    <svg viewBox="0 0 ${W0} ${H0}" width="100%">${ups}<line x1="8" y1="${Y(0)}" x2="${W0 - 8}" y2="${Y(0)}" stroke="#6b6259" stroke-width="4"/><polyline points="${pts.join(" ")}" fill="none" stroke="#e08a2a" stroke-width="4" stroke-linejoin="round"/><text x="${W0 - 10}" y="${Y(0) - 6}" text-anchor="end" font-size="14" font-weight="800" fill="#6b6259">底（根）</text></svg>
+    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:#3a5a78"><span>時間 →</span><span><i style="display:inline-block;width:14px;height:14px;background:#2ecc71;opacity:.5;margin-right:4px"></i>上げている間</span></div></div>`;
+}
+const MB_LEG = [["#ffb45e", "糸と仕掛け"], ["#2ecc71", "底から1〜5m"]];
+const MB_HOME = [[0.8, -0.25], [0.95, 0.1], [0.7, 0.3], [1.3, -0.5]]; // ハリのそばで待つ位置（ハリから）
+// まわりで待つメバル（3匹）：ハリ j のそば
+function mbWaiters(st, T, list = [[0, 1], [1, 2], [2, 3]], o = {}) {
+  list.forEach(([i, j]) => mbBiter(i, st.hooks[j], -9, T, { off: MB_HOME[i], cm: 24 + i, ...o }));
+}
+
+Object.assign(SHOTS, {
+  mb_thumb(t, d, s) {
+    rfBase();
+    const sim = ftRun("mb_bite"), T = 3, ts = sim.marks.b2 + 2.2, st = sbRig(T, sim, ts, { vis: 3, lw: 6, hooked: { 1: true, 2: true } });
+    mbBiter(0, st.hooks[1], 1, T, { cm: 27 });
+    mbBiter(1, st.hooks[2], 1, T + 0.4, { cm: 25 });
+    mbBiter(2, st.hooks[3], -0.25, T, { off: MB_HOME[2], cm: 26 });
+    mbSchool(T, { cx: 3, sx: 3, n: 8 });
+    look(FTp(st.x - 0.75, st.y + 1.25, FT_LZ + 2.3), FTp(st.x - 0.55, st.y + 1.2, FT_LZ), 50);
+    ftFlush();
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：船から糸をたどって、根の上の群れまで潜る
+  mb_hook(t, d, s) {
+    rfBase();
+    const P = PORTRAIT, T = t, sim = ftRun("mb_sasoi"), ts = 1 + t;
+    const st = sbRig(T, sim, ts, { vis: 2.5 });
+    mbWaiters(st, T);
+    mbSchool(T, { cx: 2.2, sx: 3.6, n: 10 });
+    mbKasago(0, 1.6, FT_LZ - 0.7, T);
+    const k = ease((t - 0.9) / 4.4), [sx, sy0] = ftSmooth(sim, ts), sy = sy0 + 1.2;
+    const cx = lerp(-1, sx + 0.5, k), cy = lerp(1.3, sy, k);
+    look(FTp(cx, cy + lerp(1.6, 0.25, k), FT_LZ + lerp(P ? 31 : 24, P ? 4.6 : 3.6, k)), FTp(cx, cy, FT_LZ), 50);
+    ftFlush();
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 400}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "船のメバル、<br>群れはどこに浮いている？", "根の上の世界を見える化", a);
+    html += `<div style="position:absolute;${P ? "right:40px;top:860px" : "right:70px;top:430px"};background:rgba(6,22,42,.85);border:4px solid #ffb45e;border-radius:20px;padding:8px 24px;color:#fff;font-weight:900;font-size:${P ? 40 : 38}px;opacity:${clamp01((t - 0.6) / 0.4)}">水深 <span style="font-size:${P ? 84 : 80}px;color:#ffd166">${Math.max(0, -cy).toFixed(0)}</span> m</div>`;
+    drawBar(s);
+  },
+  // どこに浮いている？ k0 根・岩礁帯の上・海藻のまわり → k1 カサゴは底、メバルは群れで底から1〜2m（ときに5m）→ k2 ベタ底にこだわらない
+  mb_where(t, d, s, k) {
+    rfBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 10, t1 = t - (s._k1 ?? 99), kk = ease(t1 / 2.2);
+    mbSchool(T, { cx: 0.6, sx: 4.6, n: 16, sc: 2 });
+    mbKasago(0, 1.5, FT_LZ - 0.5, T);
+    mbKasago(1, -2.6, FT_LZ - 1.2, T, false);
+    const cx = lerp(1.0, 0.4, kk), cy = rfY(0) + lerp(0.9, 1.7, kk);
+    look(FTp(cx + Math.sin(t * 0.07) * 0.3, cy + 0.5, FT_LZ + lerp(P ? 8.5 : 6.5, P ? 16 : 12, kk)), FTp(cx, cy, FT_LZ - 1), 50);
+    const ab = k >= 1 ? fadeIn(t1, 1.4, 0.6) : 0;
+    mbBand(-8, 9, 2, 5, ab, 0.13, false);
+    mbBand(-8, 9, 1, 2, ab, 0.36);
+    ftFlush();
+    if (k === 0) {
+      label(FTp(-1.6, rfY(-1.6), FT_LZ), "根（岩礁）", "岩と海藻のまわり", fadeIn(t, 0.5), "", P ? -80 : -330, -170);
+      label(FTp(1.4, rfY3(1.4, FT_LZ - 1.7) + 1.7, FT_LZ - 1.7), "メバルの群れ", "根の上に浮く", fadeIn(t, 1.6), "gold", P ? 60 : 330, -150);
+    } else {
+      label(FTp(1.5, rfY3(1.5, FT_LZ - 0.5) + 0.12, FT_LZ - 0.5), "カサゴは底", "", fadeIn(t1, 0.3), "", P ? 110 : 400, P ? 150 : 30);
+      label(FTp(-3.0, rfY(-3.0) + 1.5, FT_LZ), "底から 1〜2m", "ここが基本", fadeIn(t1, 1.6), "gold ans", P ? -60 : -340, -110);
+      label(FTp(2.8, rfY(2.8) + 4.6, FT_LZ), "ときには 5m 上まで", "", fadeIn(t1, 2.2), "", P ? 60 : 330, -40);
+      if (k >= 2) html += ftCard(P, `<b style="font-size:38px"><span style="color:#c2410c">ベタ底にこだわらない</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">メバルは群れで活発に動き、底より上まで浮く</div>`, fadeIn(t - (s._k2 ?? 99), 0.2), [70, 150, 760], [60, 270, 880]);
+    }
+    if (!P && k >= 1) legend([["#2ecc71", "底から1〜2m（基本）"], ["#a9e8c4", "ときには5m上まで"]]);
+    ftNote("根の形は模式図。魚は大きく表示。魚の動きはイメージ");
+    drawBar(s);
+  },
+  // 仕掛け：k0 サビキ 5〜6本・全長約3m・竿3m前後 → k1 細いハリス（目が良い）・オモリ
+  mb_rig(t, d, s, k) {
+    rfBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 30, S = [0, rfY(0) + 1.0 + 0.05 * Math.sin(T * 0.8)];
+    const st = sbRigAt(T, S, 0, [0, 0.05 * 0.8 * Math.cos(T * 0.8)], { rod: false, vis: 3.8, lw: 5 });
+    mbSchool(T, { cx: 3.4, sx: 2.2, n: 8, zc: FT_LZ - 1.9 });
+    look(FTp(0.3, S[1] + 1.0, FT_LZ + (P ? 6 : 4.8)), FTp(0.3, S[1] + 1.0, FT_LZ), 50);
+    ftFlush();
+    const h = st.hooks;
+    label(FTp(h[3].x, h[3].y, FT_LZ), "サビキ（魚の皮の擬似餌）", "ハリは 5〜6本", fadeIn(t, 0.4), "gold", P ? 90 : 420, -40);
+    label(FTp(0, S[1] + 1.5, FT_LZ), "全長 約3m", "だから竿も3m前後", fadeIn(t, 2.4), "", P ? -90 : -400, -30);
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      label(FTp((h[1].px + h[1].x) / 2, (h[1].py + h[1].y) / 2, FT_LZ), "細いハリス", "0.8号前後（メバルは目が良い）", a, "gold ans", P ? -90 : -430, 120);
+      label(FTp(S[0], S[1], FT_LZ), "オモリ", "20〜30号が目安（船長の指示で）", fadeIn(t - (s._k1 ?? 99), 1.6), "", P ? 80 : 400, 60);
+    }
+    // 拡大図：サビキのハリ（魚の皮・ビーズ・細いハリス）
+    if (!P) html += `<div style="position:absolute;right:70px;top:470px;width:430px;opacity:${fadeIn(t, 1.2)};background:rgba(255,255,255,.94);border-radius:22px;padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.3);color:#10345a"><b style="font-size:24px">拡大：サビキのハリ</b>
+      <svg viewBox="0 0 400 190" width="100%"><rect width="400" height="190" rx="14" fill="#2f86b8"/><line x1="0" y1="78" x2="150" y2="92" stroke="#ffe9c9" stroke-width="3"/>
+      <circle cx="152" cy="92" r="9" fill="#d8ff6a" stroke="#fff" stroke-width="2"/><path d="M160 93 L300 100 Q345 104 342 136 Q338 166 304 160" fill="none" stroke="#dfe6ea" stroke-width="7" stroke-linecap="round"/>
+      <path d="M165 88 Q230 52 318 86 Q250 112 165 98 Z" fill="#f4fff2" stroke="#b9e6d0" stroke-width="3"/><path d="M190 86 Q240 70 300 86" fill="none" stroke="#ffb3d1" stroke-width="3" opacity=".8"/>
+      <text x="20" y="64" font-size="22" font-weight="900" fill="#fff">細いハリス</text><text x="120" y="130" font-size="22" font-weight="900" fill="#fff">ビーズ</text><text x="205" y="40" font-size="22" font-weight="900" fill="#fff">魚の皮（擬似餌）</text><text x="268" y="182" font-size="22" font-weight="900" fill="#fff">ハリ</text></svg></div>`;
+    ftNote("ハリとオモリは大きく表示。ハリスの揺れはイメージ");
+  },
+  // 底取り：k0 ブレーキをかけてそっと着底 → k1 すぐ1m巻いて底を切る
+  mb_fall(t, d, s, k) {
+    rfBase();
+    const P = PORTRAIT, T = t + 40, sim = ftRun("mb_fall"), mk = sim.marks, L = sim.landed > 0 ? sim.landed : mk.land;
+    const ts = k >= 1 ? mk.land + 0.2 + Math.max(0, t - (s._k1 ?? 0) - 0.3) : Math.min(0.2 + t * 0.85, mk.land + 0.2);
+    const st = sbRig(T, sim, ts, { vis: 2.5 });
+    // 待っているメバル：仕掛けより少し右、根の上 1〜2m
+    [[0, 1.0, 1.2], [1, 1.5, 1.9], [2, 0.8, 2.4]].forEach(([i, x, h]) => mbAt(i, x + 0.05 * Math.sin(T * 0.8 + i), rfY(x) + h + 0.04 * Math.sin(T * 1.1 + i * 2), Math.PI - 0.16, T, { cm: 24 + i }));
+    mbKasago(0, 1.7, FT_LZ - 0.6, T);
+    ftCam(sim, ts, 3.2, { dy: 0.55, ox: 0.5 });
+    const c0 = st.c0;
+    if (ts < mk.brake) ftChip("落とす", "#1f6fd1");
+    else if (ts < L) ftChip("着底の前に、ブレーキをかける", "#3a6ea5");
+    else if (ts < mk.cut) ftChip("そっと置くように、着底", "#2a9d5c");
+    else if (ts < mk.done) ftChip("すぐ 1m ほど巻いて、底を切る", "#e08a2a");
+    else ftChip("底から約1m：根掛かりを防ぐ", "#10345a");
+    if (ts > L && ts < mk.cut + 0.4) label(FTp(st.x, rfY(st.x), FT_LZ), "着底", "ストンと落とすと、メバルが逃げる", fadeIn(ts, L, 0.3), "gold", P ? 0 : -360, P ? 300 : 90);
+    mbMini(st.x, st.y, 0, 1, false);
+    ftCtl(st, 1, c0.free ? (ts < mk.brake ? ["落とす", "#1f6fd1"] : ["ブレーキ", "#3a6ea5"]) : null);
+    if (!P) legend([MB_LEG[0]]);
+    ftNote("ハリとオモリは大きく表示。オモリの動きは簡単な物理モデルの計算。魚の動きはイメージ");
+  },
+  // 根の起伏：k0 船は流される → k1 何度も当たる＝かけあがり → k2 当たらない＝下がっている。底を取り直す（模式図）
+  mb_ne(t, d, s, k) {
+    rfBase();
+    const P = PORTRAIT, T = t + 60, td = 1 + t, [bx, y, vy, md] = MB_DRIFT.at(td);
+    const st = sbRigAt(T, [bx, y], 0, [0.2, vy * 0.6], { bx, vis: 4, sinkVis: 5, brVis: 3, lw: 4, cur: 0.3 });
+    mbSchool(T, { cx: 0.4, sx: 3.6, n: 12, sc: 2.2 });
+    const cx = lerp(-4.5, 4.5, clamp01(t / Math.max(d, 1)));
+    look(FTp(cx, rfY(0) + 0.6, FT_LZ + (P ? 24 : 17)), FTp(cx, rfY(0) - 0.6, FT_LZ), 50);
+    // オモリが通った道（点）
+    ftPend.push(() => {
+      const q = [];
+      for (let i = 0; i <= 90; i++) { const tt = td - 14 * (1 - i / 90); if (tt < 0) continue; const a = MB_DRIFT.at(tt), p = project(FTp(a[0], a[1], FT_LZ)); if (!p.behind) q.push(`${p.x.toFixed(1)},${p.y.toFixed(1)}`); }
+      if (q.length > 2) lines += `<polyline points="${q.join(" ")}" fill="none" stroke="#8ff0ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.1 20" opacity="0.95"/>`;
+    });
+    ftFlush();
+    // 底に当たった瞬間の「トン」
+    MB_DRIFT.ev.forEach(([te, kind]) => {
+      const dt2 = td - te;
+      if ((kind === "hit" || kind === "touch") && dt2 >= 0 && dt2 < 1.0) { const a = MB_DRIFT.at(te), p = project(FTp(a[0], a[1], FT_LZ)); html += `<div style="position:absolute;left:${p.x}px;top:${p.y - 30 - dt2 * 40}px;transform:translate(-50%,-100%);color:#fff;background:${kind === "hit" ? "#c2410c" : "#2a9d5c"};font-weight:900;font-size:${P ? 40 : 36}px;padding:2px 18px;border-radius:14px;opacity:${1 - dt2}">トン</div>`; }
+    });
+    html += `<div style="position:absolute;${P ? "left:40px;top:230px" : "left:70px;top:150px"};background:rgba(6,22,42,.85);border-radius:16px;padding:8px 20px;color:#fff;font-weight:900;font-size:${P ? 34 : 30}px">船が流れる向き <span style="color:#ffd166;font-size:${P ? 44 : 40}px;vertical-align:-4px">→</span></div>`;
+    if (md > 0) ftChip("巻いて、仕掛けを上げる", "#e08a2a");
+    else if (md < 0) ftChip("落として、底を取り直す", "#1f6fd1");
+    else ftChip(k === 0 ? "船は潮で流される → 底の高さが変わる" : "底から約1mをキープ", "#10345a");
+    if (k === 1) html += ftCard(P, `<b style="font-size:34px">オモリが何度も当たる ＝ <span style="color:#c2410c">かけあがり</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">巻いて、仕掛けを上げる</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), [70, 240, 700], [60, 330, 880]);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:34px">当たらなくなった ＝ <span style="color:#1f6fd1">底が下がっている</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">落として、底を取り直す（これが誘いにもなる）</div>`, fadeIn(t - (s._k2 ?? 99), 0.2), [70, 240, 760], [60, 330, 880]);
+    if (!P) legend([["#ffb45e", "糸と仕掛け"], ["#8ff0ff", "オモリが通った道（点）"]]);
+    ftNote("模式図（根の形・船の流れる速さは例）。仕掛けと魚は大きく表示");
+  },
+  // 誘い：k0 ゆっくり上げて、ゆっくり下げる → k1 アタリは上げている時に多い
+  mb_sasoi(t, d, s, k) {
+    rfBase();
+    const P = PORTRAIT, T = t + 90, sim = ftRun("mb_sasoi"), ts = t;
+    const st = sbRig(T, sim, ts, { vis: 2.5 });
+    const c0 = st.c0, up = c0.kind === "up" ? ease((ts - c0.t0) / 1.2) : c0.kind === "down" ? 1 - ease((ts - c0.t0) / 1.0) : 0;
+    // 上げている間、メバルがハリに寄る（イメージ）
+    [[0, 1], [1, 2], [2, 3]].forEach(([i, j]) => mbBiter(i, st.hooks[j], -0.7 + 0.42 * up * (i === 1 ? 1 : 0.7), T, { off: MB_HOME[i], cm: 24 + i }));
+    mbSchool(T, { cx: 3.6, sx: 2.2, n: 6, zc: FT_LZ - 2 });
+    mbKasago(0, 1.7, FT_LZ - 0.6, T);
+    ftCam(sim, ts, 3.3, { dy: 0.75, ox: 0.45 });
+    if (c0.kind === "up") ftChip("ゆっくり上げる", "#2a9d5c");
+    else if (c0.kind === "down") ftChip("ゆっくり下げる", "#3a6ea5");
+    else ftChip("すべての動作を、ゆっくり", "#10345a");
+    if (k >= 1 && c0.kind === "up") label(FTp(st.hooks[2].x, st.hooks[2].y, FT_LZ), "上げている時", "アタリが多いと言われる", fadeIn(ts, c0.t0, 0.3), "gold ans", P ? 0 : -380, P ? 320 : -20);
+    mbMini(st.x, st.y, 0, 1, true);
+    ftCtl(st, 1, c0.kind === "up" ? ["上げる", "#2a9d5c"] : c0.kind === "down" ? ["下げる", "#3a6ea5"] : ["止める", "#10345a"]);
+    mbGraph(sim, ts, 24, 1);
+    if (!P) legend([MB_LEG[0]]);
+    ftNote("ハリとオモリは大きく表示。オモリの動きは簡単な物理モデルの計算。ハリスの揺れと魚の動きはイメージ");
+  },
+  // クイズ：アタリが来たら？ k0 問い → k1 選択肢 → k2 答え（合わせずに、ゆっくり巻く）
+  mb_quiz(t, d, s, k) {
+    rfBase();
+    const P = PORTRAIT, T = t + 120, sim = ftRun("mb_bite"), mk = sim.marks, t2 = t - (s._k2 ?? 99);
+    const ts = k >= 2 ? mk.pre + Math.max(0, t2) : Math.min(t, mk.pre);
+    const hooked = ts >= mk.hook, nib = ts > mk.bite - 0.15 && ts < mk.hook + 0.4;
+    const st = sbRig(T, sim, ts, { vis: 2.5, hooked: ts >= mk.bite ? { 1: true } : null });
+    mbBiter(0, st.hooks[1], ts - mk.bite, T, { off: MB_HOME[0], cm: 26 });
+    mbBiter(1, st.hooks[2], -9, T, { off: MB_HOME[1], cm: 24 });
+    mbBiter(2, st.hooks[3], -9, T, { off: MB_HOME[2], cm: 25 });
+    mbKasago(0, 1.7, FT_LZ - 0.6, T);
+    ftCam(sim, ts, 3.3, { dy: 0.85, ox: 0.45 });
+    if (k <= 1) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 130}px;font-size:${P ? 70 : 62}px">クイズ　アタリが来たら<br><span style="color:#ffd166">どうする？</span></div>`;
+      if (k === 1) {
+        const o = [["A", "すぐに強く合わせる"], ["B", "合わせずに、ゆっくり巻く"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 560}px;top:${P ? 1000 : 400}px;width:${P ? 840 : 800}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      if (nib) ftChip("アタリ！", "#3a6ea5");
+      else if (hooked) ftChip("答え B：合わせずに、ゆっくり巻く", "#e08a2a");
+      else ftChip("ゆっくり上げていると…", "#2a9d5c");
+      if (hooked) label(FTp(st.hooks[1].x, st.hooks[1].y, FT_LZ), "答え B", "向こう合わせで掛かる。そのままゆっくり巻く", fadeIn(ts, mk.hook + 0.3), "gold ans", P ? 0 : 460, P ? 330 : 190);
+      mbMini(st.x, st.y, 0, 1, false);
+      ftCtl(st, 1, hooked ? ["ゆっくり巻く", "#e08a2a"] : null);
+    }
+    ftNote("魚が引く力は仮の値。メバルの動きはイメージ。ハリとオモリは大きく表示");
+    drawBar(s);
+  },
+  // 追い食い：掛かっても、ゆっくり巻き続ける → 2匹目・3匹目
+  mb_oigui(t, d, s, k) {
+    rfBase();
+    const P = PORTRAIT, T = t + 150, sim = ftRun("mb_bite"), mk = sim.marks;
+    const ts = Math.min(mk.hook + 1.2 + t * 1.15, sim.dur - 0.5);
+    const n = 1 + (ts >= mk.b2 ? 1 : 0) + (ts >= mk.b3 ? 1 : 0);
+    const st = sbRig(T, sim, ts, { vis: 2.5, hooked: { 1: true, 2: ts >= mk.b2, 3: ts >= mk.b3 } });
+    mbBiter(0, st.hooks[1], 1, T, { cm: 26 });
+    mbBiter(1, st.hooks[2], ts - mk.b2, T, { off: MB_HOME[1], cm: 24 });
+    mbBiter(2, st.hooks[3], ts - mk.b3, T, { off: MB_HOME[2], cm: 25 });
+    mbBiter(3, st.hooks[0], -9, T, { off: [1.5, 0.2], cm: 23, dz: -0.5 });
+    ftCam(sim, ts, 3.2, { dy: 1.3, ox: 0.4 });
+    const fl = (ts > mk.b2 - 0.1 && ts < mk.b2 + 0.9) || (ts > mk.b3 - 0.1 && ts < mk.b3 + 0.9);
+    ftChip(fl ? `${n}匹目！ 追い食い` : "掛かっても、ゆっくり巻き続ける", fl ? "#c2410c" : "#e08a2a");
+    html += `<div style="position:absolute;${P ? "left:40px;top:760px" : "left:70px;top:600px"};background:rgba(6,22,42,.85);border:4px solid #ffb45e;border-radius:20px;padding:6px 22px;color:#fff;font-weight:900;font-size:${P ? 38 : 34}px">掛かった数 <span style="font-size:${P ? 80 : 72}px;color:#ffd166">${n}</span> 匹</div>`;
+    mbMini(st.x, st.y, 0, 1, false);
+    ftCtl(st, 1, ["ゆっくり巻く", "#e08a2a"]);
+    if (!P) legend([MB_LEG[0]]);
+    ftNote("魚が引く力は仮の値。メバルの動きはイメージ。ハリとオモリは大きく表示");
+    drawBar(s);
+  },
+  // 安全：k0 根掛かり・船長の指示 → k1 防寒とライフジャケット
+  mb_safe(t, d, s, k) {
+    rfBase();
+    const P = PORTRAIT, T = t + 220, sim = ftRun("mb_sasoi");
+    sbRig(T, sim, 1 + (t % 20));
+    ftOthers(T, -22);
+    if (P) look(FTp(-0.5, 5, 25), FTp(-0.5, 1.6, 0), 45);
+    else look(FTp(1.0 + t * 0.06, 4.2, 15.5), FTp(-0.8, 1.7, 0), 45);
+    ftFlush();
+    const bob = ftSurf(0, T) * 0.5;
+    if (k === 0) html += ftCard(P, `<b style="font-size:38px">根掛かりはつきもの。<span style="color:#c2410c">オモリと仕掛けは多めに</span></b><div style="font-size:30px;font-weight:900;margin-top:8px">タナやオモリの重さは、船長の指示に従う</div>`, fadeIn(t, 0.4), [70, 150, 900], [60, 270, 880]);
+    if (k >= 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      label(FTp(0, 1.15 + 1.2 + bob, 1.45), "ライフジャケット", "必ず着ける", a, "gold ans", P ? 0 : 420, P ? -330 : -230);
+      html += ftCard(P, `<b style="font-size:38px">冬から春の釣り。防寒もしっかり</b><div style="font-size:30px;font-weight:900;margin-top:8px">船の上では、ライフジャケットを必ず</div>`, a, [70, 150, 760], [60, 270, 880]);
+    }
+  },
+  mb_sum(t, d, s, k) {
+    rfBase();
+    ftBoat.visible = false;
+    const P = PORTRAIT, T = t + 240;
+    mbSchool(T, { cx: 0.6, sx: 4.4, n: 16, sc: 1.5 });
+    look(FTp(0.4 + Math.sin(t * 0.07) * 0.4, rfY(0) + 2.6, FT_LZ + (P ? 14 : 10.5)), FTp(0.4, rfY(0) + 2.1, FT_LZ - 1), 50);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["タナ", "根の上、底から1〜2m（ときに5m）", "ベタ底にこだわらない", "#2a9d5c"], ["底取り", "そっと着底、すぐ1m巻いて底を切る", "船は流れる。こまめに取り直す", "#1f6fd1"], ["誘い・アタリ", "すべてゆっくり。合わせない", "ゆっくり巻いて、追い食いをねらう", "#e08a2a"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">船のメバル まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 36}px;padding:10px 0;width:${P ? 230 : 250}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 36 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
     });
   },
 });
