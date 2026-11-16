@@ -1,0 +1,471 @@
+{
+ "products": [
+  {
+   "id": 92590014,
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ロングTシャツ ロングスリーブTシャツ",
+   "url": "https://suzuri.jp/Tsuredoki/21387466/long-sleeve-t-shirt/{size}/{color}",
+   "discounts": [],
+   "secret": false,
+   "price": 4180,
+   "published": true,
+   "publishedAt": "2026-11-16T20:39:19.662+09:00",
+   "createdAt": "2026-11-16T19:43:00.635+09:00",
+   "updatedAt": "2026-11-16T20:39:19.695+09:00",
+   "exemplaryAngle": null,
+   "imageUrl": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+   "imageUrls": [
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/back/21387467/1794825777-4000x4600.webp?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/back-wearing/21387467/1794825777-4000x4600.webp?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing-mens/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing-ladies/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/leadtime/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/collar/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/sleeve/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true"
+   ],
+   "angleImageUrls": {
+    "front": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "back": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/back/21387467/1794825777-4000x4600.webp?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "front-wearing": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "back-wearing": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/back-wearing/21387467/1794825777-4000x4600.webp?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "front-wearing-mens": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing-mens/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "front-wearing-ladies": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing-ladies/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "leadtime": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/leadtime/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "collar": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/collar/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "sleeve": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/sleeve/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true"
+   },
+   "pngImageUrls": [
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/back/21387467/1794825777-4000x4600.png?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/back-wearing/21387467/1794825777-4000x4600.png?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing-mens/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/front-wearing-ladies/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/leadtime/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/collar/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}/sleeve/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true"
+   ],
+   "sampleImageUrl": "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/front/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+   "pngSampleImageUrl": "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/front/21387466/1794825775-3000x3600.contain.png?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+   "sampleImageUrls": [
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/front/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/back/21387467/1794825777-4000x4600.webp?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/front-wearing/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/back-wearing/21387467/1794825777-4000x4600.webp?h=0c342331d22d6077c3efeb13389a20e4e522f7d9&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/front-wearing-mens/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/front-wearing-ladies/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/leadtime/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/collar/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/long-sleeve-t-shirt/s/white/sleeve/21387466/1794825775-3000x3600.contain.webp?h=64e9ca8ce40d17c537c560e3b64461c1ccf87727&printed=true"
+   ],
+   "sampleUrl": "https://suzuri.jp/Tsuredoki/21387466/long-sleeve-t-shirt/s/white",
+   "resizeMode": "contain",
+   "remainingQuantity": null,
+   "quantityLimit": null,
+   "isDiscounted": false,
+   "availablePrintPlaces": [
+    "front",
+    "back",
+    "left-sleeve",
+    "right-sleeve"
+   ],
+   "priceWithTax": 4598,
+   "discountedPriceWithTax": 4598,
+   "discountRateLabel": "",
+   "leadTime": 3,
+   "ipLicensed": false,
+   "ogSaleBadge": false,
+   "testableScene": null,
+   "testableGroup": null,
+   "testableStrategy": "none",
+   "item": {
+    "id": 15,
+    "name": "long-sleeve-t-shirt",
+    "angles": [
+     "front",
+     "back",
+     "left-sleeve",
+     "right-sleeve",
+     "front-wearing",
+     "back-wearing",
+     "front-wearing-mens",
+     "front-wearing-ladies",
+     "leadtime",
+     "collar",
+     "sleeve"
+    ],
+    "essentialAngles": [
+     "front",
+     "back"
+    ],
+    "extraAngles": [
+     "left-sleeve",
+     "right-sleeve",
+     "front-wearing",
+     "back-wearing",
+     "front-wearing-mens",
+     "front-wearing-ladies",
+     "leadtime",
+     "collar",
+     "sleeve"
+    ],
+    "humanizeName": "ロングスリーブTシャツ",
+    "availablePrintPlaces": [
+     "front",
+     "back",
+     "left-sleeve",
+     "right-sleeve"
+    ],
+    "isMultiPrintable": true,
+    "defaultPrintPlace": "front",
+    "printPlaceDisplayNames": {
+     "front": "前面",
+     "back": "背面",
+     "outside": "外側",
+     "left-sleeve": "左袖",
+     "right-sleeve": "右袖",
+     "left-foot": "左足",
+     "right-foot": "右足",
+     "left-chest": "左胸",
+     "right-chest": "右胸",
+     "left": "左",
+     "right": "右",
+     "base": "台座",
+     "january": "1月",
+     "february": "2月",
+     "march": "3月",
+     "april": "4月",
+     "may": "5月",
+     "june": "6月",
+     "july": "7月",
+     "august": "8月",
+     "september": "9月",
+     "october": "10月",
+     "november": "11月",
+     "december": "12月",
+     "key-1": "1キー",
+     "key-2": "2キー",
+     "key-3": "3キー",
+     "key-4": "4キー"
+    },
+    "printPlaceForExtraAngles": {
+     "t-shirt": {
+      "mens-front": "front",
+      "womens-front": "front"
+     },
+     "dry-t-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back"
+     },
+     "heavyweight-t-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back",
+      "front-wearing-womens": "front",
+      "back-wearing-womens": "back"
+     },
+     "oversized-t-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back",
+      "front-wearing-ladies": "front",
+      "back-wearing-ladies": "back"
+     },
+     "organic-cotton-t-shirt": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "wash-t-shirt": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "anorak": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "koozie": {
+      "front-holding": "front"
+     },
+     "long-sleeve-t-shirt": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "big-long-sleeve-t-shirt": {
+      "front-wearing-mens": "front",
+      "front-wearing-ladies": "front",
+      "back-wearing-mens": "back",
+      "back-wearing-ladies": "back"
+     },
+     "work-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back",
+      "front-wearing-womens": "front",
+      "back-wearing-womens": "back",
+      "right-sleeve": "right-sleeve",
+      "left-sleeve": "left-sleeve"
+     },
+     "boa-fleece-jacket": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "cushion": {
+      "relax": "front",
+      "daily": "front"
+     },
+     "heavyweight-sweat": {
+      "mens-front": "front",
+      "mens-back": "back",
+      "womens-front": "front",
+      "womens-back": "back"
+     },
+     "heavyweight-hoodie": {
+      "mens-front": "front",
+      "mens-back": "back",
+      "womens-front": "front",
+      "womens-back": "back"
+     },
+     "heavyweight-zip-hoodie": {
+      "mens-front": "front",
+      "mens-back": "back",
+      "womens-front": "front",
+      "womens-back": "back"
+     },
+     "tote-bag": {
+      "handheld": "front",
+      "shoulder": "front"
+     },
+     "lunch-tote-bag": {
+      "handheld": "front"
+     },
+     "desk-calendar": {
+      "front": "front",
+      "january": "january",
+      "february": "february",
+      "march": "march",
+      "april": "april",
+      "may": "may",
+      "june": "june",
+      "july": "july",
+      "august": "august",
+      "september": "september",
+      "october": "october",
+      "november": "november",
+      "december": "december",
+      "imposition_1-6": "front",
+      "imposition_7-12": "front",
+      "turn-over": "front",
+      "box-size": "front",
+      "box-open": "front",
+      "print": "front",
+      "calendar-text": "front",
+      "ring": "front",
+      "up": "front",
+      "diagonal": "front"
+     }
+    },
+    "imageDescriptions": [
+     "",
+     "",
+     "モデル: 167cm , 着用サイズ: M",
+     "モデル: 167cm , 着用サイズ: M",
+     "男性モデル: 179cm",
+     "女性モデル: 163cm",
+     "",
+     "",
+     "袖口にはしっかりとしたリブがあります"
+    ],
+    "displayOrder": 116,
+    "productImageUrlTemplates": {
+     "front": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}[&leftSleeve={filePath}][&rightSleeve={filePath}]",
+     "back": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "left-sleeve": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "right-sleeve": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "front-wearing": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}[&leftSleeve={filePath}][&rightSleeve={filePath}]",
+     "back-wearing": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}[&leftSleeve={filePath}][&rightSleeve={filePath}]",
+     "front-wearing-mens": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "front-wearing-ladies": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "leadtime": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "collar": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "sleeve": "https://lens.suzuri.jp/v3/{width}x{height}/long-sleeve-t-shirt/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}"
+    },
+    "iconUrls": {
+     "png": "https://dijsur42hqnz1.cloudfront.net/assets/items/long-sleeve-t-shirt-241b9319c0995062c7f87446b75b3a13f2a310be93e1eb40fa33c66d51025f9f.png",
+     "webp": "https://dijsur42hqnz1.cloudfront.net/assets/items/long-sleeve-t-shirt-f90c419d1fe7e3c755f0cbad10c6824633b69d1e0ad572852d4441a07035ccd6.webp"
+    },
+    "wearingImageUrls": {
+     "png": "https://dijsur42hqnz1.cloudfront.net/assets/wearing_by_item/long-sleeve-t-shirt-2d5e53288bcc84bad50d997712ee7d9efc63fcbfbcdd4345d97fbeada9cfab1e.png",
+     "webp": "https://dijsur42hqnz1.cloudfront.net/assets/wearing_by_item/long-sleeve-t-shirt-e28541f48f0af49cfda89f565fc2555ea97c9c1bab50c9b4bb8e5a9d10d1cf4d.webp"
+    },
+    "isEmbroidery": false,
+    "category": {
+     "name": "t-shirts",
+     "displayName": "Tシャツ（メンズ・レディース）"
+    },
+    "minPriceWithTax": 3311,
+    "colorsCount": 24
+   },
+   "material": {
+    "id": 21387466,
+    "title": "ANGLER'S CLUB サワラ（モノクロ）ロングTシャツ",
+    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+    "price": 470,
+    "priceWithTax": 517,
+    "violation": false,
+    "published": true,
+    "publishedAt": "2026-11-16T19:43:00.844+09:00",
+    "uploadedAt": "2026-11-16T19:42:55.842+09:00",
+    "dominantRgb": "#202020",
+    "originalWidth": 3000,
+    "originalHeight": 3600,
+    "textureUrl": "https://dzdih2euft5nz.cloudfront.net/materials/textures/21387466/1794825775-3000x3600",
+    "texturePath": "materials/textures/21387466/1794825775-3000x3600",
+    "thumbnailUrl": "https://lens.suzuri.jp/v3/765x765/21387466/1794825775-3000x3600.png?h=9769a68808ee2b415689a004e55891fb3adae67d",
+    "lensVersion": 3,
+    "isNft": false,
+    "user": {
+     "id": 2876943,
+     "name": "Tsuredoki",
+     "secret": false,
+     "official": false,
+     "displayName": "ツレドキ TSUREDOKI",
+     "avatarUrl": "https://dzdih2euft5nz.cloudfront.net/users/avatars/2876943?1794141610",
+     "createdAt": "2026-11-08T17:44:41.455+09:00",
+     "youtubeGroupId": null
+    },
+    "closedSelling": null
+   },
+   "sampleItemVariant": {
+    "id": 623,
+    "price": 2310,
+    "exemplary": true,
+    "enabled": true,
+    "isLightColor": true,
+    "isDarkColor": false,
+    "priceWithTax": 2541,
+    "color": {
+     "id": 1,
+     "name": "white",
+     "rgb": "#ffffff",
+     "displayName": "ホワイト"
+    },
+    "size": {
+     "id": 1,
+     "name": "s",
+     "displayName": "S"
+    },
+    "printPlaces": [
+     {
+      "id": 408,
+      "place": "front",
+      "price": 700,
+      "itemVariantId": 623
+     },
+     {
+      "id": 1406,
+      "place": "back",
+      "price": 700,
+      "itemVariantId": 623
+     },
+     {
+      "id": 1407,
+      "place": "left-sleeve",
+      "price": 500,
+      "itemVariantId": 623
+     },
+     {
+      "id": 1408,
+      "place": "right-sleeve",
+      "price": 500,
+      "itemVariantId": 623
+     }
+    ]
+   },
+   "prints": [
+    {
+     "id": 99792181,
+     "place": "front",
+     "primary": true,
+     "scale": null,
+     "offsetX": null,
+     "offsetY": null,
+     "resizeMode": "contain",
+     "placeDisplayName": "前面",
+     "hasEmbroidery": false,
+     "material": {
+      "id": 21387466,
+      "title": "ANGLER'S CLUB サワラ（モノクロ）ロングTシャツ",
+      "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+      "price": 470,
+      "priceWithTax": 517,
+      "violation": false,
+      "published": true,
+      "publishedAt": "2026-11-16T19:43:00.844+09:00",
+      "uploadedAt": "2026-11-16T19:42:55.842+09:00",
+      "dominantRgb": "#202020",
+      "originalWidth": 3000,
+      "originalHeight": 3600,
+      "textureUrl": "https://dzdih2euft5nz.cloudfront.net/materials/textures/21387466/1794825775-3000x3600",
+      "texturePath": "materials/textures/21387466/1794825775-3000x3600",
+      "thumbnailUrl": "https://lens.suzuri.jp/v3/765x765/21387466/1794825775-3000x3600.png?h=9769a68808ee2b415689a004e55891fb3adae67d",
+      "lensVersion": 3,
+      "isNft": false,
+      "user": {
+       "id": 2876943,
+       "name": "Tsuredoki",
+       "secret": false,
+       "official": false,
+       "displayName": "ツレドキ TSUREDOKI",
+       "avatarUrl": "https://dzdih2euft5nz.cloudfront.net/users/avatars/2876943?1794141610",
+       "createdAt": "2026-11-08T17:44:41.455+09:00",
+       "youtubeGroupId": null
+      },
+      "closedSelling": null
+     }
+    },
+    {
+     "id": 99792182,
+     "place": "back",
+     "primary": false,
+     "scale": null,
+     "offsetX": null,
+     "offsetY": null,
+     "resizeMode": "none",
+     "placeDisplayName": "背面",
+     "hasEmbroidery": false,
+     "material": {
+      "id": 21387467,
+      "title": null,
+      "description": null,
+      "price": 0,
+      "priceWithTax": 0,
+      "violation": false,
+      "published": false,
+      "publishedAt": null,
+      "uploadedAt": "2026-11-16T19:42:57.407+09:00",
+      "dominantRgb": "#727272",
+      "originalWidth": 4000,
+      "originalHeight": 4600,
+      "textureUrl": "https://dzdih2euft5nz.cloudfront.net/materials/textures/21387467/1794825777-4000x4600",
+      "texturePath": "materials/textures/21387467/1794825777-4000x4600",
+      "thumbnailUrl": "https://lens.suzuri.jp/v3/765x765/21387467/1794825777-4000x4600.png?h=0c342331d22d6077c3efeb13389a20e4e522f7d9",
+      "lensVersion": 3,
+      "isNft": false,
+      "user": {
+       "id": 2876943,
+       "name": "Tsuredoki",
+       "secret": false,
+       "official": false,
+       "displayName": "ツレドキ TSUREDOKI",
+       "avatarUrl": "https://dzdih2euft5nz.cloudfront.net/users/avatars/2876943?1794141610",
+       "createdAt": "2026-11-08T17:44:41.455+09:00",
+       "youtubeGroupId": null
+      },
+      "closedSelling": null
+     }
+    }
+   ]
+  }
+ ],
+ "meta": {
+  "hasNext": false
+ }
+}
