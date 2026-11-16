@@ -18,7 +18,15 @@
    "old_material_ids": [
     21384466
    ],
-   "old_material_id": 21387767
+   "old_material_id": 21387767,
+   "material_id": 21388156,
+   "created_prices": [
+    [
+     "toms-club-cap-for-shop",
+     1817,
+     null
+    ]
+   ]
   }
  ]
 }
