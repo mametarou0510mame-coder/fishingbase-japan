@@ -66,7 +66,7 @@
 7 の結果を待つ：cg-blender-open（mode=full, samples=64）実行 ID 43836340256（18:10 ごろ開始、約1時間半）。
 - 成功したら：long-media の cg/open/cg-fune-mebaru-check-1.jpg・-4.jpg・-8.jpg と cg/open/cg-fune-mebaru-summary.txt（すきま 0.2m 以上）を見る。
 - 一部の分割だけ失敗したら（Blender の取得 403 など）：その実行を「失敗したジョブだけ再実行」する。full が直らなければ、元の three.js の冒頭のまま出してよい（long-media の cg-fune-mebaru.mp4.part-00 は cg-compress ずみで投稿できる状態）。
-- そのあと 9（ORDER に入れる。**投稿日はオーナーの返事を待つ**）→ 10（ショート）→ 11。
+- **投稿日は 11/17（オーナー 2026-11-16「メバルは明日で」）**。9：yt_long.py の ORDER で cg-surf のすぐ後ろに cg-fune-mebaru を入れる（サーフが 11/16 に出ていれば、11/17 18:17 の枠でメバルが出る）→ 10：長尺が出たら cg-short.yml（slugs=short-cg-fune-mebaru, publish=true）→ 固定コメントの文面をオーナーに渡す → 11。
 
 ### 実行の記録（実行 ID など）
 - 2026-11-16 17:31 cg-blender-open（test）43831943344（失敗：頂点の取り方のエラーと Blender の取得 403。直した）→ 17:37 43832757090（成功）
