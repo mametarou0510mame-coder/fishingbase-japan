@@ -789,9 +789,10 @@ def scene_rank(img, t, dur, s, meta):
         if b <= 0:
             continue
         y = 210 + i * rh
-        top = i == 0
-        d.ellipse([160, y + rh / 2 - 26, 212, y + rh / 2 + 26], fill=_a(GOLD if top else NAVY, b))
-        d.text((186, y + rh / 2), str(i + 1), font=F(FONT_BLACK, 30), fill=_a(DARK if top else WHITE, b), anchor="mm")
+        top = v == mx if s.get("plain") else i == 0  # plain：月・年などの並び（順位の丸を出さず、いちばん大きい棒を金色に）
+        if not s.get("plain"):
+            d.ellipse([160, y + rh / 2 - 26, 212, y + rh / 2 + 26], fill=_a(GOLD if top else NAVY, b))
+            d.text((186, y + rh / 2), str(i + 1), font=F(FONT_BLACK, 30), fill=_a(DARK if top else WHITE, b), anchor="mm")
         if s.get("sprites"):
             im = fish_img(it[3] if len(it) > 3 else lab, 110)
             if im is not None:
