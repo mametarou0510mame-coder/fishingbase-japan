@@ -77,6 +77,3 @@
 - 確認ずみ：`render_cg.py cg-fune-mebaru --clear` 最小 0.75m、`check_scene.py mebaru` 最小 0.59m、長さ 約2分55秒
 
 ---
-
-## 気づいたこと（2026-11-16）
-- **サーフ（cg-surf）はできあがっているが、未投稿。** 11/13 の定期タスクが利用上限で止まる前に、台本・場面（sf_*）・Blender の冒頭（full まで成功）・固定コメントの文面まで作ってある。long-media に cg-surf.mp4.part-00・cg-surf.jpg がある。残りは「ORDER に入れる → 投稿 → ショート（short-cg-surf）→ 企画リストを制作済みへ」。オーナーに投稿してよいか確認中。
