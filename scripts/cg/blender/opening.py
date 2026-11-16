@@ -15,6 +15,7 @@ def arg(name, n=1, default=None):
     return default
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
 SCENE = arg("--scene", default="tairaba")
 spec = importlib.util.spec_from_file_location("scene", os.path.join(HERE, "scenes", SCENE + ".py"))
 M = importlib.util.module_from_spec(spec)
@@ -46,6 +47,7 @@ def sstep(a, b, x):
 
 snout, heading, swim, lure_now, cam_target = M.snout, M.heading, M.swim, M.lure_now, M.cam_target
 T_BITE = M.T_BITE
+ENV = getattr(M, "ENV", "sand")   # "reef"：根（岩礁）と海藻を足す（parts.py）
 
 
 # ---------------- シーン ----------------
@@ -272,6 +274,13 @@ for i, (x, y, s) in enumerate([(3.5, 7.0, 1.1), (6.0, 9.5, 1.6), (5.0, 4.5, 0.7)
     d2.strength = 0.35 * s
     r.data.materials.append(rockm)
 
+# 根（岩礁）と海藻（使い回せる部品。場面に ENV = "reef" と reef_h(x, y) があれば作る）
+kelp = None
+if ENV == "reef":
+    import parts
+    parts.build_reef(M.reef_h, mat)
+    kelp = parts.Kelp(parts.kelp_roots(M.reef_h, keep_out=getattr(M, "kelp_keep_out", None)), mat)
+
 # マリンスノー（漂う粒）：点に小さな球を並べる
 rng = np.random.default_rng(7)
 pts = np.column_stack([rng.uniform(-3, 3, 2600), rng.uniform(-2.5, 3.5, 2600), rng.uniform(0.05, 7.5, 2600)])
@@ -462,6 +471,12 @@ hookm = mat("hook", b_hook)
 hooks = [make_curve(f"hook{i}", 4, 0.0007, hookm) for i in range(2 if M.LURE == "tairaba" else 0)]
 
 
+sabiki = None
+if M.LURE == "sabiki":
+    import parts
+    sabiki = parts.Sabiki(M.N_HOOK, mat, make_curve, make_ribbon, hookm, line)
+
+
 def place_lure(t):
     L = lure_now(t)
     hooked = t >= T_BITE
@@ -646,6 +661,8 @@ def place_cam(t):
     k = min(1.0 + 0.55 * sep, getattr(M, "CAM_KMAX", 2.4)) * CAM_K
     P = C + Vector(M.CAM_OFF) * k
     P.z = max(P.z, 0.14)
+    if ENV == "reef":
+        P.z = max(P.z, M.reef_h(P.x, P.y) + 0.3)   # カメラが岩にもぐらないように
     cam.location = P
     cam.rotation_euler = (C - P).to_track_quat("-Z", "Y").to_euler()
     cam_d.dof.focus_distance = (M.focus(t) - P).length
@@ -655,8 +672,12 @@ def place_all(t):
     GOBO_W.default_value = 0.55 * t
     snow.location = (0.004 * t, 0.002 * t, -0.012 * t)
     place_fish(t)
+    if kelp:
+        kelp.update(t)
     if M.LURE == "tairaba":
         place_lure(t)
+    elif M.LURE == "sabiki":
+        sabiki.update(*M.rig(t), t)
     else:
         place_jig(t)
     place_cam(t)
@@ -665,6 +686,15 @@ def place_all(t):
 # ---------------- 書き出し ----------------
 def clearance():
     bpy.context.view_layer.update()   # 位置を入れた直後は matrix_world が古いので、先に更新する
+    if ENV == "reef":
+        # 根のある場面：魚の頂点（4つおき）ごとに、その真下の根の高さとのすきまを見る
+        g = 99.0
+        for o in [fish] + mates:
+            mw = o.matrix_world
+            for v in o.data.vertices[::4]:
+                w = mw @ v.co
+                g = min(g, w.z - M.reef_h(w.x, w.y))
+        return g
     zs = [min((o.matrix_world @ v.co).z for v in o.data.vertices) for o in [fish] + mates]
     return min(zs)
 

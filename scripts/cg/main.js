@@ -8982,7 +8982,7 @@ Object.assign(SHOTS, {
     mbBiter(1, st.hooks[2], 1, T + 0.4, { cm: 25 });
     mbBiter(2, st.hooks[3], -0.25, T, { off: MB_HOME[2], cm: 26 });
     mbSchool(T, { cx: 3, sx: 3, n: 8 });
-    look(FTp(st.x - 0.75, st.y + 1.25, FT_LZ + 2.3), FTp(st.x - 0.55, st.y + 1.2, FT_LZ), 50);
+    look(FTp(st.x - 0.6, st.y + 1.5, FT_LZ + 1.75), FTp(st.x - 0.45, st.y + 1.45, FT_LZ), 50);
     ftFlush();
     if (s.clean) return;
     html += ftThumbText(s, 1000);
@@ -8997,7 +8997,7 @@ Object.assign(SHOTS, {
     mbKasago(0, 1.6, FT_LZ - 0.7, T);
     const k = ease((t - 0.9) / 4.4), [sx, sy0] = ftSmooth(sim, ts), sy = sy0 + 1.2;
     const cx = lerp(-1, sx + 0.5, k), cy = lerp(1.3, sy, k);
-    look(FTp(cx, cy + lerp(1.6, 0.25, k), FT_LZ + lerp(P ? 31 : 24, P ? 4.6 : 3.6, k)), FTp(cx, cy, FT_LZ), 50);
+    look(FTp(cx, cy + lerp(1.6, 0.25, k), FT_LZ + lerp(P ? 31 : 24, P ? 3.5 : 3.6, k)), FTp(cx, cy, FT_LZ), 50);
     ftFlush();
     const a = P ? 1 : clamp01(t / 0.25);
     html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 400}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
@@ -9140,7 +9140,7 @@ Object.assign(SHOTS, {
     mbBiter(1, st.hooks[2], -9, T, { off: MB_HOME[1], cm: 24 });
     mbBiter(2, st.hooks[3], -9, T, { off: MB_HOME[2], cm: 25 });
     mbKasago(0, 1.7, FT_LZ - 0.6, T);
-    ftCam(sim, ts, 3.3, { dy: 0.85, ox: 0.45 });
+    ftCam(sim, ts, P ? 2.5 : 3.3, { dy: P ? 1.3 : 0.85, ox: P ? 0.25 : 0.45 });
     if (k <= 1) {
       html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.72),rgba(2,14,28,0))"></div>`;
       html += `<div class="big" style="top:${P ? 260 : 130}px;font-size:${P ? 70 : 62}px">クイズ　アタリが来たら<br><span style="color:#ffd166">どうする？</span></div>`;
@@ -9170,7 +9170,7 @@ Object.assign(SHOTS, {
     mbBiter(1, st.hooks[2], ts - mk.b2, T, { off: MB_HOME[1], cm: 24 });
     mbBiter(2, st.hooks[3], ts - mk.b3, T, { off: MB_HOME[2], cm: 25 });
     mbBiter(3, st.hooks[0], -9, T, { off: [1.5, 0.2], cm: 23, dz: -0.5 });
-    ftCam(sim, ts, 3.2, { dy: 1.3, ox: 0.4 });
+    ftCam(sim, ts, P ? 2.6 : 3.2, { dy: P ? 1.5 : 1.3, ox: P ? 0.2 : 0.4 });
     const fl = (ts > mk.b2 - 0.1 && ts < mk.b2 + 0.9) || (ts > mk.b3 - 0.1 && ts < mk.b3 + 0.9);
     ftChip(fl ? `${n}匹目！ 追い食い` : "掛かっても、ゆっくり巻き続ける", fl ? "#c2410c" : "#e08a2a");
     html += `<div style="position:absolute;${P ? "left:40px;top:760px" : "left:70px;top:600px"};background:rgba(6,22,42,.85);border:4px solid #ffb45e;border-radius:20px;padding:6px 22px;color:#fff;font-weight:900;font-size:${P ? 38 : 34}px">掛かった数 <span style="font-size:${P ? 80 : 72}px;color:#ffd166">${n}</span> 匹</div>`;

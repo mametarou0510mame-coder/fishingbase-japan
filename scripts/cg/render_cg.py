@@ -134,6 +134,26 @@ def main():
             b.close()
         return
 
+    if "--clear" in args:  # 確認用：魚と海底（根）のすきま window.__ftClear を 0.4 秒おきに読み、場面ごとの最小を出す（0.3m 以上あること）
+        with sync_playwright() as pw:
+            b, p = open_page(pw)
+            worst = {}
+            tg = 0.0
+            while tg < total:
+                fa = frame_args(timeline, total, tg)
+                p.evaluate("o => { window.__ftClear = 99; window.frame(o); }", fa)
+                v = p.evaluate("window.__ftClear")
+                if v is not None and v < 90:
+                    k = fa["shot"]
+                    if k not in worst or v < worst[k][0]:
+                        worst[k] = (v, tg)
+                tg += 0.4
+            b.close()
+        for k, (v, tg) in worst.items():
+            print(f"{k:14s} min {v:.3f} m  at {tg:.1f}s {'OK' if v >= 0.299 else 'NG'}")
+        print("min clearance", min((v for v, _ in worst.values()), default=99))
+        return
+
     if "--stills" in args:
         os.makedirs(f"{d}/stills", exist_ok=True)
         with sync_playwright() as pw:
