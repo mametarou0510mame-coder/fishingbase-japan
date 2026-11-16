@@ -68,8 +68,7 @@ files = {}
 for var in ("light", "dark"):
     tb = textblock(var)
     c = canvas(3000, 3600)
-    t = fit(tb, 1000)
-    c.alpha_composite(t, ((3000 - t.width) // 2, 420))  # 前の文字は胸の真ん中
+    c.alpha_composite(fit(tb, 820), (1880, 420))  # 前の文字は左胸のワンポイント（オーナー：そのままで良い）
     files[("front-text", var)] = save(c, f"front-text-{var}")
 for sp, ja in FISH:
     for mono in (True, False):
