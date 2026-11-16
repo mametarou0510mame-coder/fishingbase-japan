@@ -1,0 +1,24 @@
+{
+ "note": "キャップ印刷テスト 1400x700",
+ "materials": [
+  {
+   "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）キャップ（テスト）",
+   "texture": "content/goods/td-club/print/aori-color-dark-cap.png",
+   "price": 219,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "aori|color|dark|cap",
+   "products": [
+    {
+     "itemId": 1378,
+     "exemplaryItemVariantId": 7773,
+     "published": false,
+     "resizeMode": "contain"
+    }
+   ],
+   "old_material_ids": [
+    21384466
+   ],
+   "old_material_id": 21387767
+  }
+ ]
+}
