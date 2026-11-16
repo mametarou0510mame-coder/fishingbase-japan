@@ -39,7 +39,9 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "long-tsureta-jikan", "long-shime",
          "cg-aori",
          "cg-fune-tachiuo",
-         "cg-fune-tairaba", "cg-fune-aomono"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
+         "cg-fune-tairaba", "cg-fune-aomono",
+         # 第8弾（2026-11-16。書き出し済み。冬の堤防は11月下旬〜12月上旬に出す）
+         "long-fuyu-teibou", "long-hajimete-ichinichi", "long-shun-quiz"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
 REC = "data/sns/long-posts.json"
 PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17）
 
