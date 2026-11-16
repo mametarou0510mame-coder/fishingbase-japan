@@ -1,0 +1,360 @@
+{
+ "products": [
+  {
+   "id": 92592606,
+   "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）キャップ（テスト） クラブキャップ",
+   "url": "https://suzuri.jp/Tsuredoki/21388156/toms-club-cap-for-shop/{size}/{color}",
+   "discounts": [],
+   "secret": false,
+   "price": 1817,
+   "published": true,
+   "publishedAt": "2026-11-16T21:16:44.051+09:00",
+   "createdAt": "2026-11-16T21:02:56.268+09:00",
+   "updatedAt": "2026-11-16T21:16:44.115+09:00",
+   "exemplaryAngle": null,
+   "imageUrl": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}[/angle]/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+   "imageUrls": [
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/front/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/closeup/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/detail/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/reverse/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true"
+   ],
+   "angleImageUrls": {
+    "front": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/front/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "closeup": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/closeup/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "detail": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/detail/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "reverse": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/reverse/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true"
+   },
+   "pngImageUrls": [
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/front/21388156/1794830575-1400x700.contain.png?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/closeup/21388156/1794830575-1400x700.contain.png?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/detail/21388156/1794830575-1400x700.contain.png?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}/reverse/21388156/1794830575-1400x700.contain.png?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true"
+   ],
+   "sampleImageUrl": "https://lens.suzuri.jp/v3/500x500/toms-club-cap-for-shop/f/navy/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+   "pngSampleImageUrl": "https://lens.suzuri.jp/v3/500x500/toms-club-cap-for-shop/f/navy/21388156/1794830575-1400x700.contain.png?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+   "sampleImageUrls": [
+    "https://lens.suzuri.jp/v3/500x500/toms-club-cap-for-shop/f/navy/front/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/toms-club-cap-for-shop/f/navy/closeup/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/toms-club-cap-for-shop/f/navy/detail/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true",
+    "https://lens.suzuri.jp/v3/500x500/toms-club-cap-for-shop/f/navy/reverse/21388156/1794830575-1400x700.contain.webp?h=5b5e46841c9df69814ec22fb63e20461049a84aa&printed=true"
+   ],
+   "sampleUrl": "https://suzuri.jp/Tsuredoki/21388156/toms-club-cap-for-shop/f/navy",
+   "resizeMode": "contain",
+   "remainingQuantity": null,
+   "quantityLimit": null,
+   "isDiscounted": false,
+   "availablePrintPlaces": [
+    "front"
+   ],
+   "priceWithTax": 1998,
+   "discountedPriceWithTax": 1998,
+   "discountRateLabel": "",
+   "leadTime": 4,
+   "ipLicensed": false,
+   "ogSaleBadge": false,
+   "testableScene": null,
+   "testableGroup": null,
+   "testableStrategy": "none",
+   "item": {
+    "id": 1378,
+    "name": "toms-club-cap-for-shop",
+    "angles": [
+     "front",
+     "closeup",
+     "detail",
+     "reverse"
+    ],
+    "essentialAngles": [
+     "front"
+    ],
+    "extraAngles": [
+     "closeup",
+     "detail",
+     "reverse"
+    ],
+    "humanizeName": "クラブキャップ",
+    "availablePrintPlaces": [
+     "front"
+    ],
+    "isMultiPrintable": false,
+    "defaultPrintPlace": "front",
+    "printPlaceDisplayNames": {
+     "front": "前面",
+     "back": "背面",
+     "outside": "外側",
+     "left-sleeve": "左袖",
+     "right-sleeve": "右袖",
+     "left-foot": "左足",
+     "right-foot": "右足",
+     "left-chest": "左胸",
+     "right-chest": "右胸",
+     "left": "左",
+     "right": "右",
+     "base": "台座",
+     "january": "1月",
+     "february": "2月",
+     "march": "3月",
+     "april": "4月",
+     "may": "5月",
+     "june": "6月",
+     "july": "7月",
+     "august": "8月",
+     "september": "9月",
+     "october": "10月",
+     "november": "11月",
+     "december": "12月",
+     "key-1": "1キー",
+     "key-2": "2キー",
+     "key-3": "3キー",
+     "key-4": "4キー"
+    },
+    "printPlaceForExtraAngles": {
+     "t-shirt": {
+      "mens-front": "front",
+      "womens-front": "front"
+     },
+     "dry-t-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back"
+     },
+     "heavyweight-t-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back",
+      "front-wearing-womens": "front",
+      "back-wearing-womens": "back"
+     },
+     "oversized-t-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back",
+      "front-wearing-ladies": "front",
+      "back-wearing-ladies": "back"
+     },
+     "organic-cotton-t-shirt": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "wash-t-shirt": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "anorak": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "koozie": {
+      "front-holding": "front"
+     },
+     "long-sleeve-t-shirt": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "big-long-sleeve-t-shirt": {
+      "front-wearing-mens": "front",
+      "front-wearing-ladies": "front",
+      "back-wearing-mens": "back",
+      "back-wearing-ladies": "back"
+     },
+     "work-shirt": {
+      "front-wearing-mens": "front",
+      "back-wearing-mens": "back",
+      "front-wearing-womens": "front",
+      "back-wearing-womens": "back",
+      "right-sleeve": "right-sleeve",
+      "left-sleeve": "left-sleeve"
+     },
+     "boa-fleece-jacket": {
+      "front-wearing": "front",
+      "back-wearing": "back"
+     },
+     "cushion": {
+      "relax": "front",
+      "daily": "front"
+     },
+     "heavyweight-sweat": {
+      "mens-front": "front",
+      "mens-back": "back",
+      "womens-front": "front",
+      "womens-back": "back"
+     },
+     "heavyweight-hoodie": {
+      "mens-front": "front",
+      "mens-back": "back",
+      "womens-front": "front",
+      "womens-back": "back"
+     },
+     "heavyweight-zip-hoodie": {
+      "mens-front": "front",
+      "mens-back": "back",
+      "womens-front": "front",
+      "womens-back": "back"
+     },
+     "tote-bag": {
+      "handheld": "front",
+      "shoulder": "front"
+     },
+     "lunch-tote-bag": {
+      "handheld": "front"
+     },
+     "desk-calendar": {
+      "front": "front",
+      "january": "january",
+      "february": "february",
+      "march": "march",
+      "april": "april",
+      "may": "may",
+      "june": "june",
+      "july": "july",
+      "august": "august",
+      "september": "september",
+      "october": "october",
+      "november": "november",
+      "december": "december",
+      "imposition_1-6": "front",
+      "imposition_7-12": "front",
+      "turn-over": "front",
+      "box-size": "front",
+      "box-open": "front",
+      "print": "front",
+      "calendar-text": "front",
+      "ring": "front",
+      "up": "front",
+      "diagonal": "front"
+     }
+    },
+    "imageDescriptions": [
+     "",
+     "",
+     "",
+     ""
+    ],
+    "displayOrder": 10,
+    "productImageUrlTemplates": {
+     "front": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "closeup": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "detail": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}",
+     "reverse": "https://lens.suzuri.jp/v3/{width}x{height}/toms-club-cap-for-shop/{size}/{color}[/angle]/{filePath}[.{adjustment}].{ext}?h={hash}&printed={printed}"
+    },
+    "iconUrls": {
+     "png": "https://dijsur42hqnz1.cloudfront.net/assets/items/toms-club-cap-for-shop-bccf8bbae0d41c37a34af4b3712f8cffff8fd192989f0a8a97879a3a3569939a.png",
+     "webp": "https://dijsur42hqnz1.cloudfront.net/assets/items/toms-club-cap-for-shop-0b4edba00ee9ff2a8058dd7afbf7da76db15c812d3a284a4477e139ca8e4958e.webp"
+    },
+    "wearingImageUrls": {
+     "png": "https://dijsur42hqnz1.cloudfront.net/assets/wearing_by_item/toms-club-cap-for-shop-bccf8bbae0d41c37a34af4b3712f8cffff8fd192989f0a8a97879a3a3569939a.png",
+     "webp": "https://dijsur42hqnz1.cloudfront.net/assets/wearing_by_item/toms-club-cap-for-shop-0b4edba00ee9ff2a8058dd7afbf7da76db15c812d3a284a4477e139ca8e4958e.webp"
+    },
+    "isEmbroidery": false,
+    "category": {
+     "name": "fashion",
+     "displayName": "ファッション"
+    },
+    "minPriceWithTax": 1757,
+    "colorsCount": 5
+   },
+   "material": {
+    "id": 21388156,
+    "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）キャップ（テスト）",
+    "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+    "price": 219,
+    "priceWithTax": 240,
+    "violation": false,
+    "published": true,
+    "publishedAt": "2026-11-16T21:02:56.309+09:00",
+    "uploadedAt": "2026-11-16T21:02:55.895+09:00",
+    "dominantRgb": "#e2e1dd",
+    "originalWidth": 1400,
+    "originalHeight": 700,
+    "textureUrl": "https://dzdih2euft5nz.cloudfront.net/materials/textures/21388156/1794830575-1400x700",
+    "texturePath": "materials/textures/21388156/1794830575-1400x700",
+    "thumbnailUrl": "https://lens.suzuri.jp/v3/765x765/21388156/1794830575-1400x700.png?h=27059f00e93bd3a4bfa5be1a367a7b043ba9a73b",
+    "lensVersion": 3,
+    "isNft": false,
+    "user": {
+     "id": 2876943,
+     "name": "Tsuredoki",
+     "secret": false,
+     "official": false,
+     "displayName": "ツレドキ TSUREDOKI",
+     "avatarUrl": "https://dzdih2euft5nz.cloudfront.net/users/avatars/2876943?1794141610",
+     "createdAt": "2026-11-08T17:44:41.455+09:00",
+     "youtubeGroupId": null
+    },
+    "closedSelling": null
+   },
+   "sampleItemVariant": {
+    "id": 7773,
+    "price": 1598,
+    "exemplary": false,
+    "enabled": true,
+    "isLightColor": false,
+    "isDarkColor": false,
+    "priceWithTax": 1757,
+    "color": {
+     "id": 3,
+     "name": "navy",
+     "rgb": "#222354",
+     "displayName": "ネイビー"
+    },
+    "size": {
+     "id": 520,
+     "name": "f",
+     "displayName": "フリー"
+    },
+    "printPlaces": [
+     {
+      "id": 9513,
+      "place": "front",
+      "price": 0,
+      "itemVariantId": 7773
+     }
+    ]
+   },
+   "prints": [
+    {
+     "id": 99794973,
+     "place": "front",
+     "primary": true,
+     "scale": null,
+     "offsetX": null,
+     "offsetY": null,
+     "resizeMode": "contain",
+     "placeDisplayName": "前面",
+     "hasEmbroidery": false,
+     "material": {
+      "id": 21388156,
+      "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）キャップ（テスト）",
+      "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+      "price": 219,
+      "priceWithTax": 240,
+      "violation": false,
+      "published": true,
+      "publishedAt": "2026-11-16T21:02:56.309+09:00",
+      "uploadedAt": "2026-11-16T21:02:55.895+09:00",
+      "dominantRgb": "#e2e1dd",
+      "originalWidth": 1400,
+      "originalHeight": 700,
+      "textureUrl": "https://dzdih2euft5nz.cloudfront.net/materials/textures/21388156/1794830575-1400x700",
+      "texturePath": "materials/textures/21388156/1794830575-1400x700",
+      "thumbnailUrl": "https://lens.suzuri.jp/v3/765x765/21388156/1794830575-1400x700.png?h=27059f00e93bd3a4bfa5be1a367a7b043ba9a73b",
+      "lensVersion": 3,
+      "isNft": false,
+      "user": {
+       "id": 2876943,
+       "name": "Tsuredoki",
+       "secret": false,
+       "official": false,
+       "displayName": "ツレドキ TSUREDOKI",
+       "avatarUrl": "https://dzdih2euft5nz.cloudfront.net/users/avatars/2876943?1794141610",
+       "createdAt": "2026-11-08T17:44:41.455+09:00",
+       "youtubeGroupId": null
+      },
+      "closedSelling": null
+     }
+    }
+   ]
+  }
+ ],
+ "meta": {
+  "hasNext": false
+ }
+}
