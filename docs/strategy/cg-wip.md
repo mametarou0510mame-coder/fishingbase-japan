@@ -54,19 +54,21 @@
 - [x] 2. 台本 content/cg/cg-fune-mebaru.json（blender_open・thumb_shot 入り）と short-cg-fune-mebaru.json
 - [x] 3. narrate.py --silent → render_cg.py --stills / --thumb / --portrait --stills を全部見て直す。魚のすきま（window.__ftClear 0.3m 以上）
 - [x] 4. Blender：opening.py に ENV="reef"（根・海藻）と LURE="sabiki" を足す、scenes/mebaru.py。bpy なしで式だけ確かめる
-- [ ] 5. push → cg-blender-open.yml を mode=test（video_run は何でもよい）→ long-media の cg/open/test/cg-fune-mebaru/ の絵を見て直す
+- [x] 5.（1回目は確認ずみ。見た目を直して2回目を実行中）push → cg-blender-open.yml を mode=test（video_run は何でもよい）→ long-media の cg/open/test/cg-fune-mebaru/ の絵を見て直す
 - [ ] 6. cg-video.yml（slug=cg-fune-mebaru, chunks=8）→ cg-compress.yml（run_id, slug）
 - [ ] 7. cg-blender-open.yml mode=full, samples=64, video_run=<6 の実行ID> → cg/open/cg-fune-mebaru-check-*.jpg と summary（すきま 0.2m 以上）
-- [ ] 8. 固定コメントの道具紹介 data/sns/yt-comments/cg-fune-mebaru.txt（ASIN を確かめる）
+- [x] 8. 固定コメントの道具紹介 data/sns/yt-comments/cg-fune-mebaru.txt（ASIN を確かめる）
 - [ ] 9. yt_long.py の ORDER に入れる → **投稿日はオーナーに確かめる**（今回は定期タスクではなくオーナーとの会話から作っている）
 - [ ] 10. cg-short.yml（slugs=short-cg-fune-mebaru, publish=true）は長尺の投稿と同じ日に
 - [ ] 11. cg-video-plan.md の「制作済み」へ移し、このファイルの「作りかけ 1」を消す
 
 ### 次にやること
-5 の結果を見る：long-media の cg/open/test/cg-fune-mebaru/（f0001.png など6コマと thumb.jpg）。Blender の部品（parts.py）は Blender で動かして確かめる前なので、エラーが出たらログを見て直す。よければ 6 → 7。
+Blender の test（2回目）の絵を見る：long-media の cg/open/test/cg-fune-mebaru/。1回目は動いた（メバル・海藻・サビキは出た）が、根が砂のように白くなめらかだったので、色を暗く・形を押し出すように直した。よければ 6（cg-video は実行ずみ。成功を確かめて cg-compress）→ 7（full）。Blender は download.blender.org が 403 を返すことがあるので、workflow に保存とミラーを足してある。
 
 ### 実行の記録（実行 ID など）
-- 2026-11-16 17:31 cg-blender-open（test）実行 ID 43831943344
+- 2026-11-16 17:31 cg-blender-open（test）43831943344（失敗：頂点の取り方のエラーと Blender の取得 403。直した）→ 17:37 43832757090（成功）
+- 2026-11-16 17:37 cg-video（slug=cg-fune-mebaru, chunks=8）実行 ID 43832760823
+- 固定コメント：data/sns/yt-comments/cg-fune-mebaru.txt（作成ずみ）
 - 確認ずみ：`render_cg.py cg-fune-mebaru --clear` 最小 0.75m、`check_scene.py mebaru` 最小 0.59m、長さ 約2分55秒
 
 ---
