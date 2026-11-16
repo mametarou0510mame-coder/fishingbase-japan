@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # 3DCG の長尺を出したあと、ショート（cg-short.yml）を起動するため
 
 concurrency:
   group: long-upload
@@ -32,6 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Upload next
+        id: up
         env:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
@@ -61,7 +63,22 @@ jobs:
           fi
           [ -s "out/$S.mp4" ] || { echo "::error::動画がありません: $S"; exit 1; }
           python scripts/sns/yt_long.py "$S" "out/$S.mp4" "out/$S.jpg" "out/$S-chapters.txt" --publish 2>&1 | tee /tmp/up.log || { echo "::error::$(tail -c 600 /tmp/up.log | tr '\n' ' ')"; exit 1; }
+          echo "slug=$S" >> $GITHUB_OUTPUT
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           git add data/sns/long-posts.json data/sns/yt-comments 2>/dev/null; git commit -qm "長尺動画の投稿記録: $S" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push && exit 0; sleep 10; done
+      - name: Post the CG short
+        # 2026-11-17 オーナー：長尺は 3DCG・アカデミーで毎日1本。長尺が出たら、そのショート版（content/cg/short-<slug>.json）を続けて出す。
+        # すでに出したショート（reels-log.json に同じ key）は出さない。
+        if: steps.up.outputs.slug != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          S="${{ steps.up.outputs.slug }}"; SH="short-$S"
+          case "$S" in cg-*) ;; *) exit 0 ;; esac
+          [ -f "content/cg/$SH.json" ] || { echo "::notice::$SH はありません"; exit 0; }
+          git pull -q origin main || true
+          python3 -c "import json,sys;sys.exit(1 if any(p.get('key')==sys.argv[1] for p in json.load(open('data/sns/reels-log.json'))['posts']) else 0)" "$SH" || { echo "::notice::$SH は投稿済みです"; exit 0; }
+          gh workflow run cg-short.yml --repo "${{ github.repository }}" -f slugs="$SH" -f publish=true
+          echo "::notice::$SH の投稿を起動しました"

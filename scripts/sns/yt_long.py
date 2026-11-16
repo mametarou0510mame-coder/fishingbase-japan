@@ -45,7 +45,7 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          # 第8弾（2026-11-16。書き出し済み。冬の堤防は11月下旬〜12月上旬に出す）
          "long-fuyu-teibou", "long-hajimete-ichinichi", "long-shun-quiz"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
 REC = "data/sns/long-posts.json"
-PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17）
+PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17。2026-11-17：3DCG・アカデミーだけで毎日1本）
 
 
 def yt_title(t):
@@ -109,9 +109,10 @@ def main():
         if sum(v.get("at", "").startswith(today) for v in done.values()) >= PER_DAY and "--force" not in sys.argv:
             print("")
             return
-        left = [s for s in ORDER if s not in done and s not in HOLD]
-        # 2026-11-06 オーナー：3DCG（cg-*）を優先して投稿する。残っていれば通常の長尺より先に出す
-        print(next((s for s in left if s.startswith("cg-")), left[0] if left else ""))
+        # 2026-11-17 オーナー：YouTube の長尺は 3DCG とツレドキアカデミー（どちらも cg-*）だけにする。
+        # 毎日1本（週に 3DCG 4本・アカデミー 3本）。通常の長尺（long-*）は列に残っていても自動では出さない（slug 指定なら出せる）
+        left = [s for s in ORDER if s not in done and s not in HOLD and s.startswith("cg-")]
+        print(left[0] if left else "")
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
     publish = "--publish" in sys.argv
