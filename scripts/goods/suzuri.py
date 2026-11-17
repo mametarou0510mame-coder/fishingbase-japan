@@ -89,6 +89,9 @@ def cmd_publish(spec_path, flag="true"):
             continue
         prods = [{"itemId": p["itemId"], "exemplaryItemVariantId": p["exemplaryItemVariantId"], "published": pub,
                   "resizeMode": p.get("resizeMode", "contain")} for p in m["products"]]
+        for q, p in zip(prods, m["products"]):
+            if p.get("exemplaryAngle"):  # サムネイルの向き（例 back）。API の資料には無いので、効いたかは返り値で確かめる
+                q["exemplaryAngle"] = q["examplaryAngle"] = p["exemplaryAngle"]
         body = {"products": prods}
         for k in ("title", "description", "price"):
             if m.get(k):
@@ -97,7 +100,7 @@ def cmd_publish(spec_path, flag="true"):
         print("PUT", m["material_id"], "sent price", body.get("price"), "->", {k: v for k, v in (r.get("material") or r).items() if "price" in k.lower()},
               [(pr.get("id"), pr.get("price"), pr.get("priceWithoutTax") or pr.get("priceExcludingTax")) for pr in r.get("products", [])], flush=True)
         for pr in r.get("products", []):
-            summary(f"{m['title']}：{pr.get('sampleUrl') or ''}（published={pr.get('published')}）")
+            summary(f"{m['title']}：{pr.get('sampleUrl') or ''}（published={pr.get('published')} angle={pr.get('examplaryAngle') or pr.get('exemplaryAngle')}）")
             for u in [pr.get("sampleImageUrl"), pr.get("pngSampleImageUrl")]:
                 if u:
                     summary(f"  image {u}")

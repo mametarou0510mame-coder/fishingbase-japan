@@ -1,0 +1,41 @@
+{
+ "note": "サムネイルを背中にできるかテスト",
+ "materials": [
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_id": 21384074,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
+   "old_material_ids": [
+    21384223,
+    21387379
+   ],
+   "material_id": 21387466,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  }
+ ]
+}
