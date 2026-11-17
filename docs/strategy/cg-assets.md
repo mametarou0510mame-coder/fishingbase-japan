@@ -25,6 +25,7 @@
 | イカ（Squid Kit） | `loadSquids`・`createSquid` | アオリイカ・コウイカ（cg-video-plan.md の注意を読む） |
 | ルアー・仕掛けの模型 | `ftTenya`、`makeJigReal`、`trRig`（タイラバ）、`sfJig` | テンヤ・メタルジグ・タイラバ |
 | サーフ | `sfBed`・`sfBase`・`sfRig`・`sfTopView` など | 砂浜の断面と上からの絵（離岸流） |
+| **深さで変わる色（水の中の光）** | `rcBase(d)`・`rcAtt(d)`・`rcSee(hex, d)`・`rcTintObj(obj, d)`・`rcFish`・`rcLure`・`rcDepthBar`・`rcSwatch`・`rcDepthChip`、`RC_K` | 深さ d m の水の中（背景・粒・スネルの窓つき海面）と、色の見え方（模式図）。Fish Kit の魚やルアーの色を深さで変える。色ルアー5本（赤・オレンジ・黄・緑・青）、透明度の白い円板（`rcDisk`）、濁った水（`rcMud`）、光の帯（`rcBeams`）。cg-akai（rc_*）。深場の釣り・ルアーの色・夜の海の回に |
 
 ### 見本の場面（部品の確かめ方）
 `python3 scripts/video/narrate.py scripts/cg/kit/kit-demo.json --silent` → `python3 scripts/cg/render_cg.py kit-demo --stills` で、部品ごとの見本（kit_*）の静止画ができる。部品を直したら、これと既存の動画の `--stills` を見て、ほかの動画が変わっていないことを確かめる。見本の絵は docs/strategy/cg-assets/ に置いてある。
@@ -38,7 +39,7 @@
 | **海藻** | `parts.Kelp`・`parts.kelp_roots(hfn, keep_out=...)` | 根の上に帯の葉を生やし、毎コマゆらす。`kelp_keep_out(x, y)` で魚の通り道をあける |
 | **サビキ仕掛け** | `parts.Sabiki`（場面に `LURE = "sabiki"`・`N_HOOK`・`rig(t)`） | オモリ・幹糸・ハリス・ハリ・魚の皮・ビーズ。`rig(t)` が（オモリの上の端, [(結び目, ハリスの先)]）を返す |
 | タイラバ・メタルジグ | `opening.py` の `place_lure`・`place_jig`（`LURE = "tairaba"` / `"jig"`） | |
-| 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
+| 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
 ### 書き出し済みの映像（long-media ブランチ。`blender_open.clip` にパスを書くと、書き出さずにそのまま使える）

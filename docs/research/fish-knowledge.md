@@ -153,6 +153,7 @@
 - 深さの目安（きれいな水）：赤とオレンジは約10mまでにほとんど失われる、約150mで人の目には青だけ、約800mより深いと太陽の光は見えない（Australian Museum https://australian.museum/learn/species-identification/ask-an-expert/why-is-it-dark-in-the-deepsea/）。赤は上の10m、オレンジは約40m、黄は100mより手前で消える（Webb『Introduction to Oceanography』6.5 https://pressbooks.ccconline.org/introduction-to-oceanography/chapter/6-5-light/）。外洋は青く、沿岸は緑っぽい（同）。
 - 100mでは赤い光は届かず、赤い生き物は黒っぽく見える（NOAA https://oceanexplorer.noaa.gov/facts/red-color.html ・ https://oceanexplorer.noaa.gov/wp-content/uploads/2025/04/light-and-color-fact-sheet.pdf）。
 - ルアーの色の研究：ニジマスでは濁りで選ばれる色が変わった（龍谷大学 西大・丸山 魚類学雑誌64(2) 2017 https://www.jstage.jst.go.jp/article/jji/64/2/64_64-113/_article/-char/ja）。台湾のサバ延縄では透明・紫・青が釣れにくかった（Fisheries Science 67(3) 2001）。オオクチバスでは釣れる数は色で変わらなかった（Plymouth大学 2015 https://pearl.plymouth.ac.uk/handle/10026.1/11441）。
+- 2026-11-17 再確認（cg-akai 用）：オーストラリア博物館の本文「By about 10 m below the surface, most of the red and orange wavelengths ... are no longer present」「By about 150 m depth, even in the clearest water, human eyes can only see blue light」「Beyond about 800 m the human eye can detect no visible light from the surface」、光の届き方は時刻・季節・場所・水のきれいさで変わる。NOAA red-color「At 100 meters, red light does not penetrate」「deep-sea animals that are red actually appear black」。cg-akai では Webb の教科書（公的機関でない）の数値は使わなかった。
 - 使わないこと：「赤は水深◯mで完全に消える」と一つの数値で言う、濁った沿岸での色ごとの深さ、人の目と魚の目の見え方を同じとする、「この魚にはこの色」と断定する。
 
 ## アジ・タチウオ・アオリイカの行動（2026-11-07 調査。CGの動きの根拠）
