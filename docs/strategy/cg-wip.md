@@ -85,9 +85,9 @@
 
 ### 進み具合
 - [x] 0. 企画・事実・構成
-- [ ] 1. main.js：rc_* と rc_thumb
-- [ ] 2. 台本 cg-akai.json・short-cg-akai.json
-- [ ] 3. ローカルの静止画確認・すきま
+- [x] 1. main.js：rc_* と rc_thumb
+- [x] 2. 台本 cg-akai.json（約3分09秒）・short-cg-akai.json（約46秒）
+- [x] 3. ローカルの静止画確認（横・縦・サムネ）。海底のない場面なので砂に埋まる心配はなし
 - [ ] 4. Blender：scenes/akai.py と check_scene
 - [ ] 5. cg-video → cg-compress
 - [ ] 6. cg-blender-open test → full

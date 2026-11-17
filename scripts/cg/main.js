@@ -7839,7 +7839,7 @@ const FK = { ok: false, mod: null, pool: {} };
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }
@@ -9531,6 +9531,437 @@ Object.assign(SHOTS, {
     ftFlush();
     label(FTp(st.hooks[1].x, st.hooks[1].y, FT_LZ), "胴付き仕掛け＋エビ", "sbRigAt(…, { n: 3, bait: \"ebi\" })", 1, "gold", -330, -120);
     ftNote("見本：エサ（エビ）を付けた胴付き仕掛け。カサゴ・メバルのエサ釣りの回に");
+  },
+});
+
+// =====================================================================
+// アカデミー R10 海の中で赤は消える？（cg-akai、rc_*）2026-11-17
+// 事実は docs/research/fish-knowledge.md「水中の光と色」「魚の視覚」だけ（NOAA・オーストラリア博物館・大阪大学・大阪市立科学館・
+//   北海道立総合研究機構・鹿児島大学・龍谷大学・プリマス大学）。
+// 色の見え方は模式図：赤・緑・青の光が深さで減る割合（RC_K）は、資料の目安（赤とオレンジは約10mでほとんど失われる・
+//   150mで青だけ・800mで光が見えない）に合うように決めた係数で、実測ではない。目が暗さに慣れる分（RC_ADAPT）も入れてある。
+// 使い回せる部品：rcAtt(d)・rcSee(hex, d)（深さ d m での見え方の色）、rcWater(d)、rcTint(f, d)（Fish Kit の魚の色を深さで変える）、
+//   rcBase(d)（深さ d の水の中。背景・粒・海面）、rcLure(i, hex)（色つきのルアーの模型）、rcDepthBar（左の深さの物差し）
+// =====================================================================
+const RC = V(-6000, 0, 6000);
+const RCp = (x, y, z = 0) => V(RC.x + x, RC.y + y, RC.z + z);
+const RC_K = [0.30, 0.07, 0.021]; // 1m あたりの減り方の目安（赤・緑・青。きれいな水の模式）
+const RC_ADAPT = 0.62; // 目が慣れる分（1 なら慣れない）
+const rcAtt = (d) => RC_K.map((k) => Math.pow(Math.exp(-k * Math.max(0, d)), RC_ADAPT));
+// hex（画面の色）を深さ d で見たときの色 [r, g, b]（0〜1、画面の色）
+function rcSeeRGB(hex, d) { const c = new THREE.Color(hex).convertLinearToSRGB(); const a = rcAtt(d); return [c.r * a[0], c.g * a[1], c.b * a[2]]; }
+function rcCss(rgb) { return `rgb(${rgb.map((v) => Math.round(255 * clamp01(v))).join(",")})`; }
+const rcSee = (hex, d) => rcCss(rcSeeRGB(hex, d));
+const RC_WATER = 0x8fd3f2; // 海面近くの水の色
+const rcWater = (d) => rcSeeRGB(RC_WATER, d);
+const rcGrp = new THREE.Group();
+rcGrp.position.copy(RC);
+world.add(rcGrp);
+extras.push(rcGrp);
+// 背景：まわりの水（上は明るく、下は暗い）。カメラについて動く
+const rcSkyU = { top: { value: new THREE.Vector3() }, bot: { value: new THREE.Vector3() }, surfY: { value: 0 }, sky: { value: 0 } };
+const rcSky = new THREE.Mesh(new THREE.SphereGeometry(300, 48, 24), new THREE.ShaderMaterial({
+  uniforms: rcSkyU, side: THREE.BackSide, depthWrite: false,
+  vertexShader: `varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform vec3 top; uniform vec3 bot; varying vec3 vD; void main(){ float h = vD.y*0.5+0.5; vec3 c = mix(bot, top, smoothstep(0.15, 0.9, h)); gl_FragColor = vec4(c,1.); }`,
+}));
+rcSky.renderOrder = -5;
+world.add(rcSky);
+extras.push(rcSky);
+// 海面（下から見た明るい膜）。y=0
+const rcSurf = new THREE.Mesh(new THREE.PlaneGeometry(600, 600, 1, 1).rotateX(Math.PI / 2), new THREE.ShaderMaterial({
+  uniforms: { time: U.time, minA: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vL; varying vec3 vW; void main(){ vL = position; vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform float time; uniform float minA; varying vec3 vL; varying vec3 vW; void main(){ float w = pow(abs(sin(vL.x*0.9+time*0.8)*sin(vL.z*1.1-time*0.6)), 3.0);
+    float up = abs(normalize(cameraPosition - vW).y); float win = max(minA, smoothstep(0.62, 0.8, up)); // 水の中から海面が明るく見えるのは真上に近い円だけ（スネルの窓）
+    gl_FragColor = vec4(mix(vec3(0.62,0.88,0.98), vec3(0.96,1.0,1.0), w), 0.92*win); }`,
+}));
+rcSurf.renderOrder = 2;
+rcGrp.add(rcSurf);
+// 漂う粒（カメラのまわりをくり返す。沈むと上へ流れて見える）
+const rcSnowU = { time: U.time, cam: { value: new THREE.Vector3() }, col: { value: new THREE.Vector3(1, 1, 1) }, hpx: { value: H } };
+const rcSnow = (() => {
+  const n = 1400, pos = new Float32Array(n * 3), r = rng(1017);
+  for (let i = 0; i < n; i++) { pos[i * 3] = r() * 24; pos[i * 3 + 1] = r() * 24; pos[i * 3 + 2] = r() * 24; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const p = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: rcSnowU, transparent: true, depthWrite: false,
+    vertexShader: `uniform vec3 cam; uniform float time; uniform float hpx; varying float vA;
+      void main(){ vec3 p = mod(position - cam + vec3(sin(time*0.2)*0.3, time*0.05, 0.0), 24.0) - 12.0 + cam;
+        vec4 mv = viewMatrix*vec4(p,1.); float s = 0.025 * projectionMatrix[1][1] * hpx * 0.5 / -mv.z;
+        vA = clamp(s/1.5, 0.15, 1.0) * smoothstep(12.0, 6.0, length(p - cam)); gl_PointSize = clamp(s, 1.5, 8.0); gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `uniform vec3 col; varying float vA; void main(){ float d = length(gl_PointCoord-0.5); float a = smoothstep(0.5,0.1,d)*vA*0.55; gl_FragColor = vec4(col, a); }`,
+  }));
+  p.frustumCulled = false;
+  p.renderOrder = 8;
+  world.add(p);
+  extras.push(p);
+  return p;
+})();
+// 光の帯（太陽の白い光 → 水に入って色ごとに届く深さが違う。模式図）
+const RC_COL = [[0xe53935, "赤"], [0xff8c1a, "オレンジ"], [0xffd43b, "黄"], [0x2fbf4a, "緑"], [0x2f7bff, "青"]];
+const rcBeams = RC_COL.map(([hex], i) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1, 20, 1, true).translate(0, -0.5, 0), new THREE.ShaderMaterial({
+    uniforms: { col: { value: new THREE.Color(hex).convertLinearToSRGB() }, a: { value: 1 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying float vU; void main(){ vU = -position.y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform vec3 col; uniform float a; varying float vU; void main(){ float k = 1.0 - smoothstep(0.55, 1.0, vU); gl_FragColor = vec4(col, a*k*0.85); }`,
+  }));
+  m.renderOrder = 6;
+  rcGrp.add(m);
+  return m;
+});
+const rcWhite = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 1, 24, 1, true).translate(0, 0.5, 0), new THREE.ShaderMaterial({
+  uniforms: { a: { value: 1 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: `varying float vU; void main(){ vU = position.y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform float a; varying float vU; void main(){ gl_FragColor = vec4(vec3(1.0,0.99,0.92), a*(0.25+0.55*vU)); }`,
+}));
+rcWhite.renderOrder = 6;
+rcGrp.add(rcWhite);
+// ルアーの模型（長さ約12cm。細長く平たい体・目・アイ）。色は深さで変える（MeshStandardMaterial の color）
+const rcLures = RC_COL.map(([hex]) => {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 16).scale(0.06, 0.016, 0.009), new THREE.MeshStandardMaterial({ color: hex, roughness: 0.35, metalness: 0.1 }));
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.006, 10, 8), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 }));
+  eye.position.set(0.04, 0.003, 0.007);
+  const eye2 = eye.clone(); eye2.position.z = -0.007;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.005, 0.0012, 6, 12), new THREE.MeshStandardMaterial({ color: 0xcfd6dc, metalness: 0.9, roughness: 0.2 }));
+  ring.position.set(0.064, 0, 0);
+  g.add(body, eye, eye2, ring);
+  g.userData = { body, hex };
+  world.add(g);
+  extras.push(g);
+  return g;
+});
+// 白い円板（透明度を測る板）と、つり下げるロープ
+function rcMakeDisk() {
+  const g = new THREE.Group();
+  const disk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.02, 40), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6, transparent: true }));
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 1, 6).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: 0xf4e3b0, roughness: 0.8 }));
+  g.add(disk, rope);
+  g.userData = { disk, rope };
+  world.add(g);
+  extras.push(g);
+  return g;
+}
+const rcDisk = rcMakeDisk(), rcDisk2 = rcMakeDisk();
+// 濁った水（右半分にかかる、黄緑がかった水の箱）
+const rcMudU = { col: { value: new THREE.Vector3(0.42, 0.5, 0.36) }, a: { value: 0 } };
+const rcMud = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1).translate(0.5, -0.5, 0), new THREE.ShaderMaterial({
+  uniforms: rcMudU, transparent: true, depthWrite: false,
+  vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform vec3 col; uniform float a; varying vec3 vW; void main(){ gl_FragColor = vec4(col, a); }`,
+}));
+rcMud.renderOrder = 7;
+rcGrp.add(rcMud);
+// 濁りの粒
+const rcMudPts = (() => {
+  const n = 900, pos = new Float32Array(n * 3), r = rng(1301);
+  for (let i = 0; i < n; i++) { pos[i * 3] = 0.3 + r() * 5; pos[i * 3 + 1] = -r() * 9; pos[i * 3 + 2] = -2 + r() * 4; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xc8c29a, size: 0.05, transparent: true, opacity: 0.8, depthWrite: false }));
+  p.renderOrder = 8;
+  rcGrp.add(p);
+  return p;
+})();
+
+// 深さ d の水の中にする（背景・粒・海面）。d：カメラのまわりの深さ（m）
+function rcBase(d) {
+  base(0);
+  U.under.value = 0;
+  hideSurface = true;
+  wall.visible = top.visible = false;
+  if (WALL_BAR) WALL_BAR.visible = false;
+  rcGrp.visible = true;
+  rcSky.visible = true;
+  rcSnow.visible = true;
+  rcGrp.children.forEach((c) => (c.visible = c === rcSurf && d < 30));
+  rcSurf.material.uniforms.minA.value = 0;
+  const t0 = rcWater(Math.max(0, d - 25)), b0 = rcWater(d + 30);
+  rcSkyU.top.value.set(...t0.map((v) => v * 1.05));
+  rcSkyU.bot.value.set(...b0.map((v) => v * 0.55));
+  const sn = rcSeeRGB(0xffffff, d);
+  rcSnowU.col.value.set(...sn.map((v) => Math.min(1, v * 0.9 + 0.03)));
+  RC_D = d;
+}
+let RC_D = 0;
+// Fish Kit の魚やルアーの色を深さで変える（材質の color に掛ける）
+function rcTintObj(obj, d, base = 0xffffff) {
+  const [r, g, b] = rcSeeRGB(base, d);
+  obj.traverse((m) => {
+    if (!m.isMesh || !m.material || !m.material.color) return;
+    if (m.material.userData.rcBase == null) m.material.userData.rcBase = m.material.color.getHex();
+    const c = new THREE.Color(m.material.userData.rcBase === 0xffffff ? base : m.material.userData.rcBase).convertLinearToSRGB();
+    const a = rcAtt(d);
+    m.material.color.setRGB(c.r * a[0], c.g * a[1], c.b * a[2], THREE.SRGBColorSpace);
+  });
+}
+function rcFish(id, i, p, yaw, pitch, T, d, o = {}) {
+  const f = fkGet(id, i, o.cm);
+  if (!f) return null;
+  fkPlace(f, p, yaw, pitch, T, { freq: o.freq ?? 1.4, amp: o.amp ?? 0.07, seed: i });
+  rcTintObj(f.object, d);
+  return f;
+}
+function rcLure(i, p, ang, d, sc = 1) {
+  const g = rcLures[i];
+  g.visible = true;
+  g.position.copy(p);
+  g.rotation.set(0, 0, ang);
+  g.scale.setScalar(sc);
+  rcTintObj(g, d);
+}
+// 光（Fish Kit の材質だけが使う）も深いほど弱く
+function rcLight(d) { if (FK.lights) { const b = rcAtt(d)[2]; FK.lights[0].intensity = 1.3 * (0.4 + 0.6 * b); FK.lights[1].intensity = 1.6 * b; } }
+// 画面の部品
+const rcSrc = (txt) => { if (!txt) return; const P = PORTRAIT; html += `<div style="position:absolute;${P ? "left:40px;right:40px;top:300px" : "left:70px;top:122px"};color:#fff;font-size:${P ? 26 : 24}px;font-weight:800;text-shadow:0 2px 6px #000,0 0 3px #000">出典：${txt}</div>`; };
+function rcDepthChip(d, a = 1, pos) {
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;${pos ?? (P ? "right:40px;top:380px" : "right:70px;top:120px")};opacity:${a};background:rgba(6,22,42,.85);border:4px solid #ffd166;border-radius:20px;padding:6px 24px;color:#fff;font-weight:900;font-size:${P ? 40 : 36}px">水深 <span style="font-size:${P ? 84 : 76}px;color:#ffd166">${Math.round(d)}</span> m</div>`;
+}
+// 色の見本：上が海面での色、下がこの深さでの見え方（人の目のイメージ）
+function rcSwatch(d, a = 1, pos, o = {}) {
+  const P = PORTRAIT, sz = P ? 76 : 92;
+  const row = (fn) => RC_COL.map(([hex, nm]) => `<div style="text-align:center"><div style="width:${sz}px;height:${sz}px;border-radius:18px;background:${fn(hex)};border:3px solid rgba(255,255,255,.75)"></div><div style="font-size:${P ? 20 : 24}px;margin-top:4px;white-space:nowrap">${nm}</div></div>`).join("");
+  html += `<div style="position:absolute;${pos ?? (P ? "left:50%;top:1510px;transform:translateX(-50%)" : "right:70px;top:300px")};opacity:${a};background:rgba(6,22,42,.86);border-radius:22px;padding:14px 22px;color:#fff;font-weight:900">
+    ${o.noTop ? "" : `<div style="font-size:${P ? 28 : 26}px;color:#bfe6ea">海面での色</div><div style="display:flex;gap:12px;margin:6px 0 12px">${row((h) => rcSee(h, 0))}</div>`}
+    <div style="font-size:${P ? 28 : 26}px;color:#ffd166">水深 ${Math.round(d)}m での見え方（イメージ）</div><div style="display:flex;gap:12px;margin-top:6px">${row((h) => rcSee(h, d))}</div></div>`;
+}
+// 左の深さの物差し（0〜800m。上の方を広く：見やすさのため目盛りは等間隔ではない）
+function rcDepthBar(d, a = 1, marks = []) {
+  const P = PORTRAIT, Hh = P ? 560 : 640, top = P ? 400 : 190, left = P ? 40 : 70;
+  const yOf = (m) => Hh * Math.sqrt(Math.min(m, 820) / 820);
+  const grad = [0, 5, 10, 20, 40, 80, 150, 250, 400, 600, 820].map((m) => `${rcCss(rcWater(m))} ${(yOf(m) / Hh) * 100}%`).join(",");
+  const tick = [0, 10, 50, 100, 150, 300, 500, 800].map((m) => `<div style="position:absolute;left:96px;top:${yOf(m) - 14}px;font-size:22px;color:#fff;font-weight:800">${m}m</div>`).join("");
+  const mk = marks.map(([m, txt, col, aa]) => `<div style="position:absolute;left:168px;top:${yOf(m) - 22}px;opacity:${aa ?? 1};white-space:nowrap;background:rgba(6,22,42,.86);border:3px solid ${col};border-radius:14px;padding:2px 14px;font-size:${P ? 26 : 26}px;font-weight:900;color:#fff">${txt}</div>`).join("");
+  html += `<div style="position:absolute;left:${left}px;top:${top}px;height:${Hh}px;width:90px;opacity:${a}">
+    <div style="position:absolute;inset:0;border-radius:14px;border:3px solid rgba(255,255,255,.8);background:linear-gradient(${grad})"></div>
+    <div style="position:absolute;left:-10px;right:-10px;top:${yOf(d) - 3}px;height:6px;background:#ffd166;border-radius:3px;box-shadow:0 0 10px #000"></div>${tick}${mk}</div>`;
+}
+const rcNote = (txt = "色の見え方は模式図（きれいな水での目安をもとにしたイメージ）。魚の動きはイメージ") => ftNote(txt);
+// 深さのカメラ：深さ d に、群れのそばを横から見る
+function rcCam(d, t, o = {}) {
+  const P = PORTRAIT;
+  const c = RCp(o.cx ?? 0, -d, 0);
+  look(c.clone().add(V(Math.sin(t * 0.08) * (o.sway ?? 0.15), o.up ?? 0.12, o.dist ?? (P ? 2.6 : 1.7))), c.clone().add(V(0, o.dy ?? 0, 0)), o.fov ?? 50);
+  rcSky.position.copy(camera.position);
+  rcSnowU.cam.value.copy(camera.position);
+  return c;
+}
+// マダイ（主役）とルアーの列を、深さ d のカメラの前に置く
+function rcCast(d, T, o = {}) {
+  const P = PORTRAIT, c = RCp(0, -d, 0);
+  if (o.madai !== false) {
+    const sx = o.mx ?? (P ? 0.0 : 0.25);
+    rcFish("madai", 300, c.clone().add(V(sx + Math.sin(T * 0.25) * 0.08, (o.my ?? -0.02) + Math.sin(T * 0.6) * 0.03, 0.15)), Math.PI, 0.03 * Math.sin(T * 0.5), T, d, { cm: 45 });
+  }
+  if (o.lures !== false) {
+    rcLures.forEach((_, i) => rcLure(i, c.clone().add(V((P ? -0.28 : -0.42) + i * (P ? 0.14 : 0.2), (o.ly ?? -0.4) + Math.sin(T * 1.3 + i) * 0.01, 0.15)), 0.08 * Math.sin(T * 1.1 + i * 1.7), d, P ? 0.85 : 1));
+  }
+}
+const rcQ = (k, t, s, i) => (k >= i ? fadeIn(t - (s[`_k${i}`] ?? 99), 0.1) : 0);
+
+Object.assign(SHOTS, {
+  rc_thumb(t, d, s) {
+    const D = 3;
+    rcBase(D);
+    rcLight(D);
+    const c = rcCam(D, 0, { dist: 1.25, cx: -0.15 });
+    rcFish("madai", 300, c.clone().add(V(0.1, 0.05, -0.1)), Math.PI, 0.05, 3, D, { cm: 45 });
+    rcLure(0, c.clone().add(V(-0.3, -0.12, 0.2)), 0.1, D, 1.2);
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：赤いマダイと赤いルアー。そのまま沈むと色が抜けていく
+  rc_hook(t, d, s) {
+    const P = PORTRAIT, D = 2 + 28 * ease((t - 2.2) / (d - 2.6));
+    rcBase(D);
+    rcLight(D);
+    rcCam(D, t);
+    rcCast(D, t);
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.7),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "海の中で、<br>赤い色はどう見える？", "深さで変わる光と色", a);
+    rcDepthChip(D, clamp01((t - 0.6) / 0.4), P ? "right:40px;top:1000px" : "right:70px;top:470px");
+    academyBadge();
+    rcNote("色の見え方は模式図（イメージ）");
+  },
+  // 水は赤を吸いこむ：k0 白い光は色がまざっている・水は赤を吸収 → k1 2〜3mでも青み・数m〜数十mで水色 → k2 届きやすい順
+  rc_absorb(t, d, s, k) {
+    const P = PORTRAIT, D = 9;
+    rcBase(D);
+    rcSurf.visible = true;
+    rcSurf.material.uniforms.minA.value = 0.5;
+    const c = RCp(0, -9, 0);
+    look(c.clone().add(V(0, 0.5, P ? 30 : 21)), c.clone().add(V(0, P ? 2 : 3.2, 0)), 50);
+    rcSky.position.copy(camera.position);
+    rcSnowU.cam.value.copy(camera.position);
+    const grow = ease((t - 0.8) / 2.0);
+    rcWhite.visible = true;
+    rcWhite.scale.set(1, 6, 1);
+    rcWhite.position.set(0, 0, 0);
+    const reach = [2, 3.5, 5.5, 8, 11];
+    rcBeams.forEach((b, i) => {
+      b.visible = true;
+      b.position.set((i - 2) * (P ? 1.25 : 1.5), 0, 0);
+      b.scale.set(1, Math.max(0.01, reach[i] * grow), 1);
+      b.material.uniforms.a.value = k >= 2 ? 1 : 0.85;
+    });
+    if (k === 0) {
+      label(RCp(0, 3, 0), "太陽の光（白）", "いろいろな色がまざっている", fadeIn(t, 0.2), "", P ? 0 : -360, -40);
+      label(RCp(-3, -2.6, 0), "赤は浅い所で吸収される", "", fadeIn(t, 2.4), "red", P ? -40 : -360, 40);
+    }
+    if (k === 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      html += ftCard(P, `<div style="display:flex;gap:26px;align-items:center"><div style="text-align:center"><div style="width:96px;height:96px;border-radius:18px;background:${rcSee(0xffffff, 0)};border:3px solid #10345a"></div><b style="font-size:24px">海面</b></div><div style="text-align:center"><div style="width:96px;height:96px;border-radius:18px;background:${rcSee(0xffffff, 2.5)};border:3px solid #10345a"></div><b style="font-size:24px">2〜3m</b></div><div style="text-align:center"><div style="width:96px;height:96px;border-radius:18px;background:${rcSee(0xffffff, 20)};border:3px solid #10345a"></div><b style="font-size:24px">数十m</b></div><div><b style="font-size:34px">白い板の見え方（イメージ）</b><div style="font-size:28px;font-weight:900;margin-top:6px">2〜3mでも少し青み、数m〜数十mで水色に</div></div></div>`, a, [330, 640, 1260], [60, 1180, 960]);
+    }
+    if (k >= 2) {
+      const a = fadeIn(t - (s._k2 ?? 99), 0.2);
+      RC_COL.forEach(([hex, nm], i) => label(RCp((i - 2) * (P ? 1.25 : 1.5), -reach[i], 0), `${5 - i}`, nm, a * fadeIn(t - (s._k2 ?? 99), 0.3 + (4 - i) * 0.25), i === 4 ? "gold ans" : "", 0, 90));
+      html += ftCard(P, `<b style="font-size:34px">届きやすい順</b><div style="font-size:40px;font-weight:900;margin-top:6px"><span style="color:#1f5fd1">青</span> → <span style="color:#1d8a3a">緑</span> → <span style="color:#a37b00">黄</span> → <span style="color:#d4650a">オレンジ</span> → <span style="color:#c62828">赤</span></div>`, a, [70, 420, 640], [60, 1000, 960]);
+    }
+    rcSrc(k >= 2 ? "NOAA（アメリカ海洋大気庁）" : k === 1 ? "大阪市立科学館・大阪大学" : "大阪大学");
+    academyBadge();
+    rcNote("模式図（光の帯の長さは、届きやすさの順を表すだけで、実際の深さではない）");
+  },
+  // 深さと色：k0 約10mで赤とオレンジがほとんど失われる → k1 150mで青だけ → k2 800mより深いと光が見えない → k3 条件で変わる
+  rc_depth(t, d, s, k) {
+    const P = PORTRAIT, t1 = s._k1 ?? 99, t2 = s._k2 ?? 99, t3 = s._k3 ?? 99;
+    let D = lerp(1, 10, ease((t - 0.5) / 3.5));
+    if (t > t1) D = lerp(10, 150, ease((t - t1) / 3.2));
+    if (t > t2) D = lerp(150, 800, ease((t - t2) / 2.6));
+    if (t > t3) D = lerp(800, 10, ease((t - t3) / 1.6));
+    rcBase(D);
+    rcLight(D);
+    rcCam(D, t);
+    rcCast(D, t, { mx: P ? 0 : -0.12, ly: -0.33 });
+    rcDepthBar(D, 1, [[10, "約10m：赤とオレンジがほとんど消える", "#ff5a4a", fadeIn(t, 3.2)], [150, "約150m：人の目には青だけ", "#4cc3ff", fadeIn(t - t1, 2.8)], [800, "約800m：光が見えない", "#ffffff", fadeIn(t - t2, 2.2)]]);
+    rcDepthChip(D, 1);
+    rcSwatch(D, 1, P ? undefined : "right:70px;top:300px");
+    if (k >= 3) html += ftCard(P, `<b style="font-size:36px">深さは<span style="color:#c2410c">時間・季節・場所・水のきれいさ</span>で変わる</b>`, fadeIn(t - t3, 0.3), [560, 690, 1100], [60, 1060, 960]);
+    rcSrc("オーストラリア博物館（きれいな水での目安）");
+    academyBadge();
+    rcNote();
+  },
+  // クイズ：k0 100mの赤いマダイは何色？ → k1 選択肢 → k2 正解 C 黒っぽい
+  rc_quiz(t, d, s, k) {
+    const P = PORTRAIT, t2 = s._k2 ?? 99;
+    const D = t > t2 ? lerp(3, 100, ease((t - t2) / 2.4)) : 3;
+    rcBase(D);
+    rcLight(D);
+    const c = rcCam(D, t, { dist: P ? 2.2 : 1.5, cx: P ? 0 : 0.2, dy: P ? -0.55 : 0 });
+    rcFish("madai", 300, c.clone().add(V(P ? 0 : 0.25, 0.05 + Math.sin(t * 0.6) * 0.03, -0.25)), Math.PI, 0.03, t, D, { cm: 45 });
+    rcDepthChip(D, 1);
+    const opts = [["A", "赤のまま"], ["B", "青"], ["C", "黒っぽい"]];
+    const ans = t > t2 + 2.2;
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:560px" : "left:70px;top:190px;width:660px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 44 : 42}px;font-weight:900;margin:14px 0 4px">水深100mの赤いマダイ、<br>何色に見える？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35) : 0};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans) label(c.clone().add(V(P ? 0 : 0.25, 0.05, -0.25)), "黒っぽく見える", "赤い光が届かない", fadeIn(t - t2 - 2.2, 0.2), "gold ans", P ? 0 : 60, P ? -110 : 290);
+    rcSrc(k >= 2 ? "NOAA（アメリカ海洋大気庁）" : "");
+    academyBadge();
+    rcNote("色の見え方は模式図。マダイが100mにいるとしたときのイメージ");
+  },
+  // 濁り：k0 沿岸は濁りも関係 → k1 透明度＝白い円板が見えなくなる深さ。沿岸は土砂・沖はプランクトン → k2 濁りで糸やエサの見え方が大きく落ちる
+  rc_nigori(t, d, s, k) {
+    const P = PORTRAIT, D = 4;
+    rcBase(D);
+    rcSurf.visible = true;
+    rcLight(2);
+    rcSurf.material.uniforms.minA.value = 0.5;
+    const c = RCp(0, -2.6, 0);
+    look(c.clone().add(V(0, 0.4, P ? 14 : 9.5)), c.clone().add(V(0, P ? -0.6 : 0, 0)), 50);
+    rcSky.position.copy(camera.position);
+    rcSnowU.cam.value.copy(camera.position);
+    rcMud.visible = rcMudPts.visible = true;
+    rcMud.position.set(0.25, 0, 0);
+    rcMud.scale.set(9, 12, 6);
+    rcMudU.a.value = 0.62;
+    const xs = P ? [-1.6, 1.6] : [-2.4, 2.4];
+    const down = (t1) => Math.min(3.4, 0.3 + 0.8 * Math.max(0, t1));
+    const t1 = t - (s._k1 ?? 99) - 0.5, yd = k >= 1 ? down(t1) : 0.3;
+    [[rcDisk, 14, xs[0]], [rcDisk2, 2.2, xs[1]]].forEach(([g, vis, x]) => {
+      g.visible = true;
+      g.position.copy(RCp(x, -yd, 0.3));
+      g.userData.disk.rotation.x = 1.1; // 円板は本当は水平。横から見えるように傾けて描く（模式図）
+      g.userData.rope.scale.set(1, yd + 0.2, 1);
+      g.userData.disk.material.opacity = clamp01(1.25 - yd / vis);
+      g.userData.disk.material.color.setRGB(...rcSeeRGB(0xffffff, yd * 0.6), THREE.SRGBColorSpace);
+    });
+    label(RCp(xs[0] - 1.2, -0.6, 0.3), "きれいな水", "", fadeIn(t, 0.3), "", 0, -20);
+    label(RCp(xs[1] + 1.2, -0.6, 0.3), "濁った水", "", fadeIn(t, 0.6), "gold", 0, -20);
+    if (k >= 1 && t1 > 2.5) label(RCp(xs[1], -2.2, 0.3), "ここで見えなくなる", "＝透明度", fadeIn(t1, 2.5), "red", P ? 0 : 320, 20);
+    if (k === 1) html += ftCard(P, `<b style="font-size:34px">透明度：白い円板が見えなくなる深さ</b><div style="font-size:28px;font-weight:900;margin-top:6px">沿岸は<span style="color:#c2410c">川からの土砂</span>、沖は<span style="color:#1d8a3a">植物プランクトン</span>の量で変わる</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [330, 700, 1260], [60, 1000, 960]);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:36px">濁りの粒が多いと、<span style="color:#c2410c">糸やエサの見え方</span>は大きく落ちる</b>`, fadeIn(t - (s._k2 ?? 99), 0.3), [330, 700, 1260], [60, 1000, 960]);
+    rcSrc(k >= 2 ? "鹿児島大学（川村・有馬 2009）" : k === 1 ? "北海道立総合研究機構 稚内水産試験場" : "");
+    academyBadge();
+    rcNote("模式図（濁りの強さ・見えなくなる深さはイメージ）");
+  },
+  // 魚の目：k0 人の目の話。魚の目は同じではない → k1 メジナは色を見分ける・マグロの仲間やクロソイは色覚がない/乏しい → k2 紫外線が見える魚も
+  rc_eye(t, d, s, k) {
+    const P = PORTRAIT, D = 5, T = t + 20;
+    rcBase(D);
+    rcLight(D);
+    const c = rcCam(D, t, { dist: P ? 3.2 : 2.0, up: 0.1 });
+    const k1 = k >= 1;
+    rcFish("kuchibuto", 300, c.clone().add(V(P ? -0.2 : -0.5, P ? 0.45 : 0.12, 0.2)), 0, 0.03 * Math.sin(T * 0.6), T, D, { cm: 35 });
+    rcFish("kihada", 300, c.clone().add(V(P ? 0.2 : 0.55, P ? -0.35 : -0.28, -0.4)), Math.PI, 0.02, T, D, { cm: 80, freq: 2 });
+    if (k1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      label(c.clone().add(V(P ? -0.2 : -0.5, P ? 0.45 : 0.12, 0.2)), "メジナ", "色を見分けられる（行動実験）", a, "gold", P ? 0 : -260, -120);
+      label(c.clone().add(V(P ? 0.2 : 0.55, P ? -0.35 : -0.28, -0.4)), "マグロの仲間", "色覚がない・乏しいとされる", fadeIn(t - (s._k1 ?? 99), 1.4), "", P ? 0 : 300, -170);
+    } else {
+      html += ftCard(P, `<b style="font-size:38px">ここまでは<span style="color:#c2410c">人の目</span>で見た話</b><div style="font-size:30px;font-weight:900;margin-top:6px">魚の目は、人と同じではない</div>`, fadeIn(t, 0.4), [560, 690, 800], [60, 1000, 960]);
+    }
+    if (k >= 2) html += ftCard(P, `<b style="font-size:34px">人には見えない<span style="color:#7c3aed">紫外線</span>が見える魚もいる</b><div style="font-size:26px;font-weight:900;margin-top:6px">（マイワシ・マダイの研究がある）</div>`, fadeIn(t - (s._k2 ?? 99), 0.3), [990, 140, 860], [60, 1000, 960]);
+    rcSrc(k >= 1 ? "魚類学雑誌（メジナの行動実験）・Fisheries Science ほか" : "");
+    academyBadge();
+    rcNote("魚は大きく表示。魚の動きはイメージ。クロソイの3Dモデルはないので映していない");
+  },
+  // ルアーの色の研究：k0 龍谷大学（ニジマス：濁りで選ばれる色が変わった）→ k1 プリマス大学（オオクチバス：色で変わらなかった）→ k2 結果は分かれる
+  rc_lure(t, d, s, k) {
+    const P = PORTRAIT, D = 2, T = t + 40;
+    rcBase(D);
+    rcLight(D);
+    const c = rcCam(D, t, { dist: P ? 1.5 : 1.0, up: 0.06 });
+    rcLures.forEach((_, i) => rcLure(i, c.clone().add(V((P ? -0.26 : -0.36) + i * (P ? 0.13 : 0.18), (P ? 0.2 : 0.14) + 0.03 * Math.sin(T * 1.2 + i), 0)), 0.15 * Math.sin(T * 1.4 + i * 1.3), D, P ? 0.9 : 1.1));
+    const card2 = (n, who, fish, res, col, a) => `<div style="display:flex;gap:20px;align-items:center;opacity:${a};margin-top:${n ? 14 : 0}px"><b style="background:${col};color:#fff;font-size:28px;padding:8px 16px;border-radius:14px;white-space:nowrap">${who}</b><div><div style="font-size:${P ? 32 : 34}px;font-weight:900">${fish}</div><div style="font-size:${P ? 28 : 30}px;font-weight:900;color:#c2410c">${res}</div></div></div>`;
+    let inner = card2(0, "龍谷大学", "ニジマス", "濁りで、選ばれる色が変わった", "#1f6fd1", fadeIn(t, 0.4));
+    if (k >= 1) inner += card2(1, "英 プリマス大学", "オオクチバス", "釣れる数は、色で変わらなかった", "#2a9d5c", fadeIn(t - (s._k1 ?? 99), 0.2));
+    if (k >= 2) inner += `<div style="font-size:${P ? 32 : 34}px;font-weight:900;margin-top:16px;opacity:${fadeIn(t - (s._k2 ?? 99), 0.2)}">→ 色の効き方は、<span style="color:#c2410c">魚や条件でちがう</span>。結果は分かれている</div>`;
+    html += ftCard(P, inner, 1, [330, k >= 2 ? 560 : k >= 1 ? 620 : 690, 1260], [60, 1000, 960]);
+    rcSrc(k >= 1 ? "魚類学雑誌（龍谷大学 2017）・プリマス大学（2015）" : "魚類学雑誌（龍谷大学 西大・丸山 2017）");
+    academyBadge();
+    rcNote("ルアーは模型（イメージ）");
+  },
+  // 釣りでは：k0 深い所の赤いルアーは黒っぽく（人の目）→ k1 色はその日の海で試す、と言われる
+  rc_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 60, D = lerp(3, 60, ease((t - 1.2) / Math.max(3, (s._k1 ?? 12) - 2)));
+    rcBase(D);
+    rcLight(D);
+    const c = rcCam(D, t, { dist: P ? 1.4 : 0.95 });
+    [0, 4, 2].forEach((ci, j) => rcLure(ci, c.clone().add(V((P ? -0.2 : -0.36) + j * (P ? 0.2 : 0.24), (P ? 0.1 : 0.06) + 0.02 * Math.sin(T * 1.2 + j), 0)), -0.15 + 0.08 * Math.sin(T * 1.4 + j), D, 1.6));
+    label(c.clone().add(V(P ? -0.2 : -0.36, P ? 0.1 : 0.06, 0)), "赤いルアー", "", fadeIn(t, 0.4), "red", P ? 0 : -120, -120);
+    rcDepthChip(D, 1);
+    rcSwatch(D, 1, P ? undefined : "right:70px;top:300px", { noTop: true });
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">深い所では、<span style="color:#c62828">赤いルアー</span>も<br>人の目には<span style="color:#10345a">黒っぽく</span>見えると考えられる</b>`, fadeIn(t, 2.5), [70, 600, 900], [60, 900, 960]);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">深さ・濁りで色の見え方は変わる</b><div style="font-size:32px;font-weight:900;margin-top:8px;color:#c2410c">色をいくつか用意して、その日の海で試す</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [70, 600, 900], [60, 900, 960]);
+    academyBadge();
+    rcNote("色の見え方は模式図（イメージ）。ルアーは模型");
+  },
+  rc_sum(t, d, s, k) {
+    const P = PORTRAIT, D = 6;
+    rcBase(D);
+    rcLight(D);
+    rcCam(D, t);
+    rcCast(D, t + 80);
+    html += acDim(0.45);
+    const rows = [["水と光", "水は赤い光を吸収する", "届きやすい順は 青→緑→黄→オレンジ→赤", "#1f6fd1"], ["深さ", "約10mで赤とオレンジがほとんど消える", "150mで青だけ。100mの赤い魚は黒っぽい", "#c62828"], ["釣り", "魚の目は人とちがう。研究の結果も分かれる", "深さ・濁りに合わせて、色を試す", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">海の中の色 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 36}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 34 : 42}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
   },
 });
 
