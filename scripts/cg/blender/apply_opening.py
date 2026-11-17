@@ -128,8 +128,13 @@ def main():
     near = int(m) * 60 + int(s_)
     cut = open_end(a.timeline) if a.timeline else scene_cut(a.long, near)
     clip_len = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", a.clip], capture_output=True, text=True).stdout)
+    slow = 1.0
     if clip_len + 0.02 < cut:
-        sys.exit(f"Blender の映像（{clip_len:.2f}秒）が冒頭の章（{cut:.2f}秒）より短い")
+        # 本番の声で冒頭の章が少し長くなったとき（無音の見積もりより長い）：12% までなら映像を少しゆっくりにして合わせる
+        slow = (cut + 0.05) / clip_len
+        if slow > 1.12:
+            sys.exit(f"Blender の映像（{clip_len:.2f}秒）が冒頭の章（{cut:.2f}秒）より短い")
+        print(f"::notice::Blender の映像（{clip_len:.2f}秒）を {slow:.3f} 倍ゆっくりにして冒頭の章（{cut:.2f}秒）に合わせる")
     print(f"opening: chapter {near}s, cut {cut:.3f}s, clip {clip_len:.2f}s")
     tmp = os.path.dirname(os.path.abspath(a.out_mp4))
     tp = os.path.join(tmp, "title.png")
@@ -137,7 +142,7 @@ def main():
     fo = max(min(cut * 0.62, cut - 1.5), 2.0)   # 後半（魚が食う所）は文字なしで見せる
     if bo.get("title_until"):
         fo = float(bo["title_until"])   # 場面ごとに、題を消す時刻（食う瞬間より前に）
-    fc = (f"[1:v]fps=24,scale=1920:1080:flags=lanczos,trim=0:{cut:.3f},setpts=PTS-STARTPTS,format=yuv420p[c];"
+    fc = (f"[1:v]setpts=PTS*{slow:.4f},fps=24,scale=1920:1080:flags=lanczos,trim=0:{cut:.3f},setpts=PTS-STARTPTS,format=yuv420p[c];"
           f"[2:v]format=rgba,fade=in:st=0.3:d=0.5:alpha=1,fade=out:st={fo:.2f}:d=0.6:alpha=1[tt];"
           f"[c][tt]overlay=0:0:shortest=1,format=yuv420p[op];"
           f"[0:v]trim=start={cut:.3f},setpts=PTS-STARTPTS,format=yuv420p[rest];"

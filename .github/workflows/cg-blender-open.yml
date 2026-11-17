@@ -22,6 +22,10 @@ on:
         description: "Cycles のサンプル数"
         required: true
         default: "64"
+      frames_run:
+        description: "（任意）前の full の実行 ID。書き出しずみのコマとサムネイル（op-*）を使い、書き出さずに差しかえだけする（差しかえで失敗したとき用）"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -49,6 +53,8 @@ jobs:
           nf = math.ceil(float(re.search(r"^SEC = ([\d.]+)", src, re.M).group(1)) * 24)
           if "${{ github.event.inputs.mode }}" == "test":
               ch = ["test"]
+          elif "${{ github.event.inputs.frames_run }}":
+              ch = ["none"]
           elif bo.get("clip"):
               ch = ["none"]
           else:
@@ -117,11 +123,14 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        if: github.event.inputs.frames_run == ''
       - uses: actions/cache@v4
+        if: github.event.inputs.frames_run == ''
         with:
           path: /tmp/b.tar.xz
           key: blender-4.2.3-linux-x64
       - name: Install Blender
+        if: github.event.inputs.frames_run == ''
         run: |
           for i in 1 2 3 4; do
             sudo apt-get update -qq || true
@@ -138,10 +147,12 @@ jobs:
           mkdir -p /tmp/blender && tar -xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
           /tmp/blender/blender --version | head -1
       - name: Render thumbnail
+        if: github.event.inputs.frames_run == ''
         run: |
           N=$([ "${{ github.event.inputs.mode }}" = "test" ] && echo 48 || echo 192)
           /tmp/blender/blender -b --factory-startup --python-exit-code 1 -P scripts/cg/blender/opening.py -- --scene ${{ needs.plan.outputs.scene }} --thumb --out out/thumb --samples $N --res 1280 720
       - uses: actions/upload-artifact@v4
+        if: github.event.inputs.frames_run == ''
         with:
           name: op-thumb
           path: out/thumb/
@@ -155,10 +166,19 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@v4
+        if: github.event.inputs.frames_run == ''
         with:
           pattern: op-*
           path: frames/
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        if: github.event.inputs.frames_run != ''
+        with:
+          pattern: op-*
+          path: frames/
+          merge-multiple: true
+          run-id: ${{ github.event.inputs.frames_run }}
+          github-token: ${{ github.token }}
       - name: Install
         run: |
           for i in 1 2 3 4; do
