@@ -1,0 +1,1605 @@
+{
+ "note": "2026-11-17 ロンT・パーカーのサムネイルを背中に（オーナー）",
+ "materials": [
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_id": 21384074,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
+   "old_material_ids": [
+    21384223,
+    21387379
+   ],
+   "material_id": 21387466,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384076,
+    21387382
+   ],
+   "material_id": 21387468,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_id": 21384080,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
+   "old_material_ids": [
+    21384225,
+    21387387
+   ],
+   "material_id": 21387472,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384083,
+    21387389
+   ],
+   "material_id": 21387474,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|color|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_id": 21384088,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
+   "old_material_ids": [
+    21384227,
+    21387394
+   ],
+   "material_id": 21387476,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "sawara|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384091,
+    21387396
+   ],
+   "material_id": 21387480,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|color|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_id": 21384098,
+   "note": "旧：GLIMMER ドライ長袖（背中に印刷できない）で作ってしまったもの。非公開のまま",
+   "old_material_ids": [
+    21384230,
+    21387404
+   ],
+   "material_id": 21387482,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB サワラ（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のサワラ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "sawara|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/sawara-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384103,
+    21387409
+   ],
+   "material_id": 21387487,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "buri|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384297
+   ],
+   "material_id": 21387535,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "buri|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384300
+   ],
+   "material_id": 21387537,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（モノクロ・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "buri|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384305
+   ],
+   "material_id": 21387544,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "buri|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384309
+   ],
+   "material_id": 21387547,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（カラー）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "buri|color|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384315
+   ],
+   "material_id": 21387550,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "buri|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384317
+   ],
+   "material_id": 21387553,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（カラー・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "buri|color|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384323
+   ],
+   "material_id": 21387556,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB ブリ（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のブリ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "buri|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/buri-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384325
+   ],
+   "material_id": 21387559,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384374
+   ],
+   "material_id": 21387630,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384377
+   ],
+   "material_id": 21387632,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384381
+   ],
+   "material_id": 21387638,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384383
+   ],
+   "material_id": 21387640,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|color|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384389
+   ],
+   "material_id": 21387644,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "madai|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384392
+   ],
+   "material_id": 21387646,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|color|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384396
+   ],
+   "material_id": 21387650,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB 真鯛（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風の真鯛。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "madai|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/madai-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384398
+   ],
+   "material_id": 21387652,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "aori|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384436
+   ],
+   "material_id": 21387737,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "aori|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384438
+   ],
+   "material_id": 21387740,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（モノクロ・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "aori|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384442
+   ],
+   "material_id": 21387743,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "aori|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384445
+   ],
+   "material_id": 21387750,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（カラー）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "aori|color|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384453
+   ],
+   "material_id": 21387754,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "aori|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384456
+   ],
+   "material_id": 21387756,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "aori|color|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384462
+   ],
+   "material_id": 21387761,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB アオリイカ（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のアオリイカ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "aori|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/aori-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384464
+   ],
+   "material_id": 21387764,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "seabass|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384543
+   ],
+   "material_id": 21387823,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "seabass|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384545
+   ],
+   "material_id": 21387826,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（モノクロ・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "seabass|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384554
+   ],
+   "material_id": 21387830,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "seabass|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384557
+   ],
+   "material_id": 21387832,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（カラー）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "seabass|color|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384564
+   ],
+   "material_id": 21387835,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "seabass|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384566
+   ],
+   "material_id": 21387837,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（カラー・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "seabass|color|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384573
+   ],
+   "material_id": 21387844,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB シーバス（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のシーバス。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "seabass|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/seabass-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384576
+   ],
+   "material_id": 21387846,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（モノクロ）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "chinu|mono|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384632
+   ],
+   "material_id": 21387894,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（モノクロ）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "chinu|mono|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-mono-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384634
+   ],
+   "material_id": 21387896,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（モノクロ・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "chinu|mono|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384638
+   ],
+   "material_id": 21387903,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（モノクロ・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "chinu|mono|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-mono-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384640
+   ],
+   "material_id": 21387906,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（カラー）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 470,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "chinu|color|light|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 623,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384647
+   ],
+   "material_id": 21387913,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4180,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（カラー）パーカー",
+   "texture": "content/goods/td-club/print/front-text-light.png",
+   "price": 485,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※明るい色の服向け（黒いロゴ）のページです。",
+   "key": "chinu|color|light|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 466,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-color-light-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384649
+   ],
+   "material_id": 21387917,
+   "created_prices": [
+    [
+     "hoodie",
+     5544,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（カラー・濃い色用）ロングTシャツ",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 513,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "chinu|color|dark|longt",
+   "products": [
+    {
+     "itemId": 15,
+     "exemplaryItemVariantId": 626,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384654
+   ],
+   "material_id": 21387920,
+   "created_prices": [
+    [
+     "long-sleeve-t-shirt",
+     4908,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "ANGLER'S CLUB チヌ（カラー・濃い色用）パーカー",
+   "texture": "content/goods/td-club/print/front-text-dark.png",
+   "price": 551,
+   "description": "TSUREDOKI ANGLER'S CLUB（ツレドキ アングラーズクラブ）。関西の釣れる時間がわかるサイト「ツレドキ」のオリジナル。釣り針とTDのロゴに、ポリゴン（多面体）風のチヌ。仲間と魚種ちがいでそろえられるシリーズです。\n\n※濃い色の服向け（白いロゴ）のページです。",
+   "key": "chinu|color|dark|hoodie",
+   "products": [
+    {
+     "itemId": 9,
+     "exemplaryItemVariantId": 492,
+     "published": true,
+     "resizeMode": "contain",
+     "sub_materials": [
+      {
+       "texture": "content/goods/td-club/print/chinu-color-dark-back.png",
+       "printSide": "back"
+      }
+     ],
+     "exemplaryAngle": "back"
+    }
+   ],
+   "old_material_ids": [
+    21384657
+   ],
+   "material_id": 21387923,
+   "created_prices": [
+    [
+     "hoodie",
+     6180,
+     null
+    ]
+   ]
+  }
+ ]
+}
