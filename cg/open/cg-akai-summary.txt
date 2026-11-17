@@ -1,0 +1,1 @@
+frames 264  avg 305.5s/frame  min fish clearance 0.614 m
