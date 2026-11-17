@@ -88,7 +88,7 @@
 - [x] 1. main.js：rc_* と rc_thumb
 - [x] 2. 台本 cg-akai.json（約3分09秒）・short-cg-akai.json（約46秒）
 - [x] 3. ローカルの静止画確認（横・縦・サムネ）。海底のない場面なので砂に埋まる心配はなし
-- [ ] 4. Blender：scenes/akai.py と check_scene
-- [ ] 5. cg-video → cg-compress
-- [ ] 6. cg-blender-open test → full
+- [x] 4. Blender：scenes/akai.py と check_scene（最小 0.618m）
+- [ ] 5. cg-video 43990002628 成功 → cg-compress 43992030545
+- [ ] 6. cg-blender-open test 43990111018 成功（すきま 0.614m）→ サムネの位置を直して test 2回目 43992033659 → full
 - [ ] 7. ORDER・固定コメント・制作済みへ移す
