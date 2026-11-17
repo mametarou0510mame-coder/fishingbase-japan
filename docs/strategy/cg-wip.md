@@ -75,3 +75,20 @@
 - 確認ずみ：`render_cg.py cg-fune-mebaru --clear` 最小 0.75m、`check_scene.py mebaru` 最小 0.59m、長さ 約2分55秒
 
 ---
+
+## 作りかけ（アカデミー）：海の中で赤は消える？（cg-akai）
+
+- 定期タスク「ツレドキアカデミーの制作」2026-11-17 開始。A-2 の1番（R10）。
+- slug：長尺 `cg-akai`、ショート `short-cg-akai`。main.js の接頭辞 `rc_`。Blender の場面 `scenes/akai.py`（マダイと赤いタイラバ、うしろに遠いマダイの群れ）
+- 事実は fish-knowledge.md の「水中の光と色」「魚の視覚」の節だけ（11/17 に Australian Museum・NOAA の本文を再確認）。Webb の教科書（オレンジ40m など）は公的機関でないので使わない。
+- 構成：rc_hook（Blender）→ rc_absorb（水は赤を吸う・届く順）→ rc_depth（深さの目安：赤とオレンジ約10m、150mで青だけ、800mで暗い）→ rc_quiz（100mの赤いマダイは何色？）→ rc_nigori（透明度・濁り）→ rc_eye（魚の目は人とちがう）→ rc_lure（ルアーの色の研究）→ rc_tsuri（釣りへ）→ rc_sum・ask・end
+
+### 進み具合
+- [x] 0. 企画・事実・構成
+- [ ] 1. main.js：rc_* と rc_thumb
+- [ ] 2. 台本 cg-akai.json・short-cg-akai.json
+- [ ] 3. ローカルの静止画確認・すきま
+- [ ] 4. Blender：scenes/akai.py と check_scene
+- [ ] 5. cg-video → cg-compress
+- [ ] 6. cg-blender-open test → full
+- [ ] 7. ORDER・固定コメント・制作済みへ移す
