@@ -17,8 +17,8 @@
 - [x] 台本 cg-tetra.json・short-cg-tetra.json
 - [x] Blender の場面 scenes/tetra.py（check_scene.py OK：砂から最小0.26m・テトラから0.33m以上）。parts.build_tetra・opening.py の JIG_MAT="worm" を追加
 - [x] 静止画・--clear の確認（最小0.30m）→ commit・push
-- [ ] cg-video（8分割）→ cg-compress
-- [ ] cg-blender-open test → full
-- [ ] 固定コメントの道具紹介
+- [ ] cg-video（8分割）→ cg-compress　※cg-video 実行 44210799883（11/18 9:48 起動）
+- [x] 固定コメント data/sns/yt-comments/cg-tetra.txt・affiliate.py に ASIN
+- [ ] cg-blender-open test → full　※test 実行 44210804045
 - [ ] ORDER に追加・cg-video-plan.md を更新・この作りかけを消す
 
