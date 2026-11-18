@@ -10,13 +10,13 @@ FISH = "kasago"
 FISH_LEN = 0.28
 LURE = "jig"
 JIG_MAT = "worm"        # opening.py：ジグの代わりにワーム（オレンジの胴＋鉛の頭）
-JIG_LEN = 0.075
-JIG_W = 0.5
+JIG_LEN = 0.09
+JIG_W = 0.65
 ENV = "tetra"           # parts.build_tetra
 SEC = 11.0              # 冒頭の章（約9〜10秒）より少し長く
-CAM_OFF = (0.45, -1.75, 0.14)
+CAM_OFF = (0.40, -1.70, 0.32)
 LENS = 32
-CAM_KMAX = 2.0
+CAM_KMAX = 1.7
 LINE_DIR = (-0.75, 0.0, 0.66)   # 糸は左上（防波堤の上の竿先）へ。テトラの山の上を通る
 
 # テトラ：(x, y, z, rx, ry, rz, 大きさ)。左に山、右は砂地。カメラ（手前 -y）と魚のあいだには置かない
@@ -34,7 +34,7 @@ Z_LO, Z_HI = 0.05, 0.45
 T_BITE = 5 * P + 0.50   # 6回目に上げたいちばん上で食う
 T_DASH = T_BITE - 0.45
 T_THUMB = T_BITE - 0.08
-THUMB_K = 1.1
+THUMB_K = 0.75
 THUMB_SHIFT = -0.22
 H0 = Vector((-0.22, 0.15, 0.32))   # カサゴが待つ所（口先）：テトラのすそ、すき間の前
 
@@ -140,7 +140,7 @@ def sep(t):
 def cam_target(t):
     def c(x):
         body = snout(x) - heading(x) * 0.12
-        return worm(x) * 0.5 + body * 0.5 + Vector((0, 0, 0.05)) if x < T_BITE else lure_now(x) * 0.4 + body * 0.6 + Vector((0, 0, 0.05))
+        return worm(x) * 0.5 + body * 0.5 + Vector((0, 0, 0.12)) if x < T_BITE else lure_now(x) * 0.4 + body * 0.6 + Vector((0, 0, 0.12))
     acc = Vector((0, 0, 0))
     for i in range(9):
         acc += c(t + (i - 4) * 0.08)
