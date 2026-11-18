@@ -39,7 +39,9 @@
 | **海藻** | `parts.Kelp`・`parts.kelp_roots(hfn, keep_out=...)` | 根の上に帯の葉を生やし、毎コマゆらす。`kelp_keep_out(x, y)` で魚の通り道をあける |
 | **サビキ仕掛け** | `parts.Sabiki`（場面に `LURE = "sabiki"`・`N_HOOK`・`rig(t)`） | オモリ・幹糸・ハリス・ハリ・魚の皮・ビーズ。`rig(t)` が（オモリの上の端, [(結び目, ハリスの先)]）を返す |
 | タイラバ・メタルジグ | `opening.py` の `place_lure`・`place_jig`（`LURE = "tairaba"` / `"jig"`） | |
-| 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
+| **テトラ（消波ブロック）** | `parts.build_tetra(TETRA, mat)`・`parts.tetra_dist(p, TETRA)`（場面に `ENV = "tetra"` と `TETRA = [(x, y, z, rx, ry, rz, 大きさ)]`） | テトラを並べる。`check_scene.py` が魚とテトラの距離も確かめる |
+| **ワーム（ジグヘッド＋ワーム）** | 場面に `LURE = "jig"`・`JIG_MAT = "worm"` | オレンジの胴と鉛の頭。アシストフックとリングは出さない |
+| 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない）、`scenes/tetra.py`（テトラのすそのカサゴとワーム） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
 ### 書き出し済みの映像（long-media ブランチ。`blender_open.clip` にパスを書くと、書き出さずにそのまま使える）
