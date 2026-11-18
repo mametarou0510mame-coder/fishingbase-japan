@@ -7,21 +7,4 @@
 
 ---
 
-## 作りかけ：【見える化】テトラ帯、どこに投げる？（slug: cg-tetra、接頭辞 tp_、2026-11-18 開始）
-- 企画：A-1 の1番。釣り人は防波堤の上（テトラに乗らない）。部品はテトラ帯の断面 ttBase・ttY・TT_HOLES・TT_PINS。
-- 構成：つかみ（tp_hook）→ テトラのすき間は魚の隠れ家（tp_sec）→ 3つの場所 穴・際・沖の砂地（tp_three）→ クイズ：防波堤の上から投げるなら？答え＝際（tp_quiz）→ なぜ際？（tp_why）→ ワームの引き方・根がかり（tp_lure、ftSim）→ まずめは浮く（tp_mazume）→ 安全（tp_safe）→ まとめ・ask・end
-- 事実（fish-knowledge.md の「テトラ帯」に書く）：TSURI HACK 穴釣り（障害物に身を隠す習性・カサゴ・メバル・アイナメ・テトラの上は非常に滑りやすい・人が乗ることを想定していない）、シマノ ロックフィッシュ（消波ブロックは隠れ家・底まで沈めてズル引きやリフト&フォール・掛かると岩穴に逃げ込むので巻いて底から離す）、シマノ チヌ（テトラ周りの前打ち）、BE-PAL（根魚は昼は底に隠れ近くを通る小魚を食べる・まずめは中層や表層まで上がる）、第二管区海上保安本部（消波ブロックのすきまに転落すると救助が難しく命に関わる）
-### チェック
-- [x] 事実を fish-knowledge.md に追記
-- [x] main.js に tp_* と tp_thumb（ワームの計算 FT_SEQ.tp_main・tp_hit、山のすそのテトラ tpFoot）
-- [x] 台本 cg-tetra.json・short-cg-tetra.json
-- [x] Blender の場面 scenes/tetra.py（check_scene.py OK：砂から最小0.26m・テトラから0.33m以上）。parts.build_tetra・opening.py の JIG_MAT="worm" を追加
-- [x] 静止画・--clear の確認（最小0.30m）→ commit・push
-- [x] cg-video（8分割）実行 44210799883 成功（render(3) が apt で止まったので取り消して再実行）
-- [x] cg-compress 完了（long-media に cg-tetra.mp4.part-00・jpg・chapters）
-- [x] 固定コメント data/sns/yt-comments/cg-tetra.txt・affiliate.py に ASIN
-- [x] cg-blender-open test OK（2回目。最小すきま 0.24m）
-- [ ] full（samples=64）11/18 10:50 起動。終わったら cg/open/cg-tetra-summary.txt を確かめて ORDER へ（cg-kakou の後ろ）
-- [x] cg-video-plan.md を更新（制作済みへ）
-- [ ] ORDER に追加・この作りかけを消す
-
+（作りかけはなし。2026-11-18 テトラ帯 cg-tetra を ORDER に入れて完了。Blender full 実行 44218797228・最小すきま 0.24m）
