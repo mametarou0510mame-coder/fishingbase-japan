@@ -258,3 +258,106 @@ class Sabiki:
                 co += [tuple(c - side * w), tuple(c + side * w)]
             self.skin[i].data.vertices.foreach_set("co", [x for q in co for x in q])
             self.skin[i].data.update()
+
+
+# ---------------------------------------------------------------- テトラ（消波ブロック）2026-11-18
+# 場面に ENV = "tetra" と TETRA = [(x, y, z, rx, ry, rz, s), ...]（中心・回転[rad]・大きさ）を書くと作る。
+# 形は three.js の tetrapodGeometry と同じ：中心の球（半径 0.6s）と、4本の脚（根元の半径 0.55s・先 0.32s・長さ 1.5s）
+TETRA_DIRS = [(1, 1, 1), (-1, -1, 1), (-1, 1, -1), (1, -1, -1)]
+
+
+def tetra_legs(x, y, z, rx, ry, rz, s):
+    """脚の [(根元, 先, 根元の半径, 先の半径)]。魚がテトラにめりこまないかの確かめにも使う（Blender なしで動く）"""
+    cx, sx, cy_, sy, cz, sz = math.cos(rx), math.sin(rx), math.cos(ry), math.sin(ry), math.cos(rz), math.sin(rz)
+
+    def rot(v):  # XYZ のオイラー角（Blender の既定と同じ順）
+        a, b, c = v
+        b, c = b * cx - c * sx, b * sx + c * cx
+        a, c = a * cy_ + c * sy, -a * sy + c * cy_
+        a, b = a * cz - b * sz, a * sz + b * cz
+        return (a, b, c)
+    out = []
+    for d in TETRA_DIRS:
+        n = math.sqrt(3.0)
+        r = rot((d[0] / n, d[1] / n, d[2] / n))
+        out.append(((x, y, z), (x + r[0] * 1.5 * s, y + r[1] * 1.5 * s, z + r[2] * 1.5 * s), 0.55 * s, 0.32 * s))
+    return out
+
+
+def tetra_dist(p, tetras):
+    """点 p からいちばん近いテトラの表面までの距離（中が負）。脚は円すい台、中心は球で近似"""
+    best = 99.0
+    for (x, y, z, rx, ry, rz, s) in tetras:
+        best = min(best, math.dist(p, (x, y, z)) - 0.6 * s)
+        for a, b, ra, rb in tetra_legs(x, y, z, rx, ry, rz, s):
+            ab = [b[i] - a[i] for i in range(3)]
+            ap = [p[i] - a[i] for i in range(3)]
+            L2 = sum(v * v for v in ab)
+            k = max(0.0, min(1.0, sum(ap[i] * ab[i] for i in range(3)) / L2))
+            q = [a[i] + ab[i] * k for i in range(3)]
+            best = min(best, math.dist(p, q) - (ra + (rb - ra) * k))
+    return best
+
+
+def b_concrete(nt, n, l):
+    """テトラのコンクリート：明るい灰色のむら、下の方は藻で緑がかる、細かいざらざら"""
+    p = _principled(nt)
+    tc = n.new("ShaderNodeTexCoord")
+    noi = n.new("ShaderNodeTexNoise")
+    noi.inputs["Scale"].default_value = 3.0
+    noi.inputs["Detail"].default_value = 8.0
+    l.new(tc.outputs["Object"], noi.inputs["Vector"])
+    ramp = n.new("ShaderNodeValToRGB")
+    e = ramp.color_ramp.elements
+    e[0].position, e[0].color = 0.35, (0.16, 0.17, 0.16, 1)
+    e[1].position, e[1].color = 0.70, (0.36, 0.37, 0.35, 1)
+    g = e.new(0.52)
+    g.color = (0.12, 0.16, 0.09, 1)    # 藻
+    l.new(noi.outputs["Fac"], ramp.inputs["Fac"])
+    l.new(ramp.outputs["Color"], p.inputs["Base Color"])
+    p.inputs["Roughness"].default_value = 0.9
+    fine = n.new("ShaderNodeTexNoise")
+    fine.inputs["Scale"].default_value = 60.0
+    fine.inputs["Detail"].default_value = 6.0
+    l.new(tc.outputs["Object"], fine.inputs["Vector"])
+    bump = n.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.5
+    bump.inputs["Distance"].default_value = 0.01
+    l.new(fine.outputs["Fac"], bump.inputs["Height"])
+    l.new(bump.outputs["Normal"], p.inputs["Normal"])
+
+
+def build_tetra(tetras, mat):
+    """テトラを並べる。形は1つ作って、メッシュを共有したコピーを置く"""
+    parts_ = []
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.6, location=(0, 0, 0))
+    parts_.append(bpy.context.object)
+    for d in TETRA_DIRS:
+        v = Vector(d).normalized()
+        bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=0.55, radius2=0.32, depth=1.5, location=v * 0.75)
+        c = bpy.context.object
+        c.rotation_mode = "QUATERNION"
+        c.rotation_quaternion = v.to_track_quat("Z", "Y")
+        parts_.append(c)
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in parts_:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = parts_[0]
+    bpy.ops.object.join()
+    base = bpy.context.object
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    bpy.ops.object.shade_smooth()
+    wn = base.modifiers.new("wn", "WEIGHTED_NORMAL")  # 脚のつけ根をなめらかに見せる
+    wn.keep_sharp = False
+    base.data.materials.append(mat("tetra", b_concrete))
+    obs = []
+    for i, (x, y, z, rx, ry, rz, s) in enumerate(tetras):
+        o = base if i == 0 else base.copy()
+        if i:
+            bpy.context.scene.collection.objects.link(o)
+        o.location = (x, y, z)
+        o.rotation_mode = "XYZ"
+        o.rotation_euler = (rx, ry, rz)
+        o.scale = (s, s, s)
+        obs.append(o)
+    return obs

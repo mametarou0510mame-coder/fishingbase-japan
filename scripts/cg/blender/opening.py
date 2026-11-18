@@ -276,6 +276,9 @@ for i, (x, y, s) in enumerate([(3.5, 7.0, 1.1), (6.0, 9.5, 1.6), (5.0, 4.5, 0.7)
 
 # 根（岩礁）と海藻（使い回せる部品。場面に ENV = "reef" と reef_h(x, y) があれば作る）
 kelp = None
+if ENV == "tetra":   # テトラ（消波ブロック）。場面の TETRA に並べ方を書く（parts.build_tetra）
+    import parts
+    parts.build_tetra(M.TETRA, mat)
 if ENV == "reef":
     import parts
     parts.build_reef(M.reef_h, mat)
@@ -563,16 +566,24 @@ def b_jig(nt, n, l):
 
 jigob = None
 ahooks = []
+WORM = getattr(M, "JIG_MAT", None) == "worm"   # 2026-11-18：ジグの代わりにワーム（テトラ帯の回）
 if M.LURE == "jig":
     bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=24, radius=1.0)
     jigob = bpy.context.object
     bpy.ops.object.shade_smooth()
     # 頭から尾が -Z。頭を原点に：長さ JIG_LEN、幅 2.6cm、厚み 1.4cm
     JW = getattr(M, "JIG_W", 1.0)   # 小さいジグは幅と厚みも細く（ふだんは 1）
-    jigob.data.transform(__import__("mathutils").Matrix.Diagonal((0.012 * JW, 0.007 * JW, M.JIG_LEN / 2, 1.0)))
+    jigob.data.transform(__import__("mathutils").Matrix.Diagonal((0.012 * JW, (0.012 if WORM else 0.007) * JW, M.JIG_LEN / 2, 1.0)))
     jigob.data.transform(__import__("mathutils").Matrix.Translation((0, 0, -M.JIG_LEN / 2)))
     jigob.rotation_mode = "QUATERNION"
-    jigob.data.materials.append(mat("jig", b_jig))
+    if WORM:   # ワーム（ジグヘッド＋やわらかい胴）：胴はオレンジのゴム、頭に鉛の球
+        jigob.data.materials.append(mat("worm", b_rubber((0.95, 0.38, 0.06, 1), 0.5)))
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, radius=0.0085)
+        wormhead = bpy.context.object
+        bpy.ops.object.shade_smooth()
+        wormhead.data.materials.append(mat("wormhead", lambda nt, n, l: (principled(nt).inputs["Base Color"].__setattr__("default_value", (0.32, 0.33, 0.34, 1)), principled(nt).inputs["Metallic"].__setattr__("default_value", 0.7), principled(nt).inputs["Roughness"].__setattr__("default_value", 0.35))))
+    else:
+        jigob.data.materials.append(mat("jig", b_jig))
     ahooks = [make_curve(f"ahook{i}", 5, 0.0009, hookm) for i in range(2)]
     # 2026-11-13 オーナー指摘（実物の写真）：ジグのアイ → スプリットリング → ソリッドリング。アシストフックは
     # ソリッドリングから短い糸（約3.5cm）＋赤い熱収縮チューブ＋針で垂れる
@@ -607,6 +618,13 @@ def place_jig(t):
     else:
         line.location = J + Vector((0, 0, 6.0))
     line.scale = (1, 1, 12.0)
+    if WORM:   # ワーム：頭の鉛から糸。リングとアシストフックは使わない（ハリは胴の中）
+        wormhead.location = J + ax * 0.004
+        for o in arings + ahooks + acords + atubes:
+            o.hide_render = True
+        if ld:
+            line.location = J + ld * 6.0
+        return
     side = ax.cross(Vector((0, 0, 1)))
     if side.length < 1e-3:
         side = Vector((1, 0, 0))

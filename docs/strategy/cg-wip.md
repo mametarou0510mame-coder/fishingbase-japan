@@ -14,9 +14,9 @@
 ### チェック
 - [x] 事実を fish-knowledge.md に追記
 - [x] main.js に tp_* と tp_thumb（ワームの計算 FT_SEQ.tp_main・tp_hit、山のすそのテトラ tpFoot）
-- [ ] 台本 cg-tetra.json・short-cg-tetra.json
-- [ ] Blender の場面 scenes/tetra.py（check_scene.py）
-- [ ] 静止画・--clear の確認 → commit・push
+- [x] 台本 cg-tetra.json・short-cg-tetra.json
+- [x] Blender の場面 scenes/tetra.py（check_scene.py OK：砂から最小0.26m・テトラから0.33m以上）。parts.build_tetra・opening.py の JIG_MAT="worm" を追加
+- [x] 静止画・--clear の確認（最小0.30m）→ commit・push
 - [ ] cg-video（8分割）→ cg-compress
 - [ ] cg-blender-open test → full
 - [ ] 固定コメントの道具紹介

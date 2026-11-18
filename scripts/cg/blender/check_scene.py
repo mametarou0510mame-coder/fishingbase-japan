@@ -27,6 +27,7 @@ class Vector:
 
 
 sys.modules["mathutils"] = types.SimpleNamespace(Vector=Vector)
+sys.modules.setdefault("bpy", types.SimpleNamespace())   # parts.py の形の式（tetra_dist）だけ使う
 name = sys.argv[1]
 spec = importlib.util.spec_from_file_location("scene", os.path.join(os.path.dirname(os.path.abspath(__file__)), "scenes", name + ".py"))
 M = importlib.util.module_from_spec(spec)
@@ -45,7 +46,17 @@ def gap(nose, d, ln):
     return g
 
 
-worst, wt, msep = 99.0, 0.0, 99.0
+TET = getattr(M, "TETRA", None)
+if TET:   # テトラの場面：魚の体（口先から尾まで5点）とテトラの表面の距離も見る（0.05m 以上）
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import parts
+
+
+def tgap(nose, d, ln):
+    return min(parts.tetra_dist(tuple(nose - d * (ln * k)), TET) for k in (0.0, 0.25, 0.5, 0.75, 1.0)) if TET else 99.0
+
+
+worst, wt, msep, tw, twt = 99.0, 0.0, 99.0, 99.0, 0.0
 n = int(M.SEC * 24) + 48
 for f in range(n):
     t = f / 24
@@ -59,6 +70,12 @@ for f in range(n):
         g = min(g, gap(p, d, ln))
     if g < worst:
         worst, wt = g, t
+    tg = tgap(s, h, L)
+    for i in range(len(M.SCHOOL)):
+        p, d, _, ln = M.school(i, t)
+        tg = min(tg, tgap(p, d, ln))
+    if tg < tw:
+        tw, twt = tg, t
     if t < M.T_BITE - 0.05:
         msep = min(msep, M.sep(t))
     if f % 24 == 0:
@@ -66,3 +83,5 @@ for f in range(n):
         print(f"t={t:4.1f} snout=({s.x:5.2f},{s.y:5.2f},{s.z:5.2f}) head=({h.x:5.2f},{h.y:5.2f},{h.z:5.2f}) sep={M.sep(t):.2f} cam=({c.x:5.2f},{c.y:5.2f},{c.z:5.2f}) floor@snout={floor(s.x, s.y):.2f}")
 print(f"min fish clearance {worst:.3f} m at t={wt:.2f}s  {'OK' if worst >= 0.2 else 'NG'}")
 print(f"min mouth-lure distance before the bite {msep:.3f} m")
+if TET:
+    print(f"min fish-tetra distance {tw:.3f} m at t={twt:.2f}s  {'OK' if tw >= 0.05 else 'NG'}")

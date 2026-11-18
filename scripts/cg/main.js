@@ -10165,7 +10165,7 @@ Object.assign(SHOTS, {
     if (k >= 2) {
       label(TTp(TP_HOLE[0][0] + 0.3, TP_HOLE[0][1], 3.6), "カサゴ（ガシラ）", "すき間にひそむ", fadeIn(t2, 0.3), "gold", P ? 60 : 300, P ? -200 : -60);
       label(TTp(TP_HOLE[1][0] - 0.4, TP_HOLE[1][1], 3.6), "メバル", "", fadeIn(t2, 1.0), "gold", P ? 60 : 300, P ? -200 : -90);
-      html += ftCard(P, `<b style="font-size:38px">すき間 ＝ <span style="color:#c2410c">魚の隠れ家</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">障害物に身を隠す、根魚の習性</div>`, fadeIn(t2, 1.8), [1220, 190, 640], [60, 1080, 960]);
+      html += ftCard(P, `<b style="font-size:38px">すき間 ＝ <span style="color:#c2410c">魚の隠れ家</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">障害物に身を隠す、根魚の習性</div>`, fadeIn(t2, 1.8), [1220, 190, 640], [60, 1560, 960]);
     }
     tpTag();
     ftNote(k >= 2 ? "魚は大きく表示。魚の動きはイメージ" : "テトラの積み方は模式図");
@@ -10225,7 +10225,7 @@ Object.assign(SHOTS, {
     tpLook(17.4, ttBed(17.4) + 1.0, 5.6, 34, { oy: 0.5, pk: 1.5 });
     ftFlush();
     if (k === 0) {
-      html += ftCard(P, `<b style="font-size:36px">根魚は、<span style="color:#c2410c">隠れ家のそば</span>で待つ</b><div style="font-size:28px;font-weight:900;margin-top:6px">近くを通る小魚などをねらうと言われる</div>`, fadeIn(t, 0.4), [1120, 560, 700], [60, 1080, 960]);
+      html += ftCard(P, `<b style="font-size:36px">根魚は、<span style="color:#c2410c">隠れ家のそば</span>で待つ</b><div style="font-size:28px;font-weight:900;margin-top:6px">近くを通る小魚などをねらうと言われる</div>`, fadeIn(t, 0.4), [1120, 560, 700], [60, 1560, 960]);
       label(TTp(16.9, ttBed(16.9) + 0.5, TT_LZ - 0.25), "カサゴ（ガシラ）", "山のすそで待つ", fadeIn(t, 1.2), "gold", P ? -60 : -300, P ? -280 : -170);
     } else {
       ftChip(lg > 0.2 ? "飛び出して、食いつく（イメージ）" : "隠れ家のすぐ外を、ワームが通る", lg > 0.2 ? "#c2410c" : "#e08a2a");
@@ -10310,7 +10310,7 @@ Object.assign(SHOTS, {
     if (k >= 1) {
       const pts = []; for (let u = 8; u <= 26; u += 0.5) pts.push(TTp(u, -1.6, TT_LZ));
       pathLine(pts, "#2ecc71", fadeIn(t1, 0.3), 16, "2 18");
-      html += ftCard(P, `<b style="font-size:36px">底だけでなく、<span style="color:#1f8a4c">上の層</span>も探る</b>`, fadeIn(t1, 0.5), [1180, 330, 640], [60, 1080, 960]);
+      html += ftCard(P, `<b style="font-size:36px">底だけでなく、<span style="color:#1f8a4c">上の層</span>も探る</b>`, fadeIn(t1, 0.5), [1180, 330, 640], [60, 1560, 960]);
     }
     label(TTp(18.6, ttBed(18.6) + 1.8, TT_LZ - 1.6), "チヌ", "テトラまわりでねらわれる", fadeIn(t, 3.4), "", P ? 60 : 240, P ? 260 : 150);
     ftNote("魚は大きく表示。魚の動きはイメージ（BE-PAL・シマノの解説から）");
@@ -10327,16 +10327,16 @@ Object.assign(SHOTS, {
       const pts = []; for (let u = 0.4; u <= 9; u += 0.25) pts.push(TTp(u, tpTopS(u) + 0.2, 3.6));
       pathLine(pts, "#e3412b", fadeIn(t, 0.4), 12, "16 12");
       noMark(TTp(4.5, tpTopS(4.5) + 0.6, 3.6), "テトラの上に乗らない", fadeIn(t, 0.8));
-      if (k === 0) html += ftCard(P, `<b style="font-size:36px">テトラの上は<span style="color:#c2410c">とても滑る</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">波を消すための物。人が乗るようには作られていない</div>`, fadeIn(t, 1.0), [1060, 640, 760], [60, 1080, 960]);
+      if (k === 0) html += ftCard(P, `<b style="font-size:36px">テトラの上は<span style="color:#c2410c">とても滑る</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">波を消すための物。人が乗るようには作られていない</div>`, fadeIn(t, 1.0), [1060, 640, 760], [60, 1560, 960]);
       if (k >= 1) {
         TP_HOLE.forEach(([u, y]) => tpGlow(u, y, 3.6, 0.8, fadeIn(t1, 0.3), "227,65,43", T));
-        html += ftCard(P, `<b style="font-size:36px">すき間に落ちると、<span style="color:#c2410c">救助が難しい</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">命に関わる事故につながる</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁（第二管区）の呼びかけから</div>`, fadeIn(t1, 0.5), [1060, 640, 760], [60, 1080, 960]);
+        html += ftCard(P, `<b style="font-size:36px">すき間に落ちると、<span style="color:#c2410c">救助が難しい</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">命に関わる事故につながる</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁（第二管区）の呼びかけから</div>`, fadeIn(t1, 0.5), [1060, 640, 760], [60, 1560, 960]);
       }
     } else {
       tpLook(-1.0 + t2 * 0.03, 3.2, 9.5, 34, { oy: 0.8, pk: 1.6 });
       ftFlush();
       label(TTp(-1.6, 3.6, TT_LZ - 0.3), "ライフジャケット", "滑りにくい靴も", fadeIn(t2, 0.4), "gold ans", P ? 120 : 260, P ? -330 : -200);
-      html += ftCard(P, `<b style="font-size:36px">釣りは<span style="color:#1f8a4c">防波堤の上</span>から</b><div style="font-size:28px;font-weight:900;margin-top:6px">立入禁止の場所では釣りをしない。波が高い日はやめる</div>`, fadeIn(t2, 1.0), [1060, 640, 780], [60, 1080, 960]);
+      html += ftCard(P, `<b style="font-size:36px">釣りは<span style="color:#1f8a4c">防波堤の上</span>から</b><div style="font-size:28px;font-weight:900;margin-top:6px">立入禁止の場所では釣りをしない。波が高い日はやめる</div>`, fadeIn(t2, 1.0), [1060, 640, 780], [60, 1560, 960]);
     }
   },
   tp_sum(t, d, s, k) {
