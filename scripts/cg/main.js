@@ -7839,7 +7839,7 @@ const FK = { ok: false, mod: null, pool: {} };
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada", "kurodai"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }
@@ -9967,6 +9967,395 @@ Object.assign(SHOTS, {
 
 let lastShot = null;
 window.ready = Promise.all(pending);
+// =====================================================================
+// 【見える化】テトラ帯、どこに投げる？（cg-tetra、tp_*）2026-11-18
+// 事実は docs/research/fish-knowledge.md「テトラ帯（消波ブロック）の魚と安全」だけ：
+//   TSURI HACK（穴釣り：障害物に身を隠す習性・カサゴやメバル・テトラの上は非常に滑りやすい・人が乗ることを想定していない／
+//   ロックフィッシュは堤防の基礎や際に潜む）、シマノ（消波ブロックは隠れ家・底まで沈めてリフト&フォール・
+//   隠れ家のある所はシェイクしてじっくり・掛かると岩穴に逃げ込むので巻いて底から離す／チヌはテトラ周り）、
+//   BE-PAL（根魚は昼は底に隠れて近くを通る小魚をねらう・まずめは中層や表層まで浮く）、
+//   第二管区海上保安本部（消波ブロックのすきまに転落すると救助が難しく、命に関わる）
+// 土台はテトラ帯の断面（ttBase・ttY・TT_HOLES。釣り人は防波堤の上）。地形・テトラの積み方は模式図。
+// ワームの動きは ftSim の計算（opt.botf にテトラの山と砂の底 ttY）。魚の動きはイメージ
+// =====================================================================
+const TP_KIWA = [16.2, 19.6]; // 際（山のすそ・砂との境目）の範囲 u
+const TP_OKI = [22, 30]; // 沖の砂地
+const TP_HOLE = [[3.1, -1.0], [6.3, -2.6]]; // 魚を見せるすき間（TT_HOLES の上の2つ。下の2つは砂に近いので使わない）
+const TP_PIN = { ana: [6.3, -2.6], kiwa: [17.4, ttBed(17.4)], oki: [24, ttBed(24)] };
+const TP_FISH_SC = 1.7; // 魚は大きく表示
+// ワーム（ジグヘッド 10g ＋ 3インチのワーム）。原点＝重心、+x が頭
+const tpWorm = (() => {
+  const g = new THREE.Group();
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.0085, 16, 12), ftLit(0x7a838a, { shine: 0.7 }));
+  head.position.x = 0.026;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.0068, 0.0016, 0.075, 12, 6).rotateZ(-Math.PI / 2), ftLit(0xe0782a, { shine: 0.15 }));
+  body.position.x = -0.014;
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.008, 0.0011, 6, 16, Math.PI * 1.2), ftLit(0xc8ccd0, { shine: 0.9 }));
+  hook.position.set(0.012, 0.009, 0);
+  g.add(head, body, hook);
+  g.visible = false;
+  world.add(g);
+  extras.push(g);
+  return g;
+})();
+// ---- ワームの動きの計算 ----
+const TP_TURN = 0.8; // 岸のロックフィッシュ用リールのハンドル1回転で巻ける糸の目安 [m]
+const tpK = TP_TURN / FT_TURN;
+FT_BODY.tpWorm = { m: 0.014, ma: 0.004, W: G_W(0.010, 11.34) + G_W(0.004, 1.15), I: 1.2e-5, len: 0.09, r: 0.008, eye: [0.03, 0.004], cp: -0.012, ka: 0.03, kn: 0.55, kl: 0, km: 0.004, kw: 4e-5, kw1: 1.5e-5 };
+const TP_CAST = 24; // 着水する場所（u）
+const TP_OPT = { x0: TP_CAST - TT_TIP[0], y0: -0.05, th0: -0.4, tip0: TT_TIP[1], top: -0.1, fric: 0.996, botf: (x) => ttY(x + TT_TIP[0]) };
+const TP_LIFT = [{ jerk: 1.8, up: 0.55, down: 1.1, turn: 0.85 * tpK }, { wait: 0.5 }];
+const TP_SHAKE = [{ jerk: 0.12, up: 0.14, down: 0.18 }];
+Object.assign(FT_SEQ, {
+  // 沖の砂地へ投げる → 底まで沈める → リフト＆フォールで際へ → 際で小さく揺らしてじっくり → テトラの山の手前で巻き上げて回収
+  tp_main: { body: "tpWorm", opt: TP_OPT, seq: [{ free: 6, thumb: 0.02 }, { mark: "land" }, { wait: 0.6 }, { mark: "go" }, ...FT_REP(9, TP_LIFT), { mark: "kiwa" }, ...FT_REP(10, TP_SHAKE), { wait: 1.2 }, { mark: "up" }, { reel: 9 * tpK, dur: 3.2, lin: 1 }, { mark: "done" }, { wait: 1 }] },
+  // 際で食う → すぐ巻いて底から引き離す（魚が引く力は仮の値。テトラの穴の方へ引く）
+  tp_hit: { body: "tpWorm", opt: TP_OPT, seq: [{ free: 6, thumb: 0.02 }, { wait: 0.6 }, ...FT_REP(9, TP_LIFT), ...FT_REP(4, TP_SHAKE), { mark: "bite" }, { wait: 0.4, fish: [0.05, -0.5] }, { mark: "hook" }, { jerk: 1.2, up: 0.3, down: 0.6, fish: [0.05, -0.35] }, { mark: "reel" }, { reel: 5 * tpK, dur: 1.5, lin: 1, fish: [0, -0.25] }, { mark: "free" }, { reel: 4 * tpK, dur: 2.2, lin: 1, fish: [0, -0.3] }, { wait: 1, fish: [0, -0.3] }] },
+});
+function tpAt(sim, ts) { const a = sim.at(ts); return { u: a[0] + TT_TIP[0], y: a[1], th: a[2], T: a[3], a }; }
+// 竿・糸・ワームを置く。vis：ワームを大きく見せる倍率
+function tpRig(T, sim, ts, o = {}) {
+  const q = tpAt(sim, ts), c0 = sim.ctl(ts), vis = o.vis ?? 1;
+  const tip = ttTip(q.a[4]);
+  tpWorm.visible = true;
+  tpWorm.position.copy(TTp(q.u, q.y, TT_LZ));
+  tpWorm.rotation.set(0, 0, q.th);
+  tpWorm.scale.setScalar(vis);
+  const eye = TTp(q.u + Math.cos(q.th) * 0.035 * vis, q.y + Math.sin(q.th) * 0.035 * vis, TT_LZ);
+  ftPend.push(() => {
+    if (o.trail) tpTrail(sim, ts, o.trail);
+    ftSeg(tip, eye, "#ffb45e", o.lw ?? 4, q.T < 0.02 && !c0.free ? "10 12" : "");
+  });
+  return { ...q, c0, tip, eye, x: q.u };
+}
+function tpTrail(sim, ts, span) {
+  const n = 70, pts = [];
+  for (let i = 0; i <= n; i++) { const tt = ts - span * (1 - i / n); if (tt < 0) continue; const q = tpAt(sim, tt), p = project(TTp(q.u, q.y, TT_LZ)); if (!p.behind) pts.push(p); }
+  if (pts.length > 2) lines += `<polyline points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#8ff0ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.1 20" opacity="0.95"/>`;
+}
+// 山のすそにも、テトラを2列（際のすぐそばに隠れ家があるのがわかるように）。ワームと糸を通す面（z=1.5）の手前には置かない
+const tpFoot = (() => {
+  const list = [], r = rng(5521);
+  [14.4, 15.5].forEach((u, j) => [-6.9, -4.8, -2.7, -0.6].forEach((z) => list.push([u + (r() - 0.5) * 0.3, ttBed(u) + 0.6 + j * 0.05, z + (r() - 0.5) * 0.4, r() * 6.28, r() * 6.28, r() * 6.28])));
+  const im = new THREE.InstancedMesh(tetrapodGeometry(0.66), secMat(ttSec, 0xb4b8ba, 0.12), list.length);
+  list.forEach(([x, y, z, a, b, c], i) => { _p.set(x, y, z); _q.setFromEuler(_e2.set(a, b, c)); _s.setScalar(1); _m.compose(_p, _q, _s); im.setMatrixAt(i, _m); });
+  im.frustumCulled = false;
+  im.visible = false;
+  ttSec.grp.add(im);
+  return im;
+})();
+function tpBase(nk = 0) { ttBase(nk); tpFoot.visible = true; tpWorm.visible = false; ttTip(); }
+const tpTopS = (u) => 1.5 - 7.5 * Math.pow(clamp01(u / TT_END), 1.1) + 0.45; // テトラの山の上（なめらか。線を引く用）
+// 見る：u・y を中心に、dist 離れて（縦画面は少し引く）
+function tpLook(cu, cy, dist, fov = 30, o = {}) {
+  const P = PORTRAIT, dd = dist * (P ? o.pk ?? 1.25 : 1);
+  look(TTp(cu + (o.ox ?? 0), cy + (o.oy ?? 0), TT_LZ + dd), TTp(cu, cy, TT_LZ), fov);
+}
+// 斜め上から（テトラが奥まで積まれているのがわかる）
+function tpPersp(t, k = 0) {
+  const P = PORTRAIT;
+  look(TTp(lerp(24, 20, k) + Math.sin(t * 0.05) * 0.6, lerp(7, 5, k), TT_LZ + lerp(P ? 34 : 26, P ? 28 : 20, k)), TTp(lerp(10, 11, k), -2.4, -2), P ? 40 : 38);
+}
+// 光る輪（見える化）：すき間・際・危険の場所
+function tpGlow(u, y, z, r, a, col = "46,204,113", t = 0) {
+  if (a <= 0.01) return;
+  const p = project(TTp(u, y, z)), q = project(TTp(u + r, y, z)), R = Math.max(18, Math.abs(q.x - p.x)) * (1 + 0.06 * Math.sin(t * 4));
+  html += `<div style="position:absolute;left:${p.x - R}px;top:${p.y - R}px;width:${2 * R}px;height:${2 * R}px;border-radius:50%;opacity:${a};background:radial-gradient(circle,rgba(${col},.0) 35%,rgba(${col},.45) 62%,rgba(${col},0) 72%);border:5px solid rgba(${col},.95);box-shadow:0 0 24px rgba(${col},.9)"></div>`;
+}
+// 底にそった帯（際・沖の砂地）
+function tpBand(u0, u1, a, col = "#2ecc71", w = 14) {
+  if (a <= 0.01) return;
+  const pts = [];
+  for (let u = u0; u <= u1 + 0.001; u += 0.25) pts.push(TTp(u, ttY(u) + 0.12, TT_LZ));
+  pathLine(pts, col, a, w);
+}
+// 魚：すき間のカサゴとメバル、際のカサゴ、テトラまわりのチヌ、浮いたメバル（どれも砂より上。fkPut が埋まらないように上げて記録する）
+const tpFloor = (x) => ttBed(x);
+function tpHoleFish(T, a = 1) {
+  if (a <= 0.01) return;
+  fkPut("kasago", 30, TP_HOLE[0][0] + 0.35, TP_HOLE[0][1] - 0.05, Math.PI - 0.08, T * 0.4, { at: TTp, floor: tpFloor, z: 3.6, cm: 24, sc: TP_FISH_SC, freq: 0.6, amp: 0.02 });
+  fkPut("mebaru", 31, TP_HOLE[1][0] - 0.3, TP_HOLE[1][1] + 0.2, 0.12, T * 0.5, { at: TTp, floor: tpFloor, z: 3.6, cm: 22, sc: TP_FISH_SC, freq: 0.9, amp: 0.03 });
+}
+// 際のカサゴ：ふだんは山のすそで待つ。lunge（0〜1）でワームへ飛び出す（イメージ）
+function tpKiwaFish(T, lunge = 0, to = null, o = {}) {
+  const hx = 17.25, hy = ttBed(17.25) + 0.42;
+  let mx = hx, my = hy, ang = 0.18;
+  if (to && lunge > 0) { mx = lerp(hx, to[0], lunge); my = lerp(hy, to[1], lunge); ang = lerp(0.18, Math.atan2(to[1] - hy, to[0] - hx), Math.min(1, lunge * 1.5)); }
+  if (o.ang != null) ang = o.ang;
+  return fkPut("kasago", 32, mx, my, ang, T, { at: TTp, floor: tpFloor, z: TT_LZ - 0.25, cm: 26, sc: TP_FISH_SC, freq: lunge > 0 ? 2.2 : 0.7, amp: lunge > 0 ? 0.08 : 0.025 });
+}
+function tpChinu(T, a = 1) {
+  if (a <= 0.01) return;
+  const x = 18.6 + 1.4 * Math.sin(T * 0.18), dir = Math.cos(T * 0.18) > 0 ? 1 : -1;
+  fkPut("kurodai", 33, x, ttBed(x) + 1.7 + 0.15 * Math.sin(T * 0.5), dir > 0 ? 0.05 : Math.PI - 0.05, T, { at: TTp, floor: tpFloor, z: TT_LZ - 1.6, cm: 38, sc: 1.4, freq: 1.2, amp: 0.05 });
+}
+// まずめ：すき間から出て、上の層まで浮くメバル（rise 0〜1）
+function tpRise(T, rise = 1, n = 9) {
+  const r = rng(4411);
+  for (let i = 0; i < n; i++) {
+    const u0 = 9 + r() * 9, h = lerp(0.6, 1.4 + r() * 3.4, rise), x = u0 + 0.5 * Math.sin(T * 0.25 + i);
+    const y = Math.min(-0.8, ttY(x) + h);
+    fkPut("mebaru", 40 + i, x, y, (Math.sin(T * 0.2 + i * 1.7) > 0 ? 0.08 : Math.PI - 0.08) + 0.15 * (1 - rise), T, { at: TTp, floor: (xx) => ttY(xx) + 0.2, z: TT_LZ - 0.4 - r() * 1.2, cm: 20 + (i % 3) * 2, sc: 2, freq: 1.3, amp: 0.04 });
+  }
+}
+const TP_LEG = [["#ffb45e", "糸とワームの動き"], ["#8ff0ff", "ワームが通った道（点）"], ["#2ecc71", "ねらう所"]];
+const tpTag = (txt = "地形とテトラの積み方は模式図（場所で変わる）") => { html += `<div style="position:absolute;${PORTRAIT ? "left:36px;top:150px" : "left:70px;top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${PORTRAIT ? 26 : 24}px;z-index:5">${txt}</div>`; };
+// 全体図（左上）：防波堤・テトラ・砂地の小さな断面。点＝いまのワーム
+function tpMini(u, y, a = 1, hi) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, X = (uu) => 6 + ((uu + 6) / 38) * 168, Y = (yy) => 34 - yy * 6;
+  let d = `M0 92 L0 ${Y(1)} L${X(-5)} ${Y(1)} L${X(-5)} ${Y(2.4)} L${X(0)} ${Y(2.4)}`;
+  for (let uu = 0; uu <= 32; uu += 0.5) d += ` L${X(uu).toFixed(1)} ${Y(ttBed(uu)).toFixed(1)}`;
+  d += " L180 92 Z";
+  let tp = "";
+  for (let uu = 0.6; uu < TT_END; uu += 1.4) for (let yy = ttTop(uu) - 0.6; yy > ttBed(uu) + 0.2; yy -= 1.2) tp += `<circle cx="${X(uu).toFixed(1)}" cy="${Y(yy).toFixed(1)}" r="3.6" fill="#9aa3a8" stroke="#6b757b" stroke-width=".8"/>`;
+  const ring = (k, col) => (hi && hi[k] ? `<circle cx="${X(TP_PIN[k][0])}" cy="${Y(TP_PIN[k][1] + 0.6)}" r="9" fill="none" stroke="${col}" stroke-width="3"/>` : "");
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 180}px;width:300px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px 10px 8px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:22px;font-weight:900;color:#10345a;margin:0 0 2px 6px">全体図（横から）</div>
+    <svg viewBox="0 0 180 92" width="100%"><rect x="0" y="0" width="180" height="34" fill="#cfe8f6"/><rect x="0" y="34" width="180" height="58" fill="#3f93c4"/>
+    <path d="${d}" fill="#d9c79c"/><rect x="0" y="${Y(2.4)}" width="${X(0)}" height="${92 - Y(2.4)}" fill="#b9bfc2"/>${tp}
+    <circle cx="${X(-1.6)}" cy="${Y(2.4) - 6}" r="4" fill="#ff8a2a"/>${ring("ana", "#e3412b")}${ring("kiwa", "#2ecc71")}${ring("oki", "#4cc3ff")}
+    ${u != null ? `<line x1="${X(TT_TIP[0])}" y1="${Y(TT_TIP[1])}" x2="${X(u)}" y2="${Y(y)}" stroke="#ffb45e" stroke-width="1.6"/><circle cx="${X(u)}" cy="${Y(y)}" r="5" fill="#ffb45e" stroke="#fff" stroke-width="2"/>` : ""}</svg></div>`;
+}
+const tpPinLab = (k, n, sub, a, cls, dx, dy) => label(TTp(TP_PIN[k][0], TP_PIN[k][1] + (k === "ana" ? 0 : 0.2), k === "ana" ? 3.6 : TT_LZ), n, sub, a, cls, dx, dy);
+
+Object.assign(SHOTS, {
+  tp_thumb(t, d, s) {
+    tpBase();
+    const T = 4;
+    tpHoleFish(T);
+    tpKiwaFish(T, 0.55, [18.1, ttBed(18.1) + 0.9]);
+    tpLook(3.2, -1.6, 7.5, 38, { oy: 1.4, ox: -3.2 });
+    ftFlush();
+    tpGlow(TP_HOLE[0][0], TP_HOLE[0][1], 3.6, 0.6, 1, "255,209,102");
+    tpGlow(TP_HOLE[1][0], TP_HOLE[1][1], 3.6, 0.6, 1, "255,209,102");
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：斜め上から見たテトラ帯。すき間が光り、A・B・C の印（最初の1秒から）
+  tp_hook(t, d, s) {
+    tpBase();
+    const P = PORTRAIT, T = t + 2, k = ease(t / Math.max(d, 1));
+    tpHoleFish(T);
+    tpKiwaFish(T);
+    tpLook(lerp(10.5, 10, k) + Math.sin(t * 0.05) * 0.3, -1.6, lerp(27, 22, k), 34, { oy: 3.4, ox: -2 });
+    ftFlush();
+    TP_HOLE.forEach(([u, y], i) => tpGlow(u, y, 3.6, 0.8, P ? 1 : clamp01((t - 0.3 - i * 0.25) / 0.4), "255,209,102", T));
+    const a = P ? 1 : clamp01(t / 0.3);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 380}px;background:linear-gradient(rgba(2,14,28,.62),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 20, P ? "テトラ帯、<br>どこに投げる？" : "テトラ帯、どこに投げる？", "海の中を見える化", a);
+    [["ana", "A"], ["kiwa", "B"], ["oki", "C"]].forEach(([kk, n], i) => mapPin(TTp(TP_PIN[kk][0], TP_PIN[kk][1] + 0.5, kk === "ana" ? 3.6 : TT_LZ), n, P ? 1 : clamp01((t - 1.0 - i * 0.3) / 0.3)));
+    tpTag();
+  },
+  // テトラの中：k0 防波堤の沖のテトラ → k1 中はすき間だらけ（光る）→ k2 すき間は魚の隠れ家（カサゴ・メバル）
+  tp_sec(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 10, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99), kk = k >= 1 ? ease(t1 / 2.5) : 0;
+    if (k >= 2) tpHoleFish(T);
+    tpLook(lerp(10.5, 4.8, kk), lerp(-1.6, -1.9, kk), lerp(27, 8.5, kk), 34, { oy: lerp(3.0, 0.6, kk), ox: lerp(-2, 0, kk) });
+    ftFlush();
+    const P2 = P ? 0.6 : 1;
+    if (k === 0) {
+      label(TTp(9, ttTop(9) + 0.2, -2), "テトラ（消波ブロック）", "波を消すために積まれている", fadeIn(t, 0.4), "gold", 0, P ? -300 : -200);
+      label(TTp(-2.5, 1.2, TT_LZ), "防波堤", "釣り人はこの上", fadeIn(t, 1.4), "", P ? 120 : 200, P ? 300 : 200);
+      label(TTp(24, ttBed(24), TT_LZ), "砂地", "", fadeIn(t, 2.2), "", 0, P ? -260 : -160);
+    }
+    if (k >= 1) TP_HOLE.forEach(([u, y], i) => tpGlow(u, y, 3.6, lerp(0.85, 0.6, kk), fadeIn(t1, 0.6 + i * 0.4), "255,209,102", T));
+    if (k === 1) label(TTp(TP_HOLE[1][0], TP_HOLE[1][1], 3.6), "すき間", "ブロックの間は、すき間だらけ", fadeIn(t1, 1.4), "gold ans", P ? 0 : 320, P ? -320 : -220);
+    if (k >= 2) {
+      label(TTp(TP_HOLE[0][0] + 0.3, TP_HOLE[0][1], 3.6), "カサゴ（ガシラ）", "すき間にひそむ", fadeIn(t2, 0.3), "gold", P ? 60 : 300, P ? -200 : -60);
+      label(TTp(TP_HOLE[1][0] - 0.4, TP_HOLE[1][1], 3.6), "メバル", "", fadeIn(t2, 1.0), "gold", P ? 60 : 300, P ? -200 : -90);
+      html += ftCard(P, `<b style="font-size:38px">すき間 ＝ <span style="color:#c2410c">魚の隠れ家</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">障害物に身を隠す、根魚の習性</div>`, fadeIn(t2, 1.8), [1220, 190, 640], [60, 1080, 960]);
+    }
+    tpTag();
+    ftNote(k >= 2 ? "魚は大きく表示。魚の動きはイメージ" : "テトラの積み方は模式図");
+  },
+  // ねらう場所：k0 A 穴 → k1 B 際（山のすそ・砂との境目）→ k2 C 沖の砂地
+  tp_three(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 30, t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    tpHoleFish(T);
+    tpKiwaFish(T);
+    tpLook(13.5 + Math.sin(t * 0.06) * 0.4, -2.4, 30, 32, { oy: 2.4 });
+    ftFlush();
+    TP_HOLE.forEach(([u, y]) => tpGlow(u, y, 3.6, 0.8, k === 0 ? fadeIn(t0, 0.6) : 0.45, "255,209,102", T));
+    tpPinLab("ana", "A 穴", "テトラのすき間", fadeIn(t0, 0.4), k === 0 ? "gold ans" : "", P ? 60 : 260, P ? -320 : -220);
+    if (k >= 1) { tpBand(TP_KIWA[0], TP_KIWA[1], fadeIn(t1, 0.3)); tpPinLab("kiwa", "B 際", "山のすそ・砂との境目", fadeIn(t1, 0.6), k === 1 ? "gold ans" : "", P ? 40 : 40, P ? -330 : -250); }
+    if (k >= 2) { tpBand(TP_OKI[0], TP_OKI[1], fadeIn(t2, 0.3), "#4cc3ff"); tpPinLab("oki", "C 沖", "その先の砂地", fadeIn(t2, 0.6), k === 2 ? "gold ans" : "", P ? 0 : 60, P ? -300 : -200); }
+    tpMini(null, null, 1, { ana: true, kiwa: k >= 1, oki: k >= 2 });
+    legend([["#ffd166", "A すき間（穴）"], ["#2ecc71", "B 際"], ["#4cc3ff", "C 沖の砂地"]]);
+    tpTag();
+  },
+  // クイズ：k0 防波堤の上からワームを投げる。どこ？ → k1 A・B・C → k2 答え B 際 → k3 A と C がちがう理由
+  tp_quiz(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 50, t2 = t - (s._k2 ?? 99), t3 = t - (s._k3 ?? 99);
+    tpHoleFish(T);
+    tpKiwaFish(T);
+    tpLook(13.5, -2.4, 30, 32, { oy: 2.4 });
+    ftFlush();
+    if (k <= 1) {
+      [["ana", "A"], ["kiwa", "B"], ["oki", "C"]].forEach(([kk, n], i) => mapPin(TTp(TP_PIN[kk][0], TP_PIN[kk][1] + 0.5, kk === "ana" ? 3.6 : TT_LZ), n, k === 1 ? fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.3) : 0.6));
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 330}px;background:linear-gradient(rgba(2,14,28,.66),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 62 : 54}px">クイズ　防波堤の上からワームを投げる<br><span style="color:#ffd166">どこをねらう？</span></div>`;
+      if (k === 1) {
+        const o = [["A", "穴（テトラのすき間）"], ["B", "際（山のすそ）"], ["C", "沖の砂地"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 1180}px;top:${P ? 1480 : 640}px;width:${P ? 840 : 640}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      tpBand(TP_KIWA[0], TP_KIWA[1], fadeIn(t2, 0.2));
+      tpGlow(TP_PIN.kiwa[0], TP_PIN.kiwa[1] + 0.5, TT_LZ, 1.3, fadeIn(t2, 0.3), "46,204,113", T);
+      tpPinLab("kiwa", "答え B：際", "隠れ家のすぐ外・地形が変わる所", fadeIn(t2, 0.3), "gold ans", P ? 0 : 60, P ? -330 : -250);
+      if (k >= 3) {
+        noMark(TTp(TP_PIN.ana[0], TP_PIN.ana[1] + 0.6, 3.6), "A：テトラに乗らないと届かない", fadeIn(t3, 0.3));
+        noMark(TTp(TP_PIN.oki[0] - 1.5, TP_PIN.oki[1] + 0.6, TT_LZ), "C：隠れる所が少ない", fadeIn(t3, 1.4));
+      }
+    }
+    if (k >= 2) { tpMini(null, null, 1, { kiwa: true }); tpTag(); }
+  },
+  // なぜ際？ k0 根魚は隠れて、近くを通るエサをねらう → k1 隠れ家のすぐ外をワームが通ると、飛び出して食う（イメージ）
+  tp_why(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 70, sim = ftRun("tp_main"), mk = sim.marks, t1 = t - (s._k1 ?? 99);
+    const ts = k >= 1 ? Math.min(mk.kiwa - 2.6 + t1 * 0.9, mk.kiwa + 1.2) : mk.go + 6 + (t % 6) * 0.4;
+    const st = tpRig(T, sim, ts, { vis: 7, trail: k >= 1 ? 4 : 0 });
+    const lg = k >= 1 ? ease((t1 - 2.2) / 0.9) : 0;
+    tpKiwaFish(T, lg * 0.85, [st.u + 0.12, st.y]);
+    tpHoleFish(T);
+    tpLook(17.4, ttBed(17.4) + 1.0, 5.6, 34, { oy: 0.5, pk: 1.5 });
+    ftFlush();
+    if (k === 0) {
+      html += ftCard(P, `<b style="font-size:36px">根魚は、<span style="color:#c2410c">隠れ家のそば</span>で待つ</b><div style="font-size:28px;font-weight:900;margin-top:6px">近くを通る小魚などをねらうと言われる</div>`, fadeIn(t, 0.4), [1120, 560, 700], [60, 1080, 960]);
+      label(TTp(16.9, ttBed(16.9) + 0.5, TT_LZ - 0.25), "カサゴ（ガシラ）", "山のすそで待つ", fadeIn(t, 1.2), "gold", P ? -60 : -300, P ? -280 : -170);
+    } else {
+      ftChip(lg > 0.2 ? "飛び出して、食いつく（イメージ）" : "隠れ家のすぐ外を、ワームが通る", lg > 0.2 ? "#c2410c" : "#e08a2a");
+    }
+    tpMini(st.u, st.y, 1, { kiwa: true });
+    if (!P) legend(TP_LEG.slice(0, 2));
+    ftNote("ワームの動きは簡単な物理モデルの計算。ワームと魚は大きく表示。魚の動きはイメージ");
+  },
+  // 引き方（計算）：k0 沖へ投げて底まで沈める → k1 リフト＆フォールで際へ → k2 際でじっくり → k3 テトラの手前で巻き上げる
+  tp_lure(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 90, sim = ftRun("tp_main"), mk = sim.marks;
+    const t1 = s._k1 ?? 99, t2 = s._k2 ?? 99, t3 = s._k3 ?? 99;
+    const sp1 = Math.max(1, (mk.kiwa - mk.go) / Math.max(3, t2 - t1 - 0.4)); // リフト＆フォールは、セリフの長さに合わせて早送り
+    let ts = k === 0 ? Math.min(t * 1.25, mk.go) : k === 1 ? Math.min(mk.go + (t - t1) * sp1, mk.kiwa) : k === 2 ? Math.min(mk.kiwa + (t - t2) * 0.8, mk.up) : mk.up + (t - t3) * 0.7;
+    ts = Math.min(ts, mk.done + 0.5);
+    const st = tpRig(T, sim, ts, { vis: 7, trail: k === 0 ? 0 : 7 });
+    tpKiwaFish(T);
+    // カメラはワームを追う（遠めに）
+    const [sx, sy] = ftSmooth(sim, ts, 0.8);
+    tpLook(lerp(sx + TT_TIP[0], 17, 0.35) - 0.5, Math.max(-5.2, sy + 1.4), k === 3 ? 13 : 10.5, 34, { pk: 1.5 });
+    if (k >= 2) tpBand(TP_KIWA[0], TP_KIWA[1], 0.8);
+    if (k >= 3) {
+      const pts = []; for (let u = 9; u <= 15.8; u += 0.25) pts.push(TTp(u, tpTopS(u), TT_LZ));
+      pathLine(pts, "#e3412b", fadeIn(t - t3, 0.3), 12, "16 12");
+      label(TTp(13, tpTopS(13), TT_LZ), "根がかりしやすい", "テトラの山を引きずらない", fadeIn(t - t3, 0.6), "", P ? 60 : 260, P ? -300 : -200);
+    }
+    ftFlush();
+    const c0 = st.c0;
+    if (c0.free) ftChip("沖の砂地へ投げて、底まで沈める", "#1f6fd1");
+    else if (ts >= mk.up) ftChip("テトラの手前で、巻き上げて回収", "#e3412b");
+    else if (ts >= mk.kiwa) ftChip("際：小さく揺らして、じっくり", "#2a9d5c");
+    else if (c0.kind === "up") ftChip("竿をゆっくり上げる", "#e08a2a");
+    else if (c0.kind === "down") ftChip("竿を下げて、落とす", "#3a6ea5");
+    else ftChip(ts < mk.go + 0.1 ? "着底" : "リフト＆フォールで、際へ", "#10345a");
+    if (k === 1 && sp1 > 1.2) html += `<div style="position:absolute;${P ? "right:40px;top:560px" : "right:60px;top:520px"};background:rgba(6,22,42,.85);border-radius:14px;padding:4px 16px;color:#fff;font-weight:900;font-size:28px">早送り ×${sp1.toFixed(1)}</div>`;
+    tpMini(st.u, st.y, 1, { kiwa: true });
+    ftCtl(st, 1, c0.free ? ["沈める", "#1f6fd1"] : ts >= mk.up ? ["巻く", "#e08a2a"] : ts >= mk.kiwa ? ["揺らす", "#2a9d5c"] : c0.kind === "up" ? ["上げる", "#e08a2a"] : c0.kind === "down" ? ["落とす", "#3a6ea5"] : ["止める", "#10345a"]);
+    if (!P) legend(TP_LEG.slice(0, 2));
+    ftNote("ワームの動きは簡単な物理モデルの計算（10g・重さ・水の抵抗・糸の張り）。ワームは大きく表示。地形は模式図");
+  },
+  // 掛かったら：穴へ逃げ込もうとする → すぐ巻いて底から引き離す
+  tp_hit(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 120, sim = ftRun("tp_hit"), mk = sim.marks;
+    const ts = Math.min(mk.bite - 1.2 + t * 0.85, mk.free);
+    const st = tpRig(T, sim, ts, { vis: 7 });
+    const on = ts >= mk.bite;
+    if (on) {
+      // 魚の口がワームの位置。頭は糸の向き（竿先の方）の反対＝テトラの穴の方へ向かおうとする
+      const ang = Math.PI + 0.35 * Math.sin(T * 7) - 0.25;
+      fkPut("kasago", 32, st.u + 0.03, st.y, ang, T, { at: TTp, floor: tpFloor, z: TT_LZ - 0.05, cm: 26, sc: TP_FISH_SC, freq: 3, amp: 0.12 });
+    } else tpKiwaFish(T, ease((ts - (mk.bite - 0.9)) / 0.9), [st.u + 0.12, st.y]);
+    tpHoleFish(T);
+    const [sx, sy] = ftSmooth(sim, ts, 0.6);
+    tpLook(sx + TT_TIP[0] - 1.2, Math.max(-5.4, sy + 1.1), 8.5, 34, { pk: 1.5 });
+    ftFlush();
+    if (!on) ftChip("際で、食った！", "#c2410c");
+    else if (ts < mk.reel) ftChip("穴へ逃げ込もうとする", "#c2410c");
+    else ftChip("すぐ巻いて、底から引き離す", "#e08a2a");
+    if (on && ts < mk.reel + 0.6) {
+      const q = project(TTp(st.u, st.y, TT_LZ)), r = project(TTp(15.6, ttBed(15.6) + 0.7, TT_LZ));
+      lines += `<line x1="${q.x}" y1="${q.y}" x2="${r.x}" y2="${r.y}" stroke="#e3412b" stroke-width="10" stroke-dasharray="18 12" opacity="${fadeIn(ts, mk.bite, 0.3)}"/>`;
+    }
+    tpMini(st.u, st.y, 1, { kiwa: true });
+    ftCtl(st, 1, ts >= mk.reel ? ["巻く", "#e08a2a"] : null);
+    if (!P) legend([TP_LEG[0]]);
+    ftNote("魚が引く力は仮の値。魚の動きはイメージ。ワームと魚は大きく表示");
+  },
+  // まずめ：k0 根魚も中層・表層まで浮いてエサを追う → k1 底だけでなく上の層も
+  tp_mazume(t, d, s, k) {
+    tpBase(0.12);
+    const P = PORTRAIT, T = t + 150, t1 = t - (s._k1 ?? 99);
+    const rise = ease((t - 0.6) / 4);
+    tpRise(T, rise);
+    tpHoleFish(T);
+    tpChinu(T, 1);
+    tpLook(13.8, -2.8, 17, 34, { oy: 0.8 });
+    ftFlush();
+    html += `<div style="position:absolute;${P ? "left:40px;top:230px" : "left:70px;top:180px"};background:linear-gradient(90deg,#ff9a3c,#ffcf6e);border-radius:18px;padding:10px 26px;color:#3a1d00;font-weight:900;font-size:${P ? 44 : 40}px;box-shadow:0 6px 18px rgba(0,0,0,.3)">朝・夕の まずめ</div>`;
+    label(TTp(13.5, -1.6, TT_LZ - 1.2), "メバル・根魚が浮く", "中層・表層まで、エサを追う", fadeIn(t, 2.2), "gold", P ? 0 : 280, P ? -300 : -200);
+    if (k >= 1) {
+      const pts = []; for (let u = 8; u <= 26; u += 0.5) pts.push(TTp(u, -1.6, TT_LZ));
+      pathLine(pts, "#2ecc71", fadeIn(t1, 0.3), 16, "2 18");
+      html += ftCard(P, `<b style="font-size:36px">底だけでなく、<span style="color:#1f8a4c">上の層</span>も探る</b>`, fadeIn(t1, 0.5), [1180, 330, 640], [60, 1080, 960]);
+    }
+    label(TTp(18.6, ttBed(18.6) + 1.8, TT_LZ - 1.6), "チヌ", "テトラまわりでねらわれる", fadeIn(t, 3.4), "", P ? 60 : 240, P ? 260 : 150);
+    ftNote("魚は大きく表示。魚の動きはイメージ（BE-PAL・シマノの解説から）");
+  },
+  // 安全：k0 テトラは滑る・人が乗る所ではない → k1 すき間に落ちると救助が難しい（海上保安庁）→ k2 防波堤の上から・ライフジャケット・立入禁止では釣らない
+  tp_safe(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 180, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    tpHoleFish(T);
+    if (k <= 1) {
+      tpLook(6 + Math.sin(t * 0.05) * 0.3, 0.2, 18, 32, { oy: 2.5 });
+      ftFlush();
+      // テトラの上：赤い帯と ×
+      const pts = []; for (let u = 0.4; u <= 9; u += 0.25) pts.push(TTp(u, tpTopS(u) + 0.2, 3.6));
+      pathLine(pts, "#e3412b", fadeIn(t, 0.4), 12, "16 12");
+      noMark(TTp(4.5, tpTopS(4.5) + 0.6, 3.6), "テトラの上に乗らない", fadeIn(t, 0.8));
+      if (k === 0) html += ftCard(P, `<b style="font-size:36px">テトラの上は<span style="color:#c2410c">とても滑る</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">波を消すための物。人が乗るようには作られていない</div>`, fadeIn(t, 1.0), [1060, 640, 760], [60, 1080, 960]);
+      if (k >= 1) {
+        TP_HOLE.forEach(([u, y]) => tpGlow(u, y, 3.6, 0.8, fadeIn(t1, 0.3), "227,65,43", T));
+        html += ftCard(P, `<b style="font-size:36px">すき間に落ちると、<span style="color:#c2410c">救助が難しい</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">命に関わる事故につながる</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁（第二管区）の呼びかけから</div>`, fadeIn(t1, 0.5), [1060, 640, 760], [60, 1080, 960]);
+      }
+    } else {
+      tpLook(-1.0 + t2 * 0.03, 3.2, 9.5, 34, { oy: 0.8, pk: 1.6 });
+      ftFlush();
+      label(TTp(-1.6, 3.6, TT_LZ - 0.3), "ライフジャケット", "滑りにくい靴も", fadeIn(t2, 0.4), "gold ans", P ? 120 : 260, P ? -330 : -200);
+      html += ftCard(P, `<b style="font-size:36px">釣りは<span style="color:#1f8a4c">防波堤の上</span>から</b><div style="font-size:28px;font-weight:900;margin-top:6px">立入禁止の場所では釣りをしない。波が高い日はやめる</div>`, fadeIn(t2, 1.0), [1060, 640, 780], [60, 1080, 960]);
+    }
+  },
+  tp_sum(t, d, s, k) {
+    tpBase();
+    const P = PORTRAIT, T = t + 220;
+    tpHoleFish(T);
+    tpKiwaFish(T);
+    tpPersp(t, 0.5);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["すき間", "テトラのすき間は、魚の隠れ家", "カサゴ（ガシラ）・メバルなどの根魚", "#c98a00"], ["際", "防波堤の上からは、山のすそ＝際", "隠れ家のすぐ外。沖から底を引いてくる", "#2a9d5c"], ["安全", "テトラには乗らない", "手前で巻き上げる。ライフジャケットを必ず", "#e3412b"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">テトラ帯 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 36}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 36 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;
