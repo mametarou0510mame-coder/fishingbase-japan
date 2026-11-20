@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ja" data-kit="freshwater">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e1622" />
+    <title>海水魚のモデル｜なちゃっと水族館</title>
+    <meta name="description" content="写真から作った海水魚・淡水魚・イカ（アオリイカ・コウイカ）・エビ（レッドビーシュリンプ・テナガエビ）の 3D モデルと動き。CC0 で自由に使えます。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="なちゃっと水族館" />
+    <meta property="og:title" content="魚・イカ・エビの 3D モデル｜なちゃっと水族館" />
+    <meta property="og:description" content="写真から作った海水魚・淡水魚・イカ・エビの 3D モデルと動き。CC0 で自由に使えます。" />
+    <style>
+      :root {
+        --bg: #0e1622;
+        --panel: #131e2c;
+        --line: #22324a;
+        --chip: #1c2a3c;
+        --chip-hover: #283a52;
+        --text: #e8eef4;
+        --muted: #93a8bd;
+        --accent: #ffd166;
+        --blue: #2f80ed;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+        font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif; }
+      body { display: grid; grid-template-columns: minmax(0, 1fr) 380px; height: 100vh; height: 100dvh; overflow: hidden; }
+      .hidden { display: none !important; }
+      .nb { white-space: nowrap; }
+      .local .web-only { display: none !important; }
+
+      #stage { position: relative; min-width: 0; min-height: 0; background: radial-gradient(ellipse at 50% 40%, #2a4a63 0%, #14263a 60%, #0c1520 100%); }
+      #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+      .over { position: absolute; pointer-events: none; }
+      #title { left: 20px; top: 16px; }
+      #title h1 { margin: 0; font-size: 20px; letter-spacing: 0.03em; }
+      #title p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+      #title a { pointer-events: auto; color: var(--muted); }
+      #now { left: 20px; right: 20px; bottom: 16px; }
+      #now .name { font-size: 26px; font-weight: 700; }
+      #now .name small { margin-left: 8px; font-size: 14px; font-weight: 400; color: var(--muted); }
+      #stage-tools { right: 14px; top: 14px; display: flex; gap: 6px; pointer-events: auto; }
+      #stage.air { background: radial-gradient(ellipse at 50% 40%, #d3e6f2 0%, #a9c9df 60%, #86aac4 100%); }
+      #stage.air #title, #stage.air #now .name { color: #13202e; }
+      #stage.air #title p, #stage.air #title a, #stage.air #now .name small { color: #3d5468; }
+      body:not(.local) #title { top: 62px; }
+      body:not(.local) aside { padding-top: 62px; }
+      body[data-mode="objects"] #slow { display: none !important; }
+      #loading { inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; }
+
+      aside { min-height: 0; overflow-y: auto; background: var(--panel); border-left: 1px solid var(--line); padding: 16px 16px 28px; }
+      h2 { margin: 18px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+      section:first-of-type h2 { margin-top: 0; }
+      .tabs { display: flex; gap: 4px; margin: -4px 0 16px; padding: 4px; border-radius: 11px; background: #0f1824; border: 1px solid var(--line); }
+      .tabs button { flex: 1 1 auto; padding: 8px 6px; text-align: center; font-size: 13px; font-weight: 600; white-space: nowrap; background: none; color: var(--muted); }
+      .tabs button:hover { background: var(--chip); color: var(--text); }
+      .tabs button.on { background: var(--blue); color: #fff; }
+      body:not([data-mode="fish"]) [data-for~="fish"]:not([data-for~="other"]), body:not([data-mode="other"]) [data-for~="other"]:not([data-for~="fish"]),
+      body[data-mode="objects"] [data-for~="fish"], body:not([data-mode="objects"]) [data-for="objects"] { display: none !important; }
+      body:not([data-tab="fresh"]) [data-tab-only="fresh"] { display: none !important; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      button, .btn { display: block; padding: 8px 10px; border: 0; border-radius: 9px; background: var(--chip); color: var(--text);
+        font: inherit; font-size: 14px; text-align: left; cursor: pointer; text-decoration: none; }
+      button:hover, .btn:hover { background: var(--chip-hover); }
+      button.on { background: var(--blue); }
+      button small, .btn small { display: block; font-size: 11px; color: var(--muted); }
+      button.on small { color: #dce9fb; }
+      .row { display: flex; gap: 6px; }
+      .row > * { flex: 1 1 0; text-align: center; }
+      .tool { padding: 6px 10px; font-size: 13px; background: rgba(19, 30, 44, 0.8); text-align: center; }
+
+      .dl { display: grid; gap: 6px; }
+      .btn.main { background: var(--blue); font-weight: 600; text-align: center; padding: 12px; }
+      .btn.main:hover { background: #4a93f2; }
+      .btn.main small { color: #dce9fb; font-weight: 400; }
+      .box { margin-top: 10px; padding: 10px 12px; border-radius: 9px; background: #0f1824; border: 1px solid var(--line);
+        font-size: 13px; line-height: 1.65; color: #c6d4e1; }
+      .box b { color: var(--text); }
+      .box code { padding: 1px 5px; border-radius: 4px; background: var(--chip); font-size: 12px; }
+      .lic { border-color: rgba(255, 209, 102, 0.35); }
+      .lic b { color: var(--accent); }
+      .model-note { position: relative; margin: -4px 0 14px; padding: 10px 12px 10px 42px; font-size: 12.5px; line-height: 1.7;
+        background: rgba(255, 209, 102, 0.1); border: 1px solid rgba(255, 209, 102, 0.55); border-left-width: 4px; color: #ecdcb6; }
+      .model-note::before { content: ""; position: absolute; left: 12px; top: 11px; width: 20px; height: 20px; background: var(--accent);
+        -webkit-mask: var(--warn-icon) center / contain no-repeat; mask: var(--warn-icon) center / contain no-repeat; }
+      .model-note b { color: var(--accent); }
+      .model-note:empty { display: none; }
+      :root { --warn-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2 1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z'/%3E%3C/svg%3E"); }
+      .lic .caution { color: #d9b977; }
+      .stats { margin-top: 8px; font-size: 12px; color: var(--muted); }
+      a { color: #8fc1ff; }
+
+      @media (max-width: 760px) {
+        body { grid-template-columns: 1fr; grid-template-rows: 52vh minmax(0, 1fr); grid-template-rows: 52dvh minmax(0, 1fr); }
+        aside { display: flex; flex-direction: column; border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+        .tabs, .model-note { order: -2; }
+        .tabs { margin: 0 0 12px; }
+        #secMotion { order: -1; }
+        #secMotion h2 { margin-top: 0; }
+        #secFish h2 { margin-top: 18px; }
+        #fishList { grid-template-columns: none; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 128px;
+          overflow-x: auto; padding-bottom: 4px; }
+        #title { left: 16px; top: 12px; max-width: calc(100% - 200px); }
+        #stage-tools { right: 10px; top: 10px; }
+        body:not(.local) #title { top: 60px; }
+        body:not(.local) #stage-tools { top: 60px; }
+        body:not(.local) aside { padding-top: 12px; }
+        #title h1 { font-size: 17px; }
+        #now { left: 16px; right: 16px; bottom: 10px; }
+        #now .name { font-size: 20px; }
+        #motionList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        button, .btn { font-size: 13px; padding: 7px 8px; }
+      }
+    </style>
+  </head>
+  <body data-tab="sea" data-mode="fish">
+    <main id="stage">
+      <div class="over" id="title">
+        <h1 id="pageTitle">海水魚のモデル</h1>
+        <p id="from" data-i18n="from">ゲーム「<a href="https://cda-social.github.io/fish/">ガチ釣りシミュレーターVR</a>」から</p>
+      </div>
+      <div class="over" id="stage-tools">
+        <button class="tool" id="slow" data-i18n="slow">スロー</button>
+        <button class="tool" id="resetView" data-i18n="resetView">視点を戻す</button>
+      </div>
+      <div class="over" id="now">
+        <div class="name" id="nowName"></div>
+      </div>
+      <div class="over" id="loading" data-i18n="loading">読み込み中…</div>
+    </main>
+
+    <aside>
+      <nav class="tabs" id="tabs">
+        <button data-tab="sea" data-i18n="tabSea">海水魚</button>
+        <button data-tab="fresh" data-i18n="tabFresh">淡水魚</button>
+        <button data-tab="other" data-i18n="tabOther">その他</button>
+        <button data-tab="objects" data-i18n="tabObjects">オブジェクト</button>
+      </nav>
+
+      <div class="box model-note" id="modelNote"></div>
+
+      <section id="secFish" data-for="fish other">
+        <h2 id="hList">魚</h2>
+        <div class="grid" id="fishList"></div>
+      </section>
+
+      <section id="secMotion" data-for="fish other">
+        <h2 data-i18n="hMotion">動き</h2>
+        <div class="grid" id="motionList"></div>
+      </section>
+
+      <section data-for="fish other">
+      <h2 data-i18n="hDetail">形</h2>
+      <div class="row" id="detailList">
+        <button data-detail="high" class="on" data-i18n="detailHigh">細かい形</button>
+        <button data-detail="low" data-i18n="detailLow">軽い形（遠く用）</button>
+      </div>
+      <div class="stats" id="stats"></div>
+      </section>
+
+      <section id="secObjects" data-for="objects">
+        <div id="objList"></div>
+        <div class="stats" id="objStats"></div>
+      </section>
+
+      <section>
+      <h2 class="web-only" data-i18n="hDownload">ダウンロード</h2>
+      <div class="dl web-only">
+        <a class="btn main" id="dlKit" download><span id="dlKitLabel"></span><small id="dlKitName"></small></a>
+      </div>
+      <div class="box web-only" id="howto"></div>
+
+      <div class="box lic" data-i18n="license">
+        <b>CC0 1.0（パブリックドメイン）</b><br />
+        モデル・テクスチャ・動きのプログラム、すべて改変・再配布・商用利用が自由です。許可もクレジット表記もいりません。<br />
+        <span class="caution">※ 生物学的な正しさは保証しません。あくまで、その魚「風」の 3D モデルです。</span><br />
+        <small>three.js は別のライブラリで、CC0 には含まれません（MIT ライセンス、© three.js authors。キットには入っておらず、使う人の three.js を読みます）。</small>
+      </div>
+
+      </section>
+    </aside>
+
+    <!-- Example of the fish kit. example.js is the code of this page and uses fish-kit.js and the files next to it. three.js r187 (MIT License, © three.js authors) is loaded from cdn.jsdelivr.net. Open this page over http; see README.md. -->
+    <div id="needHttp" hidden>
+      <div class="nh-box" lang="ja">
+        <h1>この見本は、http で開いてください</h1>
+        <p>ダブルクリックで開くと（<code>file://</code>）、ブラウザは安全のため、隣のファイル（<code>example.js</code>・<code>fish-kit.js</code>・モデルや写真）を読ませません。
+          このフォルダで小さなサーバーを動かして、http で開いてください。どれか 1 つで開けます。</p>
+        <ul>
+          <li><b>Python</b>：このフォルダで <code>python -m http.server 8000</code> を動かし、<code>http://localhost:8000/example.html</code> を開く</li>
+          <li><b>Node.js</b>：このフォルダで <code>npx serve</code> を動かし、出てきたアドレスに <code>/example.html</code> を付けて開く</li>
+          <li><b>VS Code</b>：拡張機能「Live Server」で <code>example.html</code> を開く</li>
+          <li><b>AI エージェント</b>：「このフォルダの example.html を http で開いて」と頼む</li>
+        </ul>
+        <p class="nh-small">three.js はインターネット（cdn.jsdelivr.net）から読むので、ネットにつないでおいてください。</p>
+      </div>
+      <div class="nh-box" lang="en">
+        <h1>Please open this example over http</h1>
+        <p>When you double-click it (<code>file://</code>), the browser does not let the page read the files next to it (<code>example.js</code>, <code>fish-kit.js</code>, models and photos).
+          Run a small web server in this folder and open the page over http. Any one of these works:</p>
+        <ul>
+          <li><b>Python</b>: run <code>python -m http.server 8000</code> in this folder and open <code>http://localhost:8000/example.html</code></li>
+          <li><b>Node.js</b>: run <code>npx serve</code> in this folder and open the address it prints, plus <code>/example.html</code></li>
+          <li><b>VS Code</b>: open <code>example.html</code> with the “Live Server” extension</li>
+          <li><b>AI agent</b>: ask it to “open example.html in this folder over http”</li>
+        </ul>
+        <p class="nh-small">three.js is loaded from the internet (cdn.jsdelivr.net), so stay online.</p>
+      </div>
+      <div class="nh-box" id="loadError" hidden>
+        <h1 lang="ja">読み込めませんでした</h1>
+        <p lang="ja"><code>example.js</code>・<code>fish-kit.js</code> か、three.js（インターネットの cdn.jsdelivr.net から読みます）を読み込めませんでした。
+          zip を解凍したままのフォルダか、インターネットにつながっているかを確かめて、読み直してください。</p>
+        <h1 lang="en">Could not load</h1>
+        <p lang="en">Could not load <code>example.js</code>, <code>fish-kit.js</code> or three.js (from cdn.jsdelivr.net on the internet).
+          Check that the folder is as unzipped and that you are online, then reload.</p>
+      </div>
+    </div>
+    <style>
+      #needHttp { position: fixed; inset: 0; z-index: 100; overflow: auto; padding: 24px 16px; background: var(--bg); }
+      #needHttp[hidden], #needHttp [hidden] { display: none; }
+      .nh-box { max-width: 680px; margin: 0 auto 20px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); line-height: 1.75; }
+      .nh-box h1 { margin: 0 0 10px; font-size: 20px; color: var(--accent); }
+      .nh-box p, .nh-box ul { margin: 0 0 10px; }
+      .nh-box ul { padding-left: 20px; }
+      .nh-box code { padding: 1px 5px; border-radius: 4px; background: var(--chip); font-size: 0.92em; overflow-wrap: anywhere; }
+      .nh-small { color: var(--muted); font-size: 14px; }
+    </style>
+    <script>
+      // ダブルクリックで開いた（file://）ときは、http で開く方法を出す。http でも読めなかったら、そう出す。日本語のブラウザなら日本語で
+      function showNeedHttp(failed) {
+        var box = document.getElementById('needHttp');
+        var file = location.protocol === 'file:';
+        var ja = /^ja/i.test(navigator.language || '');
+        box.querySelectorAll('.nh-box[lang]').forEach(function (b) { b.hidden = !file || b.lang !== (ja ? 'ja' : 'en'); });
+        document.getElementById('loadError').hidden = file || !failed;
+        box.hidden = false;
+      }
+      if (location.protocol === 'file:') showNeedHttp(false);
+    </script>
+    <script type="importmap">
+      { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/" } }
+    </script>
+    <script type="module" src="example.js" onerror="showNeedHttp(true)"></script>
+  </body>
+</html>

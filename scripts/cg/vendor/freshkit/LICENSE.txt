@@ -1,0 +1,17 @@
+﻿Fish Kit — CC0 1.0 Universal
+
+The models, photos, code and scripts in this kit are dedicated to the public domain.
+You may copy, modify, redistribute and use them, including for commercial purposes,
+without permission and without credit.
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+three.js is not part of this dedication. It is a separate library by the three.js authors under the MIT License,
+and it is not included in this kit. The kit's .js file imports it from your project, and example.html loads it
+from cdn.jsdelivr.net.
+
+このキットのモデル・写真・プログラム・スクリプトは CC0 1.0（パブリックドメイン）です。
+改変・再配布・商用利用を含め、許可もクレジット表記もなく自由に使えます。
+
+three.js は CC0 には含まれません。three.js の作者たちによる別のライブラリで、MIT ライセンスです。
+three.js はこのキットには入っていません。キットの .js ファイルはあなたのプロジェクトの three.js を読み込んで使い、
+example.html はインターネット（cdn.jsdelivr.net）から読みます。

@@ -3,7 +3,6 @@
 // イカは動きや発色が複雑なため、glb や FBX のモデルはありません。three.js ではこのファイルでそのまま動きます。ほかのエンジンではこのコードを移植してください（README.md）。
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-// src/game/squid/squid-species.ts
 var smooth$2 = (a, b, x) => {
 	const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
 	return t * t * (3 - 2 * t);
@@ -156,7 +155,6 @@ var SQUIDS = {
 		heightFix: .8
 	}
 };
-// src/game/squid/squid.ts
 var NEUTRAL = {
 	mantle: 0,
 	breathe: 1,
@@ -196,7 +194,6 @@ var NEUTRAL = {
 	flat: 0,
 	colorLife: 1
 };
-/** 近づく速さ（1/秒）。書いていないものは 4 */
 var RATE = {
 	mantle: 14,
 	pale: 10,
@@ -217,7 +214,6 @@ var RATE = {
 	armFlare: 8,
 	colorLife: 2
 };
-/** 部品の番号（シェーダーの色分けにも使う） */
 var PART = {
 	mantle: 0,
 	head: 1,
@@ -231,11 +227,7 @@ var smooth$1 = (a, b, x) => {
 	const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
 	return t * t * (3 - 2 * t);
 };
-var lookCache = /* @__PURE__ */ new Map();
-/**
-* 写真と形を読む（なければ null：数式の形と描いた模様で作る）。
-* url：ファイル名（aori.json など）→ 読む URL（配布するイカのキット・ギャラリーが渡す。ふつうは public/squid/）
-*/
+var lookCache = new Map();
 function loadSquidLook(id, url) {
 	let p = lookCache.get(id);
 	if (!p) {
@@ -274,7 +266,6 @@ function loadSquidLook(id, url) {
 	}
 	return p;
 }
-/** 0〜1 を配列の中で直線に補う */
 var sample$1 = (arr, t) => {
 	const x = Math.min(1, Math.max(0, t)) * (arr.length - 1);
 	const i = Math.min(arr.length - 2, Math.floor(x));
@@ -349,7 +340,13 @@ function formOf(sp, shape) {
 		}
 	};
 }
+var SQUID_DEV = {
+	parts: { value: 0 },
+	noPhoto: { value: 0 },
+	shade: 1
+};
 var SKIN_HEAD = `
+uniform float uDevParts; uniform float uDevNoPhoto;
 uniform vec3 uBase; uniform vec3 uBelly; uniform vec3 uSpot; uniform vec3 uShine;
 uniform float uDark; uniform float uPale; uniform float uCloud; uniform float uFlicker; uniform float uTime;
 uniform float uDense; uniform float uPattern; uniform float uMale; uniform float uParts;
@@ -385,35 +382,29 @@ float sqDash = 0.0;
 float sqDashR = 0.0;
 {
   float part = vSkin.w;
-  float side = vSkin.z;               // 胴・頭・ひれ：+1 背中〜−1 お腹。腕・触腕：+1 口の側（吸盤）
-  vec2 p = vSkin.xy;                   // 胴長で割った皮の上の長さ（前後・まわり）
+  float side = vSkin.z;
+  vec2 p = vSkin.xy;
   bool limb = part > 1.5 && part < 3.5;
   bool fin = part > 3.5 && part < 4.5;
   float back = limb ? 1.0 - smoothstep(-0.2, 0.7, side) : smoothstep(-0.65, -0.05, side);
-  // 流れる雲：濃さはこのまま（濃くしすぎない）。見える時間は Squid.update の色のゆらぎで長くしている
   float band = uCloud * smoothstep(0.2, 0.95, sin(p.x * 13.0 - uTime * 4.5));
   vec3 col;
   float alpha = 1.0;
-  if (uPhoto > 0.5) {
+  if (uPhoto > 0.5 && uDevNoPhoto < 0.5) {
     vec3 w = vW;
-    // ひれは 1 枚の板の表と裏：上を向いた面は背中の写真、下を向いた面はお腹の写真
     if (fin) w = ((vW.x > 0.0) == gl_FrontFacing) ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 1.0, 0.0);
     col = texture2D(uTexT, vUvT).rgb * w.x + texture2D(uTexB, vUvB).rgb * w.y + texture2D(uTexS, vUvS).rgb * w.z;
     if (part > 2.5 && part < 3.5) col = mix(col, col * 1.25 + 0.04, 0.5);
-    // 透けたひれ：写真は暗い背景に透けた膜なので、膜の色と透け具合に分ける（C = a·F + (1 − a)·bg）
     if (fin) {
       float a = clamp((lum(col) - lum(uBg)) / max(0.05, uFinLum - lum(uBg)), uFinMin, 1.0);
       col = clamp((col - (1.0 - a) * uBg) / a, 0.0, 1.0);
       alpha = a;
     }
-    // 腕の色を白っぽく（コウイカ：写真の腕は赤橙が強すぎる）。写真の明るさの濃淡は残し、暗い所は薄い茶色に
     if (limb && uArmWhite > 0.0) {
       float l = lum(col);
       vec3 w = mix(uArmBrown, uArmLight, smoothstep(0.04, 0.32, l));
-      // 頭から出たすぐの所は半分だけ（つなぎ目に色の段を作らない）
       col = mix(col, w * (0.8 + 0.5 * smoothstep(0.1, 0.5, l)), uArmWhite * mix(0.55, 1.0, smoothstep(0.03, 0.12, p.x)));
     }
-    // 腕の口の側は、白っぽい皮と吸盤
     if (limb) {
       vec2 q = vec2(p.x * 70.0, p.y * 70.0);
       float d = length(fract(q) - 0.5);
@@ -421,26 +412,20 @@ float sqDashR = 0.0;
       col = mix(col, mix(uBelly, col, 0.35), oral * 0.8);
       col = mix(col, col * 0.62, oral * smoothstep(0.38, 0.28, d) * 0.7);
     }
-    // 色素胞：濃くなると粒が広がってつながり、薄いと縮んで透ける
-    // 白く抜けると色素胞は縮むが、流れる雲（band）の通る所だけは少し開いて、斑点がうっすら流れて見える
     float dd = uDark - 0.3;
     float wgt = 0.3 + 0.7 * back;
     float keep = 1.0 - uPale;
     float bandW = band * (1.0 - 0.15 * uPale);
     vec3 deep = uSpot * (0.75 + 0.5 * lum(col));
     col = mix(col, deep, clamp(dd * 1.1 * keep + bandW * 0.55, 0.0, 1.0) * 0.6 * wgt * (1.0 - 0.3 * uPale));
-    // 斑点の粒は重い（イカを描く重さの 6 割強）。ふだんの色（斑点の濃さ 0）では、計算しても絵が変わらないので飛ばす
     float spotW = clamp((dd * 1.6 + uFlicker * 0.25) * keep + bandW, 0.0, 1.0) * 0.75 * wgt;
     float spotPale = 0.0;
     if (spotW > 0.0) {
       float grow = clamp(dd * 1.4 * keep + bandW, 0.0, 1.2);
       float spots = max(chromo(p * 30.0 * uDense, grow, 0.0), 0.75 * chromo(p * 62.0 * uDense + 17.0, grow * 0.85, 5.0));
       col = mix(col, uSpot * 0.85, spots * spotW);
-      // 白く抜けるときの明るくする混ぜで斑点まで薄まらないよう、雲の斑点の所は白さを少し弱める
       spotPale = spots * bandW * 0.6 * uPale;
     }
-    // 白っぽくなる：色素胞が縮んで透け、腹の色の方へ少し寄る。真っ白にはせず、写真の模様は残す
-    // 写真の色そのものを少し明るく、少し色を抜く（掛け算なので模様は残る。白へ混ぜると模様が消えて真っ白になる）
     vec3 pl = mix(col, vec3(lum(col)), 0.35) * 1.22 + 0.015;
     col = mix(col, pl, clamp(uPale + max(0.0, -dd) * 0.8, 0.0, 1.0) * (1.0 - clamp(spotPale, 0.0, 1.0)));
   } else {
@@ -467,15 +452,12 @@ float sqDashR = 0.0;
     }
     col = mix(col, mix(col, uBelly, 0.6), uPale * 0.45);
   }
-  // アオリのオス：背中の白い点
   if (uMale > 0.5 && part < 0.5) {
     vec2 q = p * vec2(9.0, 7.0);
     float s = sqH(floor(q));
     float d = length(fract(q) - 0.5);
     col = mix(col, vec3(0.95), smoothstep(0.22, 0.14, d) * step(0.55, s) * smoothstep(0.2, 0.6, side) * (1.0 - 0.6 * uDark));
   }
-  // アオリ：背中全体に横向き（胴のまわりの向き）に入った、光る短い線（虹色素胞）。前から後ろへ 1cm ほどおきの列に、
-  // ずらして並ぶ。線ごとに青白〜黄白で、見る角度で光る線が入れ替わる（光り方は SKIN_DASH）。色素胞が広がると少し隠れる
   if (uDash > 0.0 && part < 0.5) {
     float sb = (p.x - uDashS.x) / uDashS.y;
     float along = smoothstep(0.03, 0.1, sb) * (1.0 - smoothstep(0.85, 0.95, sb));
@@ -487,22 +469,16 @@ float sqDashR = 0.0;
     float cx = 0.5 + (sqH(c + 3.0) - 0.5) * 0.4;
     float cy = 0.5 + (sqH(c + 7.0) - 0.5) * 0.35;
     float hl = 0.24 + 0.18 * sqH(c + 5.0);
-    // 線はまん中ほど太く明るく、両端へ細く消える。少し弓なり
     float dy = abs(f.y - cy) / hl;
     float bend = (f.y - cy) * (f.y - cy) * 0.25;
     float w = 0.0013 * (1.0 - 0.7 * dy * dy);
     float aa = fwidth(p.x) * 0.8;
     float dash = smoothstep(w + aa, w * 0.2, abs(f.x - cx - bend) * 0.03) * smoothstep(1.0, 0.5, dy) * step(0.22, rr);
-    // 明るさは線ごとにばらつく
     dash *= 0.35 + 0.65 * sqH(c + 23.0);
     sqDash = dash * dorsal * along * uDash * (1.0 - 0.5 * clamp(uDark - 0.3, 0.0, 1.0));
     sqDashR = sqH(c + 17.0);
-    // 線の所は下の肌を暗めにする（明るい肌に光を足すと色が飛んで白くなる。光の色をそのまま見せる）
     col = mix(col, col * 0.35, sqDash * 0.7);
   }
-  // 透明感：腕と触腕の先だけ透ける（根元から胴長の 14% までは透けず、32% から先がいちばん透ける）。胴・頭・漏斗は透けない。
-  // ふち（斜めに見える所）ほど透け、正面は少しだけ。色の濃い所（色素胞の斑点・濃い模様）は透けにくく、白く抜けるともっと透ける。
-  // ひれは写真から決めた透け方のまま
   if (limb && uClear > 0.0) {
     vec3 vn = normalize(vNormal);
     float facing = abs(dot(vn, normalize(vViewPosition)));
@@ -510,19 +486,16 @@ float sqDashR = 0.0;
     float edge = 1.0 - 0.92 * uClear;
     float a = mix(edge, center, smoothstep(0.05, 0.85, facing));
     a -= 0.15 * uPale * uClear;
-    // 濃い所：本当に濃い斑点（linear の明るさで 0.15 より暗い）と、色が濃くなったとき
     float pig = clamp((0.15 - lum(col)) * 7.0, 0.0, 1.0) + clamp(uDark - 0.45, 0.0, 1.0) * 0.5;
     a = mix(a, 1.0, clamp(pig, 0.0, 1.0) * 0.7);
     alpha = mix(1.0, clamp(a, 0.08, 1.0), smoothstep(0.14, 0.32, p.x));
   }
-  // コウイカの甲の針：骨の色
   if (part > 5.5) { col = vec3(0.79, 0.72, 0.6); alpha = 1.0; sqDash = 0.0; }
-  if (uParts > 0.5) { col = partColor(part); alpha = 1.0; sqDash = 0.0; }
+  if (uParts > 0.5 || uDevParts > 0.5) { col = partColor(part); alpha = 1.0; sqDash = 0.0; }
   diffuseColor.rgb = col;
   diffuseColor.a *= alpha;
 }
 `;
-/** 背中の光る短い線の光り方：見る角度で青・緑・金色と色が変わる。面の向きと見る向きで、光る線が入れ替わる（きらきら） */
 var SKIN_DASH = `
 #include <emissivemap_fragment>
 if (sqDash > 0.0) {
@@ -530,7 +503,6 @@ if (sqDash > 0.0) {
   vec3 dv = normalize(vViewPosition);
   float glint = 0.5 + 0.5 * sin(dot(dn, vec3(9.0, 7.0, 5.0)) + dot(dv, vec3(6.0, -8.0, 4.0)) + sqDashR * 40.0);
   glint = 0.25 + 0.75 * smoothstep(0.35, 0.95, glint);
-  // 色は見る角度で、青 → 緑 → 金色と移り変わる（線ごとにずれる）
   float hue = fract(sqDashR + dot(dv, vec3(0.35, 0.5, 0.25)) + dot(dn, vec3(0.2, -0.3, 0.25)));
   vec3 iri = hue < 0.33 ? mix(vec3(0.35, 0.65, 1.0), vec3(0.3, 1.0, 0.45), hue / 0.33)
     : hue < 0.66 ? mix(vec3(0.3, 1.0, 0.45), vec3(1.0, 0.85, 0.35), (hue - 0.33) / 0.33)
@@ -538,7 +510,6 @@ if (sqDash > 0.0) {
   totalEmissiveRadiance += iri * sqDash * glint * 1.15;
 }
 `;
-/** 色は sRGB で書く（new THREE.Color(r, g, b) は明るさがそのまま linear になり、白っぽくなる） */
 var srgb = (c) => new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace);
 function makeSkinUniforms(sp, look) {
 	const bg = look ? srgb(look.shape.bg) : new THREE.Color(0, 0, 0);
@@ -589,13 +560,14 @@ function skinMaterial(u, opts) {
 	});
 	m.onBeforeCompile = (sh) => {
 		Object.assign(sh.uniforms, u);
+		sh.uniforms.uDevParts = SQUID_DEV.parts;
+		sh.uniforms.uDevNoPhoto = SQUID_DEV.noPhoto;
 		sh.vertexShader = "attribute vec4 aSkin; attribute vec2 aUvT; attribute vec2 aUvB; attribute vec2 aUvS; attribute vec3 aW;\nvarying vec4 vSkin; varying vec2 vUvT; varying vec2 vUvB; varying vec2 vUvS; varying vec3 vW;\n" + sh.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\nvSkin = aSkin; vUvT = aUvT; vUvB = aUvB; vUvS = aUvS; vW = aW;");
 		sh.fragmentShader = SKIN_HEAD + sh.fragmentShader.replace("#include <color_fragment>", SKIN_FRAG).replace("#include <emissivemap_fragment>", SKIN_DASH);
 	};
 	m.customProgramCacheKey = () => "squid-skin2";
 	return m;
 }
-/** 両目で 1 つの材質。aEye = (目の球の中の位置, 左右 +1 / −1) */
 function eyeMaterial(sp, look, pupil, parts) {
 	const m = new THREE.MeshStandardMaterial({
 		roughness: .06,
@@ -627,6 +599,8 @@ function eyeMaterial(sp, look, pupil, parts) {
 	m.onBeforeCompile = (sh) => {
 		sh.uniforms.uPupil = pupil;
 		sh.uniforms.uParts = parts;
+		sh.uniforms.uDevParts = SQUID_DEV.parts;
+		sh.uniforms.uDevNoPhoto = SQUID_DEV.noPhoto;
 		sh.uniforms.uIris = { value: iris };
 		sh.uniforms.uRing = { value: ring };
 		sh.uniforms.uLid = { value: lid };
@@ -635,15 +609,14 @@ function eyeMaterial(sp, look, pupil, parts) {
 		sh.uniforms.uTexS = { value: look?.tex.side ?? null };
 		sh.uniforms.uEye = { value: eyeUv };
 		sh.vertexShader = "attribute vec4 aEye;\nvarying vec3 vEyeP; varying float vMirror;\n" + sh.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\nvEyeP = aEye.xyz; vMirror = aEye.w;");
-		sh.fragmentShader = "uniform float uPupil; uniform float uParts; uniform vec3 uIris; uniform vec3 uRing; uniform vec3 uLid; uniform float uW;\nuniform float uPhoto; uniform sampler2D uTexS; uniform vec4 uEye;\nvarying vec3 vEyeP; varying float vMirror;\n" + sh.fragmentShader.replace("#include <color_fragment>", `#include <color_fragment>
+		sh.fragmentShader = "uniform float uDevParts; uniform float uDevNoPhoto;\nuniform float uPupil; uniform float uParts; uniform vec3 uIris; uniform vec3 uRing; uniform vec3 uLid; uniform float uW;\nuniform float uPhoto; uniform sampler2D uTexS; uniform vec4 uEye;\nvarying vec3 vEyeP; varying float vMirror;\n" + sh.fragmentShader.replace("#include <color_fragment>", `#include <color_fragment>
         {
           vec3 d = normalize(vEyeP);
           float rr = length(d.xy);
           vec3 col;
-          if (uPhoto > 0.5) {
+          if (uPhoto > 0.5 && uDevNoPhoto < 0.5) {
             vec2 uv = vec2(uEye.x + vMirror * d.x * uEye.z, 1.0 - (uEye.y - d.y * uEye.w));
             col = texture2D(uTexS, uv).rgb;
-            // 丸い瞳は、開くと写真の瞳より大きく黒くなる（コウイカの W の瞳は写真のまま）
             if (uW < 0.5) col = mix(col, vec3(0.005), smoothstep(0.03, 0.0, rr - (0.18 + 0.3 * uPupil)) * smoothstep(0.55, 0.75, uPupil));
           } else {
             col = mix(uIris * 0.75, uIris * 1.2, smoothstep(0.15, 0.6, rr));
@@ -661,14 +634,13 @@ function eyeMaterial(sp, look, pupil, parts) {
             col = mix(col, vec3(0.01), pup);
             col = mix(uLid, col, smoothstep(0.5, 0.6, d.z));
           }
-          if (uParts > 0.5) col = vec3(0.1);
+          if (uParts > 0.5 || uDevParts > 0.5) col = vec3(0.1);
           diffuseColor.rgb = col;
         }`);
 	};
 	m.customProgramCacheKey = () => "squid-eye3-" + sp.pupil + (look ? "-photo" : "");
 	return m;
 }
-/** flip で表と裏を入れ替える（行が +Z へ進む筒は、そのままだと内側が表になる） */
 function gridIndex(rows, cols, flip = false) {
 	const idx = [];
 	for (let i = 0; i < rows - 1; i++) for (let j = 0; j < cols - 1; j++) {
@@ -696,7 +668,6 @@ function addPhotoAttrs(g) {
 	g.setAttribute("aUvS", new THREE.BufferAttribute(new Float32Array(n * 2), 2));
 	g.setAttribute("aW", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
 }
-/** 休んでいる形の位置と法線から、背中・お腹・横の写真のどこを貼るかを決める（胴の座標。m は頭など胴の座標へ直す行列） */
 function bakePhoto(g, shape, hf, m, finFlag = false) {
 	const pos = g.attributes.position;
 	const nrm = g.attributes.normal;
@@ -740,7 +711,6 @@ function bakePhoto(g, shape, hf, m, finFlag = false) {
 		"aW"
 	]) g.attributes[k].needsUpdate = true;
 }
-/** three.js の computeVertexNormals と同じ計算（面の法線を足して長さ 1 に。結果は同じ）を、配列のまま速く（2.5 倍ほど） */
 function fastNormals(g) {
 	const P = g.attributes.position.array;
 	const N = g.attributes.normal.array;
@@ -777,7 +747,6 @@ function fastNormals(g) {
 	}
 	g.attributes.normal.needsUpdate = true;
 }
-/** 中心の線に沿った筒（腕・触腕）。点の数 n、まわり m。先は 0 の太さで閉じる */
 var Tube = class {
 	geo;
 	n;
@@ -786,7 +755,6 @@ var Tube = class {
 	N = new THREE.Vector3();
 	B = new THREE.Vector3();
 	D = new THREE.Vector3();
-	/** まわりの角ごとの角・cos・sin（毎回同じなので 1 回だけ） */
 	ang;
 	cos;
 	sin;
@@ -804,7 +772,6 @@ var Tube = class {
 			this.sin[j] = Math.sin(a);
 		}
 	}
-	/** 写真の貼り方：sig（根元 0〜先 1）と、まわりの角（0 = 口の側）から、背中の写真の uv */
 	setPhoto(uv) {
 		const T = this.geo.attributes.aUvT.array;
 		const W = this.geo.attributes.aW.array;
@@ -818,7 +785,6 @@ var Tube = class {
 		this.geo.attributes.aUvT.needsUpdate = true;
 		this.geo.attributes.aW.needsUpdate = true;
 	}
-	/** 点 pts、太さ r(i)、平たさ flat(i)（口の側の向きに縮める）、最初の口の側の向き oral */
 	set(pts, r, flat, oral, part, ml) {
 		const { n, m, T, N, B, D } = this;
 		const pos = this.geo.attributes.position.array;
@@ -864,10 +830,7 @@ var Tube = class {
 		this.geo.attributes.aSkin.needsUpdate = true;
 	}
 };
-/** 胴の格子の周りの角：お腹の真ん中（−π/2）から始めて、継ぎ目をお腹に隠す */
 var phiAt = (j, na) => -Math.PI / 2 + j / na * Math.PI * 2;
-/** 粒の絵を 1 枚にまとめた絵（4 × 2 マス、1 マス 128px）。0 = ぼかした丸（水しぶき・砂）、1〜4 = 墨のもや、5・6 = 流れて伸びた墨の筋。
-*  白で描き、色は粒ごとに付ける。作るのに 0.15 秒ほどかかるので、SquidFx を作るとき（読み込みのとき）に作っておく */
 var TILE = {
 	soft: 0,
 	ink: 1,
@@ -943,7 +906,6 @@ var puffAtlas = (() => {
 		return t;
 	};
 })();
-/** 粒をまとめて 1 回で描く板（カメラの方を向く）。粒ごとに位置・大きさ・回り・色・濃さ・絵のマス */
 var PUFF_VS = `
 attribute vec3 aPos;
 attribute float aSize;
@@ -964,7 +926,6 @@ void main() {
   gl_Position = projectionMatrix * mvPosition;
   vUv = (vec2(mod(aTile, 4.0), floor(aTile / 4.0)) + uv) / vec2(4.0, 2.0);
   vCol = aCol;
-  // カメラのすぐ前の粒は薄くする（VR で頭が墨の雲に入っても、大きな板が画面いっぱいに何枚も重ならない）
   float d = -mvPosition.z;
   vAlpha = aAlpha * smoothstep(0.06, 0.06 + aSize * 0.9, d);
   #include <fog_vertex>
@@ -985,31 +946,24 @@ void main() {
   #include <colorspace_fragment>
   #include <fog_fragment>
 }`;
-/** 一度に出せる粒の数（超えたら古いものから消す） */
 var MAX_PUFFS = 700;
-/** 堤防の跡の数（墨・濡れた跡それぞれ） */
 var MAX_STAINS = 300;
-/** 墨の調整（イカを見るページのつまみで変える。掛ける数）。水の中の墨は、見るページでつまみを合わせた値（2026-11-11） */
 var INK_TUNE = {
-	/** 水の中の墨：粒の数・大きさ・広がり（大きくなる分）・消えるまでの長さ・濃さ・吐く勢い */
 	waterAmount: 2.75,
 	waterSize: 3,
 	waterSpread: 3,
 	waterLife: 1.05,
 	waterDark: .56,
 	waterSpeed: 1.7,
-	/** 水の外で噴くとき：墨の粒の割合（1 で半分が墨）・噴く強さ・粒の大きさ・何回に 1 回墨を混ぜるか（0 で混ぜない） */
 	airInk: 1,
 	airPower: 1,
 	airSize: 1,
 	airEvery: 3,
-	/** 堤防（陸に置いた所）に落ちた墨の跡：大きさ・濃さ・残る秒数（濡れた跡はその半分で乾く） */
 	stainSize: 1,
 	stainDark: 1,
 	stainLife: 30
 };
 ({ ...INK_TUNE });
-/** 墨の跡の形：にじんだ丸と、まわりに飛んだ小さな粒 */
 var stainTex = (() => {
 	let t = null;
 	return () => {
@@ -1040,7 +994,6 @@ var stainTex = (() => {
 		return t;
 	};
 })();
-/** 堤防の跡を、墨と濡れた跡それぞれ 1 回で描く（板を並べた InstancedMesh。跡ごとの濃さは aAlpha） */
 function stainLayer(wet) {
 	const g = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
 	const alpha = new THREE.InstancedBufferAttribute(new Float32Array(MAX_STAINS), 1);
@@ -1073,7 +1026,6 @@ function stainLayer(wet) {
 		alpha
 	};
 }
-/** 値のノイズを 4 段重ねたもの（0〜1）。seed で模様が変わる */
 function fbmNoise(seed) {
 	const hash = (x, y) => {
 		const h = Math.sin(x * 127.1 + y * 311.7 + seed * 74.7) * 43758.5453;
@@ -1101,7 +1053,6 @@ function fbmNoise(seed) {
 		return s / .94;
 	};
 }
-/** 堤防に描く墨の判子（4 種類、128px）：縁がノイズで大きく崩れたしみ。中も濃いところと薄いところがある */
 var inkStamps = (() => {
 	let arr = null;
 	return () => {
@@ -1132,7 +1083,6 @@ var inkStamps = (() => {
 		return arr;
 	};
 })();
-/** 落ちた墨が広がる段（秒、大きさ、濃さ）：まず小さく濃く、1〜2 秒かけて薄くにじみ広がる */
 var SPLAT_STAGES = [
 	[
 		0,
@@ -1155,45 +1105,45 @@ var SPLAT_STAGES = [
 		.1
 	]
 ];
-/** 堤防の墨：地面に敷いた 1 枚の絵（2m 四方、768px）へ、落ちた墨を判子で描き重ねる。
-*  重なるとひとつながりの跡になり、重なった所ほど濃く、縁は薄く崩れる。落ちた墨はしばらくにじんで広がり、
-*  残る秒数をかけて少しずつ薄れる。絵を送るのは変わったときだけ（多くても 1 秒に 20 回） */
-var InkGround = class InkGround {
-	static SIZE = 2;
-	static PX = 768;
-	mesh;
-	g;
-	tex;
-	cx = 0;
-	cz = 0;
-	placed = false;
+var INK_RGB = new THREE.Vector3(.055, .047, .055);
+var INK_VS = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+var INK_FS = `
+uniform sampler2D map;
+uniform vec3 uInk;
+uniform float uOpacity;
+varying vec2 vUv;
+void main() {
+  float a = texture2D(map, vUv).a * uOpacity;
+  if (a < 0.004) discard;
+  gl_FragColor = vec4(mix(vec3(1.0), uInk, a), 1.0);
+}`;
+var inkTileGeo = null;
+var InkFloor = class InkFloor {
+	persist;
+	maxTiles;
+	floorY;
+	static TILE = 2;
+	static PX = 512;
+	group = new THREE.Group();
+	tiles = new Map();
 	splats = [];
-	dirty = false;
+	opacity = { value: 1 };
 	upT = 0;
 	fadeT = 0;
-	constructor() {
-		const c = document.createElement("canvas");
-		c.width = c.height = InkGround.PX;
-		this.g = c.getContext("2d");
-		this.tex = new THREE.CanvasTexture(c);
-		this.tex.colorSpace = THREE.SRGBColorSpace;
-		this.tex.anisotropy = 4;
-		const m = new THREE.MeshStandardMaterial({
-			map: this.tex,
-			transparent: true,
-			roughness: .2,
-			metalness: 0,
-			depthWrite: false,
-			polygonOffset: true,
-			polygonOffsetFactor: -2,
-			polygonOffsetUnits: -2
-		});
-		this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(InkGround.SIZE, InkGround.SIZE).rotateX(-Math.PI / 2), m);
-		this.mesh.renderOrder = 4;
-		this.mesh.visible = false;
+	clockLast = -1;
+	time = 0;
+	constructor(persist = false, maxTiles = persist ? 9 : 4, floorY) {
+		this.persist = persist;
+		this.maxTiles = maxTiles;
+		this.floorY = floorY;
+		this.group.name = "ink-floor";
 		inkStamps();
 	}
-	/** 墨の粒が落ちた：飛んできた向きへ伸びたしみと、まわりに小さなしぶき */
 	drop(at, size, vx, vz) {
 		const sp = Math.hypot(vx, vz);
 		this.add(at, size * 2.4 * INK_TUNE.stainSize, sp > 1e-4 ? Math.atan2(vz, vx) : Math.random() * Math.PI * 2, 1 + Math.min(1.4, sp * .6));
@@ -1203,21 +1153,14 @@ var InkGround = class InkGround {
 			this.add(at.clone().add(new THREE.Vector3(Math.cos(a) * d, 0, Math.sin(a) * d)), size * (.4 + Math.random() * .5) * INK_TUNE.stainSize, a, 1);
 		}
 	}
-	/** 漏斗の口から地面へ垂れた墨のたまり */
 	pool(at, r) {
 		this.add(at, r * INK_TUNE.stainSize, Math.random() * Math.PI * 2, 1.1 + Math.random() * .4);
 	}
 	add(at, r, ang, el) {
-		if (!this.placed) {
-			this.placed = true;
-			this.cx = at.x;
-			this.cz = at.z;
-			this.mesh.position.set(at.x, at.y + 6e-4, at.z);
-			this.mesh.visible = true;
-		}
 		this.splats.push({
 			x: at.x,
 			z: at.z,
+			y: at.y,
 			r,
 			ang,
 			el,
@@ -1226,63 +1169,145 @@ var InkGround = class InkGround {
 			stage: 0
 		});
 		this.fadeT = 0;
+		this.opacity.value = 1;
+	}
+	tile(ix, iz, y) {
+		const key = ix + "," + iz;
+		let t = this.tiles.get(key);
+		if (t) return t;
+		if (this.tiles.size >= this.maxTiles) {
+			let oldK = "";
+			let old = Infinity;
+			for (const [k, v] of this.tiles) if (v.last < old) {
+				old = v.last;
+				oldK = k;
+			}
+			this.removeTile(oldK);
+		}
+		const T = InkFloor.TILE;
+		const c = document.createElement("canvas");
+		c.width = c.height = InkFloor.PX;
+		const tex = new THREE.CanvasTexture(c);
+		tex.anisotropy = 4;
+		const mat = new THREE.ShaderMaterial({
+			uniforms: {
+				map: { value: tex },
+				uInk: { value: INK_RGB },
+				uOpacity: this.opacity
+			},
+			vertexShader: INK_VS,
+			fragmentShader: INK_FS,
+			transparent: true,
+			depthWrite: false,
+			blending: THREE.CustomBlending,
+			blendEquation: THREE.AddEquation,
+			blendSrc: THREE.ZeroFactor,
+			blendDst: THREE.SrcColorFactor,
+			blendSrcAlpha: THREE.ZeroFactor,
+			blendDstAlpha: THREE.OneFactor,
+			polygonOffset: true,
+			polygonOffsetFactor: -1,
+			polygonOffsetUnits: -1
+		});
+		inkTileGeo ??= new THREE.PlaneGeometry(T, T).rotateX(-Math.PI / 2);
+		const mesh = new THREE.Mesh(inkTileGeo, mat);
+		mesh.position.set((ix + .5) * T, this.floorY ? this.floorY() + 5e-4 : y + 6e-4, (iz + .5) * T);
+		mesh.renderOrder = -1;
+		mesh.frustumCulled = false;
+		if (this.persist) mesh.onBeforeRender = () => this.tick();
+		this.group.add(mesh);
+		t = {
+			mesh,
+			g: c.getContext("2d"),
+			tex,
+			x0: ix * T,
+			z0: iz * T,
+			dirty: false,
+			last: this.time
+		};
+		this.tiles.set(key, t);
+		return t;
+	}
+	removeTile(key) {
+		const t = this.tiles.get(key);
+		if (!t) return;
+		this.tiles.delete(key);
+		this.group.remove(t.mesh);
+		t.tex.dispose();
+		t.mesh.material.dispose();
+	}
+	tick() {
+		const now = performance.now() / 1e3;
+		const dt = this.clockLast < 0 ? 0 : Math.min(.1, now - this.clockLast);
+		this.clockLast = now;
+		if (dt > 0) this.update(dt);
 	}
 	update(dt) {
-		if (!this.placed) return;
-		const g = this.g;
-		const P = InkGround.PX;
+		this.time += dt;
+		if (this.splats.length === 0 && this.tiles.size === 0) return;
+		const P = InkFloor.PX;
+		const T = InkFloor.TILE;
 		const stamps = inkStamps();
 		for (let i = this.splats.length - 1; i >= 0; i--) {
 			const s = this.splats[i];
 			s.age += dt;
 			while (s.stage < SPLAT_STAGES.length && s.age >= SPLAT_STAGES[s.stage][0]) {
 				const [, sc, a] = SPLAT_STAGES[s.stage++];
-				const R = s.r * sc / InkGround.SIZE * P;
-				g.save();
-				g.translate(((s.x - this.cx) / InkGround.SIZE + .5) * P, ((s.z - this.cz) / InkGround.SIZE + .5) * P);
-				g.rotate(s.ang + s.stage * .4);
-				g.scale(s.el, 1);
-				g.globalAlpha = Math.min(1, a * INK_TUNE.stainDark);
-				g.drawImage(stamps[(s.k + s.stage) % 4], -R, -R, 2 * R, 2 * R);
-				g.restore();
-				this.dirty = true;
+				const r = s.r * sc;
+				const R = r / T * P;
+				const ext = r * Math.max(1, s.el);
+				for (let ix = Math.floor((s.x - ext) / T); ix <= Math.floor((s.x + ext) / T); ix++) for (let iz = Math.floor((s.z - ext) / T); iz <= Math.floor((s.z + ext) / T); iz++) {
+					const t = this.tile(ix, iz, s.y);
+					const g = t.g;
+					g.save();
+					g.translate((s.x - t.x0) / T * P, (s.z - t.z0) / T * P);
+					g.rotate(s.ang + s.stage * .4);
+					g.scale(s.el, 1);
+					g.globalAlpha = Math.min(1, a * INK_TUNE.stainDark);
+					g.drawImage(stamps[(s.k + s.stage) % 4], -R, -R, 2 * R, 2 * R);
+					g.restore();
+					t.dirty = true;
+					t.last = this.time;
+				}
 			}
 			if (s.stage >= SPLAT_STAGES.length) this.splats.splice(i, 1);
 		}
-		this.fadeT += dt;
-		const life = Math.max(1, INK_TUNE.stainLife);
-		this.mesh.material.opacity = 1 - smooth$1(.7, 1, this.fadeT / life);
-		if (this.fadeT >= life) {
-			this.clear();
-			return;
+		if (!this.persist) {
+			this.fadeT += dt;
+			const life = Math.max(1, INK_TUNE.stainLife);
+			this.opacity.value = 1 - smooth$1(.7, 1, this.fadeT / life);
+			if (this.fadeT >= life) {
+				this.clear();
+				return;
+			}
 		}
 		this.upT -= dt;
-		if (this.dirty && this.upT <= 0) {
-			this.tex.needsUpdate = true;
-			this.dirty = false;
-			this.upT = 1 / 20;
+		if (this.upT <= 0) {
+			let sent = false;
+			for (const t of this.tiles.values()) if (t.dirty) {
+				t.tex.needsUpdate = true;
+				t.dirty = false;
+				sent = true;
+			}
+			if (sent) this.upT = 1 / 20;
 		}
 	}
-	dispose() {
-		this.tex.dispose();
-		this.mesh.material.dispose();
-		this.mesh.geometry.dispose();
+	get tileCount() {
+		return this.tiles.size;
 	}
 	clear() {
-		this.g.clearRect(0, 0, InkGround.PX, InkGround.PX);
+		for (const k of [...this.tiles.keys()]) this.removeTile(k);
 		this.splats = [];
-		this.placed = false;
-		this.mesh.visible = false;
-		this.tex.needsUpdate = true;
+	}
+	dispose() {
+		this.clear();
+		this.group.removeFromParent();
 	}
 };
-/** 墨・水しぶき・砂けむり（ワールドの中に置く）。粒はすべて 1 回で、堤防の跡は墨と濡れた跡で 2 回で描く */
 var SquidFx = class {
 	group = new THREE.Group();
 	puffs = [];
-	/** 地面の高さ（水しぶきと砂はそこで止まる） */
 	floorY = -1e9;
-	/** 地面が堤防（落ちた墨が跡になって残る） */
 	hard = false;
 	stains = [];
 	time = 0;
@@ -1290,9 +1315,12 @@ var SquidFx = class {
 	geo;
 	at;
 	view = new THREE.Matrix4();
-	ground = new InkGround();
+	ground;
+	ownGround;
 	wetStains = stainLayer(true);
-	constructor() {
+	constructor(ink) {
+		this.ownGround = !ink;
+		this.ground = ink ?? new InkFloor();
 		const geo = new THREE.InstancedBufferGeometry();
 		const quad = new THREE.PlaneGeometry(1, 1);
 		geo.index = quad.index;
@@ -1327,12 +1355,9 @@ var SquidFx = class {
 		this.mesh.frustumCulled = false;
 		this.mesh.renderOrder = 5;
 		this.mesh.onBeforeRender = (_r, _s, camera) => this.view.copy(camera.matrixWorldInverse);
-		this.group.add(this.mesh, this.ground.mesh, this.wetStains.mesh);
+		this.group.add(this.mesh, this.wetStains.mesh);
+		if (this.ownGround) this.group.add(this.ground.group);
 	}
-	/** 水の中の墨。spread 0 = 粘りのある塊（アオリ：イカほどの大きさの濃い塊が、細い筋を引いてその場に残る）、
-	*  1 = 広がる雲（コウイカ：薄めの雲が大きくふくらんで広がる）。
-	*  漏斗から吐いた順に 0.3 秒ほどかけて出し（先に出たものほど遠くへ）、流れの筋になる。粒は 3 種類：
-	*  濃い芯・まわりの雲・細い筋。水に止められてすぐ遅くなり、ゆっくり渦を巻き、少し沈み、ふくらみながら薄れる */
 	ink(at, dir, size, spread) {
 		const T = INK_TUNE;
 		const blob = spread < .5;
@@ -1383,7 +1408,6 @@ var SquidFx = class {
 			p.p.addScaledVector(d, (r() - .3) * size * .15);
 		}
 	}
-	/** 水の外で漏斗から噴く水（と墨） */
 	squirt(at, dir, inky, power = 1) {
 		const T = INK_TUNE;
 		at = at.clone();
@@ -1402,7 +1426,6 @@ var SquidFx = class {
 			p.stain = ink ? "ink" : "wet";
 		}
 	}
-	/** 水面を割ったときの水しぶき */
 	splash(at, power = 1) {
 		for (let i = 0; i < 26; i++) {
 			const a = Math.random() * Math.PI * 2;
@@ -1410,7 +1433,6 @@ var SquidFx = class {
 			this.add(at, v, new THREE.Color(.88, .94, 1), .6, .008, .016, .8, 9.8, .3);
 		}
 	}
-	/** 砂けむり（コウイカが砂に潜る） */
 	sand(at, size) {
 		for (let i = 0; i < 4; i++) {
 			const v = new THREE.Vector3((Math.random() - .5) * .15, .03 + Math.random() * .05, (Math.random() - .5) * .15);
@@ -1449,7 +1471,8 @@ var SquidFx = class {
 			if (st.age >= Math.max(1, T.stainLife) * (st.kind === "wet" ? .5 : 1)) this.stains.splice(i, 1);
 		}
 		this.writeStains();
-		this.ground.update(dt);
+		if (this.ownGround) this.ground.update(dt);
+		else this.ground.tick();
 		const tt = this.time;
 		for (let i = this.puffs.length - 1; i >= 0; i--) {
 			const p = this.puffs[i];
@@ -1486,7 +1509,6 @@ var SquidFx = class {
 		}
 		this.upload();
 	}
-	/** 出ている粒を、カメラから遠い順に並べて板の並びへ書き込む */
 	upload() {
 		const cam = this.view.elements;
 		const live = [];
@@ -1531,10 +1553,8 @@ var SquidFx = class {
 	clearStains() {
 		this.stains = [];
 		this.writeStains();
-		this.ground.clear();
+		if (this.ownGround) this.ground.clear();
 	}
-	/** 堤防の跡：墨は地面に敷いた 1 枚の絵へ描き重ねる（InkGround）。
-	*  水は、コンクリートが濡れて少し暗くなった跡（墨の半分の時間で乾く）。飛んできた向きへ少し伸び、残る秒数の終わりに薄れて消える */
 	addStain(at, size, vx, vz, kind) {
 		if (kind === "ink") {
 			this.ground.drop(at, size, vx, vz);
@@ -1589,21 +1609,18 @@ var SquidFx = class {
 		L.alpha.addUpdateRange(0, Math.max(n.wet, had));
 		L.alpha.needsUpdate = true;
 	}
-	/** もう使わない（場面から外し、GPU の入れ物と絵を放す。粒の絵と跡の絵は共通なので残す） */
 	dispose() {
 		this.puffs = [];
 		this.stains = [];
 		this.group.removeFromParent();
 		this.geo.dispose();
 		this.mesh.material.dispose();
-		this.ground.dispose();
+		if (this.ownGround) this.ground.dispose();
 		this.wetStains.mesh.geometry.dispose();
 		this.wetStains.mesh.material.dispose();
 		this.wetStains.mesh.dispose();
 	}
 };
-/** 形の細かさ。MS 胴の前後の輪の数・MA 胴のまわり・FU ひれの前後・FV ひれの幅の点・HR 頭の前後・
-*  ARM_N 腕の節・TENT_N 触腕の節・TUBE_M 腕のまわり・EYE 目の球の分け方・FUN 漏斗のまわり */
 var RES = {
 	full: {
 		MS: 46,
@@ -1635,29 +1652,23 @@ var Squid = class {
 	ml;
 	look;
 	form;
-	/** ワールドに置く入れ物（位置と向きは behavior が決める） */
 	root = new THREE.Group();
 	head = new THREE.Group();
 	pose = { ...NEUTRAL };
 	target = { ...NEUTRAL };
-	/** behavior が直接決める（近づけない）もの */
-	direct = /* @__PURE__ */ new Set();
-	/** 触腕を伸ばす先（胴の座標） */
+	direct = new Set();
 	tentTarget = new THREE.Vector3();
 	hold = null;
-	/** 地面の高さ（ワールド）。決めると、腕・触腕・ひれがその下へもぐらない（陸に置いたとき、海底） */
 	ground = null;
 	uniforms;
 	pupilU = { value: .6 };
 	time = 0;
-	/** 色のゆらぎ：今の演出（茶色の斑点・白っぽく抜ける）と、その経過・長さ、次までの秒 */
 	ep = null;
 	epAge = 0;
 	epLen = 0;
 	epT = 2 + Math.random() * 8;
 	finPhase = 0;
 	breathPhase = 0;
-	/** 休んでいる形で作る（写真の貼り方を決めるとき） */
 	resting = false;
 	mantleGeo;
 	finGeo = [];
@@ -1667,7 +1678,6 @@ var Squid = class {
 	funnel;
 	funnelMesh;
 	funnelLen;
-	/** 漏斗のもとの形（曲げる前）と、曲げたあとの口の位置・向き（漏斗の座標）、曲がりの遅れ */
 	funBase;
 	funTip = new THREE.Vector3();
 	funDir = new THREE.Vector3(0, 0, 1);
@@ -1676,18 +1686,14 @@ var Squid = class {
 	funSeed = Math.random() * 10;
 	gBody = new THREE.Vector3();
 	gHead = new THREE.Vector3();
-	/** 描く形：体（胴・頭・腕・触腕・漏斗・ひれ・甲の針をまとめた 1 つ）と目（両目で 1 つ）。部品ごとに描くと 1 匹 17〜18 回描くので、まとめて 2 回にする */
 	meshes = [];
-	/** 部品ごとの形（形の計算に使うだけで描かない。毎フレーム、胴の座標へ直して meshes へ写す。軽い版はここから形を集める） */
 	parts = [];
-	/** 体と目の材質 */
 	bodyMaterial;
 	eyeMaterial;
 	bodySegs = [];
 	eyeSegs = [];
 	mtx = new THREE.Matrix4();
 	nmx = new THREE.Matrix3();
-	/** 毎フレーム使い回す入れ物（作り捨てると Quest でメモリの片付けが増えて引っかかる） */
 	mInv = new THREE.Matrix4();
 	kW = new THREE.Vector3();
 	hh = {
@@ -1727,13 +1733,10 @@ var Squid = class {
 		side: new THREE.Vector3(),
 		up: new THREE.Vector3(0, 1, 0)
 	};
-	/** 胴のまわりの角ごとの cos・sin（毎回同じなので 1 回だけ） */
 	phiTab = null;
-	/** 形を計算し直すのを何フレームに 1 回にするか（遠くのイカは 2〜3 にして軽くする。位置と向きは毎フレーム動く） */
 	every = 1;
 	tick = 0;
 	lag = 0;
-	/** 形の細かさ（full：ふつう、lite：軽い版の元） */
 	res;
 	constructor(id, look = null, detail = "full") {
 		const res = this.res = RES[detail];
@@ -1885,13 +1888,11 @@ var Squid = class {
 		this.buildMerged();
 		this.update(0);
 	}
-	/** 部品（描かない。形の計算用） */
 	add(m, parent) {
 		parent.add(m);
 		m.visible = false;
 		this.parts.push(m);
 	}
-	/** 部品をまとめた体と目を作る（写真の貼り方はここで写す。形・法線・皮の座標は毎フレーム sync で写す） */
 	buildMerged() {
 		const partOf = (m) => m.geometry.attributes.aSkin.getW(0);
 		const RANK = [
@@ -1958,20 +1959,17 @@ var Squid = class {
 			"aEye"
 		], false, this.eyeMaterial);
 	}
-	/** もう使わない（場面から外し、GPU の入れ物と材質を放す。写真の絵は種類ごとに共通なので残す） */
 	dispose() {
 		this.root.removeFromParent();
 		for (const m of [...this.parts, ...this.meshes]) m.geometry.dispose();
 		this.bodyMaterial.dispose();
 		this.eyeMaterial.dispose();
 	}
-	/** obj の行列を胴（root）の座標まで掛ける */
 	toRoot(o, out) {
 		out.copy(o.matrix);
 		for (let p = o.parent; p && p !== this.root; p = p.parent) out.premultiply(p.matrix);
 		return out;
 	}
-	/** 部品の形を、まとめた体と目へ写す（胴の座標へ直す） */
 	sync() {
 		for (const [segs, mesh] of [[this.bodySegs, this.meshes[0]], [this.eyeSegs, this.meshes[1]]]) {
 			const A = mesh.geometry.attributes;
@@ -2019,39 +2017,31 @@ var Squid = class {
 		for (const m of this.meshes) n += (m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3;
 		return Math.round(n);
 	}
-	/** 胴の前の縁から腕の根元までの長さ（m）。抱く筒やエギの位置の目安 */
 	get armBaseZ() {
 		return this.form.headLen;
 	}
-	/** いちばん長い腕（m） */
 	get armMax() {
 		return Math.max(...this.form.arms);
 	}
-	/** 触腕を伸ばせる長さ（m） */
 	get tentReach() {
 		return this.sp.tentMax * this.ml;
 	}
-	/** 胴の模型の長さ（m） */
 	get mantleLen() {
 		return this.form.mlen;
 	}
-	/** ひれのある所（胴の前の縁 0 〜 後ろの端 1） */
 	get finRange() {
 		return [this.form.fin0, this.form.fin1];
 	}
-	/** お腹の下の端（胴の座標の y、いちばん低い所） */
 	get bellyDepth() {
 		let d = 0;
 		for (let i = 0; i <= 10; i++) d = Math.max(d, this.form.bot(i / 10));
 		return d;
 	}
-	/** 胴の半幅のいちばん広い所 */
 	get halfWidth() {
 		let d = 0;
 		for (let i = 0; i <= 10; i++) d = Math.max(d, this.form.a(i / 10));
 		return d;
 	}
-	/** 胴の点（s 0〜1 前→後ろ、断面の角 phi）。縮み・息・地面でつぶれるのを入れる */
 	mantlePoint(s, phi, out) {
 		const { sp, form: F, pose } = this;
 		const sc = Math.min(1, Math.max(0, s));
@@ -2103,26 +2093,19 @@ var Squid = class {
 		g.computeVertexNormals();
 		return g;
 	}
-	/** 触腕の掌部の先（ワールド） */
 	tentTip(i, out) {
 		return out.copy(this.tents[i].tip).applyMatrix4(this.head.matrixWorld);
 	}
-	/** 両方の触腕の掌部の真ん中（胴の座標） */
 	clubCenter(out) {
 		out.copy(this.tents[0].tip).add(this.tents[1].tip).multiplyScalar(.5);
 		return out.applyMatrix4(this.head.matrix);
 	}
-	/** 漏斗の口（ワールド）と噴く向き（ワールド） */
 	funnelOut(pos, dir) {
 		this.funnel.updateWorldMatrix(true, false);
 		this.funnelMesh.updateMatrix();
 		pos.copy(this.funTip).applyMatrix4(this.funnelMesh.matrix).applyMatrix4(this.funnel.matrixWorld);
 		dir.copy(this.funDir).applyMatrix4(this.mInv.makeScale(1, this.funnelMesh.scale.y, 1)).transformDirection(this.funnel.matrixWorld);
 	}
-	/** 漏斗をやわらかい管にする（もとの形を毎回曲げ直す。休んでいる形・写真の貼り方を決める形は曲げない）：
-	*  - 前（腕の方）へたたむほど 3 割まで短く縮め、先を頭の中へ反らす（口が頭の下から出て、切り口が見えないように）
-	*  - 向きを変えると、先が遅れてついてくる（ばねで戻る）。ふだんも少したわみ、左右にゆれる
-	*  - 口の開き（funnelOpen）は先ほど大きく変わり、根元はあまり変わらない */
 	bendFunnel(aim, open, dt) {
 		const g = this.funnelMesh.geometry;
 		const P = g.attributes.position.array;
@@ -2180,7 +2163,6 @@ var Squid = class {
 	setMale(on) {
 		this.uniforms.uMale.value = on ? 1 : 0;
 	}
-	/** 写真を貼る／描いた模様にする（写真があるときだけ） */
 	setPhoto(on) {
 		this.uniforms.uPhoto.value = on && this.look ? 1 : 0;
 	}
@@ -2259,7 +2241,6 @@ var Squid = class {
 		u.uFlicker.value = Math.max(pose.flicker, .35 * brown);
 		u.uTime.value = this.time;
 	}
-	/** 胴の格子：mantlePoint と同じ計算を、前後の輪ごとに決まる値（太さ・縮み）は輪ごとに 1 回、まわりの角の cos・sin は表から（結果は同じ） */
 	buildMantle() {
 		const { MS, MA } = this.res;
 		const { sp, form: F, ml, pose } = this;
@@ -2329,8 +2310,6 @@ var Squid = class {
 			for (let c = 0; c < 3; c++) n[a + c] = n[b + c] = (n[a + c] + n[b + c]) / 2;
 		}
 	}
-	/** ひれ：胴の横の線に付いたリボン。付け根の向き（胴の輪郭の外向き）から、上下の角を足しながら外へ並べる。
-	*  波は前から後ろへ（finDir=1）流れ、−1 で逆、0 で前後の波が打ち消し合う。たたむと胴の丸みに沿って下へ巻く */
 	buildFins() {
 		const { FU, FV } = this.res;
 		const { sp, form: F, ml, pose } = this;
@@ -2396,7 +2375,6 @@ var Squid = class {
 			fastNormals(g);
 		}
 	}
-	/** 点（obj の座標）を地面の上へ出す */
 	keepAbove(pts, obj, lift) {
 		if (this.ground === null || this.resting) return;
 		const m = obj.matrixWorld;
@@ -2411,7 +2389,6 @@ var Squid = class {
 			}
 		}
 	}
-	/** 頭の座標での抱く筒 */
 	holdInHead() {
 		if (!this.hold) return null;
 		const inv = this.mInv.copy(this.head.matrix).invert();
@@ -2421,9 +2398,6 @@ var Squid = class {
 		h.r = this.hold.r;
 		return h;
 	}
-	/** 腕：20 節の鎖。根元は頭の中から始め（頭の先で腕がいきなり生えて見えない）、根元は隣の腕と触れ合う太さで頭の輪郭にそろえる。
-	*  開き（spread）は根元の向きではなく、頭から出た所から少しずつ曲げて付ける（束がつながったまま開く）。
-	*  外向き（r）と横（b）の軸のまわりに少しずつ曲げながら先へ進み、重さで垂らし、抱く筒の中に入った点を外へ押し出してから、筒を張る */
 	buildArms() {
 		const { ARM_N } = this.res;
 		const { form: F, ml } = this;
@@ -2516,7 +2490,6 @@ var Squid = class {
 			}, () => .85, tmp.copy(radial).multiplyScalar(-1), PART.arm, ml);
 		}
 	}
-	/** 触腕：ふだんは腕の間で縮め（コウイカは隠す）、伸ばすときは掌部を tentTarget へまっすぐ飛ばす */
 	buildTentacles() {
 		const { TENT_N } = this.res;
 		const { sp, form: F, ml } = this;
@@ -2574,7 +2547,6 @@ var Squid = class {
 		}
 	}
 };
-/** T を R の方へ a だけ回す（R も一緒に回す） */
 function rotate(T, R, a) {
 	if (a === 0) return;
 	const c = Math.cos(a);
@@ -2585,8 +2557,6 @@ function rotate(T, R, a) {
 	R.set(R.x * c - T.x * s, R.y * c - T.y * s, R.z * c - T.z * s);
 	T.set(tx, ty, tz);
 }
-/** 筒（a〜b、半径 r）の中に入った点を外へ押し出す。抱くときに腕が巻き付いて見える。
-*  押し出したあと、節の長さを元の長さへ戻す（腕がのびない） */
 var _ab = new THREE.Vector3();
 var _c = new THREE.Vector3();
 var _d = new THREE.Vector3();
@@ -2610,9 +2580,7 @@ function pushOut(pts, h, rArm, w, ds) {
 		if (dist > 1e-6) p.copy(c).addScaledVector(d, want / dist);
 	}
 }
-// src/game/squid/squid-behavior.ts
 var clamp = (x, a, b) => Math.min(b, Math.max(a, x));
-/** 動きで腕を根元から束ねるときの強さ（つまみでは 1 まで。動きでは 0.6 まで） */
 var BUNDLE = .6;
 var smooth = (a, b, x) => {
 	const t = clamp((x - a) / (b - a), 0, 1);
@@ -2624,7 +2592,6 @@ var angTo = (a, b, k) => {
 	while (d < -Math.PI) d += Math.PI * 2;
 	return a + d * k;
 };
-/** 可動域：部品ごとに順に、いっぱいまで動かす（w = −1〜1 の往復） */
 var RANGE = [
 	{
 		label: "外套膜：縮む −25% 〜 ふくらむ +10%",
@@ -2722,7 +2689,6 @@ var SquidBrain = class {
 	fx;
 	egi;
 	mode = "hover";
-	/** いまの段（画面に出す） */
 	label = "";
 	home = new THREE.Vector3();
 	floorY = 0;
@@ -2730,17 +2696,11 @@ var SquidBrain = class {
 	pitch = 0;
 	roll = 0;
 	vel = new THREE.Vector3();
-	/** 釣り人の方（糸を引く先、ワールド） */
 	anchor = new THREE.Vector3();
-	/** 手で動かすときの姿勢（画面のつまみが書く） */
 	manual = { ...NEUTRAL };
-	/** エギを抱いている */
 	holding = false;
-	/** 水の外 */
 	inAir = false;
-	/** 水面の高さ（水面へ寄せる・吊り上げたとき） */
 	surfaceY = 0;
-	/** 水面を見せる */
 	showSurface = false;
 	egiShown = false;
 	t = 0;
@@ -2772,7 +2732,6 @@ var SquidBrain = class {
 	get ml() {
 		return this.squid.ml;
 	}
-	/** 向いている方（腕の方、ワールド） */
 	forward(out = this.fwd) {
 		return out.set(Math.sin(this.yaw) * Math.cos(this.pitch), -Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch));
 	}
@@ -2823,7 +2782,6 @@ var SquidBrain = class {
 		this.squid.hold = null;
 		this.squid.target.wrap = 0;
 	}
-	/** エギを抱いた形にすぐする（掛かった・吊るしたから見るとき） */
 	grabNow() {
 		this.holding = true;
 		this.setHold();
@@ -2840,20 +2798,16 @@ var SquidBrain = class {
 			r: this.egi.r
 		};
 	}
-	/** エギを、イカの前 0.75m・少し上に置く（沈みながら漂う） */
 	placeEgi(ahead = .75, up = .1) {
 		const f = this.forward(this.tmp);
 		this.egi.obj.position.copy(this.squid.root.position).addScaledVector(f, ahead).add(new THREE.Vector3(.12, up, 0));
 		this.egi.obj.rotation.set(.35, this.yaw + 1.2, 0, "YXZ");
 		this.egiVel.set(0, -.025, 0);
 	}
-	/** ジェット：ふくらむ → 縮んで噴く → 吸い直す。噴いた反対へ進む */
-	/** 水の外で噴くとき、この回は墨を混ぜるか（INK_TUNE.airEvery 回に 1 回。0 で混ぜない） */
 	inkyJet() {
 		const n = Math.round(INK_TUNE.airEvery);
 		return n > 0 && this.jets % n === 0;
 	}
-	/** 今すぐ墨を吐く（見るページのボタン）。水の中は墨の雲、水の外は漏斗から墨を噴く */
 	spitInk() {
 		const sq = this.squid;
 		const pos = new THREE.Vector3();
@@ -2898,7 +2852,6 @@ var SquidBrain = class {
 		}
 		return this.jetT >= 0 && t < .3;
 	}
-	/** 向きを dir へ少しずつ回す（k は 1 秒あたり） */
 	face(dir, k, dt, maxPitch = .7) {
 		if (dir.lengthSq() < 1e-8) return;
 		const d = this.tmp2.copy(dir).normalize();
@@ -2908,12 +2861,10 @@ var SquidBrain = class {
 		this.yaw = angTo(this.yaw, yaw, a);
 		this.pitch += (pitch - this.pitch) * a;
 	}
-	/** 体を水平に戻す */
 	level(dt, k = 1.5) {
 		this.pitch += (0 - this.pitch) * (1 - Math.exp(-k * dt));
 		this.roll += (0 - this.roll) * (1 - Math.exp(-k * dt));
 	}
-	/** 目と頭をワールドの点 p の方へ */
 	lookAt(p, headK = .3) {
 		const sq = this.squid;
 		const d = this.tmp.copy(p);
@@ -2926,7 +2877,6 @@ var SquidBrain = class {
 		tg.headYaw = clamp(Math.atan2(d.x, Math.max(.05, d.z)) * headK, -.2, .2);
 		tg.headPitch = clamp(Math.asin(d.y) * headK, -.2, .2);
 	}
-	/** ふだんの目：ときどきあちこちを見る */
 	idleLook(dt) {
 		this.nextLook -= dt;
 		if (this.nextLook < 0) {
@@ -2940,7 +2890,6 @@ var SquidBrain = class {
 		tg.headYaw = 0;
 		tg.headPitch = 0;
 	}
-	/** 速さを want へ（k は 1 秒あたり） */
 	steer(want, k, dt) {
 		this.vel.lerp(want, 1 - Math.exp(-k * dt));
 	}
@@ -3212,7 +3161,6 @@ var SquidBrain = class {
 			e.quaternion.copy(sq.root.quaternion);
 		}
 	}
-	/** エギを抱く：気づく → 腕から近寄る → 間をはかる → 触腕を一瞬で伸ばす → 引き寄せる → 8 本で抱く */
 	updateAttack(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3367,8 +3315,6 @@ var SquidBrain = class {
 		}
 		return 1.6;
 	}
-	/** エギを追う：エギはしゃくり（0.35 秒で跳ね上がる）と、3 秒かけて沈むのをくり返す。
-	*  イカは後ろ下に間を保ってついていき、目と頭で追う。離れすぎたら短いジェットで詰める */
 	updateFollow(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3419,10 +3365,6 @@ var SquidBrain = class {
 		tg.pupil = .95;
 		return 1.6;
 	}
-	/** 水の外（吊り上げた・陸に置いた）のひれ：ホバリングと同じ波（波 1.5・向き 1・ゆっくり）を基本に、
-	*  ときどきゆっくり弱めては（波 0.8 ほど、少し遅く。止めない）戻す。2 つの遅い波をかけて、弱める間隔をそろえない。
-	*  水から出て（置かれて）すぐの 3 秒は弱めず、ずっとひれを動かしている。
-	*  弱めているあいだは垂れて少したたむ（fold）。返すのは、いまのひれの様子 */
 	airFins(t, fold) {
 		const tg = this.squid.target;
 		const weak = smooth(.15, .7, Math.sin(t * .55) * .6 + Math.sin(t * .23 + 1.3) * .5) * smooth(3, 6, this.t);
@@ -3432,7 +3374,6 @@ var SquidBrain = class {
 		tg.finFold = fold * weak;
 		return weak > .5 ? "（ひれ：弱めている）" : "（ひれ：ホバリングと同じ波）";
 	}
-	/** ホバリングの腕の構え（時間で切り替える）：先をすぼめる・だらんと垂らす・少しゆるめる */
 	armPosture(t) {
 		const tg = this.squid.target;
 		const c = t % 22;
@@ -3458,11 +3399,9 @@ var SquidBrain = class {
 		tg.armDroop = .2;
 		return "少しゆるめる";
 	}
-	/** 腕の先までの長さ（胴の前の縁から） */
 	armReach() {
 		return this.squid.armBaseZ + this.squid.armMax;
 	}
-	/** 見切る：エギへ寄って止まり、迷って（白と濃い色がちらつく）、後ろへ下がり、向きを変えて離れる */
 	updateRefuse(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3540,7 +3479,6 @@ var SquidBrain = class {
 		}
 		return 1.6;
 	}
-	/** 水面へ寄せる：抱いたエギごと上へ引かれ、胴の先の方（下）へジェットで逆らい、墨も吐く。水面で暴れてから吊り上げる */
 	updateSurface(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3602,7 +3540,6 @@ var SquidBrain = class {
 		if (this.pt > 1.6) this.setMode("lifted");
 		return 1.2;
 	}
-	/** 陸に置いた：自分の重さで平たくなり、ひれと腕がだらりと地面に付く。ときどき水や墨を噴き、色がめまぐるしく変わる */
 	updateLanded(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3644,7 +3581,6 @@ var SquidBrain = class {
 		this.updateJet(dt);
 		this.vel.set(0, 0, 0);
 	}
-	/** 砂に潜る（コウイカ）：砂の上に座り、ひれで砂を巻き上げながら沈み、目と背中だけ出して隠れる。しばらくして出てくる */
 	updateBury(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3726,7 +3662,6 @@ var SquidBrain = class {
 		}
 		return 1.6;
 	}
-	/** 吊り上げた：エギに腕で吊り下がり、胴が垂れる。ときどき漏斗から水（と墨）を噴く */
 	updateLifted(dt) {
 		const sq = this.squid;
 		const tg = sq.target;
@@ -3768,9 +3703,7 @@ var SquidBrain = class {
 		this.vel.set(0, 0, 0);
 	}
 };
-// src/game/squid/egi.ts
 var lookP = null;
-/** 写真と形を読む（なければ null：描いた簡単なエギ）。url：ファイル名 → 読む URL（イカのキット・ギャラリーが渡す。ふつうは public/egi/） */
 function loadEgiLook(url) {
 	if (!lookP) {
 		const base = "/egi/";
@@ -3812,7 +3745,6 @@ var sample = (arr, t) => {
 	const i = Math.min(arr.length - 2, Math.floor(x));
 	return arr[i] + (arr[i + 1] - arr[i]) * (x - i);
 };
-/** 横（S）と真上（T）の写真の uv を、休んでいる形の位置から決める。重み：上を向いた面は真上、ほかは横 */
 var PHOTO_VS = `
 attribute vec2 aUvS; attribute vec2 aUvT; attribute float aWT;
 varying vec2 vUvS; varying vec2 vUvT; varying float vWT;
@@ -3851,7 +3783,6 @@ function bake(g, sh, topWeight = true) {
 	g.setAttribute("aUvT", new THREE.BufferAttribute(T, 2));
 	g.setAttribute("aWT", new THREE.BufferAttribute(W, 1));
 }
-/** 断面が楕円の輪を並べた筒（u 0 頭〜1 尾、z = (0.5 − u)·len）。top・bot は真ん中の線から上・下、w は半幅 */
 function loftGeometry(len, rows, cols, at, z0 = .5, z1 = -.5) {
 	const pos = [];
 	const idx = [];
@@ -3877,7 +3808,6 @@ function loftGeometry(len, rows, cols, at, z0 = .5, z1 = -.5) {
 	g.computeVertexNormals();
 	return g;
 }
-/** 羽根の絵：羽軸（左が付け根）と、斜め後ろへのびる細い羽枝。透けた橙で、先ほど薄い */
 var featherTex = null;
 function featherTexture() {
 	if (featherTex) return featherTex;
@@ -3921,7 +3851,6 @@ function featherTexture() {
 	featherTex.colorSpace = THREE.SRGBColorSpace;
 	return featherTex;
 }
-/** 針：曲線に沿った細い管で、先の 2 割を細めて尖らせる */
 function needle(curve, r) {
 	const seg = 36;
 	const rad = 5;
@@ -3945,26 +3874,19 @@ function needle(curve, r) {
 var EgiModel = class {
 	obj = new THREE.Group();
 	len;
-	/** 胴のいちばん太い所の半径（抱く筒の太さ） */
 	r;
-	/** 糸を結ぶ輪（アイ）の真ん中（エギの中の位置） */
 	eyeLocal = new THREE.Vector3();
-	/** 胴の真ん中から、いちばん下（腹・シンカー・カンナ）までの深さ。重りは入れない */
 	bottom;
-	/** 重りが当たる胴の楕円体（エギの中の位置）：真ん中と半径 */
 	hull = {
 		c: new THREE.Vector3(),
 		h: new THREE.Vector3()
 	};
 	fins = [];
 	time = 0;
-	/** 羽根の揺れ 0〜1（沈む・動かすと大きく） */
 	flutter = .5;
-	/** 重りが止まる地面の高さと、水の中か（重りの沈み方と揺れ方が変わる） */
 	floorY = -1e9;
 	water = true;
 	rig = null;
-	/** 胴の形と写真（透かし絵を作るため） */
 	bodySrc = null;
 	constructor(look) {
 		const sh = look?.shape;
@@ -3976,7 +3898,6 @@ var EgiModel = class {
 		const box = new THREE.Box3().setFromObject(this.obj);
 		this.bottom = -box.min.y;
 	}
-	/** 鼻の重り：号（0 で外す。1 号 = 3.75 g） */
 	setWeight(go) {
 		if (this.rig) this.obj.remove(this.rig.group);
 		this.rig = go > 0 ? new NoseRig(go) : null;
@@ -4104,9 +4025,6 @@ var EgiModel = class {
 		m.castShadow = true;
 		this.obj.add(m);
 	}
-	/** カンナ（横の写真から測った寸法、mm。胴の尾の先から後ろへ）：
-	*  尾の柄に半透明の管（+3.3〜−1.5）、その後ろに 2 段の針。1 段ごとに、針は軸に沿って筒のように後ろへ並び（半径 2.2）、
-	*  後ろの端で外へ鋭く曲がって、頭の方へ反り返り、先は外前を向く（先の半径 10.5）。段の間に金属の台、真ん中に軸 */
 	addKanna(k) {
 		const sc = this.len / .105;
 		const mm = (v) => v * .001 * sc;
@@ -4167,7 +4085,6 @@ var EgiModel = class {
 		}));
 		this.add(tube);
 	}
-	/** アイ：頭の先（シンカーの前）の、糸を結ぶステンレスの輪 */
 	addEye(sh) {
 		const len = this.len;
 		const sk = sh?.sinker;
@@ -4183,7 +4100,6 @@ var EgiModel = class {
 			roughness: .2
 		})));
 	}
-	/** 写真がないときの簡単なエギ */
 	simple() {
 		const len = this.len;
 		const r = this.r;
@@ -4201,11 +4117,6 @@ var EgiModel = class {
 		this.addKanna(null);
 		this.addEye(null);
 	}
-	/**
-	* 透かし絵：胴と同じ形・同じ写真の色を、光の当たり方だけ簡単にして描く（水面より後に描くので、水の色に隠れない）。
-	* 遠くや水の中でもエギの形と色が分かるように重ねる（ぼかした光の点だと、エギの上に乗って形が見えなくなっていた）。
-	* 表の面だけ描く（胴の向こう側は透けない）。uOpacity で濃さ、uTint・uTintK で水の色を混ぜる
-	*/
 	makeGhost() {
 		const src = this.bodySrc;
 		const look = src.look;
@@ -4241,7 +4152,6 @@ var EgiModel = class {
           #else
           vec3 c = uBase;
           #endif
-          // 上から光が当たったように（背中は明るく、腹は少し暗く）
           c *= 0.62 + 0.5 * clamp(vUp * 0.5 + 0.5, 0.0, 1.0);
           c = mix(c, uTint, uTintK);
           gl_FragColor = vec4(c, uOpacity);
@@ -4264,7 +4174,6 @@ var EgiModel = class {
 			tintK
 		};
 	}
-	/** 羽根を揺らし、鼻の重りを動かす（位置と向きを決めたあとに呼ぶ） */
 	update(dt) {
 		this.time += dt;
 		if (this.rig) {
@@ -4279,21 +4188,14 @@ var EgiModel = class {
 		}
 	}
 };
-/** 1 号 = 3.75 g（1 匁） */
 var GRAM_PER_GO = 3.75;
-/** 鉛 g/cm³ */
 var LEAD_DENSITY = 11.34;
 var DOWN = new THREE.Vector3(0, -1, 0);
 var MM = .001;
-/** アイの輪（中心線）の半径と針金の太さ */
 var RING_R = .0022;
-/** ナス型の輪郭：t 0 上（首）〜1 下、太さ 0〜1。いちばん太いのは 2/3 ほど下、底は丸い */
 var nasu = (t) => Math.max(.2 * (1 - t), Math.sin(Math.PI * Math.min(1, t) ** 1.8) ** .5);
-/** ナス型の長さ / 太さ */
 var NASU_ASPECT = 2.3;
-/** いちばん太い所（重さの真ん中とみなす） */
 var NASU_WIDE = .68;
-/** 鋳物の鉛の小さなへこみ（凹凸と、つやのむらに使う） */
 var leadTex = null;
 function leadTexture() {
 	if (leadTex) return leadTex;
@@ -4328,16 +4230,12 @@ function leadTexture() {
 	leadTex.wrapS = leadTex.wrapT = THREE.RepeatWrapping;
 	return leadTex;
 }
-/** 鼻の重り。部品はエギの子として置き（エギの中の位置）、揺れはワールドで計算する。
-*  鎖の点：0 アイの輪に掛かる所 → 1 スナップの下 → 2 より戻しの下（重りの輪）→ 3 鉛のいちばん太い所 */
 var NoseRig = class {
 	group = new THREE.Group();
 	go;
 	gram;
-	/** 鉛の長さと太さ（m、輪を除く） */
 	leadLen;
 	leadDia;
-	/** アイの輪から、重りの底までの長さ（m） */
 	reach;
 	parts = [];
 	links;
@@ -4352,6 +4250,7 @@ var NoseRig = class {
 	e = new THREE.Vector3();
 	n = new THREE.Vector3();
 	c2 = new THREE.Vector3();
+	u = new THREE.Vector3();
 	constructor(go) {
 		this.go = go;
 		this.gram = go * GRAM_PER_GO;
@@ -4472,7 +4371,8 @@ var NoseRig = class {
 			q: new THREE.Vector3(),
 			w: 1 / gram,
 			r,
-			k
+			k,
+			touch: false
 		});
 		this.nodes = [
 			node(1, 0, 0),
@@ -4483,19 +4383,15 @@ var NoseRig = class {
 		this.nodes[0].w = 0;
 		this.group.visible = false;
 	}
-	/** 鉛のいちばん太い所（ワールド） */
 	get sinkerPos() {
 		return this.nodes[3].p;
 	}
-	/** 鉛が地面に着いているか */
 	onFloor(floorY) {
 		return this.nodes[3].p.y <= floorY + this.nodes[3].r + 5e-4;
 	}
-	/** 重りをアイから真下へまっすぐ下げ直す（エギを飛ばしたとき） */
 	reset() {
 		this.ready = false;
 	}
-	/** エギと一緒に、揺れをそのまま動かす */
 	shift(d) {
 		for (const n of this.nodes) {
 			n.p.add(d);
@@ -4526,10 +4422,13 @@ var NoseRig = class {
 			const h = dt / n;
 			const g = egi.water ? -8.82 : -9.8;
 			const floor = egi.floorY;
+			const bodyStep = this.u.subVectors(this.ring, this.ringPrev).divideScalar(n);
+			const bodyFr = Math.exp(-30 * h);
 			for (let s = 1; s <= n; s++) {
 				this.c.lerpVectors(this.ringPrev, this.ring, s / n);
 				for (let i = 1; i < nodes.length; i++) {
 					const nd = nodes[i];
+					nd.touch = false;
 					const v = this.d.subVectors(nd.p, nd.q);
 					v.multiplyScalar(Math.exp(-(egi.water ? nd.k : .3) * h));
 					if (nd.p.y <= floor + nd.r + 1e-4) {
@@ -4575,6 +4474,12 @@ var NoseRig = class {
 						B.q.y = Math.min(B.q.y, B.p.y);
 					}
 				}
+				for (let i = 1; i < nodes.length; i++) {
+					const nd = nodes[i];
+					if (!nd.touch) continue;
+					const rel = this.d.subVectors(nd.p, nd.q).sub(bodyStep).multiplyScalar(bodyFr).add(bodyStep);
+					nd.q.subVectors(nd.p, rel);
+				}
 			}
 		}
 		this.ringPrev.copy(this.ring);
@@ -4588,17 +4493,12 @@ var NoseRig = class {
 			o.quaternion.setFromUnitVectors(DOWN, b.sub(a).normalize());
 		}
 	}
-	/** スナップはアイの輪の上を滑って、引かれる側に掛かる */
 	pin(c, toward, out) {
 		const d = this.e.subVectors(toward, c);
 		d.addScaledVector(this.ringN, -d.dot(this.ringN));
 		if (d.lengthSq() < 1e-12) d.set(0, -1, 0).addScaledVector(this.ringN, this.ringN.y);
 		out.copy(c).addScaledVector(d.normalize(), RING_R);
 	}
-	/**
-	* 胴（楕円体）の中へ入らない：いちばん近い面へ、面に直角に押し出す。押し出した分は勢いにしない（跳ね返らない）。
-	* 胴の真ん中から放射状に押し広げると、細長い胴の中に入った点が頭や尾の先まで一気に飛ばされ、重りが暴れていた
-	*/
 	pushOut(nd, egi, M) {
 		const { c, h } = egi.hull;
 		const b = this.e.copy(nd.p).applyMatrix4(this.inv).sub(c);
@@ -4606,6 +4506,7 @@ var NoseRig = class {
 		const hy = h.y + nd.r;
 		const hz = h.z * .92 + nd.r;
 		const q = Math.sqrt((b.x / hx) ** 2 + (b.y / hy) ** 2 + (b.z / hz) ** 2);
+		if (q < 1.03) nd.touch = true;
 		if (q >= 1) return;
 		const n = this.n.set(b.x / (hx * hx), b.y / (hy * hy), b.z / (hz * hz));
 		let gl = n.length();
@@ -4622,7 +4523,6 @@ var NoseRig = class {
 		nd.q.add(this.c2.subVectors(nd.p, this.c2));
 	}
 };
-// src/kit/squid-kit.ts
 var SQUID_LIST = [{
 	id: "aori",
 	ja: "アオリイカ",
@@ -4757,13 +4657,8 @@ var SQUID_MOTIONS = [
 		place: "water"
 	}
 ];
-/** 読み込んだ写真と形 */
-var looks = /* @__PURE__ */ new Map();
+var looks = new Map();
 var egiLook = null;
-/**
-* イカ（とエギ）の写真と形を読む。folder はキットの squid/ と egi/ が入ったフォルダ（例 './'）か、
-* 「squid/aori.json」「egi/egi.json」のようなファイル名 → URL を返す関数。
-*/
 async function loadSquids(folder, ids = ["aori", "kouika"]) {
 	const url = typeof folder === "string" ? (f) => folder.replace(/\/?$/, "/") + f : folder;
 	const [lk, egi] = await Promise.all([Promise.all(ids.map((id) => loadSquidLook(id, (f) => url(`squid/${f}`)))), loadEgiLook((f) => url(`egi/${f}`))]);
@@ -4773,17 +4668,12 @@ async function loadSquids(folder, ids = ["aori", "kouika"]) {
 	});
 	egiLook = egi;
 }
-/**
-* 1 匹のイカと、その動き・墨・エギ・糸。object をシーンにそのまま足す（動かしたり大きさを変えたりしない）。
-* イカはワールドの座標で home のまわりを泳ぐ（逃げる・追うなどで離れても戻ってくる）。腕の方が前（向き 0 で +Z）。
-*/
 var SquidActor = class {
 	object = new THREE.Group();
 	squid;
 	fx;
 	brain;
 	egi;
-	/** エギから伸びる糸（エギを使う動きだけ見える） */
 	line;
 	motion = "hover";
 	egiRef;
@@ -4818,14 +4708,12 @@ var SquidActor = class {
 	get id() {
 		return this.squid.sp.id;
 	}
-	/** 胴の長さ（m） */
 	get mantleLength() {
 		return this.squid.ml;
 	}
 	get triangles() {
 		return this.squid.triangles;
 	}
-	/** 海底・水面の高さと、水の外か（ページが床・水面・空を出すのに使う） */
 	get floorY() {
 		return this.brain.floorY;
 	}
@@ -4838,7 +4726,6 @@ var SquidActor = class {
 	get inAir() {
 		return this.brain.inAir;
 	}
-	/** いまの段の説明（日本語） */
 	get label() {
 		return this.brain.label;
 	}
@@ -4846,11 +4733,9 @@ var SquidActor = class {
 		this.motion = m;
 		this.brain.setMode(m);
 	}
-	/** いつでも墨を吐かせる */
 	spitInk() {
 		this.brain.spitInk();
 	}
-	/** 体の真ん中あたり（カメラで追うとき） */
 	getCenter(out = new THREE.Vector3()) {
 		this.squid.root.updateMatrixWorld();
 		return out.set(0, 0, -this.squid.ml * .2).applyMatrix4(this.squid.root.matrixWorld);
