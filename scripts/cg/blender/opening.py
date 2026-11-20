@@ -696,6 +696,8 @@ def place_all(t):
         place_lure(t)
     elif M.LURE == "sabiki":
         sabiki.update(*M.rig(t), t)
+    elif M.LURE == "none":   # 2026-11-20 仕掛けなし（魚の群れだけの場面。cg-iwashi）
+        line.hide_render = True
     else:
         place_jig(t)
     place_cam(t)

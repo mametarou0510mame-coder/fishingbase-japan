@@ -7839,7 +7839,7 @@ const FK = { ok: false, mod: null, pool: {} };
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada", "kurodai"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada", "kurodai", "kamasu"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }
@@ -9960,6 +9960,245 @@ Object.assign(SHOTS, {
     rows.forEach(([a1, b1, c1, col], i) => {
       const a = fadeIn(t, 0.4 + i * 0.45);
       html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 36}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 34 : 42}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
+// =====================================================================
+// アカデミー R13 もしもイワシがいなくなったら？（cg-iwashi、iw_*）2026-11-20 もしもシリーズ1
+// 事実は docs/research/fish-knowledge.md「もしも〇〇がいなくなったら」シリーズ（イワシ・サワラ）だけ：
+//   京都府（海洋センター。若狭湾の胃の中の調査）、水産研究・教育機構（マイワシ太平洋系群の資源評価）、
+//   谷津・髙橋（2013）水産海洋研究（レジームシフト・魚種交代・過剰漁獲）、谷津（2009）西海（数℃と数十〜数百倍・魚価）、
+//   水産庁（サワラ瀬戸内海系群資源回復計画：1986年6,255トン → 1998年196トン、餌のカタクチイワシ・イカナゴの減少も考えられる）
+// 「いなくなったら〇〇も消える」とは言わない。原因を乱獲だけにしない。棒グラフの「1980年代・2000年代」は模式図。
+// 土台は rcBase（水の中。海底なし）。魚は Fish Kit（イワシはカタクチイワシのモデル）。魚の動きはイメージ
+// 使い回せる部品：iwBall(T, c, o)（カタクチイワシの群れの球。o.burst で散って消える）、iwPred(T, c, o)（群れのまわりの魚）
+// =====================================================================
+const IW_D = 7; // 水深（m）。明るい中層
+const IW_SC = 2.0, IW_PSC = 1.5; // 魚は大きく表示（イワシ2倍・まわりの魚1.5倍。大きさの比は正確ではない）
+const IW_OFF = (() => { const r = rng(2611); return Array.from({ length: 64 }, () => ({ th: r() * 6.283, r: 0.35 + 0.65 * Math.sqrt(r()), y: r() * 2 - 1, w: 0.8 + 0.4 * r(), p: r() * 6.283, cm: 11 + r() * 3 })); })();
+// カタクチイワシの群れ（球のように回る）。c：中心（ワールド）、o.R：半径、o.n：数、o.burst：0〜1（散って消える）
+function iwBall(T, c, o = {}) {
+  const { R = 0.9, n = 48, burst = 0, d = IW_D, i0 = 400 } = o;
+  for (let i = 0; i < Math.min(n, IW_OFF.length); i++) {
+    const q = IW_OFF[i], dir = i % 5 === 0 ? -1 : 1; // 少しだけ逆回り（群れらしく）
+    const th = q.th + dir * T * 0.55 * q.w;
+    const b = clamp01(burst * (1.15 - 0.3 * (i % 7) / 6));
+    const rr = R * q.r * (1 + 9 * Math.pow(b, 1.6)), yy = R * 0.75 * q.y * (1 + 2.5 * b) + Math.sin(T * 1.3 + q.p) * 0.04;
+    const f = fkGet("katakuchi", i0 + i, Math.round(q.cm));
+    if (!f) continue;
+    if (b > 0.92) { f.object.visible = false; continue; }
+    const yaw = lerp(th + dir * Math.PI / 2, th, ease(b * 1.6));
+    const p = c.clone().add(V(Math.cos(th) * rr, yy, Math.sin(th) * rr));
+    f.object.scale.setScalar(o.sc ?? IW_SC);
+    fkPlace(f, p, yaw, 0.15 * Math.sin(T * 0.9 + q.p), T, { freq: 3.2 + b * 3, amp: 0.1, seed: i });
+    rcTintObj(f.object, d);
+  }
+}
+// 群れのまわりの魚：IW_PRED の位置（中心からのずれ）に、群れのほうを向いてゆったり泳がせる
+const IW_PRED = {
+  aji: { id: "aji", cm: 25, at: [-2.3, 0.75, 0.6], nm: "マアジ", sub: "シラス・カエリ・若いイワシ", k: 1, dx: -60, dy: -80 },
+  kamasu: { id: "kamasu", cm: 28, at: [-2.2, -0.8, 0.4], nm: "アカカマス", sub: "秋〜冬にもっぱら", k: 2, dx: -250, dy: 50 },
+  buri: { id: "buri", cm: 80, at: [2.4, 0.85, -0.4], nm: "ブリ", sub: "若いイワシ・大人のイワシ", k: 3, dx: 80, dy: -80 },
+  tachiuo: { id: "tachiuo", cm: 100, at: [2.5, -0.85, 0.2], nm: "タチウオ", sub: "若いイワシ・大人のイワシ", k: 3, dx: 260, dy: 50 },
+  sawara: { id: "sawara", cm: 70, at: [0.1, 1.65, -0.8], nm: "サワラ", sub: "若いイワシ・大人のイワシ", k: 3, dx: -230, dy: -30 },
+};
+function iwPred(T, c, o = {}) {
+  const d = o.d ?? IW_D, keys = o.keys ?? Object.keys(IW_PRED), out = {};
+  const sp = PORTRAIT ? (o.ps ?? 0.62) : 1;
+  keys.forEach((key, j) => {
+    const q = IW_PRED[key], f = fkGet(q.id, 500 + j, q.cm);
+    if (!f) return;
+    const sx = Math.sin(T * 0.35 + j * 1.9) * 0.18;
+    const p = c.clone().add(V(q.at[0] * sp + sx, q.at[1] * (PORTRAIT ? 1.25 : 1) + Math.sin(T * 0.5 + j) * 0.06, q.at[2]));
+    const yaw = q.at[0] < 0 ? 0.25 * Math.sin(T * 0.3 + j) : Math.PI + 0.25 * Math.sin(T * 0.3 + j);
+    f.object.scale.setScalar(o.psc ?? IW_PSC);
+    fkPlace(f, p, yaw, 0.04 * Math.sin(T * 0.6 + j), T, { freq: q.id === "tachiuo" ? 1.0 : 1.5, amp: q.id === "tachiuo" ? 0.05 : 0.07, seed: j * 3 });
+    rcTintObj(f.object, d);
+    out[key] = p;
+  });
+  return out;
+}
+// カメラ：中心 c を、+z 側から dist で見る（ang でゆっくり回る）
+function iwCam(c, dist, ang = 0, up = 0.3, fov = 50, look2) {
+  look(c.clone().add(V(Math.sin(ang) * dist, up, Math.cos(ang) * dist)), look2 ?? c, fov);
+  rcSky.position.copy(camera.position);
+  rcSnowU.cam.value.copy(camera.position);
+}
+const iwC = () => RCp(0, -IW_D, 0);
+// 群れ → 食べる魚の点線（画面の上の線）
+function iwLink(a3, b3, a, col = "#ffd166") {
+  if (a <= 0.01) return;
+  const p = project(a3), q = project(b3);
+  if (p.behind || q.behind) return;
+  const x2 = lerp(p.x, q.x, a), y2 = lerp(p.y, q.y, a);
+  lines += `<line x1="${p.x}" y1="${p.y}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="7" stroke-dasharray="18 12" stroke-linecap="round" opacity="${0.95 * a}"/>`;
+}
+const iwSrc = rcSrc;
+const iwNote = (txt = "魚の動きはイメージ。魚は大きく表示（イワシはカタクチイワシの3Dモデル）") => ftNote(txt);
+// 棒グラフのカード（rows：[ラベル, 値の文字, 高さ 0〜1, 色]）
+function iwBars(P, title, rows, a, posL, posP, note) {
+  const Hb = P ? 300 : 300;
+  const bars = rows.map(([lb, val, h, col], i) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:${P ? 300 : 260}px;height:${Hb + 110}px"><div style="font-size:${P ? 34 : 32}px;font-weight:900;color:${col};white-space:nowrap">${val}</div><div style="width:${P ? 150 : 130}px;height:${Math.max(6, Hb * h * clamp01(a * 1.4 - i * 0.25))}px;background:${col};border-radius:12px 12px 0 0;margin-top:6px"></div><div style="font-size:${P ? 32 : 30}px;font-weight:900;margin-top:8px;white-space:nowrap">${lb}</div></div>`).join("");
+  html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">${title}</b><div style="display:flex;gap:${P ? 40 : 60}px;justify-content:center;align-items:flex-end;margin-top:8px;border-bottom:4px solid #10345a">${bars}</div>${note ? `<div style="font-size:22px;color:#3a5a78;margin-top:8px">${note}</div>` : ""}`, a, posL, posP);
+}
+
+Object.assign(SHOTS, {
+  iw_thumb(t, d, s) {
+    rcBase(5);
+    rcLight(5);
+    const c = RCp(0, -5, 0);
+    iwBall(4, c, { R: 1.0, n: 64, d: 5 });
+    const f = fkGet("buri", 520, 80);
+    f.object.scale.setScalar(1.3);
+    fkPlace(f, c.clone().add(V(0.75, -0.5, 0.6)), Math.PI - 0.3, 0.08, 4, { amp: 0.07 });
+    rcTintObj(f.object, 5);
+    iwCam(c.clone().add(V(-0.9, 0, 0)), 4.0, 0.25, 0.2, 50, c.clone().add(V(-1.6, 0.1, 0)));
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：イワシの群れのまわりに魚。群れが散って消える
+  iw_hook(t, d, s) {
+    const P = PORTRAIT, c = iwC(), T = t + 2;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    const burst = clamp01((t - 4.2) / 3.0);
+    iwBall(T, c, { burst });
+    iwPred(T, c, { keys: ["buri", "sawara", "tachiuo", "aji"] });
+    iwCam(c, lerp(P ? 8 : 5.2, P ? 9 : 6.2, ease(t / d)), 0.12 * Math.sin(t * 0.2), 0.3, 50, c.clone().add(V(0, 0.5, 0)));
+    if (burst > 0.85) {
+      const p = project(c), a2 = fadeIn(burst, 0.85, 0.15);
+      lines += `<circle cx="${p.x}" cy="${p.y}" r="${P ? 130 : 150}" fill="rgba(255,209,102,.12)" stroke="#ffd166" stroke-width="6" stroke-dasharray="20 14" opacity="${a2}"/>`;
+      html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);opacity:${a2};color:#ffd166;font-size:150px;font-weight:900;text-shadow:0 4px 18px #000">？</div>`;
+    }
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "もしも、イワシが<br>いなくなったら？", "研究機関の資料で考える", a);
+    academyBadge();
+    iwNote();
+  },
+  // 食べる魚：k0 多くの魚に食べられる → k1 マアジ → k2 アカカマス → k3 ブリ・シイラ・タチウオ・サワラ → k4 重要な位置
+  iw_food(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 10;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c);
+    const pp = iwPred(T, c);
+    iwCam(c, P ? 9.8 : 6.4, 0.05 * Math.sin(t * 0.15), 0.25, 50, c.clone().add(V(0, P ? 0.1 : 0.35, 0)));
+    label(c.clone().add(V(0, -0.5, 0)), "カタクチイワシ", "", fadeIn(t, 0.3), "", 0, P ? 160 : 130);
+    Object.entries(IW_PRED).forEach(([key, q]) => {
+      if (k < q.k || !pp[key]) return;
+      const a = fadeIn(t - (s[`_k${q.k}`] ?? 99), 0.2, 0.6);
+      iwLink(c, pp[key], a);
+      label(pp[key], q.nm, q.sub, a, k === q.k || (k >= 4) ? "gold" : "", q.dx, q.dy);
+    });
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">カタクチイワシは、<span style="color:#c2410c">卵 → 稚魚 → 若い魚 → 大人</span><br>どの時期も、多くの魚に食べられている</b>`, fadeIn(t, 0.6), [330, 650, 1260], [60, 1180, 960]);
+    if (k >= 4) html += ftCard(P, `<b style="font-size:38px">「カタクチイワシは、海の生態系の中で<br><span style="color:#c2410c">重要な位置を占めている</span>魚種」</b><div style="font-size:24px;margin-top:6px;color:#3a5a78">京都府の資料より</div>`, fadeIn(t - (s._k4 ?? 99), 0.3), [330, 640, 1260], [60, 1180, 960]);
+    iwSrc(`京都府（海洋センター）若狭湾の胃の中の調査${k >= 3 ? "　※シイラも食べていた（3Dモデルがないので映していない）" : ""}`);
+    academyBadge();
+    iwNote("魚の動き・位置はイメージ。魚は大きく表示（イワシはカタクチイワシの3Dモデル）");
+  },
+  // クイズ：k0 1980年代のマイワシ（太平洋系群）の漁獲量は？ → k1 選択肢 → k2 正解 C
+  iw_quiz(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 30;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c, { R: 1.1, n: 64 });
+    iwCam(c.clone().add(V(P ? 0 : -1.5, 0, 0)), P ? 6.0 : 5.4, 0.05 * Math.sin(t * 0.2), 0.2, 50, c.clone().add(V(P ? 0 : -1.5, P ? -0.9 : 0, 0)));
+    const opts = [["A", "約2万5千トン"], ["B", "約25万トン"], ["C", "250万トン以上"]];
+    const t2 = s._k2 ?? 99, ans = t > t2 + 1.2;
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:480px" : "left:70px;top:190px;width:720px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 44 : 40}px;font-weight:900;margin:14px 0 4px">1980年代、マイワシ（太平洋系群）の<br>漁獲量は1年におよそ？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans) html += ftCard(P, `<b style="font-size:38px">正解 <span style="color:#1d8a3a">C</span>：250万トンを超える<br><span style="color:#c2410c">極めて高い水準</span>だった</b>`, fadeIn(t - t2 - 1.2, 0.2), [960, 720, 860], [60, 1100, 960]);
+    iwSrc(k >= 2 ? "水産研究・教育機構（マイワシ太平洋系群の資源評価）" : "");
+    academyBadge();
+    iwNote();
+  },
+  // 大きく増え減りする：k0 2000年代は極めて低い水準（模式図の棒）→ k1 日本・カリフォルニア・ペルー・チリが似た推移 → k2 水温は数℃・漁獲量は数十〜数百倍
+  iw_graph(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 50;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c, { R: 0.8, n: 40 });
+    iwCam(c.clone().add(V(P ? 0 : -2.3, P ? 1.6 : 0, 0)), P ? 9 : 6.5, -0.1, 0.3, 50);
+    html += acDim(0.25);
+    if (k === 0) iwBars(P, "マイワシ（太平洋系群）の漁獲量", [["1980年代", "250万トン超", 1, "#1f6fd1"], ["2000年代", "極めて低い水準", 0.06, "#c62828"]], fadeIn(t, 0.3, 1.2), [70, 220, 900], [60, 520, 960], "※模式図。棒の高さは資料の言い方（極めて高い・極めて低い）をもとにしたイメージ");
+    if (k === 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.2);
+      const chip = (nm, i) => `<span style="display:inline-block;background:#1f6fd1;color:#fff;border-radius:16px;padding:10px 22px;margin:8px;font-size:${P ? 38 : 40}px;opacity:${fadeIn(t - (s._k1 ?? 99), 0.3 + i * 0.35)}">${nm}</span>`;
+      html += ftCard(P, `<b style="font-size:36px">マイワシの漁獲量が、<span style="color:#c2410c">似た変化</span>をしている</b><div style="margin-top:10px">${["日本", "カリフォルニア", "ペルー", "チリ"].map(chip).join("")}</div>`, a, [70, 300, 900], [60, 560, 960]);
+    }
+    if (k >= 2) {
+      const a = fadeIn(t - (s._k2 ?? 99), 0.2);
+      html += ftCard(P, `<div style="display:flex;gap:30px;align-items:center;justify-content:center"><div style="text-align:center"><div style="font-size:30px;font-weight:900">海面の水温</div><div style="font-size:${P ? 68 : 72}px;font-weight:900;color:#1f6fd1">数℃</div><div style="font-size:26px">しか変わらない</div></div><div style="font-size:60px;font-weight:900">→</div><div style="text-align:center"><div style="font-size:30px;font-weight:900">浮魚の漁獲量</div><div style="font-size:${P ? 68 : 72}px;font-weight:900;color:#c62828">数十〜数百倍</div><div style="font-size:26px">も変わる</div></div></div>`, a, [70, 300, 900], [60, 560, 960]);
+    }
+    iwSrc(k >= 2 ? "谷津明彦（2009）西海（水産総合研究センター）" : k === 1 ? "谷津・髙橋（2013）水産海洋研究" : "水産研究・教育機構（マイワシ太平洋系群の資源評価）");
+    academyBadge();
+    iwNote(k === 0 ? "棒グラフは模式図。魚の動きはイメージ" : undefined);
+  },
+  // 原因はひとつではない：k0 レジームシフト説 → k1 魚種交代 → k2 回復をとりすぎが妨げた → k3 値段が上がり、さらに減った
+  iw_genin(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 70;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c, { R: 0.8, n: 40 });
+    iwCam(c.clone().add(V(P ? 0 : -3.0, P ? 1.8 : 0, 0)), P ? 9 : 6.5, 0.15, 0.3, 50);
+    html += acDim(0.25);
+    const col = (hd, cl, body, a) => `<div style="flex:1;opacity:${a}"><b style="display:block;background:${cl};color:#fff;font-size:${P ? 32 : 34}px;padding:8px 16px;border-radius:14px;text-align:center">${hd}</b><div style="font-size:${P ? 30 : 31}px;font-weight:900;margin-top:10px;line-height:1.4">${body}</div></div>`;
+    const a0 = fadeIn(t, 0.3), a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.2) : 0, a2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.2) : 0, a3 = k >= 3 ? fadeIn(t - (s._k3 ?? 99), 0.2) : 0;
+    const L = `気候・海の環境が切りかわる<br><span style="color:#c2410c">レジームシフト</span>で説明する説${a1 > 0 ? `<div style="opacity:${a1};margin-top:10px;font-size:${P ? 28 : 29}px">マイワシ → カタクチイワシの<span style="color:#c2410c">「魚種交代」</span>が、黒潮の海と南米の海で同じころに</div>` : ""}`;
+    const R = `資源の回復が<br><span style="color:#c2410c">とりすぎ</span>で妨げられてきた${a3 > 0 ? `<div style="opacity:${a3};margin-top:10px;font-size:${P ? 28 : 29}px">不漁で値段が上がり、少ないマイワシをねらって<span style="color:#c2410c">さらに減った</span></div>` : ""}`;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">原因は、ひとつではない</b><div style="display:flex;gap:28px;margin-top:14px;${P ? "flex-direction:column" : ""}">${col("海の環境", "#1f6fd1", L, a0)}${col("とり方", "#c2410c", R, a2)}</div>`, 1, [70, 220, 1240], [60, 420, 960]);
+    iwSrc(k >= 3 ? "谷津明彦（2009）西海（水産総合研究センター）" : "谷津・髙橋（2013）水産海洋研究");
+    academyBadge();
+    iwNote();
+  },
+  // 実際に餌が減ったら：瀬戸内海のサワラ k0 1986年6,255トン → 1998年196トン → k1 原因：漁の力と、餌のカタクチイワシ・イカナゴの減少も → k2 その後の回復と、いまの課題
+  iw_sawara(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 90;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c.clone().add(V(P ? 0.2 : 1.3, P ? -1.6 : -1.1, -1.2)), { R: 0.45, n: 16, i0: 470 });
+    const f = fkGet("sawara", 530, 70), fp = c.clone().add(V((P ? 0 : 0.6) + Math.sin(T * 0.3) * 0.2, (P ? -0.4 : 0.1) + Math.sin(T * 0.5) * 0.05, 0.3));
+    f.object.scale.setScalar(1.8);
+    fkPlace(f, fp, Math.PI + 0.1 * Math.sin(T * 0.3), 0.03, T, { freq: 1.6, amp: 0.07 });
+    rcTintObj(f.object, IW_D);
+    iwCam(c.clone().add(V(P ? 0 : -1.2, P ? 0.6 : 0, 0)), P ? 6.5 : 4.4, -0.1, 0.2, 50, c.clone().add(V(P ? 0 : -1.2, P ? 0.6 : 0.1, 0)));
+    html += acDim(0.2);
+    if (k === 0) iwBars(P, "瀬戸内海のサワラの漁獲量", [["1986年", "6,255トン", 1, "#1f6fd1"], ["1998年", "196トン", 196 / 6255, "#c62828"]], fadeIn(t, 0.6, 1.4), [70, 220, 900], [60, 1080, 960], "※棒の高さは実際の比");
+    if (k === 1) html += ftCard(P, `<b style="font-size:36px">減った原因として、資料にあること</b><div style="font-size:31px;font-weight:900;margin-top:10px;line-height:1.5">・漁の力（漁具・漁船の性能）が<span style="color:#c2410c">高い水準で続いた</span><br>・餌として大切な<span style="color:#c2410c">カタクチイワシやイカナゴの減少</span>も考えられる</div>`, fadeIn(t - (s._k1 ?? 99), 0.2), [70, 250, 980], [60, 1080, 960]);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:36px">休漁などの取り組みで、資源は回復</b><div style="font-size:31px;font-weight:900;margin-top:10px">ただし、親の魚は<span style="color:#c2410c">ここ5年ほど減る傾向</span>とされる</div>`, fadeIn(t - (s._k2 ?? 99), 0.2), [70, 250, 980], [60, 1080, 960]);
+    label(fp, "サワラ", "", fadeIn(t, 0.4), "", P ? 0 : 60, -140);
+    iwSrc(k >= 2 ? "水産研究・教育機構の資源評価（山口県 令和7年版の資料）" : "水産庁（サワラ瀬戸内海系群資源回復計画）");
+    academyBadge();
+    iwNote();
+  },
+  // 釣りでは：k0 マッチザベイト → k1 できることを続ける
+  iw_tsuri(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 110;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c, { R: 0.9, n: 48 });
+    iwPred(T, c, { keys: ["buri", "tachiuo"] });
+    iwCam(c, P ? 9.5 : 6.8, -0.1 + 0.05 * Math.sin(t * 0.2), 0.3);
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">青物やタチウオは、その日の小魚（イワシなど）に<br>ルアーを合わせる<span style="color:#c2410c">「マッチザベイト」</span>が大切と言われる</b>`, fadeIn(t, 0.5), [230, 170, 1460], [60, 420, 960]);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">イワシの量は、<span style="color:#1f6fd1">海の環境</span>と<span style="color:#c2410c">とり方</span>の両方で変わる</b><div style="font-size:32px;font-weight:900;margin-top:8px;color:#1d8a3a">食べる分だけ持ち帰る・小さな魚は逃がす・ルールを守る</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [230, 170, 1460], [60, 420, 960]);
+    academyBadge();
+    iwNote();
+  },
+  iw_sum(t, d, s, k) {
+    const P = PORTRAIT, c = iwC(), T = t + 130;
+    rcBase(IW_D);
+    rcLight(IW_D);
+    iwBall(T, c);
+    iwPred(T, c, { keys: ["buri", "sawara", "aji"] });
+    iwCam(c, P ? 9.5 : 7, 0.1 * Math.sin(t * 0.1), 0.3);
+    html += acDim(0.45);
+    const rows = [["食べる魚", "マアジ・アカカマス・ブリ・タチウオ・サワラ…", "カタクチイワシは海の生態系の重要な魚（京都府）", "#1f6fd1"], ["増え減り", "マイワシは時代で大きく変わる", "1980年代は250万トン超、2000年代は極めて低い", "#c62828"], ["原因と釣り", "海の環境ととり方の両方", "その日の小魚に合わせ、資源を大切に", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 62 : 60}px;opacity:${fadeIn(t, 0.1)}">もしもイワシがいなくなったら？ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 30 : 34}px;padding:10px 0;width:${P ? 200 : 230}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 32 : 40}px;font-weight:900">${b1}</div><div style="font-size:${P ? 26 : 29}px;color:#3a5a78">${c1}</div></div></div>`;
     });
     academyBadge();
   },
