@@ -20,6 +20,7 @@
 | **エサ付きの胴付き仕掛け** | `sbRigAt(…, { n: 3, bait: "ebi" })` | サビキの皮の代わりにエビ。カサゴ・メバルのエサ釣りの回に。見本：kit_bait.jpg |
 | 船が流れる場面（模式図） | `MB_DRIFT.at(t)`・`MB_DRIFT.ev` | 底から約1mを保ち、当たったら巻き、5秒ごとに取り直す動きを前もって作ったもの |
 | タナの帯・全体図・グラフ | `mbBand(x0, x1, lo, hi, a, 濃さ)`、`mbMini(sx, sy, bx)`、`mbGraph(sim, ts, win)` | 根の形に沿った緑の帯、根の入った全体図（水深30m）、底からの高さのグラフ |
+| **イワシの群れ（ベイトボール）とまわりの魚** | `iwBall(T, c, { R, n, burst, sc })`、`iwPred(T, c, { keys })`、`IW_PRED`、`iwLink(a3, b3, a)`、`iwBars(P, 題, rows, a, posL, posP, 注)` | rcBase の水の中（海底なし）で、Fish Kit のカタクチイワシが球のように回る。`burst`（0〜1）で外へ散って消える。まわりにマアジ・アカカマス・ブリ・タチウオ・サワラ、群れから点線で結ぶ。棒グラフのカード。cg-iwashi（iw_*）。食物連鎖・資源・ベイトの回に |
 | 画面の部品 | `ftMini`・`ftCtl`（竿とリール）・`ftGraph`・`agGraph`・`ftChip`・`ftNote`・`ftCard`・`ftFinder`・`ftThumbText`、`label`・`legend`・`bigText`・`card`・`drawBar` | 左上の全体図、右上の竿とリール、字幕チップ、注記など |
 | 魚（Fish Kit） | `fkGet(id, i, cm)`・`fkPlace(f, 位置, 向き, 頭の上げ角, T)`、`endFish` | 写真から作った魚20種。読み込む種類は `loadFish` の配列に足す（今：tachiuo, buri, madai, aji, saba, katakuchi, sawara, magochi, mebaru, kasago） |
 | イカ（Squid Kit） | `loadSquids`・`createSquid` | アオリイカ・コウイカ（cg-video-plan.md の注意を読む） |
@@ -42,6 +43,7 @@
 | **テトラ（消波ブロック）** | `parts.build_tetra(TETRA, mat)`・`parts.tetra_dist(p, TETRA)`（場面に `ENV = "tetra"` と `TETRA = [(x, y, z, rx, ry, rz, 大きさ)]`） | テトラを並べる。`check_scene.py` が魚とテトラの距離も確かめる |
 | **ワーム（ジグヘッド＋ワーム）** | 場面に `LURE = "jig"`・`JIG_MAT = "worm"` | オレンジの胴と鉛の頭。アシストフックとリングは出さない |
 | 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない）、`scenes/tetra.py`（テトラのすそのカサゴとワーム） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
+| **仕掛けなしの場面** | 場面に `LURE = "none"` | 道糸も出さない。魚の群れだけの冒頭に。`scenes/iwashi.py`（カタクチイワシ64匹のベイトボール。終わりに散って消える） |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
 ### 書き出し済みの映像（long-media ブランチ。`blender_open.clip` にパスを書くと、書き出さずにそのまま使える）
