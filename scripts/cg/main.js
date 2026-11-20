@@ -7827,7 +7827,8 @@ Object.assign(SHOTS, {
 });
 
 // =====================================================================
-// 写真から作った魚の3Dモデル（Fish Kit、CC0 1.0。https://cda-social.github.io/fish/gallery.html）2026-11-12 オーナー指示で取り込み
+// 写真から作った魚の3Dモデル（Fish Kit、CC0 1.0）2026-11-12 オーナー指示で取り込み。
+// 2026-11-20 オーナー：新しいモデル集（https://cda-social.github.io/aquarium/models-gallery.html の海水魚キット）に入れ替え
 // scripts/cg/vendor/fishkit。動きは決まった時刻 T から計算する（書き出しを分割しても、つなぎ目で動きが飛ばないように）
 // =====================================================================
 const FK = { ok: false, mod: null, pool: {} };
@@ -7839,7 +7840,7 @@ const FK = { ok: false, mod: null, pool: {} };
   scene.add(hemi, sun); // ふつうの ShaderMaterial には影響しない（魚のモデルの材質だけが光を使う）
   pending.push(
     import("./vendor/fishkit/fish-kit.js")
-      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada", "kurodai", "kamasu"]); FK.mod = mod; FK.ok = true; })
+      .then(async (mod) => { await mod.loadFish("vendor/fishkit/fish/", ["tachiuo", "buri", "madai", "aji", "saba", "katakuchi", "sawara", "magochi", "mebaru", "kasago", "seabass", "kuchibuto", "kihada", "kurodai", "kamasu", "hiramasa", "isaki", "isaki_young", "onagagure", "shibudai"]); FK.mod = mod; FK.ok = true; })
       .catch((e) => console.warn("fishkit", e))
   );
 }

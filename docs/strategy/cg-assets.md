@@ -23,7 +23,10 @@
 | タナの帯・全体図・グラフ | `mbBand(x0, x1, lo, hi, a, 濃さ)`、`mbMini(sx, sy, bx)`、`mbGraph(sim, ts, win)` | 根の形に沿った緑の帯、根の入った全体図（水深30m）、底からの高さのグラフ |
 | **イワシの群れ（ベイトボール）とまわりの魚** | `iwBall(T, c, { R, n, burst, sc })`、`iwPred(T, c, { keys })`、`IW_PRED`、`iwLink(a3, b3, a)`、`iwBars(P, 題, rows, a, posL, posP, 注)` | rcBase の水の中（海底なし）で、Fish Kit のカタクチイワシが球のように回る。`burst`（0〜1）で外へ散って消える。まわりにマアジ・アカカマス・ブリ・タチウオ・サワラ、群れから点線で結ぶ。棒グラフのカード。cg-iwashi（iw_*）。食物連鎖・資源・ベイトの回に |
 | 画面の部品 | `ftMini`・`ftCtl`（竿とリール）・`ftGraph`・`agGraph`・`ftChip`・`ftNote`・`ftCard`・`ftFinder`・`ftThumbText`、`label`・`legend`・`bigText`・`card`・`drawBar` | 左上の全体図、右上の竿とリール、字幕チップ、注記など |
-| 魚（Fish Kit） | `fkGet(id, i, cm)`・`fkPlace(f, 位置, 向き, 頭の上げ角, T)`、`endFish` | 写真から作った魚20種。読み込む種類は `loadFish` の配列に足す（今：tachiuo, buri, madai, aji, saba, katakuchi, sawara, magochi, mebaru, kasago） |
+| 魚（Fish Kit） | `fkGet(id, i, cm)`・`fkPlace(f, 位置, 向き, 頭の上げ角, T)`、`endFish` | 写真から作った海水魚20種（2026-11-20 新しいモデル集 https://cda-social.github.io/aquarium/models-gallery.html に入れ替え。全部 `loadFish` で読み込み済み。イサキの幼魚 isaki_young が増えた） |
+| **エビ（テナガエビ・レッドビーシュリンプ）** | `vendor/squidkit/shrimp-kit.js` の `createShrimp(id, { folder, home, floorY })` | 2026-11-20 追加。底を歩く・餌をつまむ・泳ぐ・跳ねる。テナガエビ釣り・河口の回に |
+| **砂・岩・石・水草** | `vendor/objectskit/objects-kit.js` の `createObjectKit(folder, renderer)` → `kit.load(id)` | 2026-11-20 追加。砂（river_sand・coral_sand）、玄武岩 r0〜r3、風山石 k1〜k4、水草 sword。実寸、y=0 が砂の面 |
+| **淡水魚** | `vendor/freshkit/fish-kit.js` | 2026-11-20 追加。オイカワ（オス・メス）ほか。川の回に |
 | イカ（Squid Kit） | `loadSquids`・`createSquid` | アオリイカ・コウイカ（cg-video-plan.md の注意を読む） |
 | ルアー・仕掛けの模型 | `ftTenya`、`makeJigReal`、`trRig`（タイラバ）、`sfJig` | テンヤ・メタルジグ・タイラバ |
 | サーフ | `sfBed`・`sfBase`・`sfRig`・`sfTopView` など | 砂浜の断面と上からの絵（離岸流） |
