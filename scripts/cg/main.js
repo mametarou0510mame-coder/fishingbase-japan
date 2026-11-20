@@ -10595,6 +10595,384 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 【見える化】漁港のスロープ、どこに投げる？（cg-slope、sl_*）2026-11-20
+// 事実は docs/research/fish-knowledge.md「漁港のスロープ（斜路）の魚と安全」だけ：
+//   TSURI HACK（スロープは船を下ろす坂・静かな所で海藻や貝が付きエビやカニが集まる・切れ目に捨て石・
+//   切れ目から一気に深い＝かけあがり、深場が隠れ家で浅場が餌場・ロックフィッシュ・ブレイクまで投げて底をリフト&フォール・
+//   とても滑りやすい・本来は船着き場／内湾のスロープは小魚が追い詰められやすい）、BE-PAL（常夜灯の明暗の境目・アジ・メバル・
+//   釣り禁止の看板・ライフジャケット／漁師さんのじゃまをしない）、第九管区海上保安本部（立入禁止区域に入らない・海中転落）
+// 土台は漁港のスロープの断面（spBase・spBed。釣り人は岸壁の上、坂には下りない）。地形・捨て石は模式図。
+// ワームの動きは ftSim の計算（tp_* と同じワーム。opt.botf に坂・段差・捨て石・砂の底 slFloor）。魚の動きはイメージ
+// 作りかけの引き継ぎは docs/strategy/cg-wip.md
+// =====================================================================
+// 捨て石：段差のすそに積まれた石 [u, z, 半径]。どれも砂の上に半分ほど出る
+const SL_ROCKS = (() => {
+  const r = rng(3301), out = [];
+  for (let zi = 0; zi < 9; zi++) {
+    const z = -8 + zi * 1.05; // 糸とワームの面（SP_LZ）より奥にだけ置く（カメラと魚のあいだに石を置かない）
+    for (let u = SP_END + 0.15 + (zi % 2) * 0.35; u < SP_END + 1.9; u += 0.75) out.push([u + (r() - 0.5) * 0.25, z + (r() - 0.5) * 0.5, 0.32 + r() * 0.18]);
+  }
+  return out;
+})();
+const slRockTop = (u, z) => { let h = -99; SL_ROCKS.forEach(([ru, rz, rr]) => { if (z != null && Math.abs(rz - z) > rr * 0.9) return; const d = Math.abs(u - ru); if (d < rr) h = Math.max(h, spBed(ru) + rr * 0.55 + Math.sqrt(rr * rr - d * d) * 0.9); }); return h; };
+// 底（砂・坂・段差・捨て石のいちばん高い所）。z を省くと、奥行きのどの石もふくめる（魚を埋めない確認用・きびしめ）
+const slFloor = (u, z) => Math.max(spBed(u), slRockTop(u, z));
+const slRocks = (() => {
+  const g = new THREE.IcosahedronGeometry(1, 2), pos = g.attributes.position, r = rng(77);
+  for (let i = 0; i < pos.count; i++) { const k = 0.82 + r() * 0.3; pos.setXYZ(i, pos.getX(i) * k, pos.getY(i) * k * 0.9, pos.getZ(i) * k); }
+  g.computeVertexNormals();
+  const im = new THREE.InstancedMesh(g, secMat(spSec, 0xb3ae9f, 0.18), SL_ROCKS.length), rr = rng(99);
+  SL_ROCKS.forEach(([u, z, s], i) => { _p.set(u, spBed(u) + s * 0.55, z); _q.setFromEuler(_e2.set(rr() * 6, rr() * 6, rr() * 6)); _s.setScalar(s); _m.compose(_p, _q, _s); im.setMatrixAt(i, _m); });
+  im.frustumCulled = false;
+  im.visible = false;
+  spSec.grp.add(im);
+  return im;
+})();
+function slBase(nk = 0) { spBase(nk); slRocks.visible = true; tpWorm.visible = false; spTip(); }
+// ねらう場所：A 坂の上の浅場・B 坂の終わりの段差（切れ目・捨て石）・C 沖の深い所
+const SL_PIN = { asa: [8.5, spBed(8.5)], dan: [SP_END + 1.0, spBed(SP_END + 1.0)], oki: [26, spBed(26)] };
+const SL_DAN = [SP_END - 0.6, SP_END + 3.2]; // 段差まわりの帯
+const SL_CAST = 22.5; // 着水する場所（u）
+const SL_OPT = { x0: SL_CAST - SP_TIP[0], y0: -0.05, th0: -0.4, tip0: SP_TIP[1], top: -0.1, fric: 0.996, botf: (x) => slFloor(x + SP_TIP[0], SP_LZ) };
+Object.assign(FT_SEQ, {
+  // 沖の深い所へ投げる → 底まで沈める → リフト＆フォールで、かけあがりを段差へ → 段差で小さく揺らす → 坂の手前で巻き上げて回収
+  sl_main: { body: "tpWorm", opt: SL_OPT, seq: [{ free: 6, thumb: 0.02 }, { mark: "land" }, { wait: 0.6 }, { mark: "go" }, ...FT_REP(10, TP_LIFT), { mark: "dan" }, ...FT_REP(10, TP_SHAKE), { wait: 1.2 }, { mark: "up" }, { reel: 10 * tpK, dur: 3.4, lin: 1 }, { mark: "done" }, { wait: 1 }] },
+  // 段差で食う → すぐ巻いて、捨て石から引き離す（魚が引く力は仮の値）
+  sl_hit: { body: "tpWorm", opt: SL_OPT, seq: [{ free: 6, thumb: 0.02 }, { wait: 0.6 }, ...FT_REP(10, TP_LIFT), ...FT_REP(4, TP_SHAKE), { mark: "bite" }, { wait: 0.4, fish: [0.05, -0.5] }, { mark: "hook" }, { jerk: 1.2, up: 0.3, down: 0.6, fish: [0.05, -0.35] }, { mark: "reel" }, { reel: 5 * tpK, dur: 1.5, lin: 1, fish: [0, -0.25] }, { mark: "free" }, { reel: 4 * tpK, dur: 2.2, lin: 1, fish: [0, -0.3] }, { wait: 1, fish: [0, -0.3] }] },
+});
+function slAt(sim, ts) { const a = sim.at(ts); return { u: a[0] + SP_TIP[0], y: a[1], th: a[2], T: a[3], a }; }
+function slRig(T, sim, ts, o = {}) {
+  const q = slAt(sim, ts), c0 = sim.ctl(ts), vis = o.vis ?? 1;
+  const tip = spTip(q.a[4]);
+  tpWorm.visible = true;
+  tpWorm.position.copy(SPp(q.u, q.y, SP_LZ));
+  tpWorm.rotation.set(0, 0, q.th);
+  tpWorm.scale.setScalar(vis);
+  const eye = SPp(q.u + Math.cos(q.th) * 0.035 * vis, q.y + Math.sin(q.th) * 0.035 * vis, SP_LZ);
+  ftPend.push(() => {
+    if (o.trail) slTrail(sim, ts, o.trail);
+    ftSeg(tip, eye, "#ffb45e", o.lw ?? 4, q.T < 0.02 && !c0.free ? "10 12" : "");
+  });
+  return { ...q, c0, tip, eye, x: q.u };
+}
+function slTrail(sim, ts, span) {
+  const n = 70, pts = [];
+  for (let i = 0; i <= n; i++) { const tt = ts - span * (1 - i / n); if (tt < 0) continue; const q = slAt(sim, tt), p = project(SPp(q.u, q.y, SP_LZ)); if (!p.behind) pts.push(p); }
+  if (pts.length > 2) lines += `<polyline points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#8ff0ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.1 20" opacity="0.95"/>`;
+}
+function slLook(cu, cy, dist, fov = 30, o = {}) {
+  const P = PORTRAIT, dd = dist * (P ? o.pk ?? 1.25 : 1);
+  look(SPp(cu + (o.ox ?? 0), cy + (o.oy ?? 0), SP_LZ + dd), SPp(cu, cy, SP_LZ), fov);
+}
+function slGlow(u, y, z, r, a, col = "46,204,113", t = 0) {
+  if (a <= 0.01) return;
+  const p = project(SPp(u, y, z)), q = project(SPp(u + r, y, z)), R = Math.max(18, Math.abs(q.x - p.x)) * (1 + 0.06 * Math.sin(t * 4));
+  html += `<div style="position:absolute;left:${p.x - R}px;top:${p.y - R}px;width:${2 * R}px;height:${2 * R}px;border-radius:50%;opacity:${a};background:radial-gradient(circle,rgba(${col},.0) 35%,rgba(${col},.45) 62%,rgba(${col},0) 72%);border:5px solid rgba(${col},.95);box-shadow:0 0 24px rgba(${col},.9)"></div>`;
+}
+function slBand(u0, u1, a, col = "#2ecc71", w = 14, dy = 0.15) {
+  if (a <= 0.01) return;
+  const pts = [];
+  for (let u = u0; u <= u1 + 0.001; u += 0.2) pts.push(SPp(u, slFloor(u, SP_LZ) + dy, SP_LZ));
+  pathLine(pts, col, a, w);
+}
+// 魚：段差のすそのカサゴ（捨て石の沖側で待つ）。lunge（0〜1）でワームへ飛び出す（イメージ）
+const SL_KF = [SP_END + 2.0, 0]; // 待つ所 u
+function slKasago(T, lunge = 0, to = null, o = {}) {
+  const hx = SL_KF[0], hy = slFloor(hx, SP_LZ - 0.1) + 0.45;
+  let mx = hx, my = hy, ang = 0.12;
+  if (to && lunge > 0) { mx = lerp(hx, to[0], lunge); my = lerp(hy, to[1], lunge); ang = lerp(0.12, Math.atan2(to[1] - hy, to[0] - hx), Math.min(1, lunge * 1.5)); }
+  if (o.ang != null) ang = o.ang;
+  return fkPut("kasago", 50, mx, my, ang, T, { at: SPp, floor: (x, z) => slFloor(x, z), z: SP_LZ - 0.1, cm: 26, sc: TP_FISH_SC, freq: lunge > 0 ? 2.2 : 0.7, amp: lunge > 0 ? 0.08 : 0.025 });
+}
+// 捨て石のすき間のもう1匹（奥）
+function slKasago2(T) { fkPut("kasago", 51, SP_END + 3.0, slFloor(SP_END + 3.0, -0.6) + 0.35, Math.PI - 0.1, T * 0.5, { at: SPp, floor: (x, z) => slFloor(x, z), z: -0.6, cm: 22, sc: TP_FISH_SC, freq: 0.6, amp: 0.02 }); }
+// 浅場の小魚（カタクチイワシの群れ）と、追う魚（メバル）。chase 0〜1 で浅場へ追い込む（イメージ）
+function slShallow(T, chase = 0, o = {}) {
+  const cx = lerp(10.5, 8.6, chase);
+  fkSchool("katakuchi", T, { at: SPp, floor: (x) => spBed(x), cx, sx: 1.4, h0: 0.25, h1: 0.6, zc: SP_LZ - 0.9, sz: 0.9, n: o.n ?? 14, i0: 60, cm: 9, sc: 2.2, face: chase > 0.1 ? -1 : 0, freq: 2.2 });
+  if (o.pred !== false) for (let i = 0; i < 3; i++) {
+    const x = lerp(13.2, 10.6, chase) + i * 0.9 + 0.3 * Math.sin(T * 0.6 + i);
+    fkPut("mebaru", 80 + i, x, Math.min(-0.5, spBed(x) + 0.7 + 0.3 * i), Math.PI - 0.12, T, { at: SPp, floor: (xx) => spBed(xx), z: SP_LZ - 0.6 - i * 0.6, cm: 20, sc: 1.8, freq: 1.4, amp: 0.05 });
+  }
+}
+// 夜：常夜灯の明暗の境目に集まるアジとメバル
+function slNightFish(T) {
+  fkSchool("aji", T, { at: SPp, floor: (x) => spBed(x), cx: 11.2, sx: 1.4, h0: 0.35, h1: 0.9, zc: SP_LZ - 0.8, sz: 0.8, n: 9, i0: 90, cm: 18, sc: 1.8, face: 0 });
+  for (let i = 0; i < 2; i++) { const x = 12.6 + i * 1.1 + 0.3 * Math.sin(T * 0.4 + i); fkPut("mebaru", 84 + i, x, spBed(x) + 0.55 + 0.4 * i, Math.PI - 0.1, T, { at: SPp, floor: (xx) => spBed(xx), z: SP_LZ - 0.4 - i * 0.7, cm: 21, sc: 1.8, freq: 1.0, amp: 0.04 }); }
+}
+const SL_LEG = [["#ffb45e", "糸とワームの動き"], ["#8ff0ff", "ワームが通った道（点）"], ["#2ecc71", "ねらう所"]];
+const slTag = (txt = "坂の角度・段差・捨て石は模式図（漁港で変わる）") => { html += `<div style="position:absolute;${PORTRAIT ? "left:36px;top:150px" : "left:70px;top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${PORTRAIT ? 26 : 24}px;z-index:5">${txt}</div>`; };
+// 全体図（左上）：岸壁・坂・段差・沖の小さな断面。点＝いまのワーム
+function slMini(u, y, a = 1, hi) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, X = (uu) => 6 + ((uu + 5) / 37) * 168, Y = (yy) => 30 - yy * 8;
+  let d = `M0 92 L0 ${Y(1.3)}`;
+  for (let uu = -5; uu <= 32; uu += 0.25) d += ` L${X(uu).toFixed(1)} ${Y(spBed(uu)).toFixed(1)}`;
+  d += " L180 92 Z";
+  const ring = (k, col) => (hi && hi[k] ? `<circle cx="${X(SL_PIN[k][0])}" cy="${Y(SL_PIN[k][1] + 0.4)}" r="9" fill="none" stroke="${col}" stroke-width="3"/>` : "");
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 180}px;width:300px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px 10px 8px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:22px;font-weight:900;color:#10345a;margin:0 0 2px 6px">全体図（横から）</div>
+    <svg viewBox="0 0 180 92" width="100%"><rect x="0" y="0" width="180" height="30" fill="#cfe8f6"/><rect x="0" y="30" width="180" height="62" fill="#3f93c4"/>
+    <path d="${d}" fill="#b9bfc2"/><path d="M${X(SP_END)} ${Y(spBed(SP_END + 0.5))} L180 ${Y(spBed(32))} L180 92 L${X(SP_END)} 92 Z" fill="#d9c79c"/>
+    <circle cx="${X(-1.8)}" cy="${Y(1.3) - 6}" r="4" fill="#ff8a2a"/>${ring("asa", "#ffd166")}${ring("dan", "#2ecc71")}${ring("oki", "#4cc3ff")}
+    ${u != null ? `<line x1="${X(SP_TIP[0])}" y1="${Y(SP_TIP[1])}" x2="${X(u)}" y2="${Y(y)}" stroke="#ffb45e" stroke-width="1.6"/><circle cx="${X(u)}" cy="${Y(y)}" r="5" fill="#ffb45e" stroke="#fff" stroke-width="2"/>` : ""}</svg></div>`;
+}
+const slPinLab = (k, n, sub, a, cls, dx, dy) => label(SPp(SL_PIN[k][0], SL_PIN[k][1] + 0.3, SP_LZ), n, sub, a, cls, dx, dy);
+// 斜め上から（坂が奥まで続いているのがわかる）
+function slPersp(t, k = 0) {
+  const P = PORTRAIT;
+  look(SPp(lerp(20, 17, k) + Math.sin(t * 0.05) * 0.6, lerp(6, 4.5, k), SP_LZ + lerp(P ? 36 : 28, P ? 30 : 22, k)), SPp(lerp(9, 10, k), -1.0, -2), P ? 40 : 38);
+}
+
+Object.assign(SHOTS, {
+  sl_thumb(t, d, s) {
+    slBase();
+    const T = 4;
+    slKasago(T, 0.5, [SL_KF[0] + 1.0, slFloor(SL_KF[0] + 1.0) + 0.8]);
+    slKasago2(T);
+    slShallow(T, 0, { n: 10, pred: false });
+    slLook(9, -0.6, 17, 36, { oy: 2.2, ox: -2 });
+    ftFlush();
+    slGlow(SL_PIN.dan[0], SL_PIN.dan[1] + 0.5, SP_LZ, 1.0, 1, "255,209,102");
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：スロープの断面。A・B・C の印（最初の1秒から）
+  sl_hook(t, d, s) {
+    slBase();
+    const P = PORTRAIT, T = t + 2, k = ease(t / Math.max(d, 1));
+    slKasago(T); slKasago2(T); slShallow(T, 0, { n: 10, pred: false });
+    slLook(lerp(11.5, 11, k) + Math.sin(t * 0.05) * 0.3 + (P ? 5 : 0), -1.0, lerp(28, 23, k), 34, { oy: 3.0, ox: -2, pk: 1.9 });
+    ftFlush();
+    const a = P ? 1 : clamp01(t / 0.3);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 380}px;background:linear-gradient(rgba(2,14,28,.62),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 20, P ? "漁港のスロープ、<br>どこに投げる？" : "漁港のスロープ、どこに投げる？", "海の中を見える化", a);
+    [["asa", "A"], ["dan", "B"], ["oki", "C"]].forEach(([kk, n], i) => mapPin(SPp(SL_PIN[kk][0], SL_PIN[kk][1] + 0.5, SP_LZ), n, P ? 1 : clamp01((t - 1.0 - i * 0.3) / 0.3)));
+    slTag();
+  },
+  // スロープとは：k0 船を下ろす坂 → k1 静かで海藻・貝 → エビ・カニ → k2 坂の終わりの段差と捨て石
+  sl_what(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 10, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99), kk = k >= 2 ? ease(t2 / 2.5) : 0;
+    if (k >= 2) { slKasago(T); slKasago2(T); }
+    slLook(lerp(9.5, SP_END + 1.2, kk), lerp(-0.6, -2.3, kk), lerp(26, 9, kk), 34, { oy: lerp(2.6, 0.6, kk), ox: lerp(-2, 0, kk) });
+    ftFlush();
+    if (k === 0) {
+      label(SPp(4, spBed(4) + 0.1, -1), "スロープ（斜路）", "船を海へ下ろすための坂", fadeIn(t, 0.4), "gold ans", P ? 40 : 120, P ? -320 : -230);
+      label(SPp(-2.5, 1.3, SP_LZ), "岸壁", "釣り人はこの上", fadeIn(t, 1.4), "", P ? 120 : 160, P ? 300 : 200);
+    }
+    if (k === 1) {
+      slBand(5.6, SP_END, fadeIn(t1, 0.3), "#7bd36b", 12, 0.05);
+      label(SPp(9.5, spBed(9.5), SP_LZ), "海藻・貝が付きやすい", "波の静かな所に作られることが多い", fadeIn(t1, 0.5), "gold", P ? 0 : 120, P ? -320 : -230);
+      html += ftCard(P, `<b style="font-size:38px">海藻・貝 → <span style="color:#c2410c">エビ・カニ</span>が集まる</b><div style="font-size:28px;font-weight:900;margin-top:6px">魚のエサが多い場所と言われる</div>`, fadeIn(t1, 1.6), [1180, 560, 680], [60, 1560, 960]);
+    }
+    if (k >= 2) {
+      slGlow(SP_END + 0.9, spBed(SP_END + 0.9) + 0.5, SP_LZ, 1.0, fadeIn(t2, 2.4), "255,209,102", T);
+      label(SPp(SP_END + 0.2, spBed(SP_END - 0.2), SP_LZ), "坂の終わり＝段差", "ここから急に深くなる", fadeIn(t2, 2.0), "gold ans", P ? -40 : -360, P ? 300 : 200);
+      label(SPp(SP_END + 1.2, slFloor(SP_END + 1.2, -2), -2), "捨て石", "石が入っていることが多い", fadeIn(t2, 3.2), "gold", P ? 60 : 300, P ? 260 : 160);
+    }
+    slTag();
+    ftNote(k >= 2 ? "魚は大きく表示。魚の動きはイメージ" : "坂の角度は見やすいように急に描いてある（模式図）");
+  },
+  // ねらう場所：k0 A 浅場 → k1 B 段差 → k2 C 沖の深い所
+  sl_three(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 30, t0 = t - (s._k0 ?? 0), t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    slKasago(T); slKasago2(T); slShallow(T, 0, { n: 10, pred: false });
+    slLook((P ? 17 : 15) + Math.sin(t * 0.06) * 0.4, -1.8, 30, 32, { oy: 2.4, pk: 1.9 });
+    ftFlush();
+    slBand(5.8, 12.5, k === 0 ? fadeIn(t0, 0.3) : 0.5, "#ffd166");
+    slPinLab("asa", "A 浅場", "坂の上・浅い所", fadeIn(t0, 0.4), k === 0 ? "gold ans" : "", P ? 0 : -60, P ? -320 : -240);
+    if (k >= 1) { slBand(SL_DAN[0], SL_DAN[1], fadeIn(t1, 0.3)); slPinLab("dan", "B 段差", "坂の終わり・切れ目", fadeIn(t1, 0.6), k === 1 ? "gold ans" : "", P ? 40 : 60, P ? -330 : -260); }
+    if (k >= 2) { slBand(22, 30, fadeIn(t2, 0.3), "#4cc3ff"); slPinLab("oki", "C 沖", "その先の深い所", fadeIn(t2, 0.6), k === 2 ? "gold ans" : "", P ? -40 : 40, P ? -300 : -200); }
+    slMini(null, null, 1, { asa: true, dan: k >= 1, oki: k >= 2 });
+    legend([["#ffd166", "A 浅場（坂の上）"], ["#2ecc71", "B 段差（切れ目）"], ["#4cc3ff", "C 沖の深い所"]]);
+    slTag();
+  },
+  // クイズ：k0 昼、岸壁の上からワームで根魚。どこ？ → k1 A・B・C → k2 答え B 段差 → k3 A と C
+  sl_quiz(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 50, t2 = t - (s._k2 ?? 99), t3 = t - (s._k3 ?? 99);
+    slKasago(T); slKasago2(T); slShallow(T, 0, { n: 10, pred: false });
+    slLook(P ? 17 : 15, -1.8, 30, 32, { oy: 2.4, pk: 1.9 });
+    ftFlush();
+    if (k <= 1) {
+      [["asa", "A"], ["dan", "B"], ["oki", "C"]].forEach(([kk, n], i) => mapPin(SPp(SL_PIN[kk][0], SL_PIN[kk][1] + 0.5, SP_LZ), n, k === 1 ? fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.3) : 0.6));
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 330}px;background:linear-gradient(rgba(2,14,28,.66),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 62 : 54}px">クイズ　昼、岸壁の上からワームで根魚<br><span style="color:#ffd166">どこをねらう？</span></div>`;
+      if (k === 1) {
+        const o = [["A", "浅場（坂の上）"], ["B", "段差（坂の終わり）"], ["C", "沖の深い所"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 1180}px;top:${P ? 1480 : 640}px;width:${P ? 840 : 640}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      slBand(SL_DAN[0], SL_DAN[1], fadeIn(t2, 0.2));
+      slGlow(SL_PIN.dan[0], SL_PIN.dan[1] + 0.5, SP_LZ, 1.3, fadeIn(t2, 0.3), "46,204,113", T);
+      slPinLab("dan", "答え B：段差", "浅場と深場の境目（かけあがり）", fadeIn(t2, 0.3), "gold ans", P ? 0 : 40, P ? -330 : -260);
+      if (k >= 3) {
+        noMark(SPp(SL_PIN.asa[0], SL_PIN.asa[1] + 0.6, SP_LZ), "A：昼は浅くて隠れる所が少ない", fadeIn(t3, 0.3));
+        noMark(SPp(SL_PIN.oki[0], SL_PIN.oki[1] + 0.6, SP_LZ), "C：エサの多い浅場から遠い", fadeIn(t3, 1.4));
+      }
+    }
+    if (k >= 2) { slMini(null, null, 1, { dan: true }); slTag(); }
+  },
+  // なぜ段差？ k0 深場＝隠れ家・浅場＝餌場 → k1 捨て石を拠点に、浅場から落ちてくるエサをねらう → k2 段差の前をワームが通ると、飛び出して食う（イメージ）
+  sl_why(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 70, sim = ftRun("sl_main"), mk = sim.marks, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    const ts = k >= 2 ? Math.min(mk.dan - 3.0 + t2 * 0.9, mk.dan + 1.0) : mk.go + 5 + (t % 6) * 0.3;
+    const st = k >= 2 ? slRig(T, sim, ts, { vis: 7, trail: 4 }) : null;
+    const lg = k >= 2 ? ease((t2 - 2.4) / 0.9) : 0;
+    slKasago(T, lg * 0.85, st ? [st.u + 0.12, st.y] : null);
+    slKasago2(T);
+    if (k === 0) slLook(SP_END + 0.5, -1.6, 19, 34, { oy: 1.2, pk: 1.6 });
+    else if (k === 1) slLook(SP_END + 0.8, -2.2, 9, 34, { oy: 0.8, pk: 1.6 });
+    else slLook(SL_KF[0] + 0.3, spBed(SL_KF[0]) + 0.8, 5.6, 34, { oy: 0.5, pk: 1.5 });
+    ftFlush();
+    if (k === 0) {
+      const sh = [], dp = [];
+      for (let u = 9; u <= SP_END - 0.3; u += 0.3) sh.push(SPp(u, spBed(u) + 0.35, SP_LZ));
+      for (let u = SP_END + 0.6; u <= SP_END + 7; u += 0.3) dp.push(SPp(u, spBed(u) + 0.35, SP_LZ));
+      pathLine(sh, "#ffd166", fadeIn(t, 0.3), 16);
+      pathLine(dp, "#4cc3ff", fadeIn(t, 1.2), 16);
+      label(SPp(11.5, spBed(11.5) + 0.3, SP_LZ), "浅場＝エサ場", "エビ・カニが多い", fadeIn(t, 0.5), "gold", P ? -40 : -60, P ? -300 : -190);
+      label(SPp(SP_END + 5, spBed(SP_END + 5) + 0.3, SP_LZ), "深場＝隠れ家", "", fadeIn(t, 1.4), "", P ? 40 : 60, P ? 260 : 150);
+      html += ftCard(P, `<b style="font-size:36px">境目に、根魚が<span style="color:#c2410c">居着きやすい</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">深場で隠れて、浅場のエサをねらうと言われる</div>`, fadeIn(t, 2.6), [1120, 170, 740], [60, 1560, 960]);
+    } else if (k === 1) {
+      // 浅場から転がり落ちてくるエサ（小さな点・イメージ）
+      for (let i = 0; i < 6; i++) { const ph = ((t1 * 0.35 + i / 6) % 1), u = lerp(SP_END - 3, SP_END + 0.6, ph), y = (u < SP_END ? spBed(u) : lerp(spBed(SP_END - 0.01), slFloor(SP_END + 0.6, SP_LZ), (u - SP_END) / 0.6)) + 0.12; const p = project(SPp(u, y, SP_LZ)); html += `<div style="position:absolute;left:${p.x - 9}px;top:${p.y - 9}px;width:18px;height:18px;border-radius:50%;background:#ff8f6b;border:3px solid #fff;opacity:${fadeIn(t1, 0.3)}"></div>`; }
+      label(SPp(SP_END - 1.5, spBed(SP_END - 1.5) + 0.2, SP_LZ), "落ちてくるエビ・カニ", "（イメージ）", fadeIn(t1, 0.4), "", P ? -60 : -260, P ? -300 : -200);
+      label(SPp(SL_KF[0], slFloor(SL_KF[0]) + 0.5, SP_LZ), "カサゴ（ガシラ）", "捨て石のそばで待つ", fadeIn(t1, 1.4), "gold", P ? 60 : 280, P ? -300 : -160);
+    } else {
+      ftChip(lg > 0.2 ? "飛び出して、食いつく（イメージ）" : "段差のすぐ前を、ワームが通る", lg > 0.2 ? "#c2410c" : "#e08a2a");
+    }
+    slMini(st ? st.u : null, st ? st.y : null, 1, { dan: true });
+    if (!P && k >= 2) legend(SL_LEG.slice(0, 2));
+    ftNote(k >= 2 ? "ワームの動きは簡単な物理モデルの計算。ワームと魚は大きく表示。魚の動きはイメージ" : "魚は大きく表示。地形は模式図。魚の動きはイメージ");
+  },
+  // 引き方（計算）：k0 沖へ投げて底まで → k1 リフト＆フォールでかけあがりを段差へ → k2 段差でじっくり → k3 坂の手前で巻き上げ
+  sl_lure(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 90, sim = ftRun("sl_main"), mk = sim.marks;
+    const t1 = s._k1 ?? 99, t2 = s._k2 ?? 99, t3 = s._k3 ?? 99;
+    const sp1 = Math.max(1, (mk.dan - mk.go) / Math.max(3, t2 - t1 - 0.4));
+    let ts = k === 0 ? Math.min(t * 1.25, mk.go) : k === 1 ? Math.min(mk.go + (t - t1) * sp1, mk.dan) : k === 2 ? Math.min(mk.dan + (t - t2) * 0.8, mk.up) : mk.up + (t - t3) * 0.7;
+    ts = Math.min(ts, mk.done + 0.5);
+    const st = slRig(T, sim, ts, { vis: 7, trail: k === 0 ? 0 : 7 });
+    slKasago(T); slKasago2(T);
+    const [sx, sy] = ftSmooth(sim, ts, 0.8);
+    slLook(lerp(sx + SP_TIP[0], SP_END + 2, 0.35) - 0.5, Math.max(-4.6, sy + 1.3), k === 3 ? 13 : 10.5, 34, { pk: 1.5 });
+    if (k >= 2) slBand(SL_DAN[0], SL_DAN[1], 0.8);
+    if (k >= 3) {
+      const pts = []; for (let u = 6; u <= SP_END + 0.2; u += 0.25) pts.push(SPp(u, spBed(u) + 0.15, SP_LZ));
+      pathLine(pts, "#e3412b", fadeIn(t - t3, 0.3), 12, "16 12");
+      label(SPp(SP_END - 2.5, spBed(SP_END - 2.5), SP_LZ), "根がかりしやすい", "坂の海藻・貝・捨て石", fadeIn(t - t3, 0.6), "", P ? 40 : 60, P ? -300 : -330);
+    }
+    ftFlush();
+    const c0 = st.c0;
+    if (c0.free) ftChip("沖の深い所へ投げて、底まで沈める", "#1f6fd1");
+    else if (ts >= mk.up) ftChip("坂の手前で、巻き上げて回収", "#e3412b");
+    else if (ts >= mk.dan) ftChip("段差：小さく揺らして、じっくり", "#2a9d5c");
+    else if (c0.kind === "up") ftChip("竿をゆっくり上げる", "#e08a2a");
+    else if (c0.kind === "down") ftChip("竿を下げて、落とす", "#3a6ea5");
+    else ftChip(ts < mk.go + 0.1 ? "着底" : "リフト＆フォールで、段差へ", "#10345a");
+    if (k === 1 && sp1 > 1.2) html += `<div style="position:absolute;${P ? "right:40px;top:560px" : "right:60px;top:520px"};background:rgba(6,22,42,.85);border-radius:14px;padding:4px 16px;color:#fff;font-weight:900;font-size:28px">早送り ×${sp1.toFixed(1)}</div>`;
+    slMini(st.u, st.y, 1, { dan: true });
+    ftCtl(st, 1, c0.free ? ["沈める", "#1f6fd1"] : ts >= mk.up ? ["巻く", "#e08a2a"] : ts >= mk.dan ? ["揺らす", "#2a9d5c"] : c0.kind === "up" ? ["上げる", "#e08a2a"] : c0.kind === "down" ? ["落とす", "#3a6ea5"] : ["止める", "#10345a"]);
+    if (!P) legend(SL_LEG.slice(0, 2));
+    ftNote("ワームの動きは簡単な物理モデルの計算（10g・重さ・水の抵抗・糸の張り）。ワームは大きく表示。地形は模式図");
+  },
+  // 掛かったら：捨て石へ逃げ込もうとする → すぐ巻いて底から引き離す
+  sl_hit(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 120, sim = ftRun("sl_hit"), mk = sim.marks;
+    const ts = Math.min(mk.bite - 1.2 + t * 0.85, mk.reel + 1.2);
+    const st = slRig(T, sim, ts, { vis: 7 });
+    const on = ts >= mk.bite;
+    if (on) {
+      const ang = Math.PI + 0.35 * Math.sin(T * 7) - 0.25;
+      fkPut("kasago", 50, st.u + 0.03, st.y, ang, T, { at: SPp, floor: (x, z) => slFloor(x, z), z: SP_LZ - 0.05, cm: 26, sc: TP_FISH_SC, freq: 3, amp: 0.12 });
+    } else slKasago(T, ease((ts - (mk.bite - 0.9)) / 0.9), [st.u + 0.12, st.y]);
+    slKasago2(T);
+    const [sx, sy] = ftSmooth(sim, ts, 0.6);
+    slLook(sx + SP_TIP[0] - 1.0, Math.max(-4.6, sy + 1.1), 8.5, 34, { pk: 1.5 });
+    ftFlush();
+    if (!on) ftChip("段差で、食った！", "#c2410c");
+    else if (ts < mk.reel) ftChip("捨て石へ逃げ込もうとする", "#c2410c");
+    else ftChip("すぐ巻いて、底から引き離す", "#e08a2a");
+    if (on && ts < mk.reel + 0.6) {
+      const q = project(SPp(st.u, st.y, SP_LZ)), r = project(SPp(SP_END + 0.8, slFloor(SP_END + 0.8, SP_LZ), SP_LZ));
+      lines += `<line x1="${q.x}" y1="${q.y}" x2="${r.x}" y2="${r.y}" stroke="#e3412b" stroke-width="10" stroke-dasharray="18 12" opacity="${fadeIn(ts, mk.bite, 0.3)}"/>`;
+    }
+    slMini(st.u, st.y, 1, { dan: true });
+    ftCtl(st, 1, ts >= mk.reel ? ["巻く", "#e08a2a"] : null);
+    if (!P) legend([SL_LEG[0]]);
+    ftNote("魚が引く力は仮の値。魚の動きはイメージ。ワームと魚は大きく表示");
+  },
+  // 浅場：k0 浅いスロープは、小魚が追い詰められやすい → k1 夜は常夜灯、明暗の境目にアジ・メバル → k2 ゆっくり通す
+  sl_night(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k === 0) {
+      slBase();
+      slShallow(T, ease((t - 0.8) / 4));
+      slLook(10.2, -0.8, 8, 34, { oy: 0.6, pk: 1.6 });
+      ftFlush();
+      label(SPp(8.8, -0.45, SP_LZ - 0.9), "小魚", "浅い所へ追い詰められる", fadeIn(t, 1.0), "gold", P ? -40 : -160, P ? -300 : -220);
+      label(SPp(12, spBed(12) + 0.9, SP_LZ - 0.6), "小魚を食べる魚", "例えばメバル", fadeIn(t, 2.0), "", P ? 60 : 120, P ? 260 : 190);
+      html += ftCard(P, `<b style="font-size:36px">だんだん浅くなる坂は、<br><span style="color:#c2410c">小魚が追い詰められやすい</span></b><div style="font-size:26px;font-weight:900;margin-top:6px">アジング・メバリングでもねらわれる</div>`, fadeIn(t, 3.0), [1150, 160, 700], [60, 1560, 960]);
+      ftNote("魚は大きく表示。魚の動きはイメージ（TSURI HACK の解説から）");
+      return;
+    }
+    slBase(0.55);
+    slNightFish(T);
+    slLook(11, -0.8, 10, 34, { oy: 1.0, pk: 1.6 });
+    ftFlush();
+    html += `<div style="position:absolute;${P ? "left:40px;top:230px" : "left:70px;top:180px"};background:linear-gradient(90deg,#3a4a8a,#6a7fd0);border-radius:18px;padding:10px 26px;color:#fff;font-weight:900;font-size:${P ? 44 : 40}px;box-shadow:0 6px 18px rgba(0,0,0,.3)">夜・常夜灯</div>`;
+    const pts = []; for (let y = -0.2; y >= spBed(SP_PINS.meian[0] + 1) + 0.2; y -= 0.2) pts.push(SPp(SP_PINS.meian[0] + 1.2 - (y + 0.2) * 0.3, y, SP_LZ));
+    pathLine(pts, "#ffd166", fadeIn(t1, 0.3), 10, "14 10");
+    label(SPp(SP_PINS.meian[0] + 1.2, -0.3, SP_LZ), "明暗の境目", "光の端", fadeIn(t1, 0.5), "gold ans", P ? 60 : 260, P ? -320 : -220);
+    label(SPp(11.4, spBed(11.4) + 0.8, SP_LZ - 0.8), "アジ・メバル", "プランクトンを追って集まる", fadeIn(t1, 1.6), "", P ? -60 : -260, P ? 260 : 160);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:36px">明暗の境目に、<span style="color:#1f8a4c">ゆっくり通す</span></b>`, fadeIn(t2, 0.4), [70, 290, 600], [60, 1560, 960]);
+    ftNote("魚は大きく表示。魚の動きはイメージ（BE-PAL の解説から）");
+  },
+  // 安全：k0 坂は滑る → k1 本来は船の場所 → k2 立入禁止・ライフジャケット
+  sl_safe(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 180, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k === 0) {
+      slLook(5.5 + Math.sin(t * 0.05) * 0.3, 0.6, 17, 32, { oy: 2.0 });
+      ftFlush();
+      const pts = []; for (let u = 0.3; u <= 10; u += 0.25) pts.push(SPp(u, spBed(u) + 0.12, SP_LZ));
+      pathLine(pts, "#e3412b", fadeIn(t, 0.4), 12, "16 12");
+      noMark(SPp(4.5, spBed(4.5) + 0.6, SP_LZ), "ぬれた坂に下りない", fadeIn(t, 0.8));
+      html += ftCard(P, `<b style="font-size:36px">ぬれた坂は<span style="color:#c2410c">とても滑る</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">海藻や藻が付いている。釣りは岸壁の上から</div>`, fadeIn(t, 1.0), [1060, 620, 780], [60, 1560, 960]);
+    } else if (k === 1) {
+      slLook(4 + t1 * 0.05, 0.8, 20, 32, { oy: 2.2 });
+      ftFlush();
+      html += ftCard(P, `<b style="font-size:36px">スロープは、本来<span style="color:#c2410c">船のための場所</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">船の出入り・漁師さんの仕事のじゃまをしない<br>船やロープの近くでは釣らない</div>`, fadeIn(t1, 0.4), [1000, 560, 840], [60, 1500, 960]);
+    } else {
+      slLook(-1.4 + t2 * 0.03, 2.4, 9.5, 34, { oy: 0.8, pk: 1.6 });
+      ftFlush();
+      label(SPp(-1.8, 2.6, SP_LZ - 0.3), "ライフジャケット", "夜はライトも", fadeIn(t2, 0.4), "gold ans", P ? 120 : 260, P ? -330 : -200);
+      html += ftCard(P, `<b style="font-size:36px"><span style="color:#c2410c">立入禁止・釣り禁止</span>の漁港では釣らない</b><div style="font-size:28px;font-weight:900;margin-top:6px">看板を確かめる。釣りの事故は海への転落が多い</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁（第九管区）の呼びかけから</div>`, fadeIn(t2, 1.0), [1000, 600, 840], [60, 1560, 960]);
+    }
+  },
+  sl_sum(t, d, s, k) {
+    slBase();
+    const P = PORTRAIT, T = t + 220;
+    slKasago(T); slKasago2(T); slShallow(T, 0, { n: 10, pred: false });
+    slPersp(t, 0.5);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["段差", "坂の終わりの段差＝浅場と深場の境目", "捨て石のそばに根魚。沖から底を引いてくる", "#2a9d5c"], ["浅場", "浅い坂は、小魚が追い詰められやすい", "夜は常夜灯の明暗の境目も", "#c98a00"], ["安全", "ぬれた坂に下りない・船のじゃまをしない", "立入禁止では釣らない。ライフジャケット", "#e3412b"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">漁港のスロープ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 36}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 34 : 42}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;

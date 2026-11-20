@@ -24,9 +24,9 @@
 ## 作りかけ（3DCG）：漁港のスロープ、どこに投げる？（cg-slope、sl_*）2026-11-20 開始
 A-1 の1番。土台は漁港のスロープの断面（spBase・spBed・SP_PINS）。Blender は新しい場面 slope（段差のすその捨て石とカサゴ、ワーム）。
 確かめた事実（docs/research/fish-knowledge.md「漁港のスロープ」に書く）：TSURI HACK 5346（静かな所で海藻・貝が付きエビ・カニが集まる／切れ目に捨て石が入ることが多く住処／切れ目から一気に深くなる＝かけあがり、深場が隠れ家・浅場が餌場でロックフィッシュが居着く／ブレイクまで投げてズル引き・リフト＆フォール／とても滑りやすい／本来は船着き場、漁師さんの迷惑にならない）、TSURI HACK 3182（内湾のスロープ付近はフィッシュイーターが小魚を追い詰めやすい・アジング等）、BE-PAL 232786（常夜灯の明暗の境目・アジ・メバル・釣り禁止の看板・ライフジャケット）、第九管区（立入禁止区域に入らない・海中転落が多い）
-- [ ] 資料を fish-knowledge.md に書く
-- [ ] main.js sl_*・Blender scenes/slope.py
-- [ ] 台本 cg-slope.json・short-cg-slope.json、静止画の確認
+- [x] 資料を fish-knowledge.md に書く
+- [x] main.js sl_*・Blender scenes/slope.py（check_scene 最小すきま 0.258m）
+- [x] 台本 cg-slope.json・short-cg-slope.json、静止画の確認（--clear 0.3m）
 - [ ] cg-video（slug=cg-slope）→ 実行ID：
 - [ ] cg-compress
 - [ ] cg-blender-open test → full（実行ID：）
