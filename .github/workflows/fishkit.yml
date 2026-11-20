@@ -1,5 +1,8 @@
 name: Fish Kit import
-# 魚の3Dモデル集（Fish Kit、CC0 1.0。https://cda-social.github.io/fish/gallery.html）を scripts/cg/vendor/fishkit に取り込む（2026-11-12 オーナー指示）
+# 魚・イカ・エビ・水槽の部品の3Dモデル集（CC0 1.0）を scripts/cg/vendor に取り込む
+#   2026-11-12 オーナー：Fish Kit（https://cda-social.github.io/fish/gallery.html）
+#   2026-11-20 オーナー：新しいモデル集（https://cda-social.github.io/aquarium/models-gallery.html）に入れ替え。種類が増えた
+#     海水魚 → vendor/fishkit、イカ・エビ → vendor/squidkit（squid-kit.js と shrimp-kit.js）、淡水魚 → vendor/freshkit、オブジェクト（砂・石・水草）→ vendor/objectskit
 on:
   workflow_dispatch:
 permissions:
@@ -12,24 +15,26 @@ jobs:
       - name: download
         run: |
           set -e
-          curl -fsSL -o /tmp/kit.zip https://cda-social.github.io/fish/kit/fish-kit.zip
-          rm -rf /tmp/kit && mkdir -p /tmp/kit && unzip -q /tmp/kit.zip -d /tmp/kit
-          find /tmp/kit -maxdepth 3 | head -100
-          du -sh /tmp/kit
-          ROOT=$(dirname "$(find /tmp/kit -name fish-kit.js | head -1)")
-          rm -rf scripts/cg/vendor/fishkit && mkdir -p scripts/cg/vendor/fishkit
-          cp -r "$ROOT"/. scripts/cg/vendor/fishkit/
-          printf 'Fish Kit（CC0 1.0）\n出典：https://cda-social.github.io/fish/gallery.html\n取り込み：%s\n' "$(date -u +%F)" > scripts/cg/vendor/fishkit/SOURCE.txt
-          du -sh scripts/cg/vendor/fishkit; find scripts/cg/vendor/fishkit -size +20M
-          # GLTFLoader（three r160。scripts/cg/vendor/three.module.min.js と同じ版）
-          cd /tmp && npm pack three@0.160.0 --silent && tar xzf three-0.160.0.tgz && cd "$GITHUB_WORKSPACE"
-          mkdir -p scripts/cg/vendor/addons/loaders scripts/cg/vendor/addons/utils
-          cp /tmp/package/examples/jsm/loaders/GLTFLoader.js scripts/cg/vendor/addons/loaders/
-          cp /tmp/package/examples/jsm/utils/BufferGeometryUtils.js scripts/cg/vendor/addons/utils/
+          B=https://cda-social.github.io/aquarium/kit
+          get() { # $1=zip の名前 $2=入れる先
+            curl -fsSL -o /tmp/$1.zip "$B/$1.zip"
+            rm -rf /tmp/x && mkdir -p /tmp/x && unzip -q /tmp/$1.zip -d /tmp/x
+            ROOT=$(dirname "$(find /tmp/x -name README.md -maxdepth 2 | head -1)")
+            rm -rf "scripts/cg/vendor/$2" && mkdir -p "scripts/cg/vendor/$2"
+            cp -r "$ROOT"/. "scripts/cg/vendor/$2/"
+            rm -rf "scripts/cg/vendor/$2/making"   # 作り方（Codex・Blender のスクリプト）は動画では使わない
+            printf '%s（CC0 1.0）\n出典：https://cda-social.github.io/aquarium/models-gallery.html （%s）\n取り込み：%s\n' "$1" "$B/$1.zip" "$(date -u +%F)" > "scripts/cg/vendor/$2/SOURCE.txt"
+            echo "== $2"; du -sh "scripts/cg/vendor/$2"; ls "scripts/cg/vendor/$2"
+          }
+          get saltwater-fish-kit fishkit
+          get other-kit squidkit
+          get freshwater-fish-kit freshkit
+          get objects-kit objectskit
+          find scripts/cg/vendor -size +40M
       - name: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/cg/vendor/fishkit scripts/cg/vendor/addons
-          git commit -m "Fish Kit（CC0）を取り込み" || exit 0
-          for i in 1 2 3; do git pull --rebase -q origin main && git push -q origin HEAD:main && break; sleep 5; done
+          git add -A scripts/cg/vendor/fishkit scripts/cg/vendor/squidkit scripts/cg/vendor/freshkit scripts/cg/vendor/objectskit
+          git commit -m "3Dモデル集（CC0）を新しいもの（aquarium）に入れ替え" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push -q origin HEAD:main && break; sleep 5; done
