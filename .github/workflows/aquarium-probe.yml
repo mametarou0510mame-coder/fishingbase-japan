@@ -10,9 +10,6 @@ jobs:
     steps:
       - name: page
         run: |
-          B=https://cda-social.github.io/aquarium
-          curl -fsSL "$B/assets/modelsGallery-B8sXRfto.js" -o g.js; wc -c g.js
-          echo "=== zip/kit"; grep -oE '.{0,160}\.zip.{0,200}' g.js | head -20
-          echo "=== kit dirs"; grep -oE '"[a-zA-Z0-9_./-]*(kit|Kit)[a-zA-Z0-9_./-]*"' g.js | sort -u | head -40
-          echo "=== ids"; grep -oE '\{id:"[a-z0-9_-]+",[^}]{0,120}' g.js | head -150
-          for z in $(grep -oE '"[^"]*\.zip"' g.js | tr -d '"' | sort -u); do u=$z; case $z in http*) ;; /*) u="https://cda-social.github.io$z";; *) u="$B/${z#./}";; esac; echo "=== ZIP $u"; curl -fsSL -o k.zip "$u" && ls -la k.zip && unzip -l k.zip | awk '{print $1, $4}' | grep -vE "\.(png|jpg|webp|ktx2)$" | head -150; unzip -l k.zip | tail -1; done
+          B=https://cda-social.github.io/aquarium/kit
+          for z in saltwater-fish-kit other-kit; do echo "=== ZIP $z"; curl -fsSL -o k.zip "$B/$z.zip" && ls -la k.zip && unzip -l k.zip | awk '{print $1, $4}' | grep -vE "\.(png|jpg|webp|ktx2)$" | head -200; unzip -l k.zip | tail -1; unzip -o -q k.zip -d $z; done
+          for f in $(find . -name README.md -path "*kit*"); do echo "=== $f"; head -c 7000 $f; done
