@@ -1,0 +1,20 @@
+name: Aquarium kit probe
+# 新しい3Dモデル集（https://cda-social.github.io/aquarium/models-gallery.html、CC0 1.0）の中身を調べる（2026-11-20 オーナー指示：前のモデルと入れ替え）
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: page
+        run: |
+          set -x
+          B=https://cda-social.github.io/aquarium
+          curl -fsSL "$B/models-gallery.html" -o g.html; wc -c g.html
+          grep -oE '(href|src)="[^"]+"' g.html | sort -u | head -100
+          grep -oE '"[^"]*\.(zip|glb|gltf|js|json)"' g.html | sort -u | head -100
+          for s in $(grep -oE 'src="[^"]+\.js"' g.html | sed 's/src="//;s/"$//' | grep -v '^http' | head -5); do echo "=== $s"; curl -fsSL "$B/$s" | grep -oE '"[^" ]*\.(zip|glb|gltf|json|js|png|webp)"' | sort -u | head -80; done
+          sed -e 's/<[^>]*>/ /g' g.html | tr -s ' \n' | head -c 6000
+          for z in $(grep -oE '[^"]+\.zip' g.html | sort -u); do u=$z; case $z in http*) ;; *) u="$B/$z";; esac; echo "=== ZIP $u"; curl -fsSL -o k.zip "$u" && ls -la k.zip && unzip -l k.zip | head -200; done
