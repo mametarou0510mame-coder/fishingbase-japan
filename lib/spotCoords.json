@@ -502,5 +502,26 @@
   "address": "静岡県熱海市和田浜南町",
   "matched": "静岡県熱海市和田浜南町",
   "rough": false
+ },
+ "sendaiko-umi-no-hiroba": {
+  "lat": 38.2714,
+  "lon": 140.9974,
+  "address": "宮城県仙台市宮城野区港2丁目5",
+  "matched": "宮城県仙台市宮城野区港二丁目５番",
+  "rough": false
+ },
+ "akaguri-umitsuri-koen": {
+  "lat": 35.5273,
+  "lon": 135.6338,
+  "address": "福井県大飯郡おおい町大島21-110",
+  "matched": "福井県おおい町大島",
+  "rough": false
+ },
+ "tsuruga-nako-ikada": {
+  "lat": 35.6714,
+  "lon": 136.029,
+  "address": "福井県敦賀市名子37号19-1",
+  "matched": "福井県敦賀市名子",
+  "rough": false
  }
 }
