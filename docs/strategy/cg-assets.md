@@ -15,6 +15,7 @@
 | **岸の断面の土台** | `makeSection({ origin, bed(u), kind(u), depth })`、`secMat(sec, 色)`、`secAngler(sec, u, y)`、`secBase(sec, 夜の強さ)` | 空・水・地形・海面を、地形の式から作る。kind＝0 砂・1 岩・2 コンクリート・3 ぬれて藻のついたコンクリート。夜（nightK=1）は暗くなり、`sec.uni.lamp`（光の中心・半径）の中だけ明るい。新しい釣り場の断面（磯・河口・砂浜の堤防など）はこれで作る |
 | **テトラ帯の断面** | `ttBase(夜)`、`ttY(u)`（テトラの上の面・海底）、`ttTip()`（竿先）、`ttWide(t)`、`TT_HOLES`（すき間）、`TT_PINS`（穴・際・沖の境目）、`TTp(u, y, z)` | 防波堤（手すり・釣り人）の沖にテトラの山と砂。釣り人は防波堤の上（テトラには乗らない）。企画「テトラ帯、どこに投げる？」にそのまま使える。見本の絵：cg-assets/kit_tetra.jpg |
 | **漁港のスロープの断面** | `spBase(夜)`、`spBed(u)`、`spTip()`、`spWide(t)`、`SP_PINS`（段差・かけあがり・明暗の境目）、`SPp(u, y, z)` | 岸壁（常夜灯・係船柱・釣り人）から坂が下り、終わりに段差、その先は砂のかけあがり。昼と夜。企画「漁港のスロープ、どこに投げる？」に。見本：kit_slope.jpg・kit_slope_night.jpg |
+| **捨て石と底（スロープ）** | `SL_ROCKS`・`slRocks`、`slFloor(u, z)`（坂・段差・捨て石のいちばん高い所）、`slKasago`・`slShallow`（浅場の小魚と追う魚）・`slNightFish`（常夜灯のアジ・メバル） | 坂の終わりのすそに石を積む。魚を置く `floor: (x, z) => slFloor(x, z)`、ワームの計算の `opt.botf` にも。cg-slope（sl_*） |
 | **魚を置く（どの断面でも）** | `fkPut(id, i, 口のx, 口のy, 向き, T, { at, floor, z, cm })`、`fkSchool(id, T, { at, floor, cx, sx, h0, h1, n, cm, face })` | Fish Kit の魚を口の位置で置く・群れで置く。`floor(x, z)` を渡すと埋まらないように上げる（すきまは `--clear` で確かめられる）。使える魚に seabass（シーバス）を足した |
 | **潮の流れの粒（船の断面）** | `ftFlow(濃さ, { mid, v1, v2 })` | 深さ mid より上は v1、下は v2 の速さで横に流れる粒（水色＝右、オレンジ＝左）。二枚潮・潮の速さの説明に。見本：kit_flow.jpg |
 | **エサ付きの胴付き仕掛け** | `sbRigAt(…, { n: 3, bait: "ebi" })` | サビキの皮の代わりにエビ。カサゴ・メバルのエサ釣りの回に。見本：kit_bait.jpg |
@@ -42,7 +43,7 @@
 | タイラバ・メタルジグ | `opening.py` の `place_lure`・`place_jig`（`LURE = "tairaba"` / `"jig"`） | |
 | **テトラ（消波ブロック）** | `parts.build_tetra(TETRA, mat)`・`parts.tetra_dist(p, TETRA)`（場面に `ENV = "tetra"` と `TETRA = [(x, y, z, rx, ry, rz, 大きさ)]`） | テトラを並べる。`check_scene.py` が魚とテトラの距離も確かめる |
 | **ワーム（ジグヘッド＋ワーム）** | 場面に `LURE = "jig"`・`JIG_MAT = "worm"` | オレンジの胴と鉛の頭。アシストフックとリングは出さない |
-| 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない）、`scenes/tetra.py`（テトラのすそのカサゴとワーム） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
+| 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない）、`scenes/tetra.py`（テトラのすそのカサゴとワーム）、`scenes/slope.py`（坂の終わりの段差と捨て石のカサゴ・ワーム。ENV="reef" の reef_h で段差と石を作る） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
 | **仕掛けなしの場面** | 場面に `LURE = "none"` | 道糸も出さない。魚の群れだけの冒頭に。`scenes/iwashi.py`（カタクチイワシ64匹のベイトボール。終わりに散って消える） |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
