@@ -113,10 +113,10 @@ export const AREAS: Area[] = [
   },
   {
     slug: "tohoku",
-    name: "東北（青森・福島）",
-    region: "青森市浅虫・福島県新地町・いわき市小名浜",
-    spots: ["asamushi-umizuri-koen", "shinchi-umitsuri-koen", "onahama-2go-futo", "iwaki-sun-marina-tsuri-sanbashi"],
-    intro: "陸奥湾と福島の浜通りのエリアです。冬は休む施設もあるので、営業期間を確かめてから出かけましょう。",
+    name: "東北（青森・宮城・福島）",
+    region: "青森市浅虫・仙台市・福島県新地町・いわき市小名浜",
+    spots: ["asamushi-umizuri-koen", "sendaiko-umi-no-hiroba", "shinchi-umitsuri-koen", "onahama-2go-futo", "iwaki-sun-marina-tsuri-sanbashi"],
+    intro: "陸奥湾・仙台湾と福島の浜通りのエリアです。冬は休む施設もあるので、営業期間を確かめてから出かけましょう。",
   },
   {
     slug: "ibaraki-kashima",
@@ -159,6 +159,13 @@ export const AREAS: Area[] = [
     region: "館山市",
     spots: ["tateyama-yuhi-sanbashi"],
     intro: "房総半島の南、館山湾のエリアです。館山港の長い桟橋が、無料の釣り場として開放されています。",
+  },
+  {
+    slug: "fukui-wakasa",
+    name: "福井・若狭湾",
+    region: "敦賀市・おおい町",
+    spots: ["tsuruga-nako-ikada", "akaguri-umitsuri-koen"],
+    intro: "波の穏やかな若狭湾のエリアです。湾に浮かぶいかだや、海に突き出た桟橋の釣り公園があります。冬に休む施設もあります。",
   },
 ];
 

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SpotMap, { type MapSpot } from "@/app/components/SpotMap";
+import SpotMap, { type MapSpot, type MapView } from "@/app/components/SpotMap";
 import { areaOfSpot } from "@/lib/areas";
 import { summarize } from "@/lib/catches";
 import MAP from "@/lib/kansaiMap.json";
@@ -8,12 +8,15 @@ import COORDS from "@/lib/spotCoords.json";
 import { publishedSpots, spotHref } from "@/lib/spots";
 
 export const metadata: Metadata = {
-  title: "地図から釣り場を探す（関西）",
-  description: "関西の海釣り施設・公園・沖堤防・漁港・海上釣り堀を地図で探せます。点を押すと最近の釣果と、潮・天気・料金のページへ進めます。",
+  title: "地図から釣り場を探す",
+  description: "関西と全国の海釣り施設・公園・沖堤防・漁港・海上釣り堀を地図で探せます。点を押すと最近の釣果と、潮・天気・料金のページへ進めます。",
   alternates: { canonical: "/map/" },
 };
 
 type Coord = { lat: number; lon: number; rough?: boolean };
+
+// 全国の地図は「Map data」ワークフローが作る（まだ無いときはタブを出さない）
+const JAPAN = (MAP as unknown as Record<string, MapView | undefined>).japan;
 
 export default function MapPage() {
   const coords = COORDS as Record<string, Coord>;
@@ -40,11 +43,12 @@ export default function MapPage() {
   return (
     <>
       <h1>地図から釣り場を探す</h1>
-      <p className="lead">関西の釣り場を地図に並べました。点の色は釣り場の種類です。「魚で絞る」で、最近その魚が釣れている場所だけを表示できます。「大阪湾まわり」に切り替えると、神戸・大阪・泉州を大きく見られます。</p>
+      <p className="lead">釣り場を地図に並べました。点の色は釣り場の種類です。「魚で絞る」で、最近その魚が釣れている場所だけを表示できます。{JAPAN ? "「全国」に切り替えると、関東・東北・九州などの釣り場も見られます。" : ""}</p>
       <SpotMap
         views={[
-          { key: "bay", label: "大阪湾まわり", view: MAP.bay },
+          { key: "bay", label: "大阪湾まわり", view: MAP.bay, r: 7 },
           { key: "kansai", label: "関西全体", view: MAP.kansai },
+          ...(JAPAN ? [{ key: "japan", label: "全国", view: JAPAN, r: 6 }] : []),
         ]}
         spots={spots}
       />

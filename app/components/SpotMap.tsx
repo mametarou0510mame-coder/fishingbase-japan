@@ -19,7 +19,7 @@ function inView(v: MapView, s: MapSpot) {
 }
 
 // 釣り場の地図（自前の SVG。外部の地図サービスは使わない）
-export default function SpotMap({ views, spots }: { views: { key: string; label: string; view: MapView }[]; spots: MapSpot[] }) {
+export default function SpotMap({ views, spots }: { views: { key: string; label: string; view: MapView; r?: number }[]; spots: MapSpot[] }) {
   const [tab, setTab] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
   const [fish, setFish] = useState("");
@@ -31,7 +31,7 @@ export default function SpotMap({ views, spots }: { views: { key: string; label:
     .map((sp) => ({ sp, n: inTab.filter((s) => s.catches?.some((c) => c.species === sp)).length }))
     .sort((a, b) => b.n - a.n || a.sp.localeCompare(b.sp, "ja"));
   const shown = fish ? inTab.filter((s) => daysOf(s) > 0) : inTab;
-  const r = tab === 0 ? 7 : 11;
+  const r = views[tab].r ?? 11; // 点の大きさ（広い範囲の地図ほど小さく）
   const cur = spots.find((s) => s.slug === sel);
   const xy = (s: MapSpot) => [(s.lon - v.lon0) * v.c * v.k, (v.lat1 - s.lat) * v.k];
   return (
