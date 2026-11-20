@@ -27,7 +27,7 @@ A-1 の1番。土台は漁港のスロープの断面（spBase・spBed・SP_PINS
 - [x] 資料を fish-knowledge.md に書く
 - [x] main.js sl_*・Blender scenes/slope.py（check_scene 最小すきま 0.258m）
 - [x] 台本 cg-slope.json・short-cg-slope.json、静止画の確認（--clear 0.3m）
-- [ ] cg-video（slug=cg-slope）→ 実行ID：
+- [ ] cg-video（slug=cg-slope）→ 実行ID：44667334487（実行中）
 - [ ] cg-compress
 - [ ] cg-blender-open test → full（実行ID：）
 - [ ] ORDER・固定コメント・plan 更新
