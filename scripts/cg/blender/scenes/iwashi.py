@@ -18,7 +18,7 @@ THUMB_SHIFT = -0.24
 THUMB_K = 1.05
 
 C = Vector((0.0, 0.0, 2.3))   # 群れの中心（底から2.3m）
-R = 0.55                      # 群れの半径
+R = 0.48                      # 群れの半径
 T_GO = SEC - 4.2              # 散り始め
 
 
@@ -33,7 +33,7 @@ def h(i, k):
     return v - math.floor(v)
 
 
-N = 44
+N = 64
 SCHOOL = list(range(N))
 
 

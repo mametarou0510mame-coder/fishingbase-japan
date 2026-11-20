@@ -17,8 +17,8 @@
 - [x] 台本 cg-iwashi.json・short-cg-iwashi.json、narrate の読み
 - [x] Blender の場面 iwashi.py（check_scene：最小すきま 1.05m。カメラとの最小距離 1.1m）
 - [x] ローカルで静止画の確認
-- [ ] cg-video（8分割）→ cg-compress
-- [ ] cg-blender-open test → full
+- [ ] cg-video（8分割、実行 44667141696）→ cg-compress
+- [ ] cg-blender-open test（44667170364：OK。そのあと群れを N=64・R=0.48 に）→ full
 - [ ] ORDER・固定コメント・企画リストの更新
 
 ## 作りかけ（3DCG）：漁港のスロープ、どこに投げる？（cg-slope、sl_*）2026-11-20 開始
