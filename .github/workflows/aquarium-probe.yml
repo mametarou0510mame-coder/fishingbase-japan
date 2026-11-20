@@ -10,11 +10,9 @@ jobs:
     steps:
       - name: page
         run: |
-          set -x
           B=https://cda-social.github.io/aquarium
-          curl -fsSL "$B/models-gallery.html" -o g.html; wc -c g.html
-          grep -oE '(href|src)="[^"]+"' g.html | sort -u | head -100
-          grep -oE '"[^"]*\.(zip|glb|gltf|js|json)"' g.html | sort -u | head -100
-          for s in $(grep -oE 'src="[^"]+\.js"' g.html | sed 's/src="//;s/"$//' | grep -v '^http' | head -5); do echo "=== $s"; curl -fsSL "$B/$s" | grep -oE '"[^" ]*\.(zip|glb|gltf|json|js|png|webp)"' | sort -u | head -80; done
-          sed -e 's/<[^>]*>/ /g' g.html | tr -s ' \n' | head -c 6000
-          for z in $(grep -oE '[^"]+\.zip' g.html | sort -u); do u=$z; case $z in http*) ;; *) u="$B/$z";; esac; echo "=== ZIP $u"; curl -fsSL -o k.zip "$u" && ls -la k.zip && unzip -l k.zip | head -200; done
+          curl -fsSL "$B/assets/modelsGallery-B8sXRfto.js" -o g.js; wc -c g.js
+          echo "=== zip/kit"; grep -oE '.{0,160}\.zip.{0,200}' g.js | head -20
+          echo "=== kit dirs"; grep -oE '"[a-zA-Z0-9_./-]*(kit|Kit)[a-zA-Z0-9_./-]*"' g.js | sort -u | head -40
+          echo "=== ids"; grep -oE '\{id:"[a-z0-9_-]+",[^}]{0,120}' g.js | head -150
+          for z in $(grep -oE '"[^"]*\.zip"' g.js | tr -d '"' | sort -u); do u=$z; case $z in http*) ;; /*) u="https://cda-social.github.io$z";; *) u="$B/${z#./}";; esac; echo "=== ZIP $u"; curl -fsSL -o k.zip "$u" && ls -la k.zip && unzip -l k.zip | awk '{print $1, $4}' | grep -vE "\.(png|jpg|webp|ktx2)$" | head -150; unzip -l k.zip | tail -1; done
