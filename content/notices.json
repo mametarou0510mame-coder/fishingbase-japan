@@ -2,6 +2,27 @@
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
   {
+   "date": "2026-11-20",
+   "kind": "新規掲載",
+   "spot": "sendaiko-umi-no-hiroba",
+   "text": "NX仙台港パーク 海の広場（宮城県仙台市）を掲載しました。仙台塩釜港の中は全面釣り禁止で、釣りができるのはここだけです。竿は1人2本まで。",
+   "source": "https://www.pref.miyagi.jp/soshiki/sdsgkown/fishing.html"
+  },
+  {
+   "date": "2026-11-20",
+   "kind": "新規掲載",
+   "spot": "akaguri-umitsuri-koen",
+   "text": "あかぐり海釣り公園（福井県おおい町）を掲載しました。海に55mのびる円形の桟橋の釣り公園で、12月25日〜2月末日は冬季休業です。",
+   "source": "https://www.fuku-e.com/en/attractions/detail_2108.html"
+  },
+  {
+   "date": "2026-11-20",
+   "kind": "新規掲載",
+   "spot": "tsuruga-nako-ikada",
+   "text": "敦賀湾のいかだ釣り（福井県敦賀市名子）を掲載しました。トイレつきのいかだ3基で、竿セットを借りられます。毎週水曜日は休みです。",
+   "source": "https://www.fuku-e.com/en/attractions/detail_2079.html"
+  },
+  {
    "date": "2026-11-13",
    "kind": "新規掲載",
    "spot": "niigata-higashiko-dai2-higashi-bohatei",

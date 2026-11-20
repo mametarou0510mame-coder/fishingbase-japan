@@ -1,6 +1,6 @@
 // 地図ページ用のデータを作る（GitHub Actions で実行）。
 //  1) 釣り場の住所を国土地理院の住所検索で緯度経度に変える → lib/spotCoords.json（取得済みは再利用）
-//  2) Natural Earth（パブリックドメイン）の海岸線から関西部分を切り出す → lib/kansaiMap.json
+//  2) Natural Earth（パブリックドメイン）の海岸線から関西部分と全国を切り出す → lib/kansaiMap.json
 import { readFileSync, writeFileSync, mkdtempSync, copyFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -86,4 +86,5 @@ writeFileSync("lib/kansaiMap.json", JSON.stringify({
   kansai: view(134.15, 136.15, 33.35, 35.85, 320),
   bay: view(134.95, 135.5, 34.15, 34.75, 1300),
   wide: view(134.6, 135.55, 34.05, 34.8, 1000), // 淡路島・和歌山まで入る大阪湾（動画用）
+  japan: view(128.6, 146.0, 30.4, 45.7, 42), // 全国（沖縄は釣り場を載せたら範囲を広げる）
 }) + "\n");
