@@ -28,7 +28,7 @@ A-1 の1番。土台は漁港のスロープの断面（spBase・spBed・SP_PINS
 - [x] main.js sl_*・Blender scenes/slope.py（check_scene 最小すきま 0.258m）
 - [x] 台本 cg-slope.json・short-cg-slope.json、静止画の確認（--clear 0.3m）
 - [x] cg-video（slug=cg-slope）→ 実行ID：44667334487（成功）
-- [ ] cg-compress
-- [ ] cg-blender-open test（44669303463）→ full（実行ID：）
+- [x] cg-compress（44669300696）
+- [ ] cg-blender-open test（44669303463、OK）→ full（実行ID：44671765398 実行中。終わったら summary を見て ORDER へ）
 - [ ] ORDER・固定コメント・plan 更新
 
