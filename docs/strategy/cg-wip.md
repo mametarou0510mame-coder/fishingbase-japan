@@ -17,7 +17,7 @@
 - [x] ローカルで静止画の確認（長尺・サムネイル・ショート）→ push
 - [x] cg-video（chunks=8）→ 実行ID：44845219379（成功）
 - [x] cg-compress → long-media を確認（cg-aji.mp4.part-00・jpg・chapters）
-- [ ] cg-blender-open test（44849081295、OK・最小すきま 0.997m）→ full 44851817112（11/21 10:43 起動）→ summary 確認
+- [ ] cg-blender-open test（44849081295、OK・最小すきま 0.997m）→ full 44851817112：312コマの書き出しは成功（最小すきま 0.754m）、差しかえ（apply）で失敗：本番の声で冒頭の章が15.36秒になり、Blender 13秒の1.12倍を超えた → 冒頭のセリフを短くして cg-video をやり直し、frames_run=44851817112 で差しかえだけする（op-* の保存は5日）
 - [ ] ORDER に入れる・固定コメント data/sns/yt-comments/cg-aji.txt
 - [ ] cg-video-plan.md の制作済みへ移す・この節を消す
-- 次にやること：Blender full 44851817112 の完了を待ち、cg/open/cg-aji-summary.txt と check 画像を確かめる → ORDER に cg-aji を入れる（固定コメント data/sns/yt-comments/cg-aji.txt は作成済み）
+- 次にやること：cg-video（短くしたセリフ）→ cg-compress → cg-blender-open（mode=full, video_run=新しい ID, frames_run=44851817112）→ check 画像を確かめる → ORDER に cg-aji を入れる（固定コメントは作成済み）
