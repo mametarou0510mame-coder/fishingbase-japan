@@ -31,7 +31,7 @@
 | イカ（Squid Kit） | `loadSquids`・`createSquid` | アオリイカ・コウイカ（cg-video-plan.md の注意を読む） |
 | ルアー・仕掛けの模型 | `ftTenya`、`makeJigReal`、`trRig`（タイラバ）、`sfJig` | テンヤ・メタルジグ・タイラバ |
 | サーフ | `sfBed`・`sfBase`・`sfRig`・`sfTopView` など | 砂浜の断面と上からの絵（離岸流） |
-| **深さで変わる色（水の中の光）** | `rcBase(d)`・`rcAtt(d)`・`rcSee(hex, d)`・`rcTintObj(obj, d)`・`rcFish`・`rcLure`・`rcDepthBar`・`rcSwatch`・`rcDepthChip`、`RC_K` | 深さ d m の水の中（背景・粒・スネルの窓つき海面）と、色の見え方（模式図）。Fish Kit の魚やルアーの色を深さで変える。色ルアー5本（赤・オレンジ・黄・緑・青）、透明度の白い円板（`rcDisk`）、濁った水（`rcMud`）、光の帯（`rcBeams`）。cg-akai（rc_*）。深場の釣り・ルアーの色・夜の海の回に |
+| **深さで変わる色（水の中の光）** | `rcBase(d)`・`rcAtt(d)`・`rcSee(hex, d)`・`rcTintObj(obj, d)`・`rcFish`・`rcLure`・`rcDepthBar`・`rcSwatch`・`rcDepthChip`、`RC_K` | 深さ d m の水の中（背景・粒・スネルの窓つき海面）と、色の見え方（模式図）。Fish Kit の魚やルアーの色を深さで変える。色ルアー5本（赤・オレンジ・黄・緑・青）、透明度の白い円板（`rcDisk`）、濁った水（`rcMud`）、光の帯（`rcBeams`）。cg-akai（rc_*）。**魚の色を変える加工は、色の見え方が主題の回だけで使う（2026-11-22 オーナー。ほかの回は 3D モデルの色のまま）** |
 
 ### 見本の場面（部品の確かめ方）
 `python3 scripts/video/narrate.py scripts/cg/kit/kit-demo.json --silent` → `python3 scripts/cg/render_cg.py kit-demo --stills` で、部品ごとの見本（kit_*）の静止画ができる。部品を直したら、これと既存の動画の `--stills` を見て、ほかの動画が変わっていないことを確かめる。見本の絵は docs/strategy/cg-assets/ に置いてある。
