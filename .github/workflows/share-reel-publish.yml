@@ -1,0 +1,75 @@
+name: Share reel (publish)
+
+# 確認済みのリール（long-media の preview/share-reel.mp4）を、そのまま Instagram に投稿する。1回だけ動かす。
+on:
+  push:
+    branches: [reel-share-voice]
+    paths: [.github/workflows/share-reel-publish.yml]
+
+permissions:
+  contents: write
+
+concurrency: share-reel-publish
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Put reel on the site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git fetch -q --depth 1 origin long-media
+          mkdir -p public/sns
+          git show FETCH_HEAD:preview/share-reel.mp4 > public/sns/share-reel-2026-11.mp4
+          git show FETCH_HEAD:preview/share-reel.jpg > public/sns/share-reel-2026-11.jpg
+          git add public/sns && git commit -qm "サイト紹介リール（釣り仲間に送って版）"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs origin main && git push origin HEAD:main && break; sleep 10; done
+      - name: Publish reel
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json, os, sys, urllib.request
+          sys.path.insert(0, "scripts/sns")
+          import reels
+          from video_post import SITE
+          cap = ("釣り仲間との「明日どこ行く？」、これ1つで決まります🎣\n"
+                 "潮・天気・風・波・釣果を、釣り場ごとに1ページで。\n\n"
+                 "✔ 全国約240地点の潮見表（実測潮位つき）\n"
+                 "✔ 関西の釣り場は「釣りどき指数」を7日先まで\n"
+                 "✔ 写真からデジタル魚拓\n\n"
+                 "完全無料・登録なし・LINE追加なし・アプリ不要\n"
+                 "📩 このリールを釣り仲間に送って、次の釣行の相談に使ってください\n"
+                 "▶ プロフィールのリンクから\n\n"
+                 "音声合成：VOICEVOX:四国めたん\n\n"
+                 "#釣り #潮見表 #タイドグラフ #釣り仲間 #海釣り #堤防釣り #釣り初心者 #魚拓 #ツレドキ")
+          url = f"{SITE}/sns/share-reel-2026-11.mp4"
+          if not reels.wait_url(url, 20):
+              raise SystemExit("サイトに動画が出ませんでした")
+          mid = reels.ig_reel(url, f"{SITE}/sns/share-reel-2026-11.jpg", cap)
+          if not mid:
+              raise SystemExit("Instagram の鍵がありません")
+          link = ""
+          try:
+              with urllib.request.urlopen(f"https://graph.facebook.com/v21.0/{mid}?fields=permalink&access_token={os.environ['IG_TOKEN'].strip()}") as r:
+                  link = json.load(r).get("permalink", "")
+          except Exception as e:
+              print("permalink:", e)
+          print("::notice::Instagram reel", mid, link)
+          json.dump({"id": mid, "permalink": link}, open("/tmp/posted.json", "w"))
+          PY
+      - name: Save result
+        if: always()
+        run: |
+          [ -f /tmp/posted.json ] || echo '{"error":"failed"}' > /tmp/posted.json
+          git fetch -q origin long-media
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          cp /tmp/posted.json preview/share-reel-posted.json
+          git add -A && git commit -qm "share reel posted"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done
