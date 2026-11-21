@@ -55,16 +55,7 @@ jobs:
         with:
           name: narration
           path: build/video/${{ github.event.inputs.slug }}/
-      - name: Install
-        run: |
-          for i in 1 2 3 4; do
-            sudo apt-get update -qq || true
-            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null; then break; fi
-            echo "apt retry $i"; sleep 30
-          done
-          command -v ffmpeg
-          pip install --quiet playwright numpy pillow
-          python -m playwright install --with-deps chromium > /dev/null
+      - uses: ./.github/actions/cg-deps  # 道具はキャッシュつきで入れる（2026-11-22 効率化。入るものは前と同じ）
       - name: Render chunk
         run: python scripts/cg/render_cg.py ${{ github.event.inputs.slug }} --chunk ${{ matrix.chunk }}/${{ github.event.inputs.chunks }}
       - uses: actions/upload-artifact@v4
@@ -78,8 +69,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           name: narration
@@ -89,16 +78,7 @@ jobs:
           pattern: seg-*
           path: build/video/${{ github.event.inputs.slug }}/
           merge-multiple: true
-      - name: Install
-        run: |
-          for i in 1 2 3 4; do
-            sudo apt-get update -qq || true
-            if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null; then break; fi
-            echo "apt retry $i"; sleep 30
-          done
-          command -v ffmpeg
-          pip install --quiet playwright numpy pillow
-          python -m playwright install --with-deps chromium > /dev/null
+      - uses: ./.github/actions/cg-deps  # 道具はキャッシュつきで入れる（2026-11-22 効率化。入るものは前と同じ）
       - name: Join, audio, thumbnail, stills
         run: |
           S=${{ github.event.inputs.slug }}
@@ -119,6 +99,7 @@ jobs:
         run: |
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media  # 最新の1つだけ取る（2026-11-22 効率化）
           git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
           mkdir -p cg && cp -r $GITHUB_WORKSPACE/out/* cg/
           # GitHub は1ファイル100MBまで。大きい動画はブランチに入れず、成果物（artifact）だけに残す
