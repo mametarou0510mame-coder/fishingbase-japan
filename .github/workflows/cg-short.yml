@@ -134,7 +134,7 @@ jobs:
           S=${{ matrix.slug }}
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch -q origin long-media
+          git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media  # 最新の1つだけ取る（全部の履歴は取らない。2026-11-22 効率化）
           git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
           mkdir -p preview && cp $GITHUB_WORKSPACE/out/$S.mp4 $GITHUB_WORKSPACE/out/$S.jpg preview/
           git add -A && git commit -qm "short preview: $S"

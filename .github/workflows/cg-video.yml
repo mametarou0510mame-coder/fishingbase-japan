@@ -69,8 +69,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           name: narration
@@ -101,6 +99,7 @@ jobs:
         run: |
           git config user.name "tsuredoki-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media  # 最新の1つだけ取る（2026-11-22 効率化）
           git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
           mkdir -p cg && cp -r $GITHUB_WORKSPACE/out/* cg/
           # GitHub は1ファイル100MBまで。大きい動画はブランチに入れず、成果物（artifact）だけに残す

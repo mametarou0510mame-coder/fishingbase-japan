@@ -11,7 +11,7 @@ gh api repos/$R/actions/runs/$ID -q '"run \(.id) \(.name): \(.conclusion)  \(.cr
 gh api "repos/$R/actions/runs/$ID/jobs?per_page=100" -q '.jobs[] | "  \(.conclusion // .status)\t\(((((.completed_at // .started_at) | fromdate) - (.started_at | fromdate)) / 60 | floor))分\t\(.name)"'
 LOG=$(mktemp)
 gh run view "$ID" -R "$R" --log > "$LOG" 2>/dev/null
-grep -E "##\[(notice|error)\]|::notice::" "$LOG" | sed -E 's/^[^\t]*\t[^\t]*\t[0-9TZ:.-]+ //' | grep -v "^##\[error\]Process completed" | sort -u | head -30
+grep -E "##\[(notice|error)\]" "$LOG" | sed -E 's/^[^\t]*\t[^\t]*\t[0-9TZ:.-]+ //' | grep -v "^##\[error\]Process completed" | sort -u | head -30
 for J in $(gh api "repos/$R/actions/runs/$ID/jobs?per_page=100" -q '.jobs[] | select(.conclusion=="failure") | .name' | tr ' ' '~'); do
   N=$(echo "$J" | tr '~' ' ')
   echo "--- 失敗: $N（最後の15行）"
