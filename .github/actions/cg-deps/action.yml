@@ -1,0 +1,33 @@
+name: CG deps
+description: >
+  3DCG の書き出しに使う道具（日本語フォント・ffmpeg・Playwright の Chromium）を入れる。
+  ダウンロードした .deb と Chromium を Actions のキャッシュに残し、2回目からは取りに行かない（2026-11-22 制作の効率化）。
+  入るものは前と同じ（fonts-noto-cjk・fonts-noto-cjk-extra・ffmpeg・playwright・numpy・pillow）なので、出来上がる映像は変わらない。
+runs:
+  using: composite
+  steps:
+    - name: Restore apt and Chromium cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/cg-apt
+          ~/.cache/ms-playwright
+          ~/.cache/pip
+        key: cg-deps-v1-${{ runner.os }}-${{ hashFiles('.github/actions/cg-deps/action.yml') }}
+    - name: Install
+      shell: bash
+      run: |
+        # apt が取ってきた .deb をキャッシュの場所に置く（Chromium の依存を入れる playwright の apt も同じ場所を使う）
+        mkdir -p ~/cg-apt/partial
+        echo "Dir::Cache::Archives \"$HOME/cg-apt\";" | sudo tee /etc/apt/apt.conf.d/99cg-cache > /dev/null
+        sudo rm -f /etc/apt/apt.conf.d/docker-clean
+        for i in 1 2 3 4; do
+          sudo apt-get update -qq || true
+          if timeout 900 sudo apt-get install -y -qq -o Acquire::Retries=3 fonts-noto-cjk fonts-noto-cjk-extra ffmpeg > /dev/null; then break; fi
+          echo "apt retry $i"; sleep 30
+        done
+        command -v ffmpeg
+        pip install --quiet playwright numpy pillow
+        python -m playwright install --with-deps chromium > /dev/null
+        sudo chown -R "$USER" ~/cg-apt
+        echo "cg-deps: $(du -sh ~/cg-apt | cut -f1) apt, $(du -sh ~/.cache/ms-playwright 2>/dev/null | cut -f1) chromium"
