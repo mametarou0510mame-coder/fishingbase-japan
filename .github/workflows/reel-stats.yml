@@ -1,0 +1,57 @@
+name: Reel stats (read only)
+
+# リールごとの再生数・キャプション・リンクを取って long-media の preview/ig-reels-stats.json に保存する（読むだけ。投稿はしない）
+on:
+  push:
+    branches: [reel-share-voice]
+    paths: [.github/workflows/reel-stats.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fetch
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, "scripts/sns")
+          from video_post import clean, http
+          API = "https://graph.facebook.com/v21.0"
+          uid, tok = clean(os.environ["IG_USER_ID"]), clean(os.environ["IG_TOKEN"])
+          media, url = [], f"{API}/{uid}/media?fields=id,timestamp,media_product_type,caption,permalink,like_count,comments_count&limit=50&access_token={tok}"
+          while url and len(media) < 400:
+              r = http("GET", url); media += r.get("data", []); url = r.get("paging", {}).get("next")
+          rows = []
+          for m in media:
+              if m.get("media_product_type") != "REELS":
+                  continue
+              try:
+                  ins = http("GET", f"{API}/{m['id']}/insights?metric=reach,views,saved,shares&access_token={tok}")
+                  vals = {d["name"]: d["values"][0]["value"] for d in ins.get("data", [])}
+              except Exception as e:
+                  vals = {"error": str(e)[:80]}
+              rows.append({"id": m["id"], "at": m["timestamp"], "link": m.get("permalink"), "cap": m.get("caption") or "",
+                           "likes": m.get("like_count"), "comments": m.get("comments_count"), **vals})
+          me = http("GET", f"{API}/{uid}?fields=followers_count,media_count&access_token={tok}")
+          json.dump({"account": me, "reels": rows}, open("/tmp/stats.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+          print("::notice::reels", len(rows), "followers", me.get("followers_count"))
+          PY
+      - name: Save
+        run: |
+          git config user.name "tsuredoki-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin long-media
+          git worktree add /tmp/media origin/long-media && cd /tmp/media && git checkout -B long-media
+          cp /tmp/stats.json preview/ig-reels-stats.json
+          git add -A && git commit -qm "reel stats"
+          for i in 1 2 3 4 5; do git push origin long-media && exit 0; sleep 15; git pull --rebase origin long-media; done; exit 1
