@@ -11,13 +11,13 @@
 - 接頭辞 aj_（main.js）。Blender の場面 aji（scripts/cg/blender/scenes/aji.py、iwashi.py をもとにアジの群れ）
 - 事実は fish-knowledge.md「マアジ」（2026-11-21 追記：2026年度資源評価・茨城県・長崎県・広田・道総研）
 - [x] 資料調べ・fish-knowledge.md に追記
-- [ ] main.js に aj_* と aj_thumb
-- [ ] content/cg/cg-aji.json・short-cg-aji.json
-- [ ] Blender の場面 aji.py（式だけで魚のすきまを確認）
-- [ ] ローカルで静止画の確認（長尺・サムネイル・ショート）→ push
+- [x] main.js に aj_* と aj_thumb
+- [x] content/cg/cg-aji.json・short-cg-aji.json
+- [x] Blender の場面 aji.py（式だけで魚のすきまを確認：最小 0.73m）
+- [x] ローカルで静止画の確認（長尺・サムネイル・ショート）→ push
 - [ ] cg-video（chunks=8）→ 実行ID：
 - [ ] cg-compress → long-media を確認
 - [ ] cg-blender-open test → 確認 → full → summary 確認
 - [ ] ORDER に入れる・固定コメント data/sns/yt-comments/cg-aji.txt
 - [ ] cg-video-plan.md の制作済みへ移す・この節を消す
-- 次にやること：main.js に aj_* を書く
+- 次にやること：cg-video.yml を slug=cg-aji, chunks=8 で起動

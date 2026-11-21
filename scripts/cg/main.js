@@ -10299,6 +10299,7 @@ Object.assign(SHOTS, {
     rcLight(AJ_D);
     const sc0 = c.clone().add(V(P ? 0 : -0.6, P ? -0.4 : -0.2, 0));
     ajSchool(T, sc0, { R: P ? 0.9 : 1.1, n: 20 });
+    iwCam(c, P ? 7.5 : 5.4, -0.05, 0.25, 50, c.clone().add(V(P ? 0 : 0.6, P ? 0.6 : 0.1, 0)));
     const fp = c.clone().add(V((P ? 0.3 : 2.6) + Math.sin(T * 0.3) * 0.2, (P ? 1.9 : 0.6) + Math.sin(T * 0.5) * 0.05, -0.3));
     if (k >= 1 && !(P && k >= 2)) {
       const f = fkGet("buri", 660, 80);
@@ -10308,7 +10309,6 @@ Object.assign(SHOTS, {
       iwLink(sc0, fp, fadeIn(t - (s._k1 ?? 99), 0.2, 0.8));
       label(fp, "ブリ", "本州の調査：マアジやカタクチイワシを主に", fadeIn(t - (s._k1 ?? 99), 0.4), k === 1 ? "gold" : "", P ? 0 : 0, P ? -110 : -120);
     }
-    iwCam(c, P ? 7.5 : 5.4, -0.05, 0.25, 50, c.clone().add(V(P ? 0 : 0.6, P ? 0.6 : 0.1, 0)));
     if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">マアジの稚魚は、<span style="color:#c2410c">ヒメシマガツオ</span>などの<br>魚に<span style="color:#c2410c">選ばれて</span>食べられている</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">ヒメシマガツオは3Dモデルがないので映していない</div>`, fadeIn(t, 0.4), [70, 190, 1000], [60, 1180, 960]);
     if (k === 2) ajChain(P, [["プランクトン・シラス", "アジが食べる", "#1f6fd1"], ["マアジ", "食べて、食べられる", "#1d8a3a"], ["ブリなど", "アジを食べる", "#c2410c"]], fadeIn(t - (s._k2 ?? 99), 0.3, 1.0), 630);
     if (k >= 1 && !(P && k >= 2)) label(sc0.clone().add(V(P ? 0 : -0.8, 0.35, 0)), "マアジ", "", fadeIn(t - (s._k1 ?? 99), 0.4), "", P ? 0 : -60, -90);
@@ -10337,22 +10337,24 @@ Object.assign(SHOTS, {
     rcBase(AJ_D);
     rcLight(AJ_D);
     const SC = 3.0; // 3倍に表示（2匹の大きさの比は正しい）
+    iwCam(c, P ? 4.2 : 3.0, 0, 0.1, 50, c.clone().add(V(0, P ? -0.2 : -0.2, 0)));
     const rows = [[18, "1歳", "尾叉長 約18cm", P ? V(0, 0.75, 0) : V(-1.4, 0, 0)], [24, "2歳", "約24cm", P ? V(0, -0.75, 0) : V(1.2, 0, 0)]];
     rows.forEach(([cm, nm, sub, off], i) => {
       const f = fkGet("aji", 700 + i, cm), p = c.clone().add(off).add(V(0, Math.sin(T * 0.6 + i) * 0.03, 0));
       f.object.scale.setScalar(SC);
       fkPlace(f, p, Math.PI, 0, T, { freq: 1.6, amp: 0.05, seed: i });
       rcTintObj(f.object, AJ_D);
-      const L = cm / 100 * SC, a = fadeIn(t, 0.3 + i * 0.5);
-      const pa = project(p.clone().add(V(-L / 2, -0.32, 0))), pb = project(p.clone().add(V(L / 2, -0.32, 0)));
+      const a = fadeIn(t, 0.3 + i * 0.5);
+      f.object.updateWorldMatrix(true, true);
+      const bb = new THREE.Box3().setFromObject(f.object, true), yb = bb.min.y - 0.12, zb = (bb.min.z + bb.max.z) / 2; // 実際の魚の端から端まで
+      const pa = project(V(bb.min.x, yb, zb)), pb = project(V(bb.max.x, yb, zb));
       lines += `<g opacity="${a}"><line x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" stroke="#ffd166" stroke-width="6"/><line x1="${pa.x}" y1="${pa.y - 16}" x2="${pa.x}" y2="${pa.y + 16}" stroke="#ffd166" stroke-width="6"/><line x1="${pb.x}" y1="${pb.y - 16}" x2="${pb.x}" y2="${pb.y + 16}" stroke="#ffd166" stroke-width="6"/></g>`;
       html += `<div style="position:absolute;left:${(pa.x + pb.x) / 2}px;top:${pa.y + 22}px;transform:translateX(-50%);opacity:${a};text-align:center;color:#fff;font-weight:900;text-shadow:0 2px 8px #000"><div style="font-size:${P ? 54 : 50}px;color:#ffd166">${nm}</div><div style="font-size:${P ? 34 : 32}px">${sub}</div></div>`;
     });
-    iwCam(c, P ? 4.2 : 3.0, 0, 0.1, 50, c.clone().add(V(0, P ? -0.2 : -0.2, 0)));
     if (k >= 1) html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">卵を産みはじめるのは<span style="color:#c2410c">満2歳前後</span>から</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">長崎県総合水産試験場の資料より</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [560, 190, 800], [60, 1180, 960]);
     iwSrc(k >= 1 ? "長崎県総合水産試験場（マアジ養殖の手引き）" : "茨城県（マアジ太平洋系群の資料）");
     academyBadge();
-    ajNote("魚は3倍に表示（2匹の大きさの比は資料の長さどおり）。成長は太平洋系群の目安");
+    ajNote("魚は大きく表示（2匹の大きさの比は資料の長さどおり。黄色の線は魚の端から端）。成長は太平洋系群の目安");
   },
   // 資源のいま（対馬暖流系群）：k0 漁獲量 20万トン超 → 2025年8.0万トン → k1 親魚量 15.8万トン・目標の0.58倍 → k2 0歳魚の加入は2020年以降、低い水準
   aj_graph(t, d, s, k) {
