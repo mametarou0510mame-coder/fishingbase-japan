@@ -7,17 +7,4 @@
 
 ---
 
-## 作りかけ（アカデミー）：もしもアジがいなくなったら？（R14・もしもシリーズ2）cg-aji（2026-11-21 開始、アカデミーの定期タスク）
-- 接頭辞 aj_（main.js）。Blender の場面 aji（scripts/cg/blender/scenes/aji.py、iwashi.py をもとにアジの群れ）
-- 事実は fish-knowledge.md「マアジ」（2026-11-21 追記：2026年度資源評価・茨城県・長崎県・広田・道総研）
-- [x] 資料調べ・fish-knowledge.md に追記
-- [x] main.js に aj_* と aj_thumb
-- [x] content/cg/cg-aji.json・short-cg-aji.json
-- [x] Blender の場面 aji.py（式だけで魚のすきまを確認：最小 0.73m）
-- [x] ローカルで静止画の確認（長尺・サムネイル・ショート）→ push
-- [x] cg-video（chunks=8）→ 実行ID：44845219379（成功）
-- [x] cg-compress → long-media を確認（cg-aji.mp4.part-00・jpg・chapters）
-- [ ] cg-blender-open test（44849081295、OK・最小すきま 0.997m）→ full 44851817112：312コマの書き出しは成功（最小すきま 0.754m）、差しかえ（apply）で失敗：本番の声で冒頭の章が15.36秒になり、Blender 13秒の1.12倍を超えた → 冒頭のセリフを短くして cg-video をやり直し、frames_run=44851817112 で差しかえだけする（op-* の保存は5日）
-- [ ] ORDER に入れる・固定コメント data/sns/yt-comments/cg-aji.txt
-- [ ] cg-video-plan.md の制作済みへ移す・この節を消す
-- 次にやること：cg-video（短くしたセリフ）→ cg-compress → cg-blender-open（mode=full, video_run=新しい ID, frames_run=44851817112）→ check 画像を確かめる → ORDER に cg-aji を入れる（固定コメントは作成済み）
+（作りかけはなし。2026-11-21 アカデミー R14 もしもアジ cg-aji を ORDER に入れて完了。Blender 書き出し 44851817112・差しかえ 44869238049・最小すきま 0.754m）
