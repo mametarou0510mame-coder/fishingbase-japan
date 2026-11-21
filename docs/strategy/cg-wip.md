@@ -16,8 +16,8 @@
 - [x] Blender の場面 aji.py（式だけで魚のすきまを確認：最小 0.73m）
 - [x] ローカルで静止画の確認（長尺・サムネイル・ショート）→ push
 - [x] cg-video（chunks=8）→ 実行ID：44845219379（成功）
-- [ ] cg-compress → long-media を確認
-- [ ] cg-blender-open test → 確認 → full → summary 確認
+- [x] cg-compress → long-media を確認（cg-aji.mp4.part-00・jpg・chapters）
+- [ ] cg-blender-open test（44849081295、OK・最小すきま 0.997m）→ full 44851817112（11/21 10:43 起動）→ summary 確認
 - [ ] ORDER に入れる・固定コメント data/sns/yt-comments/cg-aji.txt
 - [ ] cg-video-plan.md の制作済みへ移す・この節を消す
-- 次にやること：cg-compress と Blender test（11/21 10:05 起動）の結果を見る → full
+- 次にやること：Blender full 44851817112 の完了を待ち、cg/open/cg-aji-summary.txt と check 画像を確かめる → ORDER に cg-aji を入れる（固定コメント data/sns/yt-comments/cg-aji.txt は作成済み）
