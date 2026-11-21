@@ -15,9 +15,9 @@
 - [x] content/cg/cg-aji.json・short-cg-aji.json
 - [x] Blender の場面 aji.py（式だけで魚のすきまを確認：最小 0.73m）
 - [x] ローカルで静止画の確認（長尺・サムネイル・ショート）→ push
-- [ ] cg-video（chunks=8）→ 実行ID：
+- [ ] cg-video（chunks=8）→ 実行ID：44845219379（11/21 09:39 JST 起動）
 - [ ] cg-compress → long-media を確認
 - [ ] cg-blender-open test → 確認 → full → summary 確認
 - [ ] ORDER に入れる・固定コメント data/sns/yt-comments/cg-aji.txt
 - [ ] cg-video-plan.md の制作済みへ移す・この節を消す
-- 次にやること：cg-video.yml を slug=cg-aji, chunks=8 で起動
+- 次にやること：cg-video 44845219379 の完了を待つ → cg-compress（run_id=44845219379）
