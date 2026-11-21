@@ -10205,6 +10205,221 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// アカデミー R14 もしもアジがいなくなったら？（cg-aji、aj_*）2026-11-21 もしもシリーズ2
+// 事実は docs/research/fish-knowledge.md「もしも〇〇がいなくなったら」シリーズの「マアジ」だけ：
+//   水産研究・教育機構（広田「仔稚魚をめぐる食物関係」：稚魚はカイアシ類、ヒメシマガツオなどが稚魚を選んで食べる）、
+//   京都府（若狭湾の胃の中の調査：シラス・カエリ・若いイワシ）、北海道立総合研究機構（北水試だより106号：本州の調査でブリはマアジやカタクチイワシ）、
+//   茨城県（太平洋系群：1歳18cm・2歳24cm・寿命10歳以上の報告・幼魚期以降は魚食性・漁獲量1996年8万トン→近年1.5〜2万トン）、
+//   長崎県総合水産試験場（成熟は満2歳前後から）、水産庁・水産研究・教育機構（対馬暖流系群 2026年度の資源評価）
+// 「アジがいなくなったら〇〇も消える」とは言わない。減った原因を断定しない。対馬暖流系群と太平洋系群の数値は別の画面に分ける。
+// 土台は rcBase（水の中）。魚は Fish Kit（aji・katakuchi・buri）。魚の動きはイメージ
+// 使い回せる部品：ajSchool(T, c, o)（マアジの群れ。同じ向きに泳ぐ。o.burst で散って消える）
+// =====================================================================
+const AJ_D = 6;
+const AJ_OFF = (() => { const r = rng(2711); return Array.from({ length: 36 }, () => ({ x: r() * 2 - 1, y: r() * 2 - 1, z: r() * 2 - 1, p: r() * 6.283, cm: 22 + r() * 6, w: r() })); })();
+// マアジの群れ（左向きに、その場でゆったり泳ぐ。少しずつ揺れる）。c：中心、o.R：広がり、o.n：数、o.burst：0〜1、o.dir：向き（π＝左）
+function ajSchool(T, c, o = {}) {
+  const { R = 1.6, n = 28, burst = 0, d = AJ_D, i0 = 600, dir = Math.PI, sc = 2.2 } = o;
+  for (let i = 0; i < AJ_OFF.length; i++) {
+    const f = fkGet("aji", i0 + i, Math.round(AJ_OFF[i].cm));
+    if (!f) continue;
+    if (i >= n) { f.object.visible = false; continue; }
+    const q = AJ_OFF[i];
+    const b = clamp01(burst * (1.1 - 0.25 * q.w));
+    if (b > 0.93) { f.object.visible = false; continue; }
+    const out = V(q.x, q.y * 0.6, q.z).normalize();
+    const p = c.clone().add(V(q.x * R + Math.sin(T * 0.4 + q.p) * 0.12, q.y * R * 0.42 + Math.sin(T * 0.7 + q.p) * 0.05, q.z * R * 0.5)).add(out.multiplyScalar(14 * Math.pow(b, 1.6)));
+    const yaw = dir + 0.12 * Math.sin(T * 0.35 + q.p) + b * (q.x > 0 ? -1 : 1) * Math.PI * 0.7;
+    f.object.scale.setScalar(sc);
+    fkPlace(f, p, yaw, 0.05 * Math.sin(T * 0.6 + q.p), T, { freq: 2.4 + 2 * b, amp: 0.09, seed: i });
+    rcTintObj(f.object, d);
+  }
+}
+const ajC = () => RCp(0, -AJ_D, 0);
+const ajNote = (txt = "魚の動きはイメージ。魚は大きく表示（大きさの比は正確ではない）") => ftNote(txt);
+// 食べる・食べられるの鎖（左から右へ）。items：[名前, 小さな説明, 色]
+function ajChain(P, items, a, top, note = "矢印は「食べられる → 食べる」") {
+  const box = ([nm, sub, col], i) => `<div style="opacity:${clamp01(a * 3 - i * 0.6)};background:${col};color:#fff;border-radius:18px;padding:12px 18px;text-align:center;min-width:${P ? 240 : 230}px"><div style="font-size:${P ? 38 : 38}px;font-weight:900">${nm}</div><div style="font-size:${P ? 24 : 24}px">${sub}</div></div>`;
+  const arr = (i) => `<div style="opacity:${clamp01(a * 3 - i * 0.6)};font-size:${P ? 40 : 50}px;font-weight:900;color:#10345a">${P ? "↓" : "→"}</div>`;
+  const body = items.map((it, i) => (i ? arr(i) : "") + box(it, i)).join("");
+  html += ftCard(P, `<div style="display:flex;${P ? "flex-direction:column" : ""};align-items:center;gap:14px;justify-content:center">${body}</div><div style="font-size:22px;color:#3a5a78;margin-top:8px;text-align:center">${note}</div>`, clamp01(a * 2), [70, top ?? 640, 1780], [60, 380, 960]);
+}
+
+Object.assign(SHOTS, {
+  aj_thumb(t, d, s) {
+    rcBase(5);
+    rcLight(5);
+    const c = RCp(0, -5, 0);
+    ajSchool(4, c.clone().add(V(0.4, 0, 0)), { R: 1.3, n: 30, d: 5 });
+    iwCam(c, 3.8, 0.2, 0.2, 50, c.clone().add(V(-1.4, 0.1, 0)));
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：マアジの群れ → 散って消える → 「？」
+  aj_hook(t, d, s) {
+    const P = PORTRAIT, c = ajC(), T = t + 2;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    const burst = clamp01((t - 4.2) / 3.0);
+    ajSchool(T, c.clone().add(V(0, -0.2, 0)), { burst, R: P ? 1.2 : 1.5 });
+    iwCam(c, lerp(P ? 6.5 : 4.2, P ? 7.5 : 5.0, ease(t / d)), 0.12 * Math.sin(t * 0.2), 0.3, 50, c.clone().add(V(0, 0.4, 0)));
+    if (burst > 0.85) {
+      const p = project(c), a2 = fadeIn(burst, 0.85, 0.15);
+      lines += `<circle cx="${p.x}" cy="${p.y}" r="${P ? 130 : 150}" fill="rgba(255,209,102,.12)" stroke="#ffd166" stroke-width="6" stroke-dasharray="20 14" opacity="${a2}"/>`;
+      html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);opacity:${a2};color:#ffd166;font-size:150px;font-weight:900;text-shadow:0 4px 18px #000">？</div>`;
+    }
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "もしも、アジが<br>いなくなったら？", "研究機関の資料で考える", a);
+    academyBadge();
+    ajNote();
+  },
+  // アジが食べるもの：k0 稚魚はカイアシ類（体幅0.2〜1.1mm）→ k1 成長につれ大きな餌・幼魚期以降は魚食性 → k2 若狭湾：5月下旬シラス、6月カエリ・若いイワシ
+  aj_eat(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 12;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    ajSchool(T, c.clone().add(V(P ? 0.7 : 1.5, P ? -1.3 : 0.15, 0)), { R: P ? 0.5 : 1.0, n: 16 });
+    iwBall(T, c.clone().add(V(P ? -0.7 : -1.3, P ? -1.3 : 0.0, 0.2)), { R: 0.5, n: k >= 2 ? 36 : 0, i0: 640, sc: 2.2, d: AJ_D });
+    iwCam(c, P ? 7.0 : 4.8, 0.05 * Math.sin(t * 0.15), 0.25, 50, c.clone().add(V(0, P ? 0 : 0.15, 0)));
+    html += acDim(0.15);
+    const items = [["カイアシ類", "体の幅 0.2〜1.1mm", "#1f6fd1"], ["大きな動物プランクトン", "成長につれて", "#2a7fb8"], ["シラス・カエリ・若いイワシ", "幼魚のあとは魚も食べる", "#c2410c"]];
+    ajChain(P, items.slice(0, k + 1), fadeIn(t, 0.3, 1.0), 630, P ? "成長につれて変わる餌（上から下へ）" : "成長につれて変わる餌（左から右へ）");
+    if (!P) html += ftCard(P, `<b style="font-size:${P ? 40 : 40}px">${k === 0 ? "マアジの稚魚が食べるのは？" : k === 1 ? "大きくなると、餌も大きく" : "若狭湾の胃の中の調査では"}</b><div style="font-size:${P ? 30 : 30}px;font-weight:900;margin-top:6px">${k === 0 ? "小さな<span style=\"color:#c2410c\">カイアシ類</span>（体の幅 0.2〜1.1mm）" : k === 1 ? "幼魚のころから<span style=\"color:#c2410c\">魚を食べる性質</span>が強くなる" : "5月下旬から<span style=\"color:#c2410c\">シラス</span>、6月は<span style=\"color:#c2410c\">カエリ・若いイワシ</span>"}</div>`, fadeIn(t - (s[`_k${k}`] ?? 0), 0.3), [70, 190, 900], [60, 1110, 960]);
+    if (k >= 2 && !P) label(c.clone().add(V(-1.3, 0.4, 0.2)), "カタクチイワシ", "シラス・カエリ・若い魚", fadeIn(t - (s._k2 ?? 99), 0.4), "", 260, -10);
+    iwSrc(k === 0 ? "水産研究・教育機構（広田「仔稚魚をめぐる食物関係」）" : k === 1 ? "茨城県（マアジ太平洋系群の資料）" : "京都府（海洋センター）若狭湾の胃の中の調査");
+    academyBadge();
+    ajNote("魚の動き・位置はイメージ。魚は大きく表示（大きさの比は正確ではない）");
+  },
+  // アジを食べるもの：k0 稚魚はヒメシマガツオなどに選ばれて食べられる → k1 本州の調査ではブリはマアジやカタクチイワシを主に → k2 まん中の魚
+  aj_eaten(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 30;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    const sc0 = c.clone().add(V(P ? 0 : -0.6, P ? -0.4 : -0.2, 0));
+    ajSchool(T, sc0, { R: P ? 0.9 : 1.1, n: 20 });
+    const fp = c.clone().add(V((P ? 0.3 : 2.6) + Math.sin(T * 0.3) * 0.2, (P ? 1.9 : 0.6) + Math.sin(T * 0.5) * 0.05, -0.3));
+    if (k >= 1 && !(P && k >= 2)) {
+      const f = fkGet("buri", 660, 80);
+      f.object.scale.setScalar(1.3);
+      fkPlace(f, fp, Math.PI + 0.1 * Math.sin(T * 0.3), 0.03, T, { freq: 1.6, amp: 0.07 });
+      rcTintObj(f.object, AJ_D);
+      iwLink(sc0, fp, fadeIn(t - (s._k1 ?? 99), 0.2, 0.8));
+      label(fp, "ブリ", "本州の調査：マアジやカタクチイワシを主に", fadeIn(t - (s._k1 ?? 99), 0.4), k === 1 ? "gold" : "", P ? 0 : 0, P ? -110 : -120);
+    }
+    iwCam(c, P ? 7.5 : 5.4, -0.05, 0.25, 50, c.clone().add(V(P ? 0 : 0.6, P ? 0.6 : 0.1, 0)));
+    if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">マアジの稚魚は、<span style="color:#c2410c">ヒメシマガツオ</span>などの<br>魚に<span style="color:#c2410c">選ばれて</span>食べられている</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">ヒメシマガツオは3Dモデルがないので映していない</div>`, fadeIn(t, 0.4), [70, 190, 1000], [60, 1180, 960]);
+    if (k === 2) ajChain(P, [["プランクトン・シラス", "アジが食べる", "#1f6fd1"], ["マアジ", "食べて、食べられる", "#1d8a3a"], ["ブリなど", "アジを食べる", "#c2410c"]], fadeIn(t - (s._k2 ?? 99), 0.3, 1.0), 630);
+    if (k >= 1 && !(P && k >= 2)) label(sc0.clone().add(V(P ? 0 : -0.8, 0.35, 0)), "マアジ", "", fadeIn(t - (s._k1 ?? 99), 0.4), "", P ? 0 : -60, -90);
+    iwSrc(k === 0 ? "水産研究・教育機構（広田「仔稚魚をめぐる食物関係」）" : k === 1 ? "北海道立総合研究機構（北水試だより106号）が紹介した本州の調査" : "京都府・水産研究・教育機構・北海道立総合研究機構の資料から");
+    academyBadge();
+    ajNote();
+  },
+  // クイズ：マアジは何歳まで生きる？ k0 問い → k1 選択肢 → k2 正解 C 10歳以上との報告も
+  aj_quiz(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 50;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    ajSchool(T, c.clone().add(V(P ? 0 : 1.6, P ? -1.6 : 0, 0)), { R: 1.0, n: 18 });
+    iwCam(c, P ? 6.5 : 4.8, 0.05 * Math.sin(t * 0.2), 0.2, 50, c.clone().add(V(P ? 0 : 0.2, P ? -0.8 : 0, 0)));
+    const opts = [["A", "1年くらい"], ["B", "3年くらい"], ["C", "10歳以上という報告も"]];
+    const t2 = s._k2 ?? 99, ans = t > t2 + 1.2;
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:480px" : "left:70px;top:190px;width:760px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 46 : 44}px;font-weight:900;margin:14px 0 4px">マアジは、何歳くらいまで<br>生きる？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans && !P) html += ftCard(P, `<b style="font-size:38px">正解 <span style="color:#1d8a3a">C</span>：寿命は<span style="color:#c2410c">10歳以上</span><br>との報告もある</b>`, fadeIn(t - t2 - 1.2, 0.2), [960, 700, 860], [60, 1150, 960]);
+    iwSrc(k >= 2 ? "茨城県（マアジ太平洋系群の資料。国の資源評価より）" : "");
+    academyBadge();
+    ajNote();
+  },
+  // 成長：k0 1歳で尾叉長18cm・2歳で24cm（太平洋系群）→ k1 卵を産みはじめるのは満2歳前後から（長崎県）
+  aj_grow(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 70;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    const SC = 3.0; // 3倍に表示（2匹の大きさの比は正しい）
+    const rows = [[18, "1歳", "尾叉長 約18cm", P ? V(0, 0.75, 0) : V(-1.4, 0, 0)], [24, "2歳", "約24cm", P ? V(0, -0.75, 0) : V(1.2, 0, 0)]];
+    rows.forEach(([cm, nm, sub, off], i) => {
+      const f = fkGet("aji", 700 + i, cm), p = c.clone().add(off).add(V(0, Math.sin(T * 0.6 + i) * 0.03, 0));
+      f.object.scale.setScalar(SC);
+      fkPlace(f, p, Math.PI, 0, T, { freq: 1.6, amp: 0.05, seed: i });
+      rcTintObj(f.object, AJ_D);
+      const L = cm / 100 * SC, a = fadeIn(t, 0.3 + i * 0.5);
+      const pa = project(p.clone().add(V(-L / 2, -0.32, 0))), pb = project(p.clone().add(V(L / 2, -0.32, 0)));
+      lines += `<g opacity="${a}"><line x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" stroke="#ffd166" stroke-width="6"/><line x1="${pa.x}" y1="${pa.y - 16}" x2="${pa.x}" y2="${pa.y + 16}" stroke="#ffd166" stroke-width="6"/><line x1="${pb.x}" y1="${pb.y - 16}" x2="${pb.x}" y2="${pb.y + 16}" stroke="#ffd166" stroke-width="6"/></g>`;
+      html += `<div style="position:absolute;left:${(pa.x + pb.x) / 2}px;top:${pa.y + 22}px;transform:translateX(-50%);opacity:${a};text-align:center;color:#fff;font-weight:900;text-shadow:0 2px 8px #000"><div style="font-size:${P ? 54 : 50}px;color:#ffd166">${nm}</div><div style="font-size:${P ? 34 : 32}px">${sub}</div></div>`;
+    });
+    iwCam(c, P ? 4.2 : 3.0, 0, 0.1, 50, c.clone().add(V(0, P ? -0.2 : -0.2, 0)));
+    if (k >= 1) html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">卵を産みはじめるのは<span style="color:#c2410c">満2歳前後</span>から</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">長崎県総合水産試験場の資料より</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [560, 190, 800], [60, 1180, 960]);
+    iwSrc(k >= 1 ? "長崎県総合水産試験場（マアジ養殖の手引き）" : "茨城県（マアジ太平洋系群の資料）");
+    academyBadge();
+    ajNote("魚は3倍に表示（2匹の大きさの比は資料の長さどおり）。成長は太平洋系群の目安");
+  },
+  // 資源のいま（対馬暖流系群）：k0 漁獲量 20万トン超 → 2025年8.0万トン → k1 親魚量 15.8万トン・目標の0.58倍 → k2 0歳魚の加入は2020年以降、低い水準
+  aj_graph(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 90;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    ajSchool(T, c.clone().add(V(P ? 0 : 2.4, P ? 1.8 : 0, 0)), { R: 0.9, n: 12 });
+    iwCam(c, P ? 8 : 5.6, -0.1, 0.3, 50);
+    html += acDim(0.25);
+    if (k === 0) iwBars(P, "マアジ（対馬暖流系群）の漁獲量（日本と韓国）", [["1993〜1998年", "20万トン超", 1, "#1f6fd1"], ["2025年", "8.0万トン", 8 / 20, "#c62828"]], fadeIn(t, 0.3, 1.2), [70, 220, 1000], [60, 560, 960], "※1990年代の棒は20万トンの高さ（それを超えた年もある）。2006年以降は長い目で見て減る傾向");
+    if (k === 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.3, 1.2), Hb = 300, h1 = 15.8 / 27.3;
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">親の魚の量（親魚量）2025年</b><div style="position:relative;height:${Hb + 70}px;margin-top:20px;border-bottom:4px solid #10345a"><div style="position:absolute;left:0;right:0;bottom:${Hb}px;border-top:5px dashed #1d8a3a"></div><div style="position:absolute;right:0;bottom:${Hb + 8}px;font-size:${P ? 28 : 28}px;font-weight:900;color:#1d8a3a">目標の量 27.3万トン</div><div style="position:absolute;left:${P ? 120 : 140}px;bottom:0;width:${P ? 180 : 170}px;height:${Hb * h1 * clamp01(a)}px;background:#c62828;border-radius:12px 12px 0 0"></div><div style="position:absolute;left:${P ? 330 : 340}px;bottom:${Hb * h1 * clamp01(a) - 60}px;font-size:${P ? 40 : 40}px;font-weight:900;color:#c62828;opacity:${clamp01(a * 2 - 1)}">15.8万トン<div style="font-size:${P ? 28 : 28}px">目標の<span style="font-size:${P ? 44 : 44}px">0.58</span>倍</div></div></div><div style="font-size:24px;font-weight:900;margin-top:8px">ここ5年（2021〜2025年）は減る傾向</div>`, 1, [70, 220, 900], [60, 520, 960]);
+    }
+    if (k >= 2) html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">その年に生まれた子ども（0歳）の数</b><div style="font-size:${P ? 34 : 34}px;font-weight:900;margin-top:12px">2020年からは<span style="color:#c62828">30億尾を下回る</span><br><span style="color:#c62828">低い水準</span>と推定</div>`, fadeIn(t - (s._k2 ?? 99), 0.3), [70, 260, 900], [60, 560, 960]);
+    iwSrc("水産庁・水産研究・教育機構（マアジ対馬暖流系群 2026年度の資源評価）");
+    academyBadge();
+    ajNote(k === 0 ? "棒の高さは20万トンと8.0万トンの比。魚の動きはイメージ" : undefined);
+  },
+  // 太平洋側と、わかっていないこと：k0 太平洋系群 1996年8万トン → 近年1.5〜2万トン → k1 わかっている・わかっていない
+  aj_wakaru(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 110;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    ajSchool(T, c.clone().add(V(P ? 0 : 2.6, P ? 2.0 : 0.3, 0)), { R: 0.8, n: 8 });
+    iwCam(c, P ? 8 : 5.6, 0.1, 0.3, 50);
+    html += acDim(0.3);
+    if (k === 0) iwBars(P, "マアジ（太平洋系群）の漁獲量", [["1996年", "8万トン（最高）", 1, "#1f6fd1"], ["近年", "1.5〜2万トン前後", 1.75 / 8, "#c62828"]], fadeIn(t, 0.3, 1.2), [70, 220, 1000], [60, 560, 960], "※「近年」の棒は1.75万トンの高さ（1.5〜2万トンのまん中）");
+    if (k >= 1) {
+      const col = (hd, cl, body, a) => `<div style="flex:1;opacity:${a}"><b style="display:block;background:${cl};color:#fff;font-size:${P ? 32 : 34}px;padding:8px 16px;border-radius:14px;text-align:center">${hd}</b><div style="font-size:${P ? 29 : 30}px;font-weight:900;margin-top:10px;line-height:1.45">${body}</div></div>`;
+      const a1 = fadeIn(t - (s._k1 ?? 99), 0.3), a2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.3) : 0;
+      html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">もしもアジがいなくなったら？</b><div style="display:flex;gap:28px;margin-top:14px;${P ? "flex-direction:column" : ""}">${col("わかっていること", "#1d8a3a", "・アジは、プランクトンやシラスを食べる<br>・アジの稚魚やアジは、ほかの魚に食べられる<br>・日本海側では、親の魚が目標より少なく<br>　生まれる子どもの数も低い水準", a1)}${col("わかっていないこと", "#c2410c", "・いなくなったら何が起きるかを<br>　確かめた資料は、見つからなかった<br>・減った原因も、言い切られていない", a2)}</div>`, 1, [70, 210, 1300], [60, 420, 960]);
+    }
+    iwSrc(k === 0 ? "茨城県（マアジ太平洋系群の資料。国の資源評価より）" : "この動画で使った資料から");
+    academyBadge();
+    ajNote();
+  },
+  // 釣りでは：k0 サビキの小さなアジは若い魚（1歳で18cm・卵は2歳前後から）→ k1 食べる分だけ・小さな魚は逃がす・ルールを守る
+  aj_tsuri(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 130;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    ajSchool(T, c.clone().add(V(0, P ? 0 : -0.3, 0)), { R: P ? 1.1 : 1.4, n: 24 });
+    iwCam(c, P ? 7.2 : 5.2, -0.1 + 0.05 * Math.sin(t * 0.2), 0.3, 50, c.clone().add(V(0, P ? 0 : 0.5, 0)));
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">成長の目安は<span style="color:#c2410c">1歳で約18cm</span>、卵を産むのは<span style="color:#c2410c">2歳前後から</span><br>小さなアジは、まだ若い魚</b>`, fadeIn(t, 0.5), [230, 170, 1460], [60, 420, 960]);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">アジは、海の<span style="color:#1d8a3a">「食べて、食べられる」まん中</span>の魚</b><div style="font-size:32px;font-weight:900;margin-top:8px;color:#1d8a3a">食べる分だけ持ち帰る・小さな魚は逃がす・ルールを守る</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [230, 170, 1460], [60, 420, 960]);
+    iwSrc(k === 0 ? "茨城県・長崎県総合水産試験場の資料" : "");
+    academyBadge();
+    ajNote();
+  },
+  aj_sum(t, d, s, k) {
+    const P = PORTRAIT, c = ajC(), T = t + 150;
+    rcBase(AJ_D);
+    rcLight(AJ_D);
+    ajSchool(T, c, { R: 1.5, n: 24 });
+    iwCam(c, P ? 8.5 : 6, 0.1 * Math.sin(t * 0.1), 0.3);
+    html += acDim(0.45);
+    const rows = [["食べる・食べられる", "プランクトン・シラスを食べ、ブリなどに食べられる", "稚魚はヒメシマガツオなどにも食べられる", "#1f6fd1"], ["資源のいま", "日本海側の親魚量は目標の0.58倍", "生まれる子どもの数も低い水準（2026年度の評価）", "#c62828"], ["釣りでは", "1歳で約18cm、卵は2歳前後から", "食べる分だけ・小さな魚は逃がす", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 62 : 60}px;opacity:${fadeIn(t, 0.1)}">もしもアジがいなくなったら？ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 220 : 280}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 31 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 25 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 // =====================================================================
