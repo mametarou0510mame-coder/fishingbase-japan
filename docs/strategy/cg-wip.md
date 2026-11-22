@@ -21,4 +21,5 @@
 - [ ] cg-blender-open test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md の制作済みへ
 - cg-video：run 44986093157（起動ずみ）。固定コメント data/sns/yt-comments/cg-sawara-moshi.txt 作成ずみ
-- 次にやること：cg-video の完了を待つ → cg-compress（run_id=44986093157）→ Blender test
+- [x] cg-video 44986093157（3分52秒）→ cg-compress 44988342943 → Blender test 44988345114（最小すきま 1.96m、冒頭の章 11.5秒 ≦ SEC 12）
+- 次にやること：Blender full（samples=64）の完了を待つ → 確かめて ORDER へ
