@@ -20,4 +20,5 @@
 - [ ] cg-video（chunks=8）→ cg-compress
 - [ ] cg-blender-open test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md の制作済みへ
-- 次にやること：cg-video.yml を slug=cg-sawara-moshi, chunks=8 で起動
+- cg-video：run 44986093157（起動ずみ）。固定コメント data/sns/yt-comments/cg-sawara-moshi.txt 作成ずみ
+- 次にやること：cg-video の完了を待つ → cg-compress（run_id=44986093157）→ Blender test
