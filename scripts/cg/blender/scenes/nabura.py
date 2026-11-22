@@ -9,11 +9,11 @@ FISH = "buri"
 FISH_LEN = 0.75
 LURE = "jig"
 SEC = 13.5          # 冒頭の章（見積もり約9秒・本番の声で約11.5秒）より長く
-CAM_OFF = (0.35, -2.0, -0.30)
+CAM_OFF = (0.30, -1.55, -0.25)
 LENS = 32
-CAM_KMAX = 2.8
-JIG_LEN = 0.11
-JIG_W = 0.85
+CAM_KMAX = 1.7
+JIG_LEN = 0.13   # 見やすいように少し大きく
+JIG_W = 1.0
 LINE_DIR = (-1.0, 0.0, 0.45)   # 糸は船（-x）の竿先へ、上へのびる
 
 V_R = 0.85                     # 船のほうへ進む速さ m/s（画面の中で追えるように遅め）
@@ -52,17 +52,17 @@ def jig_smooth(t):
     return acc / 13
 
 
-S0 = Vector((4.2, 1.0, 5.2))
+S0 = Vector((2.3, 0.7, 5.5))
 
 
 def follow(t):
     """ジグのうしろ（+x）・少し下・少し奥。近づいていく"""
     k = sstep(2.0, T_DASH, t)
-    return jig_smooth(t) + Vector((0.9 - 0.45 * k + 0.05 * math.sin(1.1 * t), 0.12 * math.sin(0.7 * t) + 0.1, -0.18 + 0.1 * k))
+    return jig_smooth(t) + Vector((0.5 - 0.25 * k + 0.04 * math.sin(1.1 * t), 0.08 * math.sin(0.7 * t) + 0.08, -0.12 + 0.08 * k))
 
 
 def snout_pre(t):
-    S = S0.lerp(follow(t), sstep(0.0, 3.5, t))
+    S = S0.lerp(follow(t), sstep(0.0, 2.6, t))
     return S.lerp(jig(t) + Vector((0.01, 0, 0.0)), sstep(T_DASH, T_BITE, t))
 
 
