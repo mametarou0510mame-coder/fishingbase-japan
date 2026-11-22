@@ -11416,11 +11416,11 @@ FT_BODY.nbJig = { m: 0.06, ma: 0.012, W: G_W(0.06, 11.34), I: 1.2e-4, len: 0.11,
 const NB_JERK = [{ reel: 1.2, dur: 0.2, lin: 1 }, { wait: 0.35 }, { reel: 1.2, dur: 0.2, lin: 1 }, { wait: 0.25 }];
 Object.assign(FT_SEQ, {
   // ジャークベイト：着水 → 2回しゃくって止める、をくり返す（止めた所が食わせどころ）
-  nb_jerk: { body: "nbMinnow", opt: { x0: 26, y0: -0.25, th0: Math.PI, tip0: 2, top: -0.12 }, seq: [{ free: 0.8, thumb: 0.02 }, { mark: "land" }, { reel: 1.5, dur: 0.6 }, { mark: "go" }, ...NB_JERK, { mark: "s1" }, { wait: 1.6 }, ...NB_JERK, { mark: "s2" }, { wait: 1.6 }, ...NB_JERK, { mark: "s3" }, { wait: 1.6 }, ...NB_JERK, { mark: "s4" }, { wait: 1.6 }, { mark: "done" }] },
+  nb_jerk: { body: "nbMinnow", opt: { x0: 26, y0: -0.55, th0: Math.PI, tip0: 2, top: -0.45 }, seq: [{ free: 0.8, thumb: 0.02 }, { mark: "land" }, { reel: 1.5, dur: 0.6 }, { mark: "go" }, ...NB_JERK, { mark: "s1" }, { wait: 1.6 }, ...NB_JERK, { mark: "s2" }, { wait: 1.6 }, ...NB_JERK, { mark: "s3" }, { wait: 1.6 }, ...NB_JERK, { mark: "s4" }, { wait: 1.6 }, { mark: "done" }] },
   // 食う：3回目の止めで食って、合わせて巻く（魚が引く力は仮の値）
-  nb_bite: { body: "nbMinnow", opt: { x0: 26, y0: -0.25, th0: Math.PI, tip0: 2, top: -0.12 }, seq: [{ free: 0.8, thumb: 0.02 }, { reel: 1.5, dur: 0.6 }, ...NB_JERK, { wait: 1.6 }, ...NB_JERK, { mark: "stop" }, { wait: 0.7 }, { mark: "bite" }, { wait: 0.3, fish: [1.2, -0.6] }, { mark: "hook" }, { jerk: 1.0, up: 0.25, down: 0.6, fish: [1.5, -0.8] }, { reel: 6, dur: 3, lin: 1, fish: [1.2, -0.6] }, { wait: 1, fish: [1.2, -0.6] }] },
+  nb_bite: { body: "nbMinnow", opt: { x0: 26, y0: -0.55, th0: Math.PI, tip0: 2, top: -0.45 }, seq: [{ free: 0.8, thumb: 0.02 }, { reel: 1.5, dur: 0.6 }, ...NB_JERK, { wait: 1.6 }, ...NB_JERK, { mark: "stop" }, { wait: 0.7 }, { mark: "bite" }, { wait: 0.3, fish: [1.2, -0.6] }, { mark: "hook" }, { jerk: 1.0, up: 0.25, down: 0.6, fish: [1.5, -0.8] }, { reel: 6, dur: 3, lin: 1, fish: [1.2, -0.6] }, { wait: 1, fish: [1.2, -0.6] }] },
   // ナブラが沈んだら：ジグを数えながら沈めて（カウントダウン）→ 速く巻き上げる
-  nb_sink: { body: "nbJig", opt: { x0: 26, y0: -0.1, th0: 1.3, tip0: 2, top: -0.15 }, seq: [{ free: 12, thumb: 0.05 }, { mark: "cnt" }, { wait: 0.3 }, { mark: "go" }, { reel: 24, dur: 8, lin: 1 }, { mark: "done" }, { wait: 0.5 }] },
+  nb_sink: { body: "nbJig", opt: { x0: 26, y0: -0.1, th0: 1.3, tip0: 2, top: -0.15 }, seq: [{ free: 12, thumb: 0.05 }, { mark: "cnt" }, { wait: 0.3 }, { mark: "go" }, { reel: 10, dur: 3.4, lin: 1 }, { mark: "bite" }, { reel: 0.9, dur: 0.3, lin: 1, fish: [1.5, -1.2] }, { mark: "hook" }, { jerk: 1.0, up: 0.25, down: 0.6, fish: [1.8, -1.4] }, { reel: 6, dur: 3, lin: 1, fish: [1.5, -1.2] }, { mark: "done" }, { wait: 1, fish: [1.5, -1.2] }] },
 });
 
 // ---- 上から見た海（nbG）：海面・空・船（ftBoat の複製）・引き波・カヤック/SUP。1 = 1m、海面 y=0 ----
@@ -11607,16 +11607,20 @@ const nbMinnowM = (() => {
   const lo = new THREE.Mesh(new THREE.SphereGeometry(0.5, 28, 14, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), ftLit(0xdfe8ee, { shine: 1.0 }));
   [up, lo].forEach((m) => m.scale.set(1, 0.24, 0.13));
   const lip = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.1), new THREE.MeshBasicMaterial({ color: 0xcfe6f5, transparent: true, opacity: 0.7, side: THREE.DoubleSide }));
-  lip.position.set(0.55, -0.06, 0); lip.rotation.z = -0.9;
+  lip.position.set(0.53, -0.08, 0); lip.rotation.z = -0.55;
   const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), shadedMat(0xe8b923, { rough: 0.2 }));
   eye.position.set(0.36, 0.03, 0.06); const eye2 = eye.clone(); eye2.position.z = -0.06;
   const steel = shadedMat(0x9aa3ab, { rough: 0.08 });
-  [0.12, -0.25].forEach((x) => { const h = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.008, 6, 14), steel); h.position.set(x, -0.15, 0); p.userData.h = h; g.add(h); });
+  // アイ（糸を結ぶ所）は口の先、針をつける輪は腹と尾（実物の写真のとおり）
+  [[0.04, -0.15, 0], [-0.52, 0, Math.PI / 2], [0.56, -0.01, Math.PI / 2]].forEach(([x, y, rz]) => { const h = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.009, 6, 14), steel); h.position.set(x, y, 0); h.rotation.set(0, 0, rz); g.add(h); });
   g.add(up, lo, lip, eye, eye2);
   p.add(g);
+  p.userData.g = g;
   world.add(p); extras.push(p);
   return p;
 })();
+// 左向き（頭が -x）でも腹とリップが下になるように、体の上下を返す
+function nbMinnowUp(st) { if (st) nbMinnowM.userData.g.rotation.x = Math.cos(st.th) < 0 ? Math.PI : 0; }
 const nbJigM = makeJigReal(0x1a5fe0);
 const NB_UNIT_M = 0.12, NB_UNIT_J = 0.11 / 1.6;
 // ナブラの位置（断面）：ルアーが着水する x のまわり
@@ -11642,7 +11646,7 @@ function nbSecBait(T, k = 1, cx = NB_SX + 1.2) {
 function nbFollow(id, i, cm, st, sim, ts, T, o = {}) {
   const b = sim.at(Math.max(0, ts - (o.lag ?? 0.6))), c0 = st.c0;
   const near = o.near ?? 0;
-  const mx = lerp(b[0] + 0.9, st.x + 0.06, near), my = lerp(b[1] - 0.45, st.y - 0.02, near);
+  const mx = lerp(b[0] + 0.9, st.x + 0.06, near), my = Math.min(lerp(b[1] - 0.45, st.y - 0.02, near), -0.45); // 魚は水面より上に出さない
   const f = fkGet(id, i, cm);
   if (!f) return null;
   const L = f.length * (o.sc ?? 1), ang = Math.PI + lerp(0.25, 0.08, near) + 0.04 * Math.sin(T * 1.5);
@@ -11790,6 +11794,7 @@ Object.assign(SHOTS, {
       // 船の横から：竿先からナブラへ、ルアーの弧
       const pr = ease((t - 1.0) / 1.6);
       const st = ftRig(T, sim, 0, { obj: nbMinnowM, unit: NB_UNIT_M, vis: 3 });
+      nbMinnowUp(st);
       nbSecNabura(T, 1); nbSecBait(T, 1);
       look(FTp(12, 2.2, FT_LZ + (P ? 44 : 30)), FTp(12, 0.2, FT_LZ), 44);
       nbMinnowM.visible = pr >= 1;
@@ -11804,6 +11809,7 @@ Object.assign(SHOTS, {
     const sp = Math.max(1, (mk.done - mk.land) / Math.max(4, d - (s._k1 ?? 0) - 1.2));
     const ts = Math.min(mk.land + Math.max(0, t1) * sp * 0.92, mk.done);
     const st = ftRig(T, sim, ts, { obj: nbMinnowM, unit: NB_UNIT_M, vis: 3, trail: 3, trailDots: true });
+    nbMinnowUp(st);
     nbSecBait(T, 0.6, NB_SX + 2.2);
     nbFollow("sawara", 860, 70, st, sim, ts, T, { near: 0.15 + 0.25 * (st.c0.kind === "wait" ? ease((ts - st.c0.t0) / 1.2) : 0) });
     nbSecCam(sim, ts, 5.2, { ox: 0.6, dy: 0.1 });
@@ -11822,6 +11828,7 @@ Object.assign(SHOTS, {
     const P = PORTRAIT, T = t + 120, sim = ftRun("nb_bite"), mk = sim.marks, t1 = t - (s._k1 ?? 99);
     const ts = k === 0 ? mk.stop - 2.2 + (t % 2.2) : Math.min(mk.stop - 1.2 + t1 * 0.75, sim.dur - 0.2);
     const st = ftRig(T, sim, ts, { obj: nbMinnowM, unit: NB_UNIT_M, vis: 3, trail: k === 0 ? 0 : 2.5, trailDots: true });
+    nbMinnowUp(st);
     const on = k >= 1 && ts >= mk.bite;
     if (on) {
       const f = fkGet("sawara", 860, 70), L = f ? f.length : 0.7, sh = Math.sin(T * 8) * 0.18;
@@ -11848,18 +11855,25 @@ Object.assign(SHOTS, {
     ftBase();
     const P = PORTRAIT, T = t + 150, sim = ftRun("nb_sink"), mk = sim.marks, t1 = s._k1 ?? 99;
     const sp0 = Math.max(1, mk.cnt / Math.max(3, t1 - 0.8));
-    const ts = k === 0 ? Math.min(t * sp0, mk.cnt) : Math.min(mk.cnt + (t - t1) * 1.0, mk.done);
+    const ts = k === 0 ? Math.min(t * sp0, mk.cnt) : Math.min(mk.cnt + (t - t1) * 0.6, mk.done + 0.8);
     const st = ftRig(T, sim, ts, { obj: nbJigM, unit: NB_UNIT_J, vis: 3.5, trail: 4, trailDots: true });
     // ブリの群れ（7m あたり）と、速いジグを追う1匹
     fkSchool("buri", T, { cx: NB_SX - 1.5, sx: 3.2, h0: 62.2, h1: 63.4, zc: FT_LZ - 1.8, sz: 1.0, n: 7, i0: 880, cm: 70, face: 1, pitch: 0.05 });
-    if (ts > mk.go) nbFollow("buri", 900, 75, st, sim, ts, T, { lag: 0.5, near: 0.1 });
-    const [sx] = ftSmooth(sim, ts, 0.8), cx = k === 0 ? 24 : lerp(24, sx - 1, ease((t - t1) / 2));
-    look(FTp(cx, -4.4, FT_LZ + (P ? 17 : 13.5)), FTp(cx, -4.8, FT_LZ), 46);
+    const hooked = ts >= mk.bite;
+    if (hooked) {
+      const f = fkGet("buri", 900, 75), L = f ? f.length : 0.75, sh = Math.sin(T * 7) * 0.16;
+      if (f) { f.object.scale.setScalar(1); fkPlace(f, FTp(st.x + L * 0.47, Math.min(st.y - 0.03, -0.6), FT_LZ - 0.12), 0, sh, T, { freq: 3.5, amp: 0.14, seed: 5 }); }
+    } else if (ts > mk.go) nbFollow("buri", 900, 75, st, sim, ts, T, { lag: 0.5, near: ease((ts - (mk.bite - 1.4)) / 1.3) });
+    const [sx, sy] = ftSmooth(sim, ts, 0.8), kz = k === 0 ? 0 : ease((t - t1) / 3.5);
+    const cx = lerp(24, sx + 0.3, kz), cy = lerp(-4.8, sy, kz);
+    look(FTp(cx, cy + 0.4, FT_LZ + (P ? lerp(17, 8, kz) : lerp(13.5, 5.5, kz))), FTp(cx, cy, FT_LZ), 46);
     ftFlush();
     const cnt = Math.min(12, Math.floor(ts));
     if (ts < mk.cnt) html += `<div style="position:absolute;${P ? "left:0;right:0;top:620px;text-align:center" : "left:0;right:0;top:128px;text-align:center"}"><span style="display:inline-block;background:#1f6fd1;color:#fff;font-weight:900;font-size:${P ? 50 : 46}px;padding:6px 30px;border-radius:18px">カウントダウン：<span style="font-size:1.3em">${cnt}</span></span></div>`;
-    else ftChip("速く巻き上げて、広く探る", "#e08a2a");
-    ftCtl(st, 1, ts < mk.cnt ? ["沈める", "#1f6fd1"] : ["速く巻く", "#e08a2a"]);
+    else if (!hooked) ftChip("速く巻き上げて、広く探る", "#e08a2a");
+    if (k >= 1 && !hooked) html += `<div class="slowtag" style="position:absolute;left:${PORTRAIT ? 40 : 70}px;top:${PORTRAIT ? 560 : 440}px;font-size:30px;font-weight:900;color:#fff;background:#e3412b;padding:4px 18px;border-radius:12px">スロー再生</div>`;
+    else ftChip(ts < mk.hook ? "巻いている途中で、食った！" : "合わせて、巻き上げる", ts < mk.hook ? "#c2410c" : "#e08a2a");
+    ftCtl(st, 1, ts < mk.cnt ? ["沈める", "#1f6fd1"] : hooked && ts >= mk.hook ? ["巻く", "#e08a2a"] : ["速く巻く", "#e08a2a"]);
     ftGraph(sim, ts, sim.dur, 1, "ジグの高さ（計算）");
     if (k === 0) label(FTp(NB_SX - 1.5, -7.2, FT_LZ - 1.8), "ブリの群れ", "（イメージ）", fadeIn(t, 1.0), "", P ? -60 : -260, P ? -220 : -150);
     nbMini(-1, st.x, 1, { note: `水深 ${Math.max(0, -st.y).toFixed(0)}m` });
