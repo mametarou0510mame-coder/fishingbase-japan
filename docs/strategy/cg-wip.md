@@ -9,4 +9,15 @@
 
 ---
 
-（作りかけはなし。2026-11-22 3DCG 見える化「船のキャスティング、ナブラを見つけたらどうする？」cg-nabura を ORDER に入れて完了。書き出し 44967934322・Blender full 44971302967・最小すきま 5.15m）
+## 作りかけ（アカデミー）：もしもサワラがいなくなったら？（cg-sawara-moshi、sz_*）2026-11-22 開始
+- 企画：A-2 の1番（R15・もしもシリーズ3）。cg-sawara（R6：資源回復）と重ねず、漁獲量の激減（1986年6,255t→1998年196t）・赤ちゃんは魚を食べて育つ（京都大学・瀬戸内海栽培漁業協会）・減った原因・今また親魚が減っているを主役に。
+- 事実：fish-knowledge.md の「サワラ（瀬戸内海：…）」「サワラの仔魚」「サワラ（サゴシ）」の節。
+- [x] 資料を足す（fish-knowledge.md に「サワラの仔魚」の節）
+- [ ] 台本 content/cg/cg-sawara-moshi.json・short-cg-sawara-moshi.json
+- [ ] main.js に sz_* と sz_thumb
+- [ ] Blender の場面 scenes/sawara.py（aji.py をもとにサワラの群れが散る）
+- [ ] 静止画の確認（長尺・サムネ・ショート）→ push
+- [ ] cg-video（chunks=8）→ cg-compress
+- [ ] cg-blender-open test → full
+- [ ] ORDER・固定コメント・cg-video-plan.md の制作済みへ
+- 次にやること：台本を作る
