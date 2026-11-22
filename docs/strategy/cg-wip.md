@@ -16,5 +16,6 @@
 - [x] 台本 content/cg/cg-nabura.json（約2分55秒）・ショート short-cg-nabura.json（43.6秒）
 - [x] Blender の場面 scenes/nabura.py（surf.py をもとに、速巻きのジグを追うブリ・SEC 13.5）・check_scene（すきま 4.8m）
 - [x] 静止画の確認・--clear（横・縦）
-- [ ] cg-video → cg-compress → cg-blender-open test → full
+- [ ] cg-video（44967934322 を起動）→ cg-compress → cg-blender-open test（起動ずみ）→ full
+- [x] 固定コメント data/sns/yt-comments/cg-nabura.txt・affiliate.py・fish-knowledge.md の出典
 - [ ] ORDER・固定コメント・cg-video-plan.md
