@@ -11511,7 +11511,7 @@ Object.assign(SHOTS, {
     nbG.userData.sea.material.uniforms.nabA.value = fade;
     nbNabura(T, NB_N[0], NB_N[1], fade);
     nbBoat(0, -38, 4, 0, k >= 3 ? 0.9 : 0.15, T);
-    nbLook(4, 2, 70, 58, 42);
+    nbLook(P ? 10 : 4, 2, 70, 58, 42);
     ftFlush();
     if (k <= 1) {
       html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 330}px;background:linear-gradient(rgba(2,14,28,.66),rgba(2,14,28,0))"></div>`;
@@ -11526,7 +11526,7 @@ Object.assign(SHOTS, {
       [["A", [NB_N[0] - 6, 3]], ["B", [NB_N[0] - NB_REACH - 2, 10]], ["C", [8, -20]]].forEach(([n, [x, z]], i) => mapPin(NBp(x, 0.5, z), n, ka * fadeIn(t1, 0.2 + i * 0.7), ["#e3412b", "#1f8a4c", "#e08a2a"][i]));
       if (k === 1) {
         const o = [["A", "全速力で真ん中へ"], ["B", "静かに、届く所まで"], ["C", "追い越して先に着く"]];
-        html += `<div style="position:absolute;left:${P ? 120 : 1240}px;top:${P ? 1400 : 610}px;width:${P ? 840 : 620}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t1, 0.2 + i * 0.7)};padding:6px 18px;margin:0 0 10px;font-size:${P ? 44 : 38}px"><i>${n}</i>${x}</div>`).join("")}</div>`;
+        html += `<div style="position:absolute;left:${P ? 120 : 1240}px;top:${P ? 1500 : 610}px;width:${P ? 840 : 620}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t1, 0.2 + i * 0.7)};padding:6px 18px;margin:0 0 10px;font-size:${P ? 44 : 38}px"><i>${n}</i>${x}</div>`).join("")}</div>`;
       }
     }
     if (k >= 2) {
@@ -11535,7 +11535,7 @@ Object.assign(SHOTS, {
       html += ftCard(P, `<b style="font-size:40px">答え <span style="color:#1f8a4c">B：静かに、ルアーが届く所まで</span></b><div style="font-size:22px;color:#3a5a78;margin-top:8px">海上保安庁サイト掲載の資料（小野信昭「ブリ釣り」）から</div>`, fadeIn(t2, 0.3), [380, 160, 1080], [60, 1440, 960]);
     }
     if (k >= 3) {
-      noMark(NBp(NB_N[0] - 2, 2, 8), "大きな音・引き波 → ナブラが消えやすい", fadeIn(t3, 0.6));
+      noMark(NBp(NB_N[0] - (P ? 12 : 2), 2, 8), P ? "音・引き波でナブラが消える" : "大きな音・引き波 → ナブラが消えやすい", fadeIn(t3, 0.6));
       nbArrow(-30, 4, NB_N[0] - 14, 3, "#e3412b", fadeIn(t3, 0.3) * 0.9, 12);
     }
     nbMini(k >= 2 ? NB_N[0] - NB_REACH - 2 : null, null, k >= 2 ? 1 : 0);
@@ -11624,7 +11624,7 @@ Object.assign(SHOTS, {
       html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 330}px;background:linear-gradient(rgba(2,14,28,.66),rgba(2,14,28,0))"></div>`;
       html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 62 : 54}px">問題　魚が食いやすいのは、<br><span style="color:#ffd166">どの瞬間？</span></div>`;
       const o = [["A", "しゃくった瞬間"], ["B", "止めた瞬間"], ["C", "回収するとき"]];
-      html += `<div style="position:absolute;left:${P ? 120 : 70}px;top:${P ? 1400 : 330}px;width:${P ? 840 : 560}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t, 1.0 + i * 0.6)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      html += `<div style="position:absolute;left:${P ? 120 : 70}px;top:${P ? 1500 : 330}px;width:${P ? 840 : 560}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t, 1.0 + i * 0.6)};${P ? "padding:6px 18px;margin:0 0 10px" : ""}"><i>${n}</i>${x}</div>`).join("")}</div>`;
       return;
     }
     if (!on) ftChip(ts >= mk.stop ? "止めた瞬間…" : "しゃくる", ts >= mk.stop ? "#2a9d5c" : "#e3412b");
