@@ -10422,6 +10422,215 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// アカデミー R15 もしもサワラがいなくなったら？（cg-sawara-moshi、sz_*）2026-11-22 もしもシリーズ3
+// 事実は docs/research/fish-knowledge.md の「サワラ（瀬戸内海：実際に「ほぼいなくなった」例）」「サワラの仔魚」「サワラ（サゴシ）」だけ：
+//   水産庁（資源回復計画：漁獲量 1986年6,255トン → 1998年196トン、減った原因、加入乱獲）、
+//   京都大学の研究課題（KAKEN：主要餌料はニシン目仔魚、成長が速い年に強い年級、トレードオフ）、
+//   瀬戸内海栽培漁業協会（栽培技研：飼育の記録。ふ化直後 約4mm、5日ごろからマダイの仔魚を好んで食べる、与えないと6日ごろから共食い、30日前後で38〜48mm）、
+//   水産研究・教育機構の資源評価（山口県 令和7年版：資源量 1998年688トン → 2024年6,500トン、親魚量 4,131トン・限界管理基準値（案）5,700トン）、
+//   香川県水産試験場（取組みを緩めず続けることが必要）
+// cg-sawara（R6：資源回復の取り組み）と重ねない。「サワラがいなくなったら〇〇が起きる」とは言わない。原因は資料の言い方のまま。
+// 魚の色は 3D モデルのまま（rcTintObj は深さ 0＝加工なし）。土台は rcBase（水の中）。魚は Fish Kit（sawara・katakuchi・madai）。魚の動きはイメージ
+// 使い回せる部品：szSchool(T, c, o)（サワラの群れ。左向きにゆったり泳ぐ。o.n で数を減らせる・o.burst で散って消える）
+// =====================================================================
+const SZ_D = 6;
+const SZ_OFF = (() => { const r = rng(3111); return Array.from({ length: 16 }, () => ({ x: r() * 2 - 1, y: r() * 2 - 1, z: r() * 2 - 1, p: r() * 6.283, cm: 64 + r() * 12, w: r() })); })();
+function szSchool(T, c, o = {}) {
+  const { R = 2.2, n = 12, burst = 0, i0 = 900, dir = Math.PI, sc = 1.0 } = o;
+  for (let i = 0; i < SZ_OFF.length; i++) {
+    const f = fkGet("sawara", i0 + i, Math.round(SZ_OFF[i].cm));
+    if (!f) continue;
+    if (i >= n) { f.object.visible = false; continue; }
+    const q = SZ_OFF[i];
+    const b = clamp01(burst * (1.1 - 0.25 * q.w));
+    if (b > 0.93) { f.object.visible = false; continue; }
+    const out = V(q.x, q.y * 0.6, q.z).normalize();
+    const p = c.clone().add(V(q.x * R + Math.sin(T * 0.3 + q.p) * 0.2, q.y * R * 0.35 + Math.sin(T * 0.6 + q.p) * 0.06, q.z * R * 0.45)).add(out.multiplyScalar(16 * Math.pow(b, 1.6)));
+    const yaw = dir + 0.1 * Math.sin(T * 0.3 + q.p) + b * (q.x > 0 ? -1 : 1) * Math.PI * 0.7;
+    f.object.scale.setScalar(sc);
+    fkPlace(f, p, yaw, 0.04 * Math.sin(T * 0.5 + q.p), T, { freq: 1.5 + 2 * b, amp: 0.07, seed: i });
+    rcTintObj(f.object, 0);
+  }
+}
+const szC = () => RCp(0, -SZ_D, 0);
+const szNote = (txt = "魚の動きはイメージ") => ftNote(txt);
+const szBg = (T, c, o = {}) => { rcBase(SZ_D); rcLight(SZ_D); szSchool(T, c, o); };
+// 2つの帯（時期のずれの模式図）
+function szBands(P, a, k) {
+  const W = P ? 700 : 900, band = (y, col, txt, x0, w, al) => `<div style="position:absolute;left:${x0}px;top:${y}px;width:${w * clamp01(al)}px;height:56px;background:${col};border-radius:28px;opacity:.9"></div><div style="position:absolute;left:${x0 + 20}px;top:${y + 8}px;font-size:${P ? 28 : 30}px;font-weight:900;color:#fff;opacity:${clamp01(al * 3 - 1)};white-space:nowrap">${txt}</div>`;
+  const inner = `<b style="font-size:${P ? 34 : 36}px">赤ちゃんが現れる時期（1990年代）</b><div style="position:relative;height:200px;width:${W}px;margin-top:14px;border-bottom:4px solid #10345a">${band(20, "#c2410c", "サワラの赤ちゃん", W * 0.22, W * 0.5, a)}${band(100, "#1f6fd1", "餌：イワシの仲間の赤ちゃん", W * 0.15, W * 0.62, a * 1.2 - 0.2)}<div style="position:absolute;left:0;right:0;bottom:-36px;font-size:22px;color:#3a5a78;text-align:center">時期 →</div></div><div style="font-size:${P ? 30 : 32}px;font-weight:900;margin-top:46px;color:#1d8a3a;opacity:${clamp01(a * 2 - 1)}">時期が<span style="color:#c2410c">よく合っていた</span></div><div style="font-size:22px;color:#3a5a78;margin-top:4px">模式図（帯の位置と長さはイメージ）</div>`;
+  html += ftCard(P, inner, clamp01(a * 2), [70, 200, W + 60], [60, 420, 960]);
+}
+
+Object.assign(SHOTS, {
+  sz_thumb(t, d, s) {
+    rcBase(5);
+    rcLight(5);
+    const c = RCp(0, -5, 0);
+    szSchool(4, c.clone().add(V(0.6, 0, 0)), { R: 1.6, n: 10, sc: 1.0 });
+    iwCam(c, 4.6, 0.25, 0.2, 50, c.clone().add(V(-1.6, 0.1, 0)));
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：サワラの群れ → 散って消える → 「？」（本番は Blender の冒頭に差しかわる）
+  sz_hook(t, d, s) {
+    const P = PORTRAIT, c = szC(), T = t + 2;
+    const burst = d > 8 ? clamp01((t - (d - 5)) / 3.0) : 0; // ショート（短い）は散らさない
+    szBg(T, c.clone().add(V(0, P ? -0.3 : -0.3, 0)), { burst, R: P ? 1.2 : 2.2 });
+    iwCam(c, lerp(P ? 5.5 : 6.0, P ? 6.2 : 7.0, ease(t / d)), 0.12 * Math.sin(t * 0.2), 0.3, 50, c.clone().add(V(0, 0.4, 0)));
+    if (burst > 0.85) {
+      const p = project(c), a2 = fadeIn(burst, 0.85, 0.15);
+      lines += `<circle cx="${p.x}" cy="${p.y}" r="${P ? 130 : 150}" fill="rgba(255,209,102,.12)" stroke="#ffd166" stroke-width="6" stroke-dasharray="20 14" opacity="${a2}"/>`;
+      html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);opacity:${a2};color:#ffd166;font-size:150px;font-weight:900;text-shadow:0 4px 18px #000">？</div>`;
+    }
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "もしも、サワラが<br>いなくなったら？", "瀬戸内海で本当に起きたこと", a);
+    academyBadge();
+    szNote();
+  },
+  // 本当に起きたこと：k0 1986年 6,255トン → k1 1998年 196トン（30分の1以下）→ k2 本当に起きたこと。群れの数も減っていく
+  sz_drop(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 14;
+    const n = k === 0 ? 12 : Math.max(1, Math.round(lerp(12, 1, ease(clamp01((t - (s._k1 ?? 0)) / 3)))));
+    szBg(T, c.clone().add(V(P ? 0 : 2.2, P ? 2.2 : -0.4, 0)), { R: P ? 1.3 : 1.6, n });
+    iwCam(c, P ? 8 : 4.8, -0.08, 0.3, 50);
+    html += acDim(0.2);
+    const rows = [["1986年", "6,255トン", 1, "#1f6fd1"], ["1998年", "196トン", 196 / 6255, "#c62828"]];
+    iwBars(P, "瀬戸内海のサワラの漁獲量", k === 0 ? rows.slice(0, 1) : rows, fadeIn(t, 0.3, 1.2), [70, 220, 900], [60, 520, 960], "※棒の高さは実際の比。1986年は過去最高");
+    if (k >= 1) html += `<div style="position:absolute;${P ? "left:0;right:0;top:1190px;text-align:center" : "left:1060px;top:300px"};opacity:${fadeIn(t - (s._k1 ?? 99), 1.2, 0.4)};color:#ffd166;font-size:${P ? 54 : 64}px;font-weight:900;text-shadow:0 4px 14px #000">12年で${P ? "" : "<br>"}30分の1以下</div>`;
+    if (k >= 2 && !P) html += ftCard(P, `<b style="font-size:38px">瀬戸内海で<span style="color:#c2410c">本当に起きた</span>こと</b>`, fadeIn(t - (s._k2 ?? 99), 0.3), [1100, 700, 700], [60, 1180, 960]);
+    iwSrc("水産庁（サワラ瀬戸内海系群資源回復計画）");
+    academyBadge();
+    szNote("魚の数の減り方はイメージ。魚の動きはイメージ");
+  },
+  // クイズ：サワラの赤ちゃんの主な餌は？ k0 問い → k1 選択肢 → k2 正解 C（京都大学の研究）
+  sz_quiz(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 30;
+    szBg(T, c.clone().add(V(P ? 0 : 2.3, P ? -2.6 : -0.3, 0)), { R: 1.3, n: 6 });
+    iwCam(c, P ? 8 : 4.8, 0.05 * Math.sin(t * 0.2), 0.2, 50, c.clone().add(V(P ? 0 : 0.2, P ? -0.8 : 0, 0)));
+    const opts = [["A", "小さなプランクトン"], ["B", "海藻"], ["C", "ほかの魚の赤ちゃん"]];
+    const t2 = s._k2 ?? 99, ans = t > t2 + 1.2;
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:480px" : "left:70px;top:190px;width:820px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 46 : 44}px;font-weight:900;margin:14px 0 4px">サワラの赤ちゃん（仔魚）の<br>主な餌は？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans && !P) html += ftCard(P, `<b style="font-size:36px">正解 <span style="color:#1d8a3a">C</span>：主な餌は<br><span style="color:#c2410c">イワシの仲間（ニシン目）の赤ちゃん</span></b>`, fadeIn(t - t2 - 1.2, 0.2), [960, 700, 880], [60, 1150, 960]);
+    iwSrc(k >= 2 ? "京都大学の研究（瀬戸内海のサワラ。日本学術振興会の研究課題）" : "");
+    academyBadge();
+    szNote();
+  },
+  // 魚を食べて育つ赤ちゃん（飼育の記録）：k0 ふ化直後 約4mm → k1 5日ごろからマダイの赤ちゃんを好んで食べた → k2 与えないと6日ごろから共食い → k3 30日前後で38〜48mm
+  sz_baby(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 50;
+    szBg(T, c.clone().add(V(P ? 0 : 2.6, P ? 2.6 : -0.8, -0.5)), { R: 1.0, n: 3 });
+    iwCam(c, P ? 8 : 4.8, -0.05, 0.3, 50);
+    html += acDim(0.3);
+    const step = (i, day, txt, col) => { const a = k >= i ? fadeIn(t - (s[`_k${i}`] ?? 0), 0.3) : 0; return `<div style="display:flex;align-items:center;gap:20px;margin-top:14px;opacity:${a}"><b style="background:${col};color:#fff;font-size:${P ? 28 : 30}px;padding:8px 0;width:${P ? 190 : 200}px;text-align:center;border-radius:14px;flex:none">${day}</b><div style="font-size:${P ? 32 : 34}px;font-weight:900">${txt}</div></div>`; };
+    const W = P ? 700 : 760, bar = (mm, col) => `<div style="height:22px;width:${Math.max(8, (W * mm) / 48)}px;background:${col};border-radius:11px;margin:6px 0 0 ${P ? 210 : 220}px"></div>`;
+    const inner = `<b style="font-size:${P ? 34 : 36}px">サワラの赤ちゃんの飼育の記録（1970年代）</b>` +
+      step(0, "ふ化した日", "全長 <span style=\"color:#c2410c\">約4mm</span>", "#1f6fd1") + (k >= 0 ? bar(4, "#1f6fd1") : "") +
+      step(1, "5日ごろ", "<span style=\"color:#c2410c\">マダイの赤ちゃん</span>を好んで食べる", "#c2410c") +
+      step(2, "6日ごろ", "魚の赤ちゃんがないと<span style=\"color:#c62828\">共食い</span>", "#c62828") +
+      step(3, "30日前後", "遅いものでも 全長 <span style=\"color:#1d8a3a\">38〜48mm</span>", "#1d8a3a") + (k >= 3 ? bar(43 * clamp01(fadeIn(t - (s._k3 ?? 0), 0.3, 1.2)), "#1d8a3a") : "") +
+      `<div style="font-size:22px;color:#3a5a78;margin-top:10px">棒は全長の比（4mm と 43mm）。水槽で育てたときの記録で、海の中の数値ではない</div>`;
+    html += ftCard(P, inner, fadeIn(t, 0.3), [70, 190, 1150], [60, 400, 960]);
+    iwSrc("瀬戸内海栽培漁業協会（栽培技研の報告。水産研究・教育機構のリポジトリ）");
+    academyBadge();
+    szNote("後ろのサワラは大人の魚（イメージ）");
+  },
+  // 速く育つ、でも…：k0 成長が速い年に強い年級 → k1 1990年代は餌の赤ちゃんと時期がよく合っていた → k2 トレードオフ
+  sz_risk(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 70;
+    rcBase(SZ_D);
+    rcLight(SZ_D);
+    const ic = c.clone().add(V(P ? 0 : 2.3, P ? 2.4 : -0.6, 0));
+    iwBall(T, ic, { R: 0.5, n: k >= 1 ? 40 : 0, i0: 940, sc: 2.2, d: 0 });
+    szSchool(T, c.clone().add(V(P ? 0 : 2.4, P ? -2.6 : 0.9, -1.2)), { R: 1.0, n: 3 });
+    iwCam(c, P ? 8 : 4.8, 0.06, 0.3, 50);
+    html += acDim(0.25);
+    if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 36 : 38}px">赤ちゃんの成長が<span style="color:#c2410c">速かった年</span>に</b><div style="font-size:${P ? 34 : 36}px;font-weight:900;margin-top:10px">たくさん育つ<span style="color:#1d8a3a">強い年（強い年級）</span>が生まれる</div><div style="font-size:24px;color:#3a5a78;margin-top:6px">「年級」＝同じ年に生まれた魚のまとまり</div>`, fadeIn(t, 0.3), [70, 220, 1000], [60, 460, 960]);
+    if (k === 1) szBands(P, fadeIn(t - (s._k1 ?? 99), 0.3, 1.4), k);
+    if (k >= 2) html += ftCard(P, `<b style="font-size:${P ? 36 : 38}px">魚を食べて<span style="color:#1d8a3a">速く育つ</span></b><div style="font-size:${P ? 50 : 54}px;font-weight:900;margin:6px 0;color:#10345a">⇅ 引きかえに</div><b style="font-size:${P ? 36 : 38}px"><span style="color:#c2410c">限られた条件</span>の中でしか生き残れない</b><div style="font-size:24px;color:#3a5a78;margin-top:6px">研究では、こうした「トレードオフ（引きかえの関係）」があるとされる</div>`, fadeIn(t - (s._k2 ?? 99), 0.3), [70, 220, 1000], [60, 460, 960]);
+    if (k >= 1 && !P) label(ic.clone().add(V(0, 0.75, 0)), "カタクチイワシ（イワシの仲間）", "", fadeIn(t - (s._k1 ?? 99), 0.4), "", 0, -40);
+    iwSrc("京都大学の研究（瀬戸内海のサワラ。日本学術振興会の研究課題）");
+    academyBadge();
+    szNote("魚の動きはイメージ。イワシはカタクチイワシの3Dモデルを大きく表示");
+  },
+  // なぜ減った？：k0 問い → k1 とる力が高いまま → k2 餌のカタクチイワシ・イカナゴの減少も → k3 加入乱獲
+  sz_cause(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 90;
+    rcBase(SZ_D);
+    rcLight(SZ_D);
+    const ic = c.clone().add(V(P ? 0 : 2.3, P ? 2.6 : -0.8, 0));
+    const fade = k >= 2 ? ease(clamp01((t - (s._k2 ?? 99)) / 3)) : 0;
+    iwBall(T, ic, { R: 0.6, n: Math.round(40 - 28 * fade), i0: 940, sc: 2.2, d: 0 });
+    szSchool(T, c.clone().add(V(P ? 0 : 2.4, P ? -2.8 : 0.9, -1.2)), { R: 1.0, n: k >= 3 ? 2 : 4 });
+    iwCam(c, P ? 8 : 4.8, -0.06, 0.3, 50);
+    html += acDim(0.25);
+    const row = (i, hd, txt, col) => { const a = k >= i ? fadeIn(t - (s[`_k${i}`] ?? 0), 0.3) : 0; return `<div style="display:flex;align-items:center;gap:18px;margin-top:16px;opacity:${a}"><b style="background:${col};color:#fff;font-size:${P ? 26 : 28}px;padding:8px 0;width:${P ? 170 : 180}px;text-align:center;border-radius:14px;flex:none">${hd}</b><div style="font-size:${P ? 31 : 33}px;font-weight:900">${txt}</div></div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">なぜ、ここまで減った？</b><div style="font-size:24px;color:#3a5a78">資料に書かれていること</div>` +
+      row(1, "とる力", "網の改良・漁船の性能アップで<br><span style=\"color:#c2410c\">高いまま続いた</span>", "#1f6fd1") +
+      row(2, "餌", "<span style=\"color:#c2410c\">カタクチイワシやイカナゴ</span>の<br>減少も考えられる", "#c2410c") +
+      row(3, "親と子", "親が減り、子も先細り<br>＝<span style=\"color:#c62828\">「加入乱獲」</span>と評価", "#c62828"), fadeIn(t, 0.3), [70, 190, 960], [60, 420, 960]);
+    if (k >= 2 && !P) label(ic.clone().add(V(0, 0.75, 0)), "カタクチイワシ", "餌が減ると…（イメージ）", fadeIn(t - (s._k2 ?? 99), 0.4), "", 0, -40);
+    iwSrc("水産庁（サワラ瀬戸内海系群資源回復計画）");
+    academyBadge();
+    szNote("魚の数の変化はイメージ。魚の動きはイメージ");
+  },
+  // そして、いま：k0 資源量 1998年688トン → 2024年6,500トン → k1 親魚量 4,131トン・限界管理基準値（案）5,700トン、5年減る傾向 → k2 香川県：緩めず続ける
+  sz_now(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 110;
+    szBg(T, c.clone().add(V(P ? 0 : 2.4, P ? 2.6 : -0.3, 0)), { R: 1.4, n: 8 });
+    iwCam(c, P ? 8 : 4.8, 0.08, 0.3, 50);
+    html += acDim(0.25);
+    if (k === 0) iwBars(P, "瀬戸内海のサワラの資源量（推定）", [["1998年", "約690トン", 688 / 6500, "#c62828"], ["2024年", "約6,500トン", 1, "#1f6fd1"]], fadeIn(t, 0.3, 1.2), [70, 220, 900], [60, 520, 960], "※棒の高さは実際の比。上の漁獲量とは別の数値（資源評価の推定）");
+    if (k === 1) {
+      const a = fadeIn(t - (s._k1 ?? 99), 0.3, 1.2), Hb = 300, h1 = 4131 / 5700;
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">卵を産む親の魚の量（親魚量）2024年</b><div style="position:relative;height:${Hb + 70}px;margin-top:20px;border-bottom:4px solid #10345a"><div style="position:absolute;left:0;right:0;bottom:${Hb}px;border-top:5px dashed #c2410c"></div><div style="position:absolute;right:0;bottom:${Hb + 8}px;font-size:28px;font-weight:900;color:#c2410c">管理の目安（限界管理基準値（案））5,700トン</div><div style="position:absolute;left:${P ? 120 : 140}px;bottom:0;width:170px;height:${Hb * h1 * clamp01(a)}px;background:#c62828;border-radius:12px 12px 0 0"></div><div style="position:absolute;left:${P ? 330 : 340}px;bottom:${Hb * h1 * clamp01(a) - 60}px;font-size:40px;font-weight:900;color:#c62828;opacity:${clamp01(a * 2 - 1)}">約4,100トン<div style="font-size:28px">目安を下回る</div></div></div><div style="font-size:26px;font-weight:900;margin-top:8px">ここ5年は<span style="color:#c62828">減る傾向</span></div>`, 1, [70, 220, 920], [60, 480, 960]);
+    }
+    if (k >= 2) html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">取り組みを<span style="color:#1d8a3a">緩めず、続ける</span>ことが必要</b><div style="font-size:26px;color:#3a5a78;margin-top:6px">香川県水産試験場（令和7年4月）</div>`, fadeIn(t - (s._k2 ?? 99), 0.3), [70, 260, 900], [60, 560, 960]);
+    iwSrc(k >= 2 ? "香川県水産試験場" : "水産研究・教育機構の資源評価（山口県 令和7年版の資料）");
+    academyBadge();
+    szNote();
+  },
+  // わかっていること・わかっていないこと：k0・k1 わかっていること → k2 わかっていないこと
+  sz_wakaru(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 130;
+    szBg(T, c.clone().add(V(P ? 0 : 2.6, P ? 2.8 : -0.9, 0)), { R: 1.0, n: 4 });
+    iwCam(c, P ? 8 : 4.8, 0.1, 0.3, 50);
+    html += acDim(0.3);
+    const col = (hd, cl, body, a) => `<div style="flex:1;opacity:${a}"><b style="display:block;background:${cl};color:#fff;font-size:${P ? 32 : 34}px;padding:8px 16px;border-radius:14px;text-align:center">${hd}</b><div style="font-size:${P ? 29 : 30}px;font-weight:900;margin-top:10px;line-height:1.45">${body}</div></div>`;
+    const a1 = fadeIn(t, 0.3), a2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.3) : 0;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">もしもサワラがいなくなったら？</b><div style="display:flex;gap:28px;margin-top:14px;${P ? "flex-direction:column" : ""}">${col("わかっていること", "#1d8a3a", "・サワラは赤ちゃんのころから<br>　イワシの仲間などの魚を食べて育つ<br>・赤ちゃんの育ち方で、その年に<br>　育つ数が変わるという研究がある<br>・瀬戸内海では漁獲量が30分の1以下に", a1)}${col("わかっていないこと", "#c2410c", "・サワラがいなくなると海で<br>　何が起きるかを確かめた資料は<br>　見つからなかった", a2)}</div>`, 1, [70, 210, 1300], [60, 420, 960]);
+    iwSrc("この動画で使った資料から");
+    academyBadge();
+    szNote();
+  },
+  // 釣りでは：k0 赤ちゃんのころから魚を食べて育つ・親はまだ十分ではない → k1 食べる分だけ・ルールを守る
+  sz_tsuri(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 150;
+    szBg(T, c.clone().add(V(0, P ? 0 : -0.4, 0)), { R: P ? 1.4 : 2.0, n: 10 });
+    iwCam(c, P ? 8.5 : 5.2, -0.1 + 0.05 * Math.sin(t * 0.2), 0.3, 50, c.clone().add(V(0, P ? 0 : 0.6, 0)));
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">サワラは、<span style="color:#c2410c">赤ちゃんのころから魚を食べて</span>育つ魚<br>親の魚は、<span style="color:#c62828">まだ十分とは言えない</span></b>`, fadeIn(t, 0.5), [230, 170, 1460], [60, 420, 960]);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">できることから</b><div style="font-size:34px;font-weight:900;margin-top:8px;color:#1d8a3a">食べる分だけ持ち帰る・地域や釣り場のルールを守る</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [230, 170, 1460], [60, 420, 960]);
+    iwSrc(k === 0 ? "京都大学・瀬戸内海栽培漁業協会・水産研究・教育機構の資料" : "");
+    academyBadge();
+    szNote();
+  },
+  sz_sum(t, d, s, k) {
+    const P = PORTRAIT, c = szC(), T = t + 170;
+    szBg(T, c, { R: 2.2, n: 12 });
+    iwCam(c, P ? 9 : 5.6, 0.1 * Math.sin(t * 0.1), 0.3);
+    html += acDim(0.45);
+    const rows = [["本当に起きた", "漁獲量は12年で30分の1以下に", "1986年 6,255トン → 1998年 196トン（水産庁）", "#c62828"], ["赤ちゃん", "イワシの仲間などの赤ちゃんを食べて育つ", "成長が速い年に強い年級（京都大学の研究）", "#1f6fd1"], ["いま", "資源は戻ってきたが、親の魚は減る傾向", "管理の目安を下回る（水産研究・教育機構）", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 58 : 60}px;opacity:${fadeIn(t, 0.1)}">もしもサワラがいなくなったら？ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 220 : 280}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 // =====================================================================

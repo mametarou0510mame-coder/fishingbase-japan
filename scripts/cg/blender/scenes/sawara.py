@@ -1,0 +1,102 @@
+# アカデミー R15「もしもサワラがいなくなったら？」（cg-sawara-moshi）の冒頭：aji.py をもとに、サワラ（Fish Kit sawara、CC0）の群れが
+# 中層でゆったり輪をえがいて泳ぐ（大きさはアジの約3倍なので、群れの半径・カメラの距離も広げた）。主役の1匹は手前の外側。終わりの約4秒で群れが外へ散り、画面から消えて、
+# 何もいない海が残る（「いなくなったら？」）。仕掛けはなし（LURE = "none"）。
+# 動きは時刻 t（秒）だけで決まる。opening.py から読む。海底は z=0（単位 m）。
+import math
+from mathutils import Vector
+
+FISH = "sawara"
+FISH_LEN = 0.70
+LURE = "none"
+SEC = 12.0          # 冒頭の章（見積もり8.1秒 → 本番は約10秒）より1秒以上長く
+T_THUMB = 4.0
+CAM_OFF = (1.3, -5.6, -0.35)
+LENS = 30
+CAM_KMAX = 1.0
+T_BITE = 99.0
+THUMB_SHIFT = -0.24
+THUMB_K = 1.05
+
+C = Vector((0.0, 0.0, 3.4))   # 群れの中心（底から3.4m）
+R = 1.9                      # 群れの半径
+T_GO = SEC - 4.2              # 散り始め
+
+
+def sstep(a, b, x):
+    x = min(max((x - a) / (b - a), 0.0), 1.0)
+    return x * x * (3 - 2 * x)
+
+
+def h(i, k):
+    """決まった乱数（0〜1）"""
+    v = math.sin(i * 12.9898 + k * 78.233) * 43758.5453
+    return v - math.floor(v)
+
+
+N = 14
+SCHOOL = list(range(N))
+
+
+def burst(t, i):
+    return sstep(T_GO + 0.5 * h(i, 9), T_GO + 3.2 + 0.4 * h(i, 9), t)
+
+
+def ring(i, t):
+    """i 番目の魚の口先と向き。群れの中を縦の軸のまわりに回る。散ると外へ泳ぎ去る"""
+    th0, rr, zz, w = 6.283 * h(i, 1), 0.35 + 0.65 * math.sqrt(h(i, 2)), 2 * h(i, 3) - 1, 0.8 + 0.4 * h(i, 4)
+    d = -1 if i % 6 == 0 else 1
+    th = th0 + d * 0.22 * w * t
+    b = burst(t, i)
+    r = R * rr
+    z = C.z + R * 0.5 * zz * (1 + 0.3 * b) + 0.03 * math.sin(1.3 * t + 6 * h(i, 5))
+    # 散るときはカメラ（-y）から離れる向きへ（カメラの前を横切らないように）
+    out = Vector((1.3 * math.cos(th), abs(math.sin(th)) + 0.6, 0.03 * zz)).normalized()
+    p = Vector((C.x + r * math.cos(th), C.y + r * math.sin(th), z)) + out * (R * 9 * b ** 1.6)
+    tang = Vector((-math.sin(th) * d, math.cos(th) * d, 0.08 * math.cos(0.9 * t + i)))
+    hd = tang.lerp(out, sstep(0.0, 0.5, b)).normalized()
+    return p, hd
+
+
+def school(i, t):
+    p, d = ring(i, t)
+    ln = FISH_LEN * (0.88 + 0.24 * h(i, 6))
+    return p, d, (1.5 * t + h(i, 7), 0.07), ln
+
+
+# 主役：群れの手前（カメラ側 -y）の外側を、群れと同じ向きに回る
+def snout(t):
+    th = -1.75 + 0.22 * t
+    b = sstep(T_GO + 0.8, T_GO + 3.6, t)
+    r = R + 0.45
+    p = Vector((C.x + r * math.cos(th), C.y + r * math.sin(th), C.z + 0.05 + 0.08 * math.sin(0.8 * t) + 0.6 * b))
+    return p + Vector((0.5, 1.0, 0.1)).normalized() * (12.0 * b ** 1.6)
+
+
+def heading(t):
+    v = snout(t + 0.04) - snout(t - 0.04)
+    return v.normalized() if v.length > 1e-6 else Vector((1, 0, 0))
+
+
+def swim(t):
+    return 1.5 * t, 0.07
+
+
+def lure_now(t):
+    return C
+
+
+def lure_axis(t):
+    return None
+
+
+def cam_target(t):
+    return C + Vector((0.0, 0.0, -0.05 + 0.03 * math.sin(0.3 * t)))
+
+
+def sep(t):
+    return 0.0
+
+
+def focus(t):
+    # はじめは主役の口先、散り始めたら群れの中心へ
+    return snout(t).lerp(C, sstep(T_GO, T_GO + 1.5, t))
