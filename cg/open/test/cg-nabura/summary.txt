@@ -1,1 +1,1 @@
-frames 6  avg 73.1s/frame  min fish clearance 5.052 m
+frames 6  avg 73.1s/frame  min fish clearance 5.352 m
