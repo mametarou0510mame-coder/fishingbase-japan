@@ -1,5 +1,5 @@
 {
- "updatedOn": "2026-11-21",
+ "updatedOn": "2026-11-22",
  "categories": [
   {
    "key": "sabiki",
@@ -8,24 +8,13 @@
    "unverified": false,
    "items": [
     {
-     "name": "初心者 入門者 サビキ釣りセット 釣り具セット サビキ 海釣り セット サビキ釣り 入門セット 釣具 釣り竿 釣りセット 子供 初心者用 釣",
-     "price": 9120,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tp10o.kz1waa74.g00tp10o.kz1wb1cc%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmituisishoji%252Fw10-fish026%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmituisishoji%252Fi%252F10003367%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00tp10o.kz1waa74.g00tp10o.kz1wb1cc%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fmituisishoji%252Fw10-fish026%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fmituisishoji%252Fi%252F10003367%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/mituisishoji/cabinet/10845735/10852539/w10-fish026.jpg?_ex=200x200",
-     "shop": "インテリアの三石屋",
-     "pointRate": 20,
-     "pointEnd": "2026-11-20 23:59",
-     "review": 0,
-     "reviewCount": 0
-    },
-    {
      "name": "ファミリーパックセット 210 レッド ロッドリールセット (釣り 竿 糸付リール コンパクト サビキ ちょい 投げ キス ハゼ)",
      "price": 3278,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00py79o.kz1wa3ea.g00py79o.kz1wb6c2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffishing-you%252F4909858059894%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffishing-you%252Fi%252F10091748%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00py79o.kz1wa3ea.g00py79o.kz1wb6c2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffishing-you%252F4909858059894%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffishing-you%252Fi%252F10091748%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fishing-you/cabinet/item119/4909858059894_1.jpg?_ex=200x200",
      "shop": "フィッシング遊",
      "pointRate": 10,
-     "pointEnd": "2026-11-20 23:59",
+     "pointEnd": "2026-11-25 23:59",
      "review": 0,
      "reviewCount": 0
     },
@@ -36,7 +25,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fishing-you/cabinet/item119/4909858059887_1.jpg?_ex=200x200",
      "shop": "フィッシング遊",
      "pointRate": 10,
-     "pointEnd": "2026-11-20 23:59",
+     "pointEnd": "2026-11-25 23:59",
      "review": 0,
      "reviewCount": 0
     },
@@ -58,7 +47,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fishing-you/cabinet/item119/4909858059900_1.jpg?_ex=200x200",
      "shop": "フィッシング遊",
      "pointRate": 10,
-     "pointEnd": "2026-11-20 23:59",
+     "pointEnd": "2026-11-25 23:59",
      "review": 0,
      "reviewCount": 0
     },
@@ -69,7 +58,7 @@
      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fishing-you/cabinet/item119/4909858059870_1.jpg?_ex=200x200",
      "shop": "フィッシング遊",
      "pointRate": 2,
-     "pointEnd": "2026-11-20 23:59",
+     "pointEnd": "2026-11-25 23:59",
      "review": 0,
      "reviewCount": 0
     }
