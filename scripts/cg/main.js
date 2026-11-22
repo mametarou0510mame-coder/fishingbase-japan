@@ -11191,6 +11191,522 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 船のキャスティング、ナブラを見つけたらどうする？（cg-nabura、nb_*）2026-11-22 3DCG 定期タスク
+// 参考：海上保安庁サイト掲載 小野信昭「ブリ釣り」（ボートを静かに動かし、ルアーがナブラに届く位置まで近づいてキャスティング／
+//   ナブラ付近に着水させ、小魚が逃げまどう動き／多くのボートが一斉に突進すると危険で、轟音でナブラが消えることがほとんど／
+//   先に向かう他船がいたら諦める譲り合い／引き波でシーカヤック・SUP が転覆しそうに）
+//   シマノ「オシア シュートジャーク」2020（サワラ：秋〜冬、ボイルが出たらその瞬間に撃ち込む、ジャークベイトは止めた瞬間にバイト、
+//   ボイルがないときは任意のレンジまでカウントダウンして高速で巻き上げる）、シマノ「ヒラマサキャスティング入門 実釣編」2023（鳥が多くても反応しないことも）
+// 「ナブラの進む先に投げる」は確かな資料がないので言わない。ルアーの動きは ftSim（簡単な物理モデル）。魚の動きはイメージ。
+// 魚の色は 3D モデルのまま（2026-11-22 オーナー。rcTintObj を使わない）
+// =====================================================================
+FT_BODY.nbMinnow = { m: 0.028, ma: 0.012, W: G_W(0.028, 1.035), I: 3e-5, len: 0.12, r: 0.012, eye: [0.06, 0], cp: -0.03, ka: 0.04, kn: 1.1, kl: 0.3, km: 0.0, kw: 2e-3, kw1: 6e-4 };
+FT_BODY.nbJig = { m: 0.06, ma: 0.012, W: G_W(0.06, 11.34), I: 1.2e-4, len: 0.11, r: 0.009, eye: [0.055, 0], cp: 0, ka: 0.03, kn: 1.3, kl: 0.35, km: 0.02, kw: 5e-4, kw1: 1.5e-4 };
+// 「しゃくる」：竿を横に引くのを、2次元の計算では短く速い巻き（0.2秒で1.2回転）として入れる
+const NB_JERK = [{ reel: 1.2, dur: 0.2, lin: 1 }, { wait: 0.35 }, { reel: 1.2, dur: 0.2, lin: 1 }, { wait: 0.25 }];
+Object.assign(FT_SEQ, {
+  // ジャークベイト：着水 → 2回しゃくって止める、をくり返す（止めた所が食わせどころ）
+  nb_jerk: { body: "nbMinnow", opt: { x0: 26, y0: -0.25, th0: Math.PI, tip0: 2, top: -0.12 }, seq: [{ free: 0.8, thumb: 0.02 }, { mark: "land" }, { reel: 1.5, dur: 0.6 }, { mark: "go" }, ...NB_JERK, { mark: "s1" }, { wait: 1.6 }, ...NB_JERK, { mark: "s2" }, { wait: 1.6 }, ...NB_JERK, { mark: "s3" }, { wait: 1.6 }, ...NB_JERK, { mark: "s4" }, { wait: 1.6 }, { mark: "done" }] },
+  // 食う：3回目の止めで食って、合わせて巻く（魚が引く力は仮の値）
+  nb_bite: { body: "nbMinnow", opt: { x0: 26, y0: -0.25, th0: Math.PI, tip0: 2, top: -0.12 }, seq: [{ free: 0.8, thumb: 0.02 }, { reel: 1.5, dur: 0.6 }, ...NB_JERK, { wait: 1.6 }, ...NB_JERK, { mark: "stop" }, { wait: 0.7 }, { mark: "bite" }, { wait: 0.3, fish: [1.2, -0.6] }, { mark: "hook" }, { jerk: 1.0, up: 0.25, down: 0.6, fish: [1.5, -0.8] }, { reel: 6, dur: 3, lin: 1, fish: [1.2, -0.6] }, { wait: 1, fish: [1.2, -0.6] }] },
+  // ナブラが沈んだら：ジグを数えながら沈めて（カウントダウン）→ 速く巻き上げる
+  nb_sink: { body: "nbJig", opt: { x0: 26, y0: -0.1, th0: 1.3, tip0: 2, top: -0.15 }, seq: [{ free: 12, thumb: 0.05 }, { mark: "cnt" }, { wait: 0.3 }, { mark: "go" }, { reel: 24, dur: 8, lin: 1 }, { mark: "done" }, { wait: 0.5 }] },
+});
+
+// ---- 上から見た海（nbG）：海面・空・船（ftBoat の複製）・引き波・カヤック/SUP。1 = 1m、海面 y=0 ----
+const NB = V(6000, 0, -6000);
+const NBp = (x, y, z = 0) => V(NB.x + x, NB.y + y, NB.z + z);
+const NB_N = [40, 0]; // ナブラの中心（x, z）
+const NB_REACH = 30; // 「ルアーが届く距離」の円（模式図。数字は言わない）
+const nbG = new THREE.Group();
+nbG.position.copy(NB);
+world.add(nbG);
+extras.push(nbG);
+{
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400, 1, 1).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
+    uniforms: { time: U.time, nab: { value: new THREE.Vector2(NB_N[0], NB_N[1]) }, nabA: { value: 1 } },
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; uniform vec2 nab; uniform float nabA; varying vec3 vL;
+      void main(){ vec2 p = vL.xz; float r = length(p);
+        float w = pow(abs(sin(p.x*0.21 + time*0.9 + sin(p.y*0.13)*1.5) * sin(p.y*0.27 - time*0.7)), 6.0);
+        float w2 = pow(abs(sin(p.x*0.9 - time*1.6) * sin(p.y*0.7 + time*1.1)), 10.0);
+        vec3 c = mix(vec3(0.10,0.38,0.58), vec3(0.20,0.52,0.70), smoothstep(400.0, 0.0, r));
+        c = mix(c, vec3(0.75,0.90,0.97), w*0.35 + w2*0.25);
+        // ナブラのまわり：小魚の群れで少し暗く、ざわつく
+        float dn = length(p - nab); float ring = smoothstep(11.0, 4.0, dn) * nabA;
+        c = mix(c, vec3(0.07,0.26,0.40), ring*0.45);
+        c = mix(c, vec3(0.92,0.98,1.0), ring * pow(abs(sin(p.x*2.3 + time*5.0) * sin(p.y*2.1 - time*4.3)), 8.0) * 0.8);
+        c = mix(c, vec3(0.80,0.88,0.95), smoothstep(250.0, 600.0, r));
+        gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  sea.renderOrder = 1;
+  nbG.add(sea);
+  nbG.userData.sea = sea;
+  const sk = makeSky();
+  sk.scale.setScalar(1.2);
+  nbG.add(sk);
+}
+// 船（ftBoat を複製）と引き波（spd：0〜1）
+function nbWakeMesh() {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(46, 30, 1, 1).rotateX(-Math.PI / 2).translate(-7 - 23, 0.08, 0), new THREE.ShaderMaterial({
+    uniforms: { time: U.time, spd: { value: 0 } }, transparent: true, depthWrite: false,
+    vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float time; uniform float spd; varying vec3 vL;
+      void main(){ float u = -7.0 - vL.x, v = abs(vL.z); if (u < 0.0) discard;
+        float fade = exp(-u/(6.0 + 16.0*spd));
+        float arm = smoothstep(1.4, 0.0, abs(v - (1.6 + u*0.36))) * (0.55 + 0.45*sin(u*1.7 - time*6.0));
+        float core = smoothstep(1.9 + u*0.05, 0.0, v) * (0.6 + 0.4*sin(u*2.3 - time*7.0 + v));
+        float a = spd * fade * max(arm, core*0.9);
+        if (a < 0.01) discard; gl_FragColor = vec4(vec3(1.0), clamp(a,0.,1.)*0.9); }`,
+  }));
+  m.renderOrder = 3;
+  return m;
+}
+const nbBoats = [0, 1, 2, 3].map((i) => {
+  const g = new THREE.Group(), b = ftBoat.clone(true), wk = nbWakeMesh();
+  b.position.set(0, 0, 0);
+  b.rotation.set(0, 0, 0);
+  g.add(b, wk);
+  g.userData.wake = wk;
+  nbG.add(g);
+  return g;
+});
+// 船を置く：x, z、向き yaw（0＝+x）、速さ spd（0〜1）
+function nbBoat(i, x, z, yaw, spd, T) {
+  const g = nbBoats[i];
+  g.visible = true;
+  g.position.set(x, 0.05 * Math.sin(T * 1.1 + i), z);
+  g.rotation.set(0.02 * Math.sin(T * 0.9 + i), yaw, 0.015 * Math.sin(T * 1.3 + i), "YXZ");
+  g.children[0].rotation.z = 0.06 * spd; // 速いと船首が上がる
+  g.userData.wake.material.uniforms.spd.value = spd;
+}
+// カヤックと SUP（簡単な形）
+const nbSmall = (() => {
+  const mk = (col, len, wid) => { const g = new THREE.Group(); const hull = new THREE.Mesh(new THREE.CapsuleGeometry(wid / 2, len - wid, 6, 12).rotateZ(Math.PI / 2), ftLit(col, { shine: 0.3 })); hull.scale.y = 0.35; const man = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.9, 10).translate(0, 0.45, 0), ftLit(0xf05a28)); const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), ftLit(0xf1c9a5)); head.position.y = 1.05; g.add(hull, man, head); g.userData.man = man; g.userData.head = head; nbG.add(g); return g; };
+  return { kayak: mk(0xffd23c, 4.2, 0.7), sup: mk(0xf4f7fa, 3.3, 0.8) };
+})();
+function nbSmallAt(o, x, z, yaw, rock, T, stand = false) {
+  o.visible = true;
+  o.position.set(x, 0.1 + 0.08 * Math.sin(T * 2.1), z);
+  o.rotation.set(rock * Math.sin(T * 3.2), yaw, rock * 0.6 * Math.cos(T * 2.7), "YXZ");
+  o.userData.man.scale.y = stand ? 1.9 : 1; o.userData.head.position.y = stand ? 1.85 : 1.05;
+  o.scale.setScalar(2.2); // 見やすいように大きく表示
+}
+// ナブラ：泡・しぶき・鳥（fc_* の部品を使い回す）
+function nbNabura(T, x, z, k = 1, y = 0) {
+  show(boil, splash);
+  boil.position.copy(NBp(x, y + 0.12, z)); boil.scale.setScalar(1.3 * k);
+  splash.position.copy(NBp(x, y + 0.1, z)); splash.scale.setScalar(1.25 * k); splash.material.uniforms.power.value = 1.1;
+  updateBirds(T, NBp(x, 0, z));
+}
+function nbBase() {
+  base(0); U.under.value = 0; hideSurface = true;
+  wall.visible = top.visible = false; if (WALL_BAR) WALL_BAR.visible = false;
+  nbG.visible = true; nbBoats.forEach((b) => (b.visible = false)); nbSmall.kayak.visible = nbSmall.sup.visible = false;
+  nbG.userData.sea.material.uniforms.nabA.value = 1;
+}
+// 上から見るカメラ：中心 (cx, cz)、高さ h、手前への引き bz
+function nbLook(cx, cz, h, bz, fov = 42, ox = 0) {
+  const P = PORTRAIT;
+  look(NBp(cx + ox, h * (P ? 1.25 : 1), cz + bz * (P ? 1.15 : 1)), NBp(cx, 0, cz), fov);
+}
+// 海面の上の線（円・弧・道）
+function nbRing(x, z, r, col, a, w = 6, dash = "14 12") {
+  if (a <= 0.01) return;
+  const pts = []; for (let i = 0; i <= 72; i++) { const th = (i / 72) * Math.PI * 2; pts.push(NBp(x + Math.cos(th) * r, 0.3, z + Math.sin(th) * r)); }
+  pathLine(pts, col, a, w, dash);
+}
+function nbPath(pts, col, a, w = 10, dash = "") { if (a > 0.01) pathLine(pts.map(([x, z]) => NBp(x, 0.4, z)), col, a, w, dash); }
+// 投げたルアーの弧（上から見た図。o.prog：0〜1）
+function nbCast(x0, z0, x1, z1, prog, a = 1, col = "#ffb45e") {
+  if (a <= 0.01 || prog <= 0) return;
+  const n = 40, pts = [];
+  for (let i = 0; i <= n * Math.min(1, prog); i++) { const u = i / n; pts.push(NBp(lerp(x0, x1, u), 2.5 + 9 * u * (1 - u) * 4 * 0.5, lerp(z0, z1, u))); }
+  pathLine(pts, col, a, 7, "4 10");
+  if (prog >= 1) { const q = project(NBp(x1, 0.3, z1)); html += `<div style="position:absolute;left:${q.x - 16}px;top:${q.y - 16}px;width:32px;height:32px;border-radius:50%;background:#ffb45e;border:4px solid #fff;opacity:${a}"></div>`; }
+}
+// 矢印（海面の上）
+function nbArrow(x0, z0, x1, z1, col, a, w = 12) {
+  if (a <= 0.01) return;
+  const p = project(NBp(x0, 0.4, z0)), q = project(NBp(x1, 0.4, z1));
+  const ang = Math.atan2(q.y - p.y, q.x - p.x), L = 30;
+  lines += `<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${a}"/><path d="M${q.x + Math.cos(ang) * 10},${q.y + Math.sin(ang) * 10} L${q.x - Math.cos(ang - 0.5) * L},${q.y - Math.sin(ang - 0.5) * L} L${q.x - Math.cos(ang + 0.5) * L},${q.y - Math.sin(ang + 0.5) * L} Z" fill="${col}" opacity="${a}"/>`;
+}
+const nbTag = (txt = "上から見た模式図（船・ナブラの大きさと距離は目安）") => { html += `<div style="position:absolute;${PORTRAIT ? "left:36px;top:150px" : "left:70px;bottom:240px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${PORTRAIT ? 26 : 24}px;z-index:5">${txt}</div>`; };
+// 全体図（左上）：船・ナブラ・届く距離の円・ルアー
+function nbMini(bx, lx, a = 1, o = {}) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT, X = (x) => 14 + (x + 20) * 2.6;
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 190}px;width:${P ? 250 : 260}px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:${P ? 24 : 22}px;font-weight:900;color:#10345a;margin:0 0 4px 6px">全体図（上から）</div>
+    <svg viewBox="0 0 200 110" width="100%"><rect width="200" height="110" rx="10" fill="#2b6f9e"/>
+    ${bx != null ? `<circle cx="${X(bx)}" cy="55" r="${NB_REACH * 2.6}" fill="none" stroke="#2ecc71" stroke-width="2.5" stroke-dasharray="5 4" opacity=".9"/>` : ""}
+    <circle cx="${X(NB_N[0])}" cy="55" r="16" fill="#fff" opacity=".75"/><text x="${X(NB_N[0])}" y="${30}" text-anchor="middle" font-size="13" font-weight="900" fill="#fff">ナブラ</text>
+    ${bx != null ? `<path d="M${X(bx) - 14} 49 L${X(bx) + 10} 49 L${X(bx) + 18} 55 L${X(bx) + 10} 61 L${X(bx) - 14} 61 Z" fill="#fff" stroke="#10345a" stroke-width="2"/>` : ""}
+    ${lx != null ? `<circle cx="${X(lx)}" cy="55" r="6" fill="#ffb45e" stroke="#fff" stroke-width="2"/>` : ""}</svg>
+    ${o.note ? `<div style="font-size:${P ? 21 : 19}px;font-weight:800;color:#10345a;margin:2px 6px">${o.note}</div>` : ""}</div>`;
+}
+const NB_TLEG = [["#2ecc71", "ルアーが届く距離（目安）"], ["#ffb45e", "投げたルアー"], ["#ffffff", "ナブラ（しぶき・鳥）"]];
+
+// ---- 水の中（rcBase）：カタクチイワシの群れと、突っ込む青物。色の加工はしない ----
+const NB_UD = 4;
+const nbUC = () => RCp(0, -2.2, 0);
+// 突っ込む魚：i ごとに向きと時刻をずらして、群れの中心を通り抜ける（T だけで決まる）
+const NB_RAID = [["buri", 78, 0.3, 4.2, 0.0], ["buri", 72, 2.5, 4.6, 0.45], ["sawara", 72, 4.4, 3.8, 0.7], ["buri", 80, 1.4, 5.0, 0.2], ["sawara", 68, 5.6, 4.4, 0.85]];
+function nbRaid(T, c, n = 5, sp = 1) {
+  const out = [];
+  NB_RAID.slice(0, n).forEach(([id, cm, a0, per, ph], i) => {
+    const cyc = T * sp / per + ph, u = cyc - Math.floor(cyc), a = a0 + Math.floor(cyc) * 2.4;
+    const dx = Math.cos(a), dz = Math.sin(a) * 0.22, dl = Math.hypot(dx, dz), ux = dx / dl, uz = dz / dl;
+    const s = lerp(-14, 14, u), y = c.y + lerp(-0.7, 0.4, u) * (i % 2 ? 1 : 0.6) + 0.25 * Math.sin(i * 2.1);
+    const p = V(c.x + ux * s + uz * (i - 2) * 0.35, y, c.z + uz * s - ux * (i - 2) * 0.35);
+    const f = fkGet(id, 700 + i, cm);
+    if (!f) return;
+    f.object.scale.setScalar(1.25);
+    fkPlace(f, p, Math.atan2(uz, ux), 0.08, T, { freq: 3.2, amp: 0.1, seed: i });
+    out.push({ p, id, i });
+  });
+  return out;
+}
+function nbBall(T, c, preds = [], o = {}) {
+  const R = o.R ?? 0.9, n = o.n ?? 56, sc = o.sc ?? 2.0;
+  for (let i = 0; i < Math.min(n, IW_OFF.length); i++) {
+    const q = IW_OFF[i], dir = i % 5 === 0 ? -1 : 1, th = q.th + dir * T * 0.8 * q.w;
+    let p = c.clone().add(V(Math.cos(th) * R * q.r * 1.4, R * 0.55 * q.y + Math.sin(T * 1.3 + q.p) * 0.05, Math.sin(th) * R * q.r));
+    let yaw = th + dir * Math.PI / 2;
+    for (const pr of preds) { const dv = p.clone().sub(pr.p), dd = dv.length(); if (dd < 1.6 && dd > 0.01) { p.add(dv.multiplyScalar((1.6 - dd) / dd * 0.7)); yaw = Math.atan2(dv.z, dv.x); } }
+    const f = fkGet("katakuchi", 760 + i, Math.round(q.cm));
+    if (!f) continue;
+    f.object.scale.setScalar(sc);
+    fkPlace(f, p, yaw, 0.15 * Math.sin(T * 0.9 + q.p), T, { freq: 4, amp: 0.1, seed: i });
+  }
+}
+function nbUnder(T, o = {}) {
+  rcBase(NB_UD);
+  rcGrp.children.forEach((ch) => (ch.visible = ch === rcSurf));
+  rcSurf.material.uniforms.minA.value = 0.35;
+  const c = nbUC(), preds = nbRaid(T, c, o.raid ?? 5, o.sp ?? 1);
+  nbBall(T, c, preds, { R: o.R, sc: o.sc });
+  return { c, preds };
+}
+// ---- 横から見た断面（ftBase）：ルアーの動きは ftSim ----
+const nbMinnowM = (() => {
+  // ジャークベイト（小魚の形のルアー）。長さ 1（頭が +x）。背は青、腹は銀、口の前に下向きのリップ
+  const p = new THREE.Group(), g = new THREE.Group();
+  const up = new THREE.Mesh(new THREE.SphereGeometry(0.5, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2), ftLit(0x1f63c9, { shine: 0.8 }));
+  const lo = new THREE.Mesh(new THREE.SphereGeometry(0.5, 28, 14, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), ftLit(0xdfe8ee, { shine: 1.0 }));
+  [up, lo].forEach((m) => m.scale.set(1, 0.24, 0.13));
+  const lip = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.1), new THREE.MeshBasicMaterial({ color: 0xcfe6f5, transparent: true, opacity: 0.7, side: THREE.DoubleSide }));
+  lip.position.set(0.55, -0.06, 0); lip.rotation.z = -0.9;
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), shadedMat(0xe8b923, { rough: 0.2 }));
+  eye.position.set(0.36, 0.03, 0.06); const eye2 = eye.clone(); eye2.position.z = -0.06;
+  const steel = shadedMat(0x9aa3ab, { rough: 0.08 });
+  [0.12, -0.25].forEach((x) => { const h = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.008, 6, 14), steel); h.position.set(x, -0.15, 0); p.userData.h = h; g.add(h); });
+  g.add(up, lo, lip, eye, eye2);
+  p.add(g);
+  world.add(p); extras.push(p);
+  return p;
+})();
+const nbJigM = makeJigReal(0x1a5fe0);
+const NB_UNIT_M = 0.12, NB_UNIT_J = 0.11 / 1.6;
+// ナブラの位置（断面）：ルアーが着水する x のまわり
+const NB_SX = 25.2;
+function nbSecNabura(T, k = 1) {
+  show(boil, splash);
+  boil.position.copy(FTp(NB_SX + 0.5, 0.08, FT_LZ - 1)); boil.scale.setScalar(0.6 * k);
+  splash.position.copy(FTp(NB_SX + 0.5, 0.06, FT_LZ - 1)); splash.scale.setScalar(0.55 * k); splash.material.uniforms.power.value = 0.8 * k + 0.05;
+}
+// 断面のイワシ（海面近く）。k：0 でいない
+function nbSecBait(T, k = 1, cx = NB_SX + 1.2) {
+  if (k <= 0.01) return;
+  for (let i = 0; i < 26; i++) {
+    const q = IW_OFF[i], th = q.th + T * 0.9 * q.w;
+    const p = FTp(cx + Math.cos(th) * 1.6 * q.r, -0.55 - 0.4 * (q.y + 1) * 0.5 + 0.06 * Math.sin(T * 2 + q.p), FT_LZ - 1.4 + Math.sin(th) * 0.9 * q.r);
+    const f = fkGet("katakuchi", 830 + i, Math.round(q.cm));
+    if (!f) continue;
+    f.object.scale.setScalar(1.4);
+    fkPlace(f, p, th + Math.PI / 2, 0.1 * Math.sin(T + q.p), T, { freq: 4, amp: 0.1, seed: i });
+  }
+}
+// 主役のサワラ：ルアーのうしろ下を追う → 止まると口を寄せる（イメージ）
+function nbFollow(id, i, cm, st, sim, ts, T, o = {}) {
+  const b = sim.at(Math.max(0, ts - (o.lag ?? 0.6))), c0 = st.c0;
+  const near = o.near ?? 0;
+  const mx = lerp(b[0] + 0.9, st.x + 0.06, near), my = lerp(b[1] - 0.45, st.y - 0.02, near);
+  const f = fkGet(id, i, cm);
+  if (!f) return null;
+  const L = f.length * (o.sc ?? 1), ang = Math.PI + lerp(0.25, 0.08, near) + 0.04 * Math.sin(T * 1.5);
+  const cx = mx - Math.cos(ang) * L * 0.47, cy = my - Math.sin(ang) * L * 0.47;
+  f.object.scale.setScalar(o.sc ?? 1);
+  fkPlace(f, FTp(cx + FT_TIP * 0, cy, FT_LZ - 0.12), Math.PI, -(ang - Math.PI), T, { freq: 2.2 + 2 * near, amp: 0.08, seed: i });
+  return { mx, my };
+}
+function nbSecCam(sim, ts, dist, o = {}) {
+  const [sx, sy] = ftSmooth(sim, ts, 0.6), cy = Math.min(o.maxY ?? -0.4, sy + (o.dy ?? 0.3));
+  look(FTp(sx + (o.ox ?? 0.3), cy + 0.15, FT_LZ + dist * (PORTRAIT ? 1.35 : 1)), FTp(sx + (o.ox ?? 0.3), cy, FT_LZ), o.fov ?? 46);
+  return [sx, sy];
+}
+const NB_LEG = [["#ffb45e", "糸とルアーの動き"], ["#8ff0ff", "ルアーが通った道（点）"]];
+
+Object.assign(SHOTS, {
+  nb_thumb(t, d, s) {
+    nbBase();
+    const T = 6;
+    nbNabura(T, NB_N[0], NB_N[1], 1.1);
+    nbBoat(0, 8, 6, -0.1, 0.05, T);
+    look(NBp(-14, 16, 30), NBp(22, 2.5, 0), 40);
+    ftFlush();
+    nbCast(8, 6, NB_N[0] - 5, 1, 1, 1);
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：船の後ろから、沖のナブラと鳥山（最初の1秒から）
+  nb_hook(t, d, s) {
+    nbBase();
+    const P = PORTRAIT, T = t + 2, k = ease(t / Math.max(d, 1));
+    nbNabura(T, NB_N[0], NB_N[1], 1.1);
+    nbBoat(0, lerp(-6, 0, k), 4, -0.06, 0.35, T);
+    look(NBp(lerp(-30, -24, k), lerp(11, 9, k), lerp(18, 14, k) + (P ? 8 : 0)), NBp(lerp(22, 26, k), 3, 0), P ? 46 : 40);
+    ftFlush();
+    const a = P ? 1 : clamp01(t / 0.3);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 380}px;background:linear-gradient(rgba(2,14,28,.62),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 20, P ? "ナブラ発見！<br>船はどう近づく？" : "ナブラ発見！ 船はどう近づく？", "海の上と中を見える化", a);
+    label(NBp(NB_N[0], 1.5, NB_N[1]), "ナブラ", "小魚がはねて海面がざわつく", fadeIn(t, 1.2), "gold ans", P ? 60 : 160, P ? 320 : 230);
+  },
+  // ナブラの下：k0 小魚が追い詰められる → k1 ブリ・サワラが突っ込む → k2 鳥がいても食わない日も
+  nb_what(t, d, s, k) {
+    const P = PORTRAIT, T = t + 10, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k >= 2) {
+      nbBase();
+      nbNabura(T, NB_N[0], NB_N[1], 1);
+      look(NBp(NB_N[0] - 26, 10, 22), NBp(NB_N[0], 5, NB_N[1]), 44);
+      ftFlush();
+      label(NBp(NB_N[0] + 2, 9, NB_N[1]), "鳥山", "海鳥が集まる", fadeIn(t2, 0.3), "gold", P ? 60 : 200, P ? -300 : -160);
+      html += ftCard(P, `<b style="font-size:36px">鳥が多くても、<span style="color:#c2410c">ルアーに反応しない日</span>もある</b><div style="font-size:26px;font-weight:900;margin-top:6px">ナブラ・鳥山は「青物が近くにいるサイン」と言われる</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">シマノの解説から</div>`, fadeIn(t2, 1.0), [1060, 600, 800], [60, 1500, 960]);
+      return;
+    }
+    const { c, preds } = nbUnder(T, { raid: k >= 1 ? 5 : 2, sp: 0.8 });
+    const ang = 0.1 * Math.sin(t * 0.1);
+    look(c.clone().add(V(Math.sin(ang) * 5.2, -1.3, Math.cos(ang) * 5.2 + (P ? 2.5 : 0))), c.clone().add(V(0, 0.35, 0)), 50);
+    rcSky.position.copy(camera.position); rcSnowU.cam.value.copy(camera.position);
+    if (k === 0) {
+      label(c.clone().add(V(-0.6, 0.3, 0.4)), "イワシなどの小魚", "海面へ追い詰められる", fadeIn(t, 0.6), "gold", P ? 0 : -300, P ? -320 : -230);
+      label(RCp(2.5, -0.05, -2), "海面", "", fadeIn(t, 1.6), "", P ? 120 : 260, P ? 200 : 140);
+    } else {
+      const inV = (p) => { const q = project(p.p); return q.x > 260 && q.x < W - 260 && q.y > 260 && q.y < H - 300; };
+      const near = (id) => preds.filter((p) => p.id === id && inV(p)).sort((a, b) => a.p.distanceTo(c) - b.p.distanceTo(c))[0];
+      const bu = near("buri"), sa = near("sawara"), dyOf = (p) => (project(p.p).y < H * 0.45 ? 1 : -1);
+      if (bu) label(bu.p, "ブリ（青物）", "群れに突っ込む", fadeIn(t1, 0.4), "gold ans", P ? 40 : 120, (P ? 260 : 170) * dyOf(bu) + (dyOf(bu) > 0 ? 90 : 0));
+      if (sa) label(sa.p, "サワラ", "", fadeIn(t1, 1.2), "", P ? -40 : -140, (P ? 240 : 150) * dyOf(sa) + (dyOf(sa) > 0 ? 70 : 0));
+      html += `<div class="slowtag" style="position:absolute;right:60px;top:${P ? 560 : 120}px;font-size:34px;font-weight:900;color:#fff;background:#e3412b;padding:6px 20px;border-radius:12px">スロー再生</div>`;
+    }
+    ftNote("魚の動きはイメージ。魚は大きく表示（3Dモデル：カタクチイワシ・ブリ・サワラ）");
+  },
+  // クイズ：k0 問い → k1 A・B・C → k2 答え B → k3 なぜ（音と引き波で消える）
+  nb_quiz(t, d, s, k) {
+    nbBase();
+    const P = PORTRAIT, T = t + 30, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99), t3 = t - (s._k3 ?? 99);
+    const fade = k >= 3 ? 1 - 0.75 * ease(t3 / 3) : 1;
+    nbG.userData.sea.material.uniforms.nabA.value = fade;
+    nbNabura(T, NB_N[0], NB_N[1], fade);
+    nbBoat(0, -38, 4, 0, k >= 3 ? 0.9 : 0.15, T);
+    nbLook(4, 2, 70, 58, 42);
+    ftFlush();
+    if (k <= 1) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 330}px;background:linear-gradient(rgba(2,14,28,.66),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 62 : 54}px">クイズ　ナブラを見つけた！<br><span style="color:#ffd166">船はどう近づく？</span></div>`;
+    }
+    if (k === 1 || k === 0) {
+      const ka = k === 1 ? 1 : 0;
+      nbPath([[-31, 4], [NB_N[0] - 1, 1]], "#e3412b", ka * fadeIn(t1, 0.2), 10);
+      nbPath([[-31, 6], [NB_N[0] - NB_REACH - 2, 6]], "#2ecc71", ka * fadeIn(t1, 0.9), 10, "18 12");
+      nbBoat(1, lerp(-4, 0, ease(t1 / 6)), -18, 0.25, 0.6, T);
+      nbPath([[-31, 2], [-6, -15], [NB_N[0] - 12, -6]], "#ff9f40", ka * fadeIn(t1, 1.6), 10);
+      [["A", [NB_N[0] - 6, 3]], ["B", [NB_N[0] - NB_REACH - 2, 10]], ["C", [8, -20]]].forEach(([n, [x, z]], i) => mapPin(NBp(x, 0.5, z), n, ka * fadeIn(t1, 0.2 + i * 0.7), ["#e3412b", "#1f8a4c", "#e08a2a"][i]));
+      if (k === 1) {
+        const o = [["A", "全速力で真ん中へ"], ["B", "静かに、届く所まで"], ["C", "追い越して先に着く"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 1240}px;top:${P ? 1400 : 610}px;width:${P ? 840 : 620}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t1, 0.2 + i * 0.7)};padding:6px 18px;margin:0 0 10px;font-size:${P ? 44 : 38}px"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    }
+    if (k >= 2) {
+      nbRing(NB_N[0] - NB_REACH - 2, 6, NB_REACH, "#2ecc71", fadeIn(t2, 0.4), 6);
+      nbPath([[-31, 6], [NB_N[0] - NB_REACH - 2, 6]], "#2ecc71", fadeIn(t2, 0.2), 10, "18 12");
+      html += ftCard(P, `<b style="font-size:40px">答え <span style="color:#1f8a4c">B：静かに、ルアーが届く所まで</span></b><div style="font-size:22px;color:#3a5a78;margin-top:8px">海上保安庁サイト掲載の資料（小野信昭「ブリ釣り」）から</div>`, fadeIn(t2, 0.3), [380, 160, 1080], [60, 1440, 960]);
+    }
+    if (k >= 3) {
+      noMark(NBp(NB_N[0] - 2, 2, 8), "大きな音・引き波 → ナブラが消えやすい", fadeIn(t3, 0.6));
+      nbArrow(-30, 4, NB_N[0] - 14, 3, "#e3412b", fadeIn(t3, 0.3) * 0.9, 12);
+    }
+    nbMini(k >= 2 ? NB_N[0] - NB_REACH - 2 : null, null, k >= 2 ? 1 : 0);
+    if (k >= 2 && !P) legend(NB_TLEG.slice(0, 1).concat([NB_TLEG[2]]));
+    if (k >= 2) nbTag();
+  },
+  // 近づき方：k0 静かに近づいて止める → k1 投げてナブラの近くに着水 → k2 先に向かう船がいたらゆずる
+  nb_approach(t, d, s, k) {
+    nbBase();
+    const P = PORTRAIT, T = t + 60, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    nbNabura(T, NB_N[0], NB_N[1], 1);
+    const stopX = NB_N[0] - NB_REACH + 3, k0 = ease(Math.min(t, s._k1 ?? 99) / Math.max(2, (s._k1 ?? 6) - 0.4));
+    const bx = k >= 1 ? stopX : lerp(-28, stopX, k0), spd = k >= 1 ? 0.03 : lerp(0.7, 0.05, k0);
+    if (k <= 1) {
+      nbBoat(0, bx, 3, 0, spd, T);
+      nbLook(lerp(bx, 22, 0.6), 2, 62, 52, 40);
+      ftFlush();
+      nbRing(bx, 3, NB_REACH, "#2ecc71", k >= 1 ? 1 : fadeIn(t, 1.2) * 0.8, 6);
+      ftChip(k === 0 ? (spd > 0.3 ? "静かに、ゆっくり近づく" : "ルアーが届く所で止める") : "ナブラの近くに着水させる", k === 0 ? "#1f6fd1" : "#e08a2a");
+      if (k >= 1) nbCast(bx + 3, 3, NB_N[0] - 5, 2, ease(t1 / 1.4));
+      if (k >= 1) label(NBp(NB_N[0] - 5, 0.4, 2), "着水", "小魚が逃げまどう動きを", fadeIn(t1, 1.5), "gold ans", P ? -60 : -160, P ? 300 : 220);
+      nbMini(bx, k >= 1 && t1 > 1.4 ? NB_N[0] - 5 : null, 1);
+    } else {
+      nbBoat(0, stopX - 2, 10, 0.5 * ease(t2 / 3), 0.05 + 0.15 * ease(t2 / 3), T);
+      nbBoat(1, lerp(NB_N[0] - 34, NB_N[0] - 22, ease(t2 / 6)), -12, 0.35, 0.3, T);
+      nbLook(16, -1, 62, 52, 40);
+      ftFlush();
+      nbArrow(NB_N[0] - 30, -12, NB_N[0] - 14, -5, "#ff9f40", fadeIn(t2, 0.3), 10);
+      label(NBp(NB_N[0] - 26, 1.5, -12), "先に向かう船", "", fadeIn(t2, 0.5), "", P ? -40 : -60, P ? -220 : -150);
+      label(NBp(stopX - 2, 2, 10), "ゆずる", "", fadeIn(t2, 1.2), "gold ans", P ? -60 : -330, P ? -200 : -20);
+      html += ftCard(P, `<b style="font-size:36px">先に向かう船がいたら、<span style="color:#1f8a4c">ゆずる</span></b><div style="font-size:26px;font-weight:900;margin-top:6px">譲り合いの心とマナーが大切</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁サイト掲載の資料から</div>`, fadeIn(t2, 1.8), [1100, 560, 760], [60, 1500, 960]);
+      nbMini(stopX - 2, null, 1);
+    }
+    if (!P && k <= 1) legend(NB_TLEG);
+    nbTag();
+    ftNote("遊漁船では、船を動かすのは船長。釣り人は船長の指示に従う");
+  },
+  // 誘い方（計算）：k0 ボイルが出たら、その瞬間に投げ込む → k1 しゃくって止める、をくり返す
+  nb_jerk(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 90, sim = ftRun("nb_jerk"), mk = sim.marks, t1 = t - (s._k1 ?? 99);
+    if (k === 0) {
+      // 船の横から：竿先からナブラへ、ルアーの弧
+      const pr = ease((t - 1.0) / 1.6);
+      const st = ftRig(T, sim, 0, { obj: nbMinnowM, unit: NB_UNIT_M, vis: 3 });
+      nbSecNabura(T, 1); nbSecBait(T, 1);
+      look(FTp(12, 2.2, FT_LZ + (P ? 44 : 30)), FTp(12, 0.2, FT_LZ), 44);
+      nbMinnowM.visible = pr >= 1;
+      if (pr < 1) ftPend.pop(); // 着水するまでは糸を描かない
+      ftFlush();
+      if (pr > 0) { const pts = []; for (let i = 0; i <= 40 * pr; i++) { const u = i / 40; pts.push(FTp(lerp(0, NB_SX, u), lerp(FT_TIP + 0.5, 0, u) + 9 * u * (1 - u), FT_LZ)); } pathLine(pts, "#ffb45e", 1, 6, "4 10"); }
+      label(FTp(NB_SX + 0.5, 0.6, FT_LZ - 1), "ボイル", "魚が海面で小魚を襲うしぶき", fadeIn(t, 0.4), "gold ans", P ? -40 : 80, P ? -300 : -200);
+      ftChip("ボイルが出たら、その瞬間に投げ込む", "#c2410c", fadeIn(t, 0.8));
+      html += `<div style="position:absolute;${P ? "left:40px;top:1380px" : "left:70px;top:820px"};color:#fff;font-weight:900;font-size:24px;text-shadow:0 2px 6px #000">サワラの例（シマノの解説から）</div>`;
+      return;
+    }
+    const sp = Math.max(1, (mk.done - mk.land) / Math.max(4, d - (s._k1 ?? 0) - 1.2));
+    const ts = Math.min(mk.land + Math.max(0, t1) * sp * 0.92, mk.done);
+    const st = ftRig(T, sim, ts, { obj: nbMinnowM, unit: NB_UNIT_M, vis: 3, trail: 3, trailDots: true });
+    nbSecBait(T, 0.6, NB_SX + 2.2);
+    nbFollow("sawara", 860, 70, st, sim, ts, T, { near: 0.15 + 0.25 * (st.c0.kind === "wait" ? ease((ts - st.c0.t0) / 1.2) : 0) });
+    nbSecCam(sim, ts, 5.2, { ox: 0.6, dy: 0.1 });
+    ftFlush();
+    const jerking = st.c0.kind === "reel";
+    ftChip(jerking ? "しゃくる" : ts < mk.go ? "着水" : "止める", jerking ? "#e3412b" : "#2a9d5c");
+    if (sp > 1.15) html += `<div style="position:absolute;${P ? "right:40px;top:560px" : "right:60px;top:520px"};background:rgba(6,22,42,.85);border-radius:14px;padding:4px 16px;color:#fff;font-weight:900;font-size:28px">早送り ×${sp.toFixed(1)}</div>`;
+    ftCtl(st, 1, jerking ? ["しゃくる", "#e3412b"] : ["止める", "#2a9d5c"]);
+    nbMini(-1, st.x, 1);
+    if (!P) legend(NB_LEG, 1);
+    ftNote("ルアーの動きは簡単な物理モデルの計算（竿で横に引くのを、短く速い巻きとして計算）。ルアーは大きく表示。魚の動きはイメージ");
+  },
+  // 食わせどころ：k0 問い（しゃくった瞬間・止めた瞬間・回収のとき）→ k1 答え：止めた瞬間（計算でサワラが食う）→ k2 合わせて巻く
+  nb_bite(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 120, sim = ftRun("nb_bite"), mk = sim.marks, t1 = t - (s._k1 ?? 99);
+    const ts = k === 0 ? mk.stop - 2.2 + (t % 2.2) : Math.min(mk.stop - 1.2 + t1 * 0.75, sim.dur - 0.2);
+    const st = ftRig(T, sim, ts, { obj: nbMinnowM, unit: NB_UNIT_M, vis: 3, trail: k === 0 ? 0 : 2.5, trailDots: true });
+    const on = k >= 1 && ts >= mk.bite;
+    if (on) {
+      const f = fkGet("sawara", 860, 70), L = f ? f.length : 0.7, sh = Math.sin(T * 8) * 0.18;
+      if (f) { f.object.scale.setScalar(1); fkPlace(f, FTp(st.x + L * 0.47 * Math.cos(sh * 0.3), st.y - 0.02, FT_LZ - 0.12), 0, sh, T, { freq: 4, amp: 0.14, seed: 3 }); }
+    } else nbFollow("sawara", 860, 70, st, sim, ts, T, { near: k >= 1 ? ease((ts - (mk.stop - 0.2)) / 0.9) : 0.2 });
+    nbSecCam(sim, ts, 4.6, { ox: 0.5, dy: 0.1 });
+    ftFlush();
+    if (k === 0) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 700 : 330}px;background:linear-gradient(rgba(2,14,28,.66),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 62 : 54}px">問題　魚が食いやすいのは、<br><span style="color:#ffd166">どの瞬間？</span></div>`;
+      const o = [["A", "しゃくった瞬間"], ["B", "止めた瞬間"], ["C", "回収するとき"]];
+      html += `<div style="position:absolute;left:${P ? 120 : 70}px;top:${P ? 1400 : 330}px;width:${P ? 840 : 560}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t, 1.0 + i * 0.6)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      return;
+    }
+    if (!on) ftChip(ts >= mk.stop ? "止めた瞬間…" : "しゃくる", ts >= mk.stop ? "#2a9d5c" : "#e3412b");
+    else ftChip(ts < mk.hook ? "食った！（止めた瞬間）" : "合わせて、巻き上げる", ts < mk.hook ? "#c2410c" : "#e08a2a");
+    html += ftCard(P, `<b style="font-size:38px">答え <span style="color:#1f8a4c">B：止めた瞬間</span></b><div style="font-size:26px;font-weight:900;margin-top:6px">止めて食わせると、食い損ないが減らせる</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">シマノの解説（サワラのジャークベイト）から</div>`, fadeIn(t1, 0.3), [70, 620, 780], [60, 1500, 960]);
+    ftCtl(st, 1, ts >= mk.hook ? ["巻く", "#e08a2a"] : st.c0.kind === "reel" ? ["しゃくる", "#e3412b"] : ["止める", "#2a9d5c"]);
+    if (!P) legend(NB_LEG.slice(0, 1), 1);
+    ftNote("ルアーの動きは簡単な物理モデルの計算。魚が引く力は仮の値。魚の動きはイメージ。ルアーは大きく表示");
+  },
+  // ナブラが沈んだら：k0 カウントダウンで沈める → k1 速く巻き上げる
+  nb_sink(t, d, s, k) {
+    ftBase();
+    const P = PORTRAIT, T = t + 150, sim = ftRun("nb_sink"), mk = sim.marks, t1 = s._k1 ?? 99;
+    const sp0 = Math.max(1, mk.cnt / Math.max(3, t1 - 0.8));
+    const ts = k === 0 ? Math.min(t * sp0, mk.cnt) : Math.min(mk.cnt + (t - t1) * 1.0, mk.done);
+    const st = ftRig(T, sim, ts, { obj: nbJigM, unit: NB_UNIT_J, vis: 3.5, trail: 4, trailDots: true });
+    // ブリの群れ（7m あたり）と、速いジグを追う1匹
+    fkSchool("buri", T, { cx: NB_SX - 1.5, sx: 3.2, h0: 62.2, h1: 63.4, zc: FT_LZ - 1.8, sz: 1.0, n: 7, i0: 880, cm: 70, face: 1, pitch: 0.05 });
+    if (ts > mk.go) nbFollow("buri", 900, 75, st, sim, ts, T, { lag: 0.5, near: 0.1 });
+    const [sx] = ftSmooth(sim, ts, 0.8), cx = k === 0 ? 24 : lerp(24, sx - 1, ease((t - t1) / 2));
+    look(FTp(cx, -4.4, FT_LZ + (P ? 17 : 13.5)), FTp(cx, -4.8, FT_LZ), 46);
+    ftFlush();
+    const cnt = Math.min(12, Math.floor(ts));
+    if (ts < mk.cnt) html += `<div style="position:absolute;${P ? "left:0;right:0;top:620px;text-align:center" : "left:0;right:0;top:128px;text-align:center"}"><span style="display:inline-block;background:#1f6fd1;color:#fff;font-weight:900;font-size:${P ? 50 : 46}px;padding:6px 30px;border-radius:18px">カウントダウン：<span style="font-size:1.3em">${cnt}</span></span></div>`;
+    else ftChip("速く巻き上げて、広く探る", "#e08a2a");
+    ftCtl(st, 1, ts < mk.cnt ? ["沈める", "#1f6fd1"] : ["速く巻く", "#e08a2a"]);
+    ftGraph(sim, ts, sim.dur, 1, "ジグの高さ（計算）");
+    if (k === 0) label(FTp(NB_SX - 1.5, -7.2, FT_LZ - 1.8), "ブリの群れ", "（イメージ）", fadeIn(t, 1.0), "", P ? -60 : -260, P ? -220 : -150);
+    nbMini(-1, st.x, 1, { note: `水深 ${Math.max(0, -st.y).toFixed(0)}m` });
+    ftNote("ジグの動きは簡単な物理モデルの計算（重さ・水の抵抗・糸の張り）。ジグは大きく表示。魚の動きはイメージ");
+  },
+  // 安全とマナー：k0 一斉に突っ込むと危ない（衝突・引き波でカヤック/SUP）→ k1 投げる前に後ろと横 → k2 ライフジャケット・船長の指示
+  nb_safe(t, d, s, k) {
+    nbBase();
+    const P = PORTRAIT, T = t + 180, t1 = t - (s._k1 ?? 99), t2 = t - (s._k2 ?? 99);
+    if (k === 0) {
+      const kk = ease(t / 6);
+      nbNabura(T, NB_N[0], NB_N[1], 1 - 0.6 * kk);
+      nbG.userData.sea.material.uniforms.nabA.value = 1 - 0.6 * kk;
+      nbBoat(0, lerp(-10, 18, kk), 6, -0.12, 0.9, T);
+      nbBoat(1, lerp(NB_N[0] + 2, NB_N[0] - 2, kk) - 20, lerp(-46, -18, kk), 1.1, 0.9, T);
+      nbBoat(2, lerp(NB_N[0] + 52, NB_N[0] + 26, kk), lerp(22, 10, kk), Math.PI + 0.3, 0.9, T);
+      nbSmallAt(nbSmall.kayak, NB_N[0] - 6, 16, 0.4, 0.06 + 0.18 * kk, T);
+      nbSmallAt(nbSmall.sup, NB_N[0] + 10, 18, -0.3, 0.06 + 0.2 * kk, T, true);
+      nbLook(NB_N[0] - 4, 2, 78, 60, 42);
+      ftFlush();
+      label(NBp(NB_N[0] - 6, 1, 16), "カヤック", "", fadeIn(t, 1.2), "", P ? -60 : -160, P ? -200 : -110);
+      label(NBp(NB_N[0] + 10, 1.6, 18), "SUP", "", fadeIn(t, 1.6), "", P ? 60 : 160, P ? -200 : -110);
+      html += ftCard(P, `<b style="font-size:36px">一斉に突っ込むと<span style="color:#c2410c">ぶつかりそう</span>に</b><div style="font-size:26px;font-weight:900;margin-top:6px">引き波で、カヤックやSUPがひっくり返りそうになることも</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁サイト掲載の資料から</div>`, fadeIn(t, 2.4), [1060, 170, 800], [60, 1500, 960]);
+    } else if (k === 1) {
+      nbBoat(0, 0, 0, 0, 0.02, T);
+      look(NBp(-3, 16 * (P ? 1.3 : 1), 9), NBp(0.5, 0, 0), 46);
+      ftFlush();
+      const pts = []; for (let i = 0; i <= 40; i++) { const th = Math.PI * 0.55 + (i / 40) * Math.PI * 0.9; pts.push(NBp(-1 + Math.cos(th) * 5, 2.2, Math.sin(th) * 5)); }
+      pathLine(pts, "#ffd166", fadeIn(t1, 0.4), 10, "14 10");
+      label(NBp(-5, 2.2, 1), "後ろと横", "人がいないか確かめる", fadeIn(t1, 0.8), "gold ans", P ? -60 : -220, P ? -280 : -180);
+      html += ftCard(P, `<b style="font-size:36px">投げる前に、<span style="color:#c2410c">後ろと横</span>を確かめる</b><div style="font-size:26px;font-weight:900;margin-top:6px">ルアーの針が人に当たらないように</div>`, fadeIn(t1, 1.4), [1120, 620, 720], [60, 1500, 960]);
+    } else {
+      nbBoat(0, 0, 0, 0.2, 0.02, T);
+      look(NBp(-12 + t2 * 0.2, 7, 18), NBp(0, 1.5, 0), 40);
+      ftFlush();
+      html += ftCard(P, `<b style="font-size:38px"><span style="color:#c2410c">ライフジャケット</span>を着る</b><div style="font-size:28px;font-weight:900;margin-top:6px">船長の指示に従う</div>`, fadeIn(t2, 0.4), [960, 170, 880], [60, 1500, 960]);
+    }
+    nbTag("模式図（船の数・距離、カヤック・SUPの大きさは目安）");
+  },
+  nb_sum(t, d, s, k) {
+    nbBase();
+    const P = PORTRAIT, T = t + 220;
+    nbNabura(T, NB_N[0], NB_N[1], 1);
+    nbBoat(0, NB_N[0] - NB_REACH + 3, 3, 0, 0.03, T);
+    look(NBp(-20 + t * 0.3, 14, 34), NBp(22, 2, 0), 40);
+    ftFlush();
+    html += acDim(0.5);
+    const rows = [["近づき方", "静かに、ルアーが届く所まで", "先に向かう船がいたらゆずる", "#1f6fd1"], ["誘い方", "ボイルの瞬間に投げ込む", "しゃくって止める。止めた瞬間が食わせどころ", "#2a9d5c"], ["沈んだら", "カウントダウンで沈めて、速く巻く", "ねらう深さを数で決める", "#c98a00"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">ナブラを見つけたら まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 36}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 34 : 42}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;
