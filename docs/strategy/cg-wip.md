@@ -19,9 +19,9 @@
 - 事実：fish-knowledge.md「昼の魚・夜の魚」（島根県水産技術センター・水産海洋研究 2021。抄録を確認）＋ケンサキイカの夜釣漁業（島根県水産技術センター研究報告 2024）
 - 構成：つかみ（Blender：昼の海底のマダイ）→ 調べ方（網 20回・漁船 487件）→ 2倍のものさし → クイズ（マダイは？）→ 昼タイプ9種 → 夜タイプ4種 → クイズ2（ケンサキイカ：網では昼、漁は夜の集魚灯）→ なぜ大事（資源の数え方）→ 釣りでは → まとめ・ask・end
 - [x] 事実の確認・fish-knowledge.md に追記
-- [ ] main.js の hy_*・hy_thumb
-- [ ] 台本 cg-hiruyoru.json・short-cg-hiruyoru.json
-- [ ] Blender の場面（scenes/hiruyoru.py）・check_scene
-- [ ] ローカル静止画の確認
+- [x] main.js の hy_*・hy_thumb
+- [x] 台本 cg-hiruyoru.json・short-cg-hiruyoru.json
+- [x] Blender の場面（scenes/hiruyoru.py）・check_scene
+- [x] ローカル静止画の確認
 - [ ] cg-video → cg-compress → blender test → full
 - [ ] ORDER・固定コメント・plan の制作済み

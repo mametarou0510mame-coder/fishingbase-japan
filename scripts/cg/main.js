@@ -10631,6 +10631,307 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// アカデミー R9 魚にも「昼型」と「夜型」がいる？（cg-hiruyoru、hy_*）2026-11-23
+// 事実は docs/research/fish-knowledge.md「昼の魚・夜の魚」だけ：
+//   金元保之・道根淳（島根県水産技術センター・島根県浜田水産事務所）水産海洋研究85(3) 2021 の抄録：
+//   調査船の網（トロール）10か所×昼夜1回＝20回、漁船を使った調査487件。漁獲効率が昼夜で2倍以上ちがう種を昼タイプ・夜タイプ。
+//   昼タイプ9種（アカムツ・ニギス・ヤリイカ・マダイ・マフグ・スルメイカ・ケンサキイカ・カガミダイ・マトウダイ）、夜タイプ4種（マアナゴ・ミギガレイ・ソウハチ・ヤナギムシガレイ）。
+//   多くの種で昼夜の差 → 昼夜を考えた資源管理・資源量の指標値の標準化が必要。
+//   島根県水産技術センター研究報告16（2024）：島根県ではケンサキイカは夜間に集魚灯で集めて獲る夜釣漁業が一般的。
+// 差が出る理由は言わない（全文を読めていない）。網の結果を「釣りでも同じ」とは言わない。
+// 土台は rcBase（水の中）＋砂の海底 hyFloor（模式図。水深は実際より浅く見せている）。魚は Fish Kit の madai だけ（ほかの魚は 3D モデルがないので、
+// サイトの魚の絵（assets/fish）をカードに出す）。網は模式図（hyNet）。魚の色は 3D モデルのまま（rcTintObj の深さ 0）。魚の動きはイメージ
+// 使い回せる部品：hyFloor（昼と夜を切りかえられる砂の海底）、hyNet（底びき網の模式図）、hyNight(k)（夜の水の色）、hySun(P, 夜)（昼・夜のチップ）、hyFishCard（魚の絵つきの名札）
+// =====================================================================
+const HY_D = 10; // 海底の深さ（RC の水の中。模式図）
+const HYp = (x, y, z = 0) => RCp(x, y, z);
+const HY_IMG = { マダイ: "f12", フグ: "f37", イカ: "f21", カレイ: "f24" };
+for (const f of Object.values(HY_IMG)) pending.push(new Promise((ok) => { const im = new Image(); im.onload = im.onerror = ok; im.src = `../../assets/fish/${f}.png`; }));
+const hyGrp = new THREE.Group();
+hyGrp.position.copy(RC);
+world.add(hyGrp);
+extras.push(hyGrp);
+const hyU = { time: U.time, nt: { value: 0 }, fogc: { value: new THREE.Vector3(0.2, 0.5, 0.7) } };
+// 砂の海底（y = -HY_D）。遠くは水の色にとける
+const hyFloor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1).rotateX(-Math.PI / 2).translate(0, -HY_D, 0), new THREE.ShaderMaterial({
+  uniforms: hyU,
+  vertexShader: `varying vec3 vW; varying vec3 vL; void main(){ vL = position; vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform float time; uniform float nt; uniform vec3 fogc; varying vec3 vW; varying vec3 vL;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+    float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+    void main(){ vec2 q = vL.xz; float rip = 0.5+0.5*sin(q.x*3.1 + 0.8*sin(q.y*0.9) + 1.3*noise(q*0.4));
+      float n = noise(q*6.0)*0.6 + noise(q*1.3)*0.4;
+      vec3 c = vec3(0.80,0.74,0.58)*(0.78 + 0.14*rip + 0.14*n);
+      c = mix(c, vec3(0.62,0.58,0.48), smoothstep(0.55, 0.8, noise(q*0.25+3.0))*0.35);
+      float ca = pow(abs(sin(q.x*1.3+sin(q.y*1.6+time*0.7))*sin(q.y*1.1+sin(q.x*0.8-time*0.55))), 5.0);
+      c += vec3(0.85,0.98,1.0)*ca*0.22*(1.0-nt);
+      c = mix(c, c*vec3(0.55,0.66,0.92), nt);
+      float dd = length(vW - cameraPosition);
+      c = mix(c, fogc, smoothstep(6.0, 40.0, dd));
+      gl_FragColor = vec4(c, 1.0); }`,
+}));
+hyGrp.add(hyFloor);
+// 網（底びき網の模式図）：口（枠）・網の胴（格子の円すい）・引く綱。口は +x を向き、口の下の端が海底。長さ 7m、口の幅 3m・高さ 1.4m
+const hyNet = (() => {
+  const g = new THREE.Group();
+  const rope = (a, b, r, col) => { const d = b.clone().sub(a), m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 8), new THREE.MeshBasicMaterial({ color: col })); m.position.copy(a).add(b).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize()); g.add(m); return m; };
+  const Wz = 1.5, H0 = 0.08, H1 = 1.5;
+  rope(V(0, H0, -Wz), V(0, H0, Wz), 0.035, 0x5b4a3a);   // 下の綱（おもり）
+  rope(V(0, H1, -Wz), V(0, H1, Wz), 0.03, 0xffb02e);    // 上の綱（浮き）
+  rope(V(0, H0, -Wz), V(0, H1, -Wz), 0.025, 0x8a96a0);
+  rope(V(0, H0, Wz), V(0, H1, Wz), 0.025, 0x8a96a0);
+  for (let i = 0; i < 7; i++) { const f = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffb02e })); f.position.set(0, H1 + 0.05, -Wz + (i + 0.5) * (2 * Wz / 7)); g.add(f); }
+  // 網の胴：口（楕円）から後ろ 7m で細くなる。格子は shader で描く
+  const L = 7, seg = 40, ring = 32, pos = [], uv = [], idx = [];
+  for (let i = 0; i <= seg; i++) {
+    const u = i / seg, x = -u * L, s = 1 - 0.82 * Math.pow(u, 0.8), cy = lerp((H0 + H1) / 2, 0.45, u);
+    for (let j = 0; j <= ring; j++) { const a = (j / ring) * Math.PI * 2; pos.push(x, cy + Math.sin(a) * (H1 - H0) / 2 * s, Math.cos(a) * Wz * s); uv.push(u, j / ring); }
+  }
+  for (let i = 0; i < seg; i++) for (let j = 0; j < ring; j++) { const a = i * (ring + 1) + j, b = a + ring + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+  const bg = new THREE.BufferGeometry();
+  bg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  bg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  bg.setIndex(idx);
+  const body = new THREE.Mesh(bg, new THREE.ShaderMaterial({
+    uniforms: { nt: hyU.nt }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform float nt; varying vec2 vUv; void main(){ vec2 g = abs(fract(vec2(vUv.x*22.0 + vUv.y*36.0, vUv.x*22.0 - vUv.y*36.0)) - 0.5); // ひし形の網目
+      float line = 1.0 - smoothstep(0.36, 0.46, max(g.x, g.y)); vec3 c = mix(vec3(0.93,0.95,0.97), vec3(0.75,0.82,0.95), nt);
+      gl_FragColor = vec4(c, 0.14 + 0.70*(1.0-line)); }`,
+  }));
+  body.renderOrder = 3;
+  g.add(body);
+  // 引く綱（口の上の両はしから、前の上へ）
+  [-Wz, Wz].forEach((z) => rope(V(0, H1, z), V(40, 16, z * 0.2), 0.03, 0xdfe6ea));
+  hyGrp.add(g);
+  return g;
+})();
+// 網を置く：x（口の位置、RC 基準）、z。すすむ向きは +x
+function hyNetAt(x, z = -1.5) { hyNet.visible = true; hyNet.position.set(x, -HY_D, z); }
+// 水の中の色：k＝0 昼、1 夜（暗くしすぎない。紺の水と月の光）
+function hyWater(k) {
+  rcBase(6);
+  rcLight(6);
+  hyGrp.visible = true;
+  hyNet.visible = false;
+  rcGrp.children.forEach((c) => (c.visible = false)); // 海面は使わない
+  const dT = [0.36, 0.66, 0.86], dB = [0.13, 0.38, 0.55], nT = [0.20, 0.32, 0.56], nB = [0.08, 0.15, 0.30];
+  rcSkyU.top.value.set(...dT.map((v, i) => lerp(v, nT[i], k)));
+  rcSkyU.bot.value.set(...dB.map((v, i) => lerp(v, nB[i], k)));
+  hyU.fogc.value.set(...[0.20, 0.47, 0.64].map((v, i) => lerp(v, [0.10, 0.17, 0.33][i], k)));
+  hyU.nt.value = k;
+  rcSnowU.col.value.set(lerp(0.9, 0.55, k), lerp(0.95, 0.65, k), lerp(1, 0.9, k));
+  if (FK.lights) { FK.lights[0].intensity *= lerp(1, 0.62, k); FK.lights[1].intensity *= lerp(1, 0.5, k); }
+}
+// マダイを置く：p（体の中心、RC 基準の x, 底からの高さ h, z）、すきまを記録
+function hyTai(i, x, h, z, dir, T, o = {}) {
+  const f = fkGet("madai", 1200 + i, o.cm ?? 45);
+  if (!f) return null;
+  const sc = o.sc ?? 1;
+  f.object.scale.setScalar(sc);
+  fkPlace(f, HYp(x, -HY_D + h, z), dir, o.pitch ?? 0.03 * Math.sin(T * 0.5 + i), T, { freq: 1.5, amp: 0.07, seed: i });
+  rcTintObj(f.object, 0);
+  rfClear(h - 0.12 * f.length * sc); // 体の中心から下の端まで（体高の半分の目安）
+  return f;
+}
+// マダイの群れ（左から右へゆったり）。n 匹、中心 cx、奥行き z0
+const HY_OFF = (() => { const r = rng(5021); return Array.from({ length: 10 }, () => ({ x: r() * 2 - 1, h: r(), z: r() * 2 - 1, p: r() * 6.28, k: r() })); })();
+function hyTais(T, o = {}) {
+  const { n = 6, cx = 0, sx = 2.5, z0 = -1, sz = 1.2, h0 = 0.7, h1 = 1.6, sp = 0.25, dir = 0, sc = 1 } = o;
+  for (let i = 0; i < 10; i++) {
+    const f = fkGet("madai", 1200 + 20 + i, 42 + Math.round(HY_OFF[i].k * 8));
+    if (!f) continue;
+    if (i >= n) { f.object.visible = false; continue; }
+    const q = HY_OFF[i], xx = q.x * sx + (sp / 0.25) * 0.5 * Math.sin(T * 0.12 + q.p) * (dir === 0 ? 1 : -1); // その場でゆったり（画面から出ない）
+    hyTai(20 + i, cx + xx, lerp(h0, h1, q.h) + 0.06 * Math.sin(T * 0.6 + q.p), z0 + q.z * sz, dir, T + q.p, { cm: 42 + Math.round(q.k * 8), sc });
+  }
+}
+const hyC = () => HYp(0, -HY_D + 1.0, 0);
+const hyNote = (txt = "魚の動きはイメージ。網と海底は模式図") => ftNote(txt);
+// 昼・夜のチップ（太陽か月）
+function hySun(P, night, txt) {
+  const ic = night ? `<svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="20" fill="#ffe08a"/><circle cx="37" cy="20" r="18" fill="#10345a"/></svg>` : `<svg width="54" height="54" viewBox="0 0 54 54">${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<line x1="${27 + Math.cos(i * 0.785) * 18}" y1="${27 + Math.sin(i * 0.785) * 18}" x2="${27 + Math.cos(i * 0.785) * 25}" y2="${27 + Math.sin(i * 0.785) * 25}" stroke="#ffb02e" stroke-width="4" stroke-linecap="round"/>`).join("")}<circle cx="27" cy="27" r="13" fill="#ffb02e"/></svg>`;
+  html += `<div style="position:absolute;${P ? "left:60px;top:1170px" : "right:70px;top:120px"};display:flex;align-items:center;gap:12px;background:${night ? "#10345a" : "#fff7e0"};color:${night ? "#ffe08a" : "#9a5a00"};border:3px solid ${night ? "#ffe08a" : "#ffb02e"};border-radius:999px;padding:6px 26px 6px 12px;font-size:36px;font-weight:900">${ic}${txt}</div>`;
+}
+// 魚の絵つきの名札。img：HY_IMG のキー（なければ文字だけ）
+function hyFishCard(nm, img, col, a, big = false) {
+  const im = img ? `<img src="../../assets/fish/${HY_IMG[img]}.png" style="height:${big ? 96 : 74}px;display:block;margin:0 auto 4px">` : `<div style="height:${big ? 96 : 74}px;display:flex;align-items:center;justify-content:center;color:#8aa0b4;font-size:22px">（絵なし）</div>`;
+  return `<div style="opacity:${a};transform:translateY(${(1 - a) * 20}px);background:#fff;border:4px solid ${col};border-radius:20px;padding:10px 12px;text-align:center;width:${big ? 250 : 200}px">${im}<div style="font-size:${(big ? 32 : 28) * (nm.length > 6 ? 0.78 : 1)}px;font-weight:900;color:#10345a;white-space:nowrap">${nm}</div></div>`;
+}
+// 昼と夜の棒（模式図）。dv・nv：0〜1
+function hyBars(P, dv, nv, a, cap) {
+  const Hb = P ? 260 : 280, bar = (v, col, lb, night) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:${Hb + 70}px;width:200px"><div style="width:120px;height:${Math.max(6, Hb * v * clamp01(a))}px;background:${col};border-radius:12px 12px 0 0"></div><div style="font-size:32px;font-weight:900;margin-top:8px;color:${night ? "#10345a" : "#9a5a00"}">${lb}</div></div>`;
+  return `<div style="display:flex;gap:30px;justify-content:center;align-items:flex-end;border-bottom:4px solid #10345a">${bar(dv, "#ffb02e", "昼", 0)}${bar(nv, "#1f4f9a", "夜", 1)}</div><div style="font-size:${P ? 30 : 30}px;font-weight:900;margin-top:10px;text-align:center">${cap}</div>`;
+}
+
+Object.assign(SHOTS, {
+  hy_thumb(t, d, s) {
+    hyWater(0);
+    const T = 4;
+    hyTai(0, 0.2, 0.9, 0.6, 0.08, T, { sc: 1.0 });
+    hyTais(T, { n: 5, cx: 0.5, sx: 2.2, z0: -2.0, sz: 0.9, h0: 0.8, h1: 1.8 });
+    const c = hyC();
+    iwCam(c.clone().add(V(0.2, 0, 0.6)), 2.6, 0.12, 0.05, 45, c.clone().add(V(-0.95, 0.1, 0.6)));
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：昼の海底をマダイが泳ぐ（本番は Blender の冒頭に差しかわる）。後半で夜になり「？」
+  hy_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2, k = d > 6 ? ease(clamp01((t - d * 0.55) / 2.5)) : 0;
+    hyWater(k);
+    hyTais(T, { n: 6, cx: P ? 0 : 0.3, sx: P ? 1.2 : 2.0, z0: 0.3, sz: 0.9, h0: 0.7, h1: 1.5, sp: 0.18 });
+    iwCam(hyC(), lerp(P ? 4.6 : 3.6, P ? 5.0 : 4.0, ease(t / d)), 0.1 * Math.sin(t * 0.2), 0.1, 50, hyC().clone().add(V(0, P ? 0.9 : 0.6, 0)));
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "魚にも「昼型」と<br>「夜型」がいる？", "島根県の研究から", a);
+    if (k > 0.5) hySun(P, 1, "夜");
+    else hySun(P, 0, "昼");
+    academyBadge();
+    hyNote("魚の動きはイメージ");
+  },
+  // どうやって調べた？：k0 日本海の南西部の海底の魚 → k1 調査船の網 10か所×昼夜1回＝20回 → k2 漁船の記録 487件
+  hy_how(t, d, s, k) {
+    const P = PORTRAIT, T = t + 12;
+    const night = k === 1 ? (Math.floor((t - (s._k1 ?? 0)) / 3) % 2 === 1 ? 1 : 0) : 0;
+    hyWater(night);
+    if (k >= 1) hyNetAt((P ? 1.0 : 3.0) + 0.08 * (t - (s._k1 ?? 0)), -1.2);
+    hyTais(T, { n: 6, cx: P ? 0 : 2.5, sx: 2.4, z0: -0.4, sz: 1.0, h0: 0.7, h1: 1.5 });
+    const c = hyC();
+    iwCam(c.clone().add(V(P ? 0 : 1.2, 0, 0)), P ? 11 : 8.5, 0.35, 2.2, 50, c.clone().add(V(P ? 0 : -1.2, P ? -1.2 : 0.2, 0)));
+    if (k >= 1 && !P) label(HYp(hyNet.position.x - 2.5, -HY_D + 1.6, -1.2), "海の底を引く網", "模式図", fadeIn(t - (s._k1 ?? 99), 0.4), "", 0, -90);
+    const row = (i, hd, txt, col) => { if (k < i) return ""; const a = fadeIn(t - (s[`_k${i}`] ?? 0), 0.3); return `<div style="display:flex;align-items:center;gap:18px;margin-top:16px;opacity:${a}"><b style="background:${col};color:#fff;font-size:${P ? 26 : 28}px;padding:8px 0;width:${P ? 170 : 180}px;text-align:center;border-radius:14px;flex:none">${hd}</b><div style="font-size:${P ? 31 : 33}px;font-weight:900">${txt}</div></div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">どうやって調べた？</b>` +
+      row(0, "どこで", "日本海の南西部<br>海の底にすむ<span style=\"color:#c2410c\">底魚</span>", "#1f6fd1") +
+      row(1, "調査船", "網を<span style=\"color:#c2410c\">10か所</span>で 昼と夜に1回ずつ<br>＝<span style=\"color:#c2410c\">合わせて20回</span>", "#c2410c") +
+      row(2, "漁船", "漁船を使った調査の<br>記録 <span style=\"color:#c2410c\">487件</span>", "#1d8a3a"), fadeIn(t, 0.3), [70, 190, 820], [60, 420, 960]);
+    hySun(P, night, night ? "夜の網" : "昼の網");
+    iwSrc("島根県水産技術センターほか（水産海洋研究 2021）");
+    academyBadge();
+    hyNote();
+  },
+  // 2倍のものさし：k0 漁獲の効率を比べた → k1 2倍以上で昼タイプ・夜タイプ
+  hy_rule(t, d, s, k) {
+    const P = PORTRAIT, T = t + 30;
+    hyWater(0);
+    hyTais(T, { n: 5, cx: P ? 0 : 3.0, sx: 2.0, z0: -0.5, sz: 1.0 });
+    iwCam(hyC().clone().add(V(P ? 0 : 1.5, 0, 0)), P ? 8 : 6, 0.1, 0.6, 50, hyC().clone().add(V(P ? 0 : -0.8, P ? -1.4 : 0.3, 0)));
+    html += acDim(0.2);
+    const a1 = fadeIn(t - (s._k1 ?? 99), 0.3, 1.2);
+    let inner = `<b style="font-size:${P ? 36 : 38}px">網を引いたとき、どれだけ獲れるか<br>（漁獲の効率）を、昼と夜で比べた</b>`;
+    if (k >= 1) inner += `<div style="display:flex;gap:${P ? 10 : 50}px;margin-top:16px;justify-content:center;${P ? "flex-direction:column;align-items:center" : ""}"><div>${hyBars(P, 1, 0.4, a1, "昼が夜の<span style=\"color:#c2410c\">2倍以上</span><br>＝<span style=\"color:#c2410c\">昼タイプ</span>")}</div><div>${hyBars(P, 0.4, 1, a1, "夜が昼の<span style=\"color:#1f4f9a\">2倍以上</span><br>＝<span style=\"color:#1f4f9a\">夜タイプ</span>")}</div></div><div style="font-size:22px;color:#3a5a78;margin-top:8px">棒は模式図（「2倍以上」のイメージ。実際の数値ではない）</div>`;
+    html += ftCard(P, inner, fadeIn(t, 0.3), [70, 180, 1000], [60, 400, 960]);
+    iwSrc("島根県水産技術センターほか（水産海洋研究 2021）");
+    academyBadge();
+    hyNote();
+  },
+  // クイズ：マダイは昼タイプ？夜タイプ？ k0 問い → k1 選択肢 → k2 正解 A 昼タイプ
+  hy_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 50;
+    hyWater(0);
+    hyTai(0, P ? 0.2 : 1.0, 0.9, 0.9, Math.PI, T, { sc: 1.0, pitch: 0.04 * Math.sin(T * 0.5) });
+    hyTais(T, { n: 4, cx: P ? 0 : 1.6, sx: 1.8, z0: -1.6, sz: 0.8, h0: 0.8, h1: 1.6, dir: Math.PI });
+    const c = hyC();
+    iwCam(c.clone().add(V(P ? 0.2 : 1.0, 0, 0.9)), P ? 3.6 : 2.8, 0.05 * Math.sin(t * 0.2), 0.1, 50, c.clone().add(V(P ? 0.2 : 0.1, P ? 0.55 : 0.15, 0.9)));
+    const opts = [["A", "昼タイプ"], ["B", "夜タイプ"], ["C", "差がない"]];
+    const t2 = s._k2 ?? 99, ans = t > t2 + 1.2;
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:430px" : "left:70px;top:190px;width:720px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 46 : 44}px;font-weight:900;margin:14px 0 4px">マダイは<br>昼タイプ？ 夜タイプ？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 0 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans && !P) html += ftCard(P, `<b style="font-size:38px">正解 <span style="color:#1d8a3a">A</span>：マダイは<br><span style="color:#c2410c">昼に多く獲れる「昼タイプ」</span></b>`, fadeIn(t - t2 - 1.2, 0.2), [900, 720, 820], [60, 1150, 960]);
+    if (ans) hySun(P, 0, "昼タイプ");
+    iwSrc(k >= 2 ? "島根県水産技術センターほか（水産海洋研究 2021）" : "");
+    academyBadge();
+    hyNote("魚の動きはイメージ");
+  },
+  // 昼タイプ 9種：k0 マダイほか6種 → k1 イカの仲間3種
+  hy_day(t, d, s, k) {
+    const P = PORTRAIT, T = t + 70;
+    hyWater(0);
+    hyTais(T, { n: 7, cx: P ? 0 : 2.6, sx: 2.0, z0: -0.2, sz: 1.0, h0: 0.7, h1: 1.8, sp: 0.15 });
+    iwCam(hyC().clone().add(V(P ? 0 : 1.6, 0, 0)), P ? 8 : 5.5, 0.1 * Math.sin(t * 0.1), 0.5, 50, hyC().clone().add(V(P ? 0 : -0.9, P ? -1.4 : 0.4, 0)));
+    html += acDim(0.15);
+    const a0 = fadeIn(t, 0.3), a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    const chip = (nm, a) => `<span style="display:inline-block;opacity:${a};background:#fff7e0;border:3px solid #ffb02e;color:#10345a;border-radius:14px;padding:6px 16px;margin:6px;font-size:${P ? 30 : 32}px;font-weight:900">${nm}</span>`;
+    const fish = ["マダイ", "アカムツ", "ニギス", "マフグ", "マトウダイ", "カガミダイ"].map((nm, i) => chip(nm, fadeIn(t, 0.3 + i * 0.25)));
+    const ika = ["ヤリイカ", "スルメイカ", "ケンサキイカ"].map((nm, i) => chip(nm, k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.4 + i * 0.3) : 0));
+    const pics = `<div style="display:flex;gap:16px;justify-content:center;margin:10px 0">${hyFishCard("マダイ", "マダイ", "#ffb02e", a0)}${hyFishCard("マフグ", "フグ", "#ffb02e", fadeIn(t, 1.0))}${hyFishCard("イカの仲間", "イカ", "#c2410c", a1)}</div>`;
+    html += ftCard(P, `<div style="display:flex;align-items:center;gap:16px"><b style="font-size:${P ? 44 : 46}px">昼タイプ <span style="color:#c2410c">9種</span></b></div>${pics}<div>${fish.join("")}</div><div style="margin-top:4px">${ika.join("")}${k >= 1 ? `<div style="font-size:${P ? 32 : 34}px;font-weight:900;color:#c2410c;opacity:${a1};margin-top:6px">イカの仲間が3種も！</div>` : ""}</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">絵はイメージ（フグ・イカはその仲間の絵）</div>`, a0, [70, 180, 1000], [60, 400, 960]);
+    hySun(P, 0, "昼に多く獲れる");
+    iwSrc("島根県水産技術センターほか（水産海洋研究 2021）");
+    academyBadge();
+    hyNote("後ろのマダイの動きはイメージ");
+  },
+  // 夜タイプ 4種：k0 マアナゴ・ミギガレイ・ソウハチ・ヤナギムシガレイ → k1 3種がカレイの仲間
+  hy_night(t, d, s, k) {
+    const P = PORTRAIT;
+    hyWater(1);
+    hyNetAt((P ? 1.5 : 3.6) + 0.08 * t, -1.6);
+    iwCam(hyC().clone().add(V(P ? 0 : 1.5, 0, 0)), P ? 11 : 8.5, 0.3, 2.0, 50, hyC().clone().add(V(P ? 0 : -1.2, P ? -1.2 : 0.2, 0)));
+    const a0 = fadeIn(t, 0.3), a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    const cards = [["マアナゴ", null, "#8aa0b4"], ["ミギガレイ", "カレイ", "#1f4f9a"], ["ソウハチ", "カレイ", "#1f4f9a"], ["ヤナギムシガレイ", "カレイ", "#1f4f9a"]];
+    const row = cards.map(([nm, im, col], i) => hyFishCard(nm, im, k >= 1 && im ? "#ffd166" : col, fadeIn(t, 0.4 + i * 0.35))).join("");
+    html += ftCard(P, `<b style="font-size:${P ? 44 : 46}px">夜タイプ <span style="color:#1f4f9a">4種</span></b><div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:12px">${row}</div>${k >= 1 ? `<div style="font-size:${P ? 34 : 36}px;font-weight:900;margin-top:12px;opacity:${a1}">4種のうち<span style="color:#1f4f9a">3種がカレイの仲間</span></div>` : ""}<div style="font-size:22px;color:#3a5a78;margin-top:6px">絵はカレイの仲間のイメージ。マアナゴは絵がないので名前だけ</div>`, a0, [70, 180, 1000], [60, 400, 960]);
+    hySun(P, 1, "夜に多く獲れる");
+    iwSrc("島根県水産技術センターほか（水産海洋研究 2021）");
+    academyBadge();
+    hyNote("網と海底は模式図");
+  },
+  // ケンサキイカのふしぎ：k0 網では昼タイプ → k1 島根県では夜に集魚灯で集めて獲る漁が一般的 → k2 とり方がちがえば同じとは限らない
+  hy_ika(t, d, s, k) {
+    const P = PORTRAIT, nk = k >= 1 ? ease(clamp01((t - (s._k1 ?? 99)) / 0.8)) : 0;
+    hyWater(nk);
+    if (nk < 0.5) hyNetAt((P ? 1.5 : 3.6) + 0.08 * t, -1.6);
+    iwCam(hyC().clone().add(V(P ? 0 : 1.5, 0, 0)), P ? 11 : 8.5, 0.3, 2.0, 50, hyC().clone().add(V(P ? 0 : -1.2, P ? -1.2 : 0.2, 0)));
+    // 集魚灯（海面の上の明るい光のイメージ。水の中から見上げた光の帯）
+    if (nk > 0.01) html += `<div style="position:absolute;${P ? "left:540px;top:0" : "left:1400px;top:0"};width:${P ? 700 : 900}px;height:${P ? 1300 : 900}px;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 0%,rgba(255,240,180,${0.55 * nk}),rgba(255,240,180,0) 65%)"></div>`;
+    const col = (hd, cl, body, a, ic) => `<div style="flex:1;opacity:${a}"><b style="display:flex;align-items:center;justify-content:center;gap:10px;background:${cl};color:#fff;font-size:${P ? 30 : 32}px;padding:8px 16px;border-radius:14px">${hd}</b><div style="font-size:${P ? 30 : 31}px;font-weight:900;margin-top:10px;line-height:1.45;text-align:center">${body}</div></div>`;
+    const a0 = fadeIn(t, 0.3), a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0, a2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.3) : 0;
+    html += ftCard(P, `<div style="display:flex;align-items:center;gap:20px">${hyFishCard("ケンサキイカ", "イカ", "#c2410c", a0)}<b style="font-size:${P ? 38 : 40}px">網と漁で、<br>よく獲れる時間がちがう？</b></div><div style="display:flex;gap:24px;margin-top:14px">${col("海の底を引く網", "#ffb02e", "<span style=\"color:#c2410c\">昼</span>に多い<br>「昼タイプ」", a0)}${col("島根県のイカ漁", "#1f4f9a", "<span style=\"color:#1f4f9a\">夜</span>に<span style=\"color:#1f4f9a\">集魚灯</span>で<br>集めて獲るのが一般的", a1)}</div>${k >= 2 ? `<div style="font-size:${P ? 32 : 34}px;font-weight:900;margin-top:14px;opacity:${a2};text-align:center">とり方がちがうと、<span style="color:#c2410c">よく獲れる時間も同じとは限らない</span></div>` : ""}<div style="font-size:22px;color:#3a5a78;margin-top:6px">絵はイカの仲間のイメージ。光は集魚灯のイメージ</div>`, 1, [70, 180, 1040], [60, 400, 960]);
+    hySun(P, nk > 0.5 ? 1 : 0, nk > 0.5 ? "夜のイカ漁" : "昼の網");
+    iwSrc(k >= 1 ? "島根県水産技術センター（研究報告 2024）" : "島根県水産技術センターほか（水産海洋研究 2021）");
+    academyBadge();
+    hyNote("網・海底・光は模式図");
+  },
+  // なぜ大事？：k0 多くの魚で昼夜の差 → k1 資源を見守るとき、昼夜を考えてそろえて比べる
+  hy_why(t, d, s, k) {
+    const P = PORTRAIT, T = t + 110, nk = 0.5 + 0.5 * Math.sin(t * 0.5);
+    hyWater(k >= 1 ? nk : 0);
+    hyTais(T, { n: 5, cx: P ? 0 : 3.0, sx: 2.0, z0: -0.6, sz: 1.0 });
+    iwCam(hyC().clone().add(V(P ? 0 : 1.5, 0, 0)), P ? 8 : 6, -0.1, 0.6, 50, hyC().clone().add(V(P ? 0 : -0.8, P ? -1.4 : 0.3, 0)));
+    html += acDim(0.2);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">主な底魚の<span style="color:#c2410c">多く</span>で<br>昼と夜の獲れ方に<span style="color:#c2410c">ちがい</span>があった</b>${k >= 1 ? `<div style="opacity:${a1};margin-top:16px;border-top:3px dashed #9fb3c6;padding-top:14px"><div style="font-size:${P ? 30 : 32}px;font-weight:900">魚の数を調べて資源を見守るときは</div><div style="font-size:${P ? 34 : 36}px;font-weight:900;color:#1d8a3a;margin-top:6px">昼か夜かを考えて、<br>数をそろえて比べることが必要</div><div style="font-size:24px;color:#3a5a78;margin-top:6px">研究では「資源量の指標値の標準化」と呼んでいる</div></div>` : ""}`, fadeIn(t, 0.3), [70, 190, 960], [60, 420, 960]);
+    if (k >= 1) hySun(P, nk > 0.5 ? 1 : 0, nk > 0.5 ? "夜" : "昼");
+    iwSrc("島根県水産技術センターほか（水産海洋研究 2021）");
+    academyBadge();
+    hyNote();
+  },
+  // 釣りでは：k0 網の調査の結果。釣りで同じとは限らない → k1 昼と夜で顔ぶれが変わることがある＝時間を考えるヒント
+  hy_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130;
+    hyWater(0);
+    hyTais(T, { n: 7, cx: 0, sx: 3.0, z0: -0.8, sz: 1.2, h0: 0.8, h1: 1.8 });
+    iwCam(hyC(), P ? 8.5 : 6.2, -0.1 + 0.05 * Math.sin(t * 0.2), 0.4, 50, hyC().clone().add(V(0, P ? 0 : 0.7, 0)));
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">この結果は<span style="color:#c2410c">網の調査</span>のもの<br>釣りでも<span style="color:#c2410c">同じとは限らない</span></b>`, fadeIn(t, 0.5), [230, 170, 1460], [60, 420, 960]);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">それでも、同じ海で<span style="color:#c2410c">昼と夜で顔ぶれが変わる</span>ことがある</b><div style="font-size:34px;font-weight:900;margin-top:8px;color:#1d8a3a">釣りに行く時間を考える、ヒントに</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [230, 170, 1460], [60, 420, 960]);
+    academyBadge();
+    hyNote("魚の動きはイメージ");
+  },
+  hy_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150;
+    hyWater(0);
+    hyTais(T, { n: 7, cx: 0, sx: 3.0, z0: -1.5, sz: 1.2 });
+    iwCam(hyC(), P ? 9 : 6.5, 0.1 * Math.sin(t * 0.1), 0.4);
+    html += acDim(0.45);
+    const rows = [["昼タイプ 9種", "マダイ・アカムツ・イカの仲間3種 など", "昼に多く獲れる（網の調査）", "#e08a00"], ["夜タイプ 4種", "マアナゴ・カレイの仲間3種", "夜に多く獲れる（網の調査）", "#1f4f9a"], ["大事なこと", "昼か夜かで、獲れ方が変わる魚が多い", "島根県水産技術センターほか（2021）", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 58 : 60}px;opacity:${fadeIn(t, 0.1)}">昼型と夜型 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 220 : 280}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 // =====================================================================
