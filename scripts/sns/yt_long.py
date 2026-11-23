@@ -54,8 +54,9 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-hiruyoru",  # 2026-11-23 ツレドキアカデミー R9 魚にも「昼型」と「夜型」がいる？（定期タスク。Blender の冒頭・サムネイル差しかえずみ。書き出し 45113730520・圧縮 45116205270・full 45116440276（attempt 2）・最小すきま 0.587m）
          # 第8弾（2026-11-16。書き出し済み。冬の堤防は11月下旬〜12月上旬に出す）
          # 第9弾（2026-11-20。書き出し済み。12月1日前後に出したい。long-* は今は slug 指定でだけ出る）
-         "long-month-12",
-         "long-fuyu-teibou", "long-hajimete-ichinichi", "long-shun-quiz"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
+         # 2026-11-23 冬の堤防（11月下旬〜12月上旬）→ 12月の関西（12/1 前後）の順に出す
+         "long-fuyu-teibou", "long-month-12",
+         "long-hajimete-ichinichi", "long-shun-quiz"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
 REC = "data/sns/long-posts.json"
 PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17。2026-11-17：3DCG・アカデミーだけで毎日1本）
 
@@ -93,6 +94,10 @@ def desc_fit(desc, limit=4950):
 # 自動の列からは出さず、long-upload の slug 指定で出す動画（2026-11-05 オーナー：道具紹介は2日に1本）
 HOLD = {"cg-gear-lure", "cg-gear-goods"}  # cg-fune-aomono は 2026-11-14 オーナーOKで HOLD から外した
 
+# 2026-11-23 オーナー：通常の長尺（long-*）も、cg-* が切れた日に自動で出す。ただし投稿前にオーナーが見て OK したものだけ。
+# オーナーが動画を見て OK したら、その slug をここに足す（足していない long-* は自動では出ない）
+APPROVED = set()
+
 
 def comment_text(src):
     """固定コメント用（オーナーが貼る）：紹介した製品ごとに Amazon のリンクだけ（2026-11-05 オーナー：楽天も入れると長すぎる）"""
@@ -121,9 +126,11 @@ def main():
         if sum(v.get("at", "").startswith(today) for v in done.values()) >= PER_DAY and "--force" not in sys.argv:
             print("")
             return
-        # 2026-11-17 オーナー：YouTube の長尺は 3DCG とツレドキアカデミー（どちらも cg-*）だけにする。
-        # 毎日1本（週に 3DCG 4本・アカデミー 3本）。通常の長尺（long-*）は列に残っていても自動では出さない（slug 指定なら出せる）
+        # 2026-11-17 オーナー：YouTube の長尺は 3DCG とツレドキアカデミー（どちらも cg-*）を優先する。
+        # 毎日1本（週に 3DCG 4本・アカデミー 3本）。通常の長尺（long-*）は APPROVED にあるものだけ、cg-* が切れた日に出す
         left = [s for s in ORDER if s not in done and s not in HOLD and s.startswith("cg-")]
+        # 2026-11-23 オーナー：cg-* が残っていない日は、オーナーが OK した long-* を ORDER の順に1本出す
+        left += [s for s in ORDER if s not in done and s not in HOLD and s in APPROVED and not s.startswith("cg-")]
         print(left[0] if left else "")
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
