@@ -5,7 +5,7 @@
 import math
 from mathutils import Vector
 
-FISH = "seabass"
+FISH = "suzuki"   # Fish Kit の seabass（ファイル名は suzuki.glb）
 FISH_LEN = 0.6
 LURE = "jig"
 SEC = 11.5          # 冒頭の章（見積もり約8秒・本番の声で約9.5秒）より長く
