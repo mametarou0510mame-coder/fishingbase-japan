@@ -23,6 +23,7 @@
 - [x] 台本 cg-hiruyoru.json・short-cg-hiruyoru.json
 - [x] Blender の場面（scenes/hiruyoru.py）・check_scene
 - [x] ローカル静止画の確認
-- [ ] cg-video（45113730520 起動）→ cg-compress → blender test（起動ずみ）→ full
+- [x] cg-video 45113730520 成功・cg-compress 45116205270 起動・blender test 45113739614 OK（最小すきま 0.588m）
+- [ ] Blender full（samples 64、起動ずみ）の完了と check・summary の確認 → そのあと ORDER（cg-kaze の次）・plan の制作済み（11/26 予定）
 - [x] 固定コメント data/sns/yt-comments/cg-hiruyoru.txt
 - [ ] ORDER・固定コメント・plan の制作済み
