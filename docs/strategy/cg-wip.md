@@ -26,5 +26,6 @@
 - [x] Blender 場面・check_scene
 - [x] commit・push
 - [x] 静止画（横・縦）を確認、--clear 最小 0.56m、check_scene kaze OK
-- [ ] cg-video → cg-compress → blender test → full
+- [x] 固定コメント data/sns/yt-comments/cg-kaze.txt（ASIN は登録ずみのものを使用）
+- [ ] cg-video（実行 45090512331）→ cg-compress → blender test → full
 - [ ] ORDER・固定コメント・plan 更新
