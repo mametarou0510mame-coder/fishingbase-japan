@@ -19,11 +19,12 @@
 - 接頭辞 kz_*。構成：kz_hook → kz_fly（追い風・向かい風。ルアーが飛ぶ道を計算 kzFly）→ kz_side（横風・糸ふけ。上から）→ kz_nami（風浪・うねり。kzSea の波）→ kz_quiz（どっちの岸が釣りやすい？答え：風を背中に受ける岸＝風裏）→ kz_bait（風が当たる岸に小魚が寄ると言われる。Fish Kit katakuchi・seabass）→ kz_safe → kz_sum → ask → end
 - 事実：気象庁「波浪の知識」・波浪の解説資料 r4（風浪は風が強いほど・吹送距離と吹続時間が長いほど発達／うねりは風が弱まっても残り、岸の近くで高くなる／1000波に1波は有義波高の2倍近い）、海上保安庁（ライフジャケット・最新の気象海象・荒天なら中止）、TSURI HACK・シマノ・BE-PAL（追い風・向かい風・横風、竿を下げる・低い弾道、風表にベイトが寄ると言われる）
 - Blender：scenes/kaze.py（nabura.py をもとに、シーバスがジグを追って食う）
-- [ ] fish-knowledge.md に出典
-- [ ] main.js kz_*
-- [ ] 台本・ショート・narrate
-- [ ] 静止画の確認・--clear
-- [ ] Blender 場面・check_scene
-- [ ] commit・push
+- [x] fish-knowledge.md に出典
+- [x] main.js kz_*
+- [x] 台本・ショート・narrate
+- [x] 静止画の確認・--clear
+- [x] Blender 場面・check_scene
+- [x] commit・push
+- [x] 静止画（横・縦）を確認、--clear 最小 0.56m、check_scene kaze OK
 - [ ] cg-video → cg-compress → blender test → full
 - [ ] ORDER・固定コメント・plan 更新

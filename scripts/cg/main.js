@@ -11930,6 +11930,435 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 風の日、釣り場はどう変わる？（cg-kaze、kz_*）2026-11-23 見える化
+// 参考：気象庁「波浪の知識」・「波浪に関する全般解説資料」令和4年度（風浪は風速が強いほど、吹送距離・吹続時間が長いほど発達。
+//   うねりは風が弱まっても残り、岸の近くで高くなりやすい。1000波に1波は有義波高の2倍近い）、
+//   海上保安庁「釣り場での事故防止のために」（救命胴衣・最新の気象海象・荒天なら中止）、
+//   TSURI HACK（追い風・向かい風・横風、姿勢を低く竿を下げる・低い弾道・風裏）、BE-PAL・シマノ（岸へ向かう風で表層の水と小魚が寄ると言われる）
+// ルアーが飛ぶ道は kzFly（重さ・空気の抵抗・風の簡単な物理モデルの計算）。糸のふくらみ・波・水の動きは模式図。魚の動きはイメージ
+// 断面（追い風・向かい風・風が当たる岸）は sf_*（サーフ）の砂浜の断面、上からの絵は sf の上からの砂浜、波は kzSea（新しく作った海）
+// =====================================================================
+const KZ = V(-6000, 0, -6000);
+const KZp = (x, y, z) => V(KZ.x + x, KZ.y + y, KZ.z + z);
+const KZ_R = 150; // クイズの向こう岸（x）
+const KZ_TOPY = 2.5; // 岸壁の高さ
+const kzGrp = new THREE.Group();
+kzGrp.position.copy(KZ);
+world.add(kzGrp);
+extras.push(kzGrp);
+const KZU = { time: U.time, wdir: { value: 1 }, wamp: { value: 0 }, swell: { value: 0 }, landR: { value: 1e4 } };
+{
+  // 波の立つ海：風が吹いてきた距離（風上の岸からの距離）が長いほど、風浪が大きい（模式図）。うねりは沖から岸（x=0）へ
+  const g = new THREE.PlaneGeometry(240, 300, 480, 420).rotateX(-Math.PI / 2).translate(120, 0, 0);
+  const sea = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    uniforms: KZU,
+    vertexShader: `uniform float time, wdir, wamp, swell, landR; varying float vH; varying float vA; varying vec3 vN; varying vec3 vL; varying vec3 vW;
+      float fetchA(float x){ float f = wdir > 0.0 ? x : landR - x; return wamp*(0.06 + 0.94*(1.0 - exp(-max(f, 0.0)/50.0))); }
+      float hgt(vec2 p){ float A = fetchA(p.x), sx = p.x*wdir;
+        float h = A*(0.55*sin(0.36*sx + 0.08*p.y - 1.9*time) + 0.28*sin(0.61*sx - 0.22*p.y - 2.4*time + 1.3) + 0.17*sin(1.05*sx + 0.38*p.y - 3.2*time + 2.1));
+        float sh = swell*(1.0 + 0.9*exp(-p.x/14.0))*sin(0.16*p.x + 0.012*p.y + 1.25*time);
+        return h + sh; }
+      void main(){ vec3 p = position; float e = 0.4; float h = hgt(p.xz);
+        float hx = hgt(p.xz + vec2(e, 0.0)) - hgt(p.xz - vec2(e, 0.0)), hz = hgt(p.xz + vec2(0.0, e)) - hgt(p.xz - vec2(0.0, e));
+        vN = normalize(vec3(-hx, 2.0*e, -hz)); vH = h; vA = fetchA(p.x) + swell*(1.0 + 0.9*exp(-p.x/14.0)); p.y += h; vL = p; vW = (modelMatrix*vec4(p, 1.0)).xyz;
+        gl_Position = projectionMatrix*modelViewMatrix*vec4(p, 1.0); }`,
+    fragmentShader: `uniform float time; varying float vH; varying float vA; varying vec3 vN; varying vec3 vL; varying vec3 vW;
+      void main(){ vec3 N = normalize(vN); vec3 Vd = normalize(cameraPosition - vW); vec3 Ld = normalize(vec3(0.4, 1.0, 0.5));
+        float diff = clamp(dot(N, Ld), 0.0, 1.0), fr = pow(1.0 - clamp(dot(N, Vd), 0.0, 1.0), 4.0);
+        vec3 c = mix(vec3(0.04,0.27,0.44), vec3(0.12,0.46,0.62), 0.55 + 0.45*diff);
+        c = mix(c, vec3(0.62,0.80,0.93), clamp(fr*0.8, 0.0, 0.7));
+        c += vec3(1.0)*pow(max(dot(reflect(-Ld, N), Vd), 0.0), 60.0)*0.5;
+        float r = vH/max(vA, 0.05);
+        float foam = smoothstep(0.62, 0.95, r) * smoothstep(0.45, 0.95, vA);
+        foam += smoothstep(2.5, 0.0, vL.x)*0.6*(0.5 + 0.5*sin(vL.z*0.7 + time*2.0));
+        c = mix(c, vec3(0.96), clamp(foam, 0.0, 1.0)*0.8);
+        c = mix(c, vec3(0.70,0.84,0.94), smoothstep(160.0, 560.0, length(cameraPosition - vW)));
+        gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  const far = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2).translate(0, -0.25, 0), new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `varying vec3 vW; void main(){ vec3 c = mix(vec3(0.10,0.38,0.56), vec3(0.70,0.84,0.94), smoothstep(160.0, 560.0, length(cameraPosition - vW))); gl_FragColor = vec4(c, 1.0); }`,
+  }));
+  // 空（カメラの遠い所で切れないように半径 420。いちばん先に描く）
+  const skyK = new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16).translate(60, 0, 0), new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false,
+    vertexShader: `varying vec3 vP; void main(){ vP = position - vec3(60.0, 0.0, 0.0); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c = mix(vec3(0.72,0.85,0.95), vec3(0.33,0.58,0.88), smoothstep(0.0, 0.45, h));
+      float cl = smoothstep(0.55, 0.9, sin(vP.x*0.02 + sin(vP.z*0.015)*2.0)*sin(vP.z*0.018 + 1.3)) * smoothstep(0.02, 0.2, h);
+      gl_FragColor = vec4(mix(c, vec3(0.97), cl*0.6), 1.0); }`,
+  }));
+  skyK.renderOrder = -5;
+  const quay = new THREE.Mesh(new THREE.BoxGeometry(90, 8, 320).translate(-45, KZ_TOPY - 4, 0), ftLit(0xbdb7aa));
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.25, 320).translate(-0.3, KZ_TOPY + 0.12, 0), ftLit(0x8c877c));
+  const landR = new THREE.Mesh(new THREE.BoxGeometry(90, 8, 320).translate(KZ_R + 45, KZ_TOPY - 4, 0), ftLit(0xc9c0a6));
+  kzGrp.add(skyK, far, sea, quay, edge, landR);
+  kzGrp.userData.landR = landR;
+}
+// 釣り人（岸壁の上）と竿
+const kzMan = mannequin(0x7d8a96, true);
+kzMan.rotation.y = Math.PI / 2;
+kzGrp.add(kzMan);
+kzMan.position.set(-2.2, KZ_TOPY, 0);
+const kzRod = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.045, 1, 6).translate(0, 0.5, 0), ftLit(0x20262c, { shine: 0.5 }));
+world.add(kzRod);
+extras.push(kzRod);
+// 上からの砂浜（sfTop）に立つ釣り人
+const kzMan2 = mannequin(0x7d8a96, true);
+kzMan2.scale.setScalar(1.4);
+world.add(kzMan2);
+extras.push(kzMan2);
+function kzSeaBase(o = {}) {
+  base(0);
+  U.under.value = 0;
+  sky.visible = true;
+  wall.visible = top.visible = false;
+  if (WALL_BAR) WALL_BAR.visible = false;
+  hideSurface = true;
+  kzGrp.visible = true;
+  KZU.wdir.value = o.wdir ?? 1;
+  KZU.wamp.value = o.wamp ?? 0;
+  KZU.swell.value = o.swell ?? 0;
+  KZU.landR.value = o.right ? KZ_R : 1e4;
+  kzGrp.userData.landR.visible = !!o.right;
+  ftRodSet(kzRod, KZp(-1.9, KZ_TOPY + 1.15, -0.35), KZp(0.6, KZ_TOPY + 3.3, -0.35));
+}
+// 風の流れ（白く光る線）。c：中心（x, z）、dir：風の向き（x, z の単位ベクトル）、Ls・Lw：風に沿った長さと幅、y0〜y1：高さ、at：座標 → ワールド
+const KZ_OFF = (() => { const r = rng(2311); return Array.from({ length: 140 }, () => ({ u: r(), v: r(), w: r(), p: r() * 6.28, l: 0.6 + r() * 0.8 })); })();
+function kzWind(T, o) {
+  const { n = 70, a = 1, sp = 10, len = 7, at = KZp, c = [60, 0], dir = [1, 0], Ls = 160, Lw = 80, y0 = 3, y1 = 14, w = 4 } = o;
+  if (a <= 0.01) return;
+  const [dx, dz] = dir, px = -dz, pz = dx;
+  for (let i = 0; i < Math.min(n, KZ_OFF.length); i++) {
+    const q = KZ_OFF[i], s = (q.u * Ls + T * sp * (0.8 + 0.4 * q.l)) % Ls, L = len * q.l;
+    const cx = c[0] + dx * (s - Ls / 2) + px * (q.v - 0.5) * Lw, cz = c[1] + dz * (s - Ls / 2) + pz * (q.v - 0.5) * Lw;
+    const y = y0 + q.w * (y1 - y0) + 0.35 * Math.sin(T * 1.3 + q.p);
+    const f = Math.sin((Math.PI * s) / Ls) * a;
+    const p0 = project(at(cx, y, cz)), p1 = project(at(cx + dx * L, y + 0.25 * Math.sin(q.p), cz + dz * L));
+    if (p0.behind || p1.behind) continue;
+    lines += `<line x1="${p0.x.toFixed(1)}" y1="${p0.y.toFixed(1)}" x2="${p1.x.toFixed(1)}" y2="${p1.y.toFixed(1)}" stroke="#ffffff" stroke-width="${w}" stroke-linecap="round" opacity="${(0.85 * f).toFixed(2)}"/>`;
+  }
+}
+// 画面の上の「風」の大きな矢印（向きがひと目でわかるように）。dir：1＝右へ、-1＝左へ
+function kzWindTag(dir, txt, a = 1, top) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT;
+  html += `<div style="position:absolute;left:0;right:0;top:${top ?? (P ? 470 : 230)}px;text-align:center;opacity:${a}"><span style="display:inline-flex;align-items:center;gap:14px;background:rgba(6,22,42,.82);color:#fff;font-weight:900;font-size:${P ? 44 : 40}px;padding:8px 26px;border-radius:18px;border:3px solid #fff">${dir < 0 ? `<span style="font-size:${P ? 54 : 48}px">◀◀</span>` : ""}${txt}${dir > 0 ? `<span style="font-size:${P ? 54 : 48}px">▶▶</span>` : ""}</span></div>`;
+}
+const kzTag = (txt) => { html += `<div style="position:absolute;${PORTRAIT ? "left:36px;top:150px" : "left:70px;top:118px"};background:rgba(6,22,42,.88);border:3px solid #4cc3ff;border-radius:14px;padding:4px 14px;color:#fff;font-weight:800;font-size:${PORTRAIT ? 26 : 24}px;z-index:5">${txt}</div>`; };
+// 全体図（左上）：いまの風の向きと、見ている場所
+function kzMini(kind, wdir, a = 1) {
+  if (a <= 0.01) return;
+  const P = PORTRAIT;
+  const ar = wdir > 0 ? `<path d="M30 16 L70 16" stroke="#fff" stroke-width="4" marker-end="url(#kza)"/>` : wdir < 0 ? `<path d="M70 16 L30 16" stroke="#fff" stroke-width="4" marker-end="url(#kza)"/>` : "";
+  const body = kind === "two"
+    ? `<rect x="0" y="34" width="14" height="46" fill="#bdb7aa"/><rect x="86" y="34" width="14" height="46" fill="#c9c0a6"/><text x="2" y="76" font-size="9" fill="#10345a" font-weight="900">A</text><text x="89" y="76" font-size="9" fill="#10345a" font-weight="900">B</text>`
+    : `<rect x="0" y="34" width="16" height="46" fill="#bdb7aa"/><circle cx="12" cy="31" r="3.5" fill="#ff8a2a"/><text x="60" y="76" font-size="9" fill="#fff" font-weight="900">沖</text>`;
+  html += `<div style="position:absolute;left:${P ? 40 : 70}px;top:${P ? 230 : 180}px;width:${P ? 250 : 260}px;opacity:${a};background:rgba(255,255,255,.93);border-radius:22px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3)">
+    <div style="font-size:${P ? 24 : 22}px;font-weight:900;color:#10345a;margin:0 0 4px 6px">全体図（横から）</div>
+    <svg viewBox="0 0 100 80" width="100%"><rect width="100" height="34" fill="#cfe8f6"/><rect y="34" width="100" height="46" fill="#2b6f9e"/>${body}${ar}
+    <text x="40" y="11" font-size="8" fill="#10345a" font-weight="900">${wdir ? "風" : "風なし"}</text>
+    <defs><marker id="kza" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#fff"/></marker></defs></svg></div>`;
+}
+const KZ_LEG = [["#ffffff", "風の流れ（白い線）"], ["#ffb45e", "ルアーが飛ぶ道・糸"]];
+const KZ_LEG2 = [["#ffffff", "風の流れ（白い線）"], ["#8ff0ff", "表面の水の動き"]];
+
+// ---- ルアーが飛ぶ道の計算（簡単な物理モデル）----
+// 30g のジグ。重さ・空気の抵抗（速さの2乗）・風（w：沖へ＋、wz：横）。竿先から投げ、海面（竿先の高さ SF_TIP[1] 下）に着くまで
+const KZ_FLYC = {};
+function kzFly(w, deg, wz = 0, v0 = 27) {
+  const key = `${w}:${deg}:${wz}:${v0}`;
+  if (KZ_FLYC[key]) return KZ_FLYC[key];
+  const k = 0.0075, g = 9.8, dt = 0.005;
+  let x = 0, y = 0, z = 0, vx = v0 * Math.cos((deg * Math.PI) / 180), vy = v0 * Math.sin((deg * Math.PI) / 180), vz = 0, t = 0, top = 0;
+  const pts = [[0, 0, 0, 0]];
+  let i = 0;
+  while (y > -SF_TIP[1] && t < 12) {
+    const rx = vx - w, ry = vy, rz = vz - wz, s = Math.hypot(rx, ry, rz);
+    vx += -k * s * rx * dt; vy += (-g - k * s * ry) * dt; vz += -k * s * rz * dt;
+    x += vx * dt; y += vy * dt; z += vz * dt; t += dt; top = Math.max(top, y);
+    if (++i % 10 === 0) pts.push([t, x, y, z]);
+  }
+  pts.push([t, x, Math.max(y, -SF_TIP[1]), z]);
+  return (KZ_FLYC[key] = { pts, T: t, X: x, Z: z, top });
+}
+// 時刻 ts のルアーの位置 [x, y, z]（竿先から）
+function kzFlyAt(f, ts) {
+  const P = f.pts;
+  if (ts >= f.T) return P[P.length - 1].slice(1);
+  let j = 1;
+  while (j < P.length - 1 && P[j][0] < ts) j++;
+  const a = P[j - 1], b = P[j], k = clamp01((ts - a[0]) / Math.max(1e-6, b[0] - a[0]));
+  return [lerp(a[1], b[1], k), lerp(a[2], b[2], k), lerp(a[3], b[3], k)];
+}
+const KZ_W = 8; // 風の強さ（計算に入れた値。画面では言わない）
+// 断面（砂浜）での投げる場面。f：計算結果、ts：投げてからの時刻、o.col：色、o.ghost：点線で道だけ描く
+function kzFlyDraw(f, ts, o = {}) {
+  const col = o.col ?? "#ffb45e", tip = SFd(SF_TIP[0], SF_TIP[1], SF_LZ);
+  const pts = [];
+  for (const p of f.pts) { if (p[0] > ts) break; pts.push(SFd(SF_TIP[0] + p[1], SF_TIP[1] + p[2], SF_LZ)); }
+  const q = kzFlyAt(f, ts), L = SFd(SF_TIP[0] + q[0], SF_TIP[1] + q[1], SF_LZ);
+  pts.push(L);
+  if (o.ghost) { pathLine(pts, "#ffffff", 1, 6, "4 14"); return L; }
+  pathLine(pts, col, 1, 7, "2 12");
+  // 糸（模式図）：竿先からルアーまで。風下にふくらみ、重さで少したるむ。着水後の向かい風は手前に大きくたるむ（糸ふけ）
+  const land = ts >= f.T, D = Math.hypot(q[0], q[1]), wv = o.w ?? 0;
+  const bow = 0.012 * D * (wv / KZ_W) * (land && wv < 0 ? 2.5 : 1); // 風下へずれる（向かい風は手前へ）
+  const sag = (land ? (wv < 0 ? 0.1 : 0.04) : 0.03) * D;
+  const mid = SFd(SF_TIP[0] + q[0] * 0.5 + bow * 6, SF_TIP[1] + q[1] * 0.5 - sag, SF_LZ);
+  pathLine(bez(tip, mid, L, 30), col, 1, 4);
+  sfJig.visible = !o.noJig;
+  sfJig.position.copy(L);
+  sfJig.rotation.set(0, 0, land ? -1.2 : -0.3);
+  sfJig.scale.setScalar(SF_JIG_U * 18);
+  const m = project(L);
+  if (!o.noJig && !m.behind) lines += `<circle cx="${m.x.toFixed(1)}" cy="${m.y.toFixed(1)}" r="13" fill="#ffb45e" stroke="#fff" stroke-width="4"/>`;
+  return L;
+}
+function kzSecBase() {
+  sfBase();
+  sfJig.visible = false;
+  sfMan.position.y = sfBed(SF_MAN_U);
+  ftRodSet(sfRod, SFd(SF_MAN_U + 0.35, sfBed(SF_MAN_U) + 1.15, SF_LZ - 0.3), SFd(SF_TIP[0], SF_TIP[1], SF_LZ));
+}
+const kzSecView = (t) => (PORTRAIT ? look(SFd(30, 8, 112), SFd(28, 5, 0), 50) : look(SFd(29 + t * 0.05, 7, 64), SFd(29, 5.2, 0), 50));
+const kzSecWind = (T, dir, a = 1) => kzWind(T, { at: (x, y, z) => SFd(x, y, z), c: [30, -2], dir: [dir, 0], Ls: 90, Lw: 10, y0: 3, y1: 17, n: 46, len: 6, sp: 9, a });
+
+// ---- 上から見た砂浜の横風（sfTop）----
+const KZ_SIDE_W = 6;
+function kzTopRig(f, ts, lowRod, T) {
+  // f は横風の計算。x＝沖へ、z＝横（＋が風下）。上からの絵では u＝沖、w＝岸に沿った向き
+  const tipU = SF_TIP[0], tipY = lowRod ? 1.0 : SF_TIP[1];
+  kzMan2.visible = true;
+  kzMan2.position.copy(SFTp(SF_MAN_U, sfBed(SF_MAN_U), 0));
+  kzMan2.rotation.y = 0;
+  const tip = SFTp(tipU, tipY, 0);
+  ftRodSet(kzRod, SFTp(SF_MAN_U + 0.4, sfBed(SF_MAN_U) + 1.6, -0.3), tip);
+  const q = kzFlyAt(f, ts), land = ts >= f.T;
+  // 着水したあと、ふくらんだ糸に引かれて、ルアーが風下へ流される（模式図）
+  const dl = land ? Math.min(ts - f.T, 6) : 0, drift = dl * (lowRod ? 0.45 : 1.4);
+  const lu = tipU + q[0] - dl * 0.6, lw = q[2] + drift, ly = land ? 0.3 : Math.max(0.3, tipY + q[1]);
+  const L = SFTp(lu, ly, lw), D = Math.hypot(lu - tipU, lw);
+  const bowK = (lowRod ? 0.06 : 0.2) * clamp01((ts - 0.3) / 1.2);
+  const mid = SFTp(tipU + (lu - tipU) * 0.5, (tipY + ly) * 0.5 + (land ? 0 : 3), lw * 0.5 + bowK * D);
+  // 飛んだ道（点）
+  const pts = [];
+  for (const p of f.pts) { if (p[0] > ts) break; pts.push(SFTp(tipU + p[1], Math.max(0.3, tipY + p[2]), p[3])); }
+  if (pts.length > 1) pathLine(pts, "#ffb45e", 1, 6, "2 12");
+  pathLine(bez(tip, mid, L, 34), "#ffb45e", 1, 5);
+  sfJig.visible = true;
+  sfJig.position.copy(L);
+  sfJig.rotation.set(-Math.PI / 2, 0, 0);
+  sfJig.scale.setScalar(SF_JIG_U * 28);
+  const m = project(L);
+  if (!m.behind) lines += `<circle cx="${m.x.toFixed(1)}" cy="${m.y.toFixed(1)}" r="13" fill="#ffb45e" stroke="#fff" stroke-width="4"/>`;
+  const bm = tip.clone().multiplyScalar(0.25).add(mid.clone().multiplyScalar(0.5)).add(L.clone().multiplyScalar(0.25));
+  return { L, mid: bm, tip, land };
+}
+
+// ---- 風が当たる岸（断面）：表面の水と小魚が寄る（と言われる）----
+function kzDrift(T, a = 1) {
+  // 表面の水の動き（水色の粒）。風下（岸、-u）へ。岸に近いほど遅くなって集まる（模式図）
+  if (a <= 0.01) return;
+  for (let i = 0; i < 60; i++) {
+    const q = KZ_OFF[i], s = (q.u * 40 + T * 1.6 * (0.7 + 0.5 * q.l)) % 40, u = 46 - s;
+    const y = sfDy(-0.05 - q.w * 0.35), z = SF_LZ - 2 + q.v * 4;
+    const f = Math.min(1, s / 6) * Math.min(1, (u - 4) / 4) * a;
+    if (f <= 0) continue;
+    const p = project(SFd(u, y, z));
+    if (!p.behind) lines += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(5 + 3 * q.l).toFixed(1)}" fill="#8ff0ff" opacity="${(0.9 * f).toFixed(2)}"/>`;
+  }
+}
+const kzFloor = (x) => sfDy(sfBed(x));
+function kzBaitFish(T, k) {
+  // カタクチイワシの群れ（岸の近くの浅い所）と、それをねらうシーバス（スズキ）。水面より上に出さない
+  const at = (x, y, z) => SFd(x, y, z);
+  fkSchool("katakuchi", T, { at, floor: kzFloor, cx: 20.6, sx: 2.0, h0: 0.55, h1: 1.1, zc: SF_LZ + 1.0, sz: 0.8, n: 16, cm: 14, face: -1, i0: 120, gap: 0.3 });
+  if (k >= 1) {
+    const sx = 24.6 - 0.5 * Math.sin(T * 0.3);
+    fkPut("seabass", 2, sx, kzFloor(sx) + 0.9, Math.PI - 0.04, T, { at, floor: (x) => kzFloor(x), z: SF_LZ + 0.6, cm: 60, freq: 1.1, amp: 0.06 });
+    const sx2 = 26.4 + 0.4 * Math.sin(T * 0.25 + 1);
+    fkPut("seabass", 3, sx2, kzFloor(sx2) + 1.0, Math.PI + 0.03, T, { at, floor: (x) => kzFloor(x), z: SF_LZ - 0.4, cm: 55, freq: 1.0, amp: 0.06 });
+  }
+}
+const kzBaitView = (t) => (PORTRAIT ? look(SFd(22.6, -1.3, SF_LZ + 9), SFd(22.6, -1.1, 0), 50) : look(SFd(22.4 + t * 0.03, -1.3, SF_LZ + 5.5), SFd(22.6, -0.9, 0), 50));
+
+// 波の海の見方
+const kzSeaView = (t, cx = 70, dist = 1) => (PORTRAIT ? look(KZp(cx - 6, 150 * dist, 120 * dist), KZp(cx - 4, 0, -8), 50) : look(KZp(cx - 8 + t * 0.15, 34 * dist, 92 * dist), KZp(cx, 0, 0), 50));
+const kzSeaWind = (T, dir, a = 1, cx = 75, Ls = 170) => kzWind(T, { c: [cx, 0], dir: [dir, 0], Ls, Lw: 70, y0: 4, y1: 18, n: 70, len: 9, sp: 12, a });
+
+Object.assign(SHOTS, {
+  kz_thumb(t, d, s) {
+    kzSeaBase({ wdir: -1, wamp: 1.0 });
+    look(KZp(-14, 9, 22), KZp(16, 2, -2), 50);
+    kzWind(60, { c: [24, -8], dir: [-1, 0], Ls: 70, Lw: 26, y0: 2.5, y1: 10, n: 60, len: 5, sp: 12, w: 5 });
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：岸に向かって風が吹き、沖から白い波。釣り人の糸が風にあおられる
+  kz_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 10;
+    kzSeaBase({ wdir: -1, wamp: 1.0 });
+    if (P) look(KZp(-16, 16, 40), KZp(18, 2, -2), 50);
+    else look(KZp(-14 + t * 0.12, 9, 22), KZp(16, 2, -2), 50);
+    kzWind(T, { c: [24, -8], dir: [-1, 0], Ls: 70, Lw: 26, y0: 3, y1: 11, n: 60, len: 5, sp: 12, w: 5 });
+    // 糸が風下（手前）へふくらむ（模式図）
+    const tip = KZp(0.6, KZ_TOPY + 3.3, -0.35), L = KZp(30, 0.2, 2);
+    pathLine(bez(tip, KZp(12, KZ_TOPY + 1.5 + 0.6 * Math.sin(t * 2), 4 + Math.sin(t * 1.4)), L, 30), "#ffb45e", 1, 4);
+    const a = P ? 1 : clamp01(t / 0.3);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 760 : 380}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 20, P ? "風の日、<br>釣り場はどう変わる？" : "風の日、釣り場はどう変わる？", "追い風・向かい風・横風を見える化", a);
+    ftNote("風と波は模式図（場所・日で変わる）");
+  },
+  // 追い風・向かい風（計算）：k0 風なし → k1 追い風 → k2 向かい風
+  kz_fly(t, d, s, k) {
+    kzSecBase();
+    const P = PORTRAIT, T = t + 30, tk = t - (s[`_k${k}`] ?? 0);
+    kzSecView(t);
+    const W = k === 0 ? 0 : k === 1 ? KZ_W : -KZ_W, f = kzFly(W, 30), f0 = kzFly(0, 30);
+    const ts = Math.max(0, tk - 0.8) * 0.9;
+    if (W) kzSecWind(T, W > 0 ? 1 : -1, fadeIn(tk, 0, 0.6));
+    if (k >= 1) kzFlyDraw(f0, 99, { ghost: true });
+    const L = kzFlyDraw(f, ts, { w: W });
+    sfFlush();
+    const land = ts >= f.T, a = fadeIn(ts - f.T, 0.1);
+    if (k === 0) label(L, "風なし", "ここに落ちる", land ? a : 0, "", 0, P ? -200 : -150);
+    if (k === 1) {
+      label(SFd(SF_TIP[0] + f0.X, 0, SF_LZ), "風なし", "", a, "", P ? -120 : -160, P ? -240 : -170);
+      label(L, "追い風：遠くまで飛ぶ", "風に乗る", a, "gold ans", P ? 90 : 120, P ? -320 : -240);
+    }
+    if (k === 2) {
+      label(SFd(SF_TIP[0] + f0.X, 0, SF_LZ), "風なし", "", a, "", P ? 120 : 160, P ? -240 : -170);
+      label(L, "向かい風：手前に落ちる", "糸もたるむ（糸ふけ）", a, "red ans", P ? -60 : -120, P ? -320 : -240);
+    }
+    kzWindTag(W, W > 0 ? "追い風（背中から）" : W < 0 ? "向かい風（正面から）" : "風なし", fadeIn(tk, 0.2), P ? 520 : 150);
+    kzMini("one", W > 0 ? 1 : W < 0 ? -1 : 0);
+    legend(KZ_LEG);
+    ftNote("ルアーが飛ぶ道は簡単な物理モデルの計算（30g・重さ・空気の抵抗・風）。同じ速さ・角度で投げた場合。糸の形は模式図。ルアーは大きく表示");
+  },
+  // 横風（上から）：k0 糸が風下へふくらむ → k1 ルアーが流される・アタリがわかりにくい → k2 竿先を下げる・風裏
+  kz_side(t, d, s, k) {
+    sfTopBase();
+    sfTop.userData.surf.material.uniforms.foamK.value = 0.35;
+    const P = PORTRAIT, T = t + 60, tk = t - (s[`_k${k}`] ?? 0);
+    if (P) look(SFTp(-44, 70, 4), SFTp(16, 0, 4), 52);
+    else look(SFTp(-42, 36, 4), SFTp(12, 0, 4), 50);
+    const low = k >= 2, f = kzFly(0, low ? 25 : 30, KZ_SIDE_W);
+    const ts = k === 0 ? Math.max(0, tk - 0.6) * 0.9 : k === 1 ? f.T + 0.5 + tk * 0.6 : Math.max(0, tk - 0.4) * 0.9;
+    kzWind(T, { at: (x, y, z) => SFTp(z, y, x), c: [12, 26], dir: [1, 0], Ls: 90, Lw: 60, y0: 3, y1: 12, n: 60, len: 6, sp: 10 });
+    const r = kzTopRig(f, ts, low, T);
+    if (k === 0 && tk > 2.4) label(r.mid, "糸ふけ", "糸が風下へふくらむ", fadeIn(tk, 2.6), "gold ans", P ? -160 : -300, P ? 120 : 60);
+    if (k === 1) {
+      label(r.L, "ルアーが流される", "アタリもわかりにくい", fadeIn(tk, 0.6), "red ans", P ? 160 : 340, P ? 120 : 60);
+    }
+    if (k === 2) {
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">姿勢を低く、<span style="color:#c2410c">竿先を下げる</span></b><div style="font-size:${P ? 27 : 26}px;font-weight:900;margin-top:6px">糸が風を受ける長さが短くなる<br>風が強ければ、<span style="color:#1f8a4c">風裏</span>を探す</div>`, fadeIn(tk, 0.4), [1150, 500, 680], [60, 1540, 960]);
+    }
+    kzWindTag(-1, "横風", 1, P ? 560 : 140); // 上からの絵では、風下（+w）が画面の左
+    legend(KZ_LEG);
+    ftNote("上から見た絵。ルアーが飛ぶ道は簡単な物理モデルの計算、糸のふくらみと流され方は模式図。ルアーと釣り人は大きく表示");
+  },
+  // 波のでき方：k0 風浪（風上の岸から離れるほど大きい） → k1 3つの条件 → k2 うねり
+  kz_nami(t, d, s, k) {
+    const P = PORTRAIT, T = t + 90, tk = t - (s[`_k${k}`] ?? 0);
+    const wa = k < 2 ? 1.05 : 1.05 * (1 - clamp01(tk / 2.5)), sw = k < 2 ? 0 : 0.55 * clamp01((tk - 0.5) / 2.5);
+    kzSeaBase({ wdir: 1, wamp: wa, swell: sw });
+    kzSeaView(t, 64);
+    kzSeaWind(T, 1, k < 2 ? 1 : 1 - clamp01(tk / 1.5));
+    if (k === 0) {
+      label(KZp(14, 0.6, 14), "岸の近く", "波はまだ小さい", fadeIn(tk, 0.6), "", P ? 120 : 80, P ? 260 : 170);
+      label(KZp(118, 1.2, 8), "遠く", "風に押されて大きくなる", fadeIn(tk, 1.8), "gold ans", P ? -60 : -80, P ? 280 : 200);
+    }
+    if (k === 1) {
+      const pts = [KZp(1, 3, 36), KZp(138, 3, 36)];
+      pathLine(pts, "#ffd166", fadeIn(tk, 0.3, 1.5), 8);
+      label(KZp(70, 3, 36), "吹送距離（海の上を吹く距離）", "", fadeIn(tk, 1.6), "gold", 0, P ? -140 : 140);
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">風浪が大きくなる3つ</b><div style="font-size:${P ? 30 : 29}px;font-weight:900;margin-top:8px;line-height:1.5">① 風が<span style="color:#c2410c">強い</span><br>② 長い<span style="color:#c2410c">時間</span>吹く<br>③ 海の上を吹く<span style="color:#c2410c">距離</span>が長い</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">気象庁の資料から</div>`, fadeIn(tk, 0.4), [1240, 330, 600], [60, 1540, 960]);
+    }
+    if (k === 2) {
+      label(KZp(10, 1.5, 14), "うねり", "風がやんでも届く。岸の近くで高くなる", fadeIn(tk, 2.0), "red ans", P ? 160 : 300, P ? 280 : 190);
+    }
+    kzWindTag(k < 2 ? 1 : 0, k < 2 ? "陸から海へ吹く風" : "風がやんだ", 1, P ? 560 : 150);
+    kzMini("one", k < 2 ? 1 : 0);
+    if (!P) legend([["#ffffff", "風の流れ（白い線）"], ["#f4f8fb", "白く崩れる波"]]);
+    kzTag("波の大きさは模式図（場所・日で変わる）");
+  },
+  // クイズ：k0 問い → k1 A・B → k2 答え A（風を背中に受ける岸＝風裏）
+  kz_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 120, tk = t - (s[`_k${k}`] ?? 0);
+    kzSeaBase({ wdir: 1, wamp: 1.0, right: true });
+    kzMan.visible = true;
+    if (P) look(KZp(KZ_R / 2, 170, 130), KZp(KZ_R / 2, 0, -8), 50);
+    else look(KZp(KZ_R / 2, 52, 118), KZp(KZ_R / 2, 0, -2), 50);
+    kzSeaWind(T, 1, 1, KZ_R / 2, KZ_R + 10);
+    if (k <= 1) {
+      html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 720 : 300}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+      html += `<div class="big" style="top:${P ? 260 : 110}px;font-size:${P ? 62 : 54}px">クイズ　強い風の日<br><span style="color:#ffd166">釣りやすいのはどっちの岸？</span></div>`;
+      if (k === 1) {
+        mapPin(KZp(P ? 6 : -6, KZ_TOPY + 1, 0), "A", fadeIn(tk, 0.2));
+        mapPin(KZp(KZ_R + (P ? -6 : 6), KZ_TOPY + 1, 0), "B", fadeIn(tk, 0.6));
+        const o = [["A", "風を背中に受ける岸"], ["B", "風を正面に受ける岸"]];
+        html += `<div style="position:absolute;left:${P ? 120 : 330}px;top:${P ? 1480 : 640}px;width:${P ? 840 : 1260}px;${P ? "" : "display:flex;gap:30px"}">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(tk, 0.3 + i * 0.4)};${P ? "" : "flex:1"}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      }
+    } else {
+      target(KZ.x + 12, KZ.z, 9, fadeIn(tk, 0.3), t);
+      label(KZp(10, 0.6, 0), "答え A：風裏", P ? "波が小さく、投げやすい" : "海の上を吹いた距離が短く、波が小さい。追い風で投げやすい", fadeIn(tk, 0.4), "gold ans", P ? 160 : 520, P ? -300 : -150);
+      noMark(KZp(KZ_R - (P ? 30 : 8), 1.5, P ? 20 : 0), "B：波が高く、投げにくい", fadeIn(tk, 1.6));
+    }
+    if (k <= 1) kzWindTag(1, "風", 1, P ? 600 : 300);
+    kzMini("two", 1);
+    kzTag("模式図（場所・日で変わる）");
+  },
+  // 風が当たる岸：k0 問い → k1 表面の水と小魚が寄る（と言われる）→ k2 無理はしない
+  kz_bait(t, d, s, k) {
+    kzSecBase();
+    const P = PORTRAIT, T = t + 150, tk = t - (s[`_k${k}`] ?? 0);
+    kzBaitView(t);
+    kzWind(T, { at: (x, y, z) => SFd(x, y, z), c: [24, -1], dir: [-1, 0], Ls: 24, Lw: 5, y0: 0.4, y1: 2.0, n: 40, len: 1.4, sp: 5, w: 4 });
+    kzDrift(T, k >= 1 ? 1 : 0.5);
+    kzBaitFish(T, k);
+    sfFlush();
+    if (k === 0) label(SFd(21, -0.2, SF_LZ - 1), "風を正面に受ける岸の海", "表面の水が押される", fadeIn(tk, 0.4), "", P ? 0 : 160, P ? 260 : 220);
+    if (k >= 1) {
+      label(SFd(20.6, kzFloor(20.6) + 0.8, SF_LZ + 1.0), "小魚が岸に寄りやすい", "と言われる", k === 1 ? fadeIn(tk, 1.8) : 1, "gold ans", P ? 0 : 120, P ? -330 : -230);
+      label(SFd(24.6, kzFloor(24.6) + 0.9, SF_LZ + 0.6), "ねらう魚も", "シーバス（イメージ）", k === 1 ? fadeIn(tk, 3.2) : 1, "gold", P ? -60 : -160, P ? -280 : -200);
+    }
+    if (k === 2) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">ただし、<span style="color:#e3412b">波が高い日は無理をしない</span></b><div style="font-size:${P ? 27 : 26}px;font-weight:900;margin-top:6px">釣りができる範囲の風と波の日だけ<br>少しでも危ないと感じたら、海に近づかない</div>`, fadeIn(tk, 0.3), [1080, 470, 760], [60, 1540, 960]);
+    kzWindTag(-1, "海から岸へ吹く風", 1, P ? 560 : 150);
+    if (!P) legend(KZ_LEG2);
+    ftNote("水の動きは模式図、魚の動きはイメージ。深さは2.5倍で表示。BE-PAL・シマノの解説から");
+  },
+  // 安全：k0 天気予報の風と波・警報注意報 → k1 2倍近い波 → k2 ライフジャケット・低い所や先端に近づかない
+  kz_safe(t, d, s, k) {
+    const P = PORTRAIT, T = t + 180, tk = t - (s[`_k${k}`] ?? 0);
+    kzSeaBase({ wdir: -1, wamp: 0.7, swell: 0.5 });
+    if (P) look(KZp(-6, 18, 44), KZp(10, 1.0, -4), 50);
+    else look(KZp(-10 + t * 0.1, 8, 26), KZp(16, 1.5, -4), 50);
+    kzWind(T, { c: [22, 0], dir: [-1, 0], Ls: 70, Lw: 40, y0: 2.5, y1: 11, n: 40, len: 5, sp: 10 });
+    const pos = [960, 150, 880], posP = [60, 1540, 960];
+    if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">出かける前も、釣り場でも</b><div style="font-size:${P ? 29 : 28}px;font-weight:900;margin-top:8px;line-height:1.5">・天気予報の<span style="color:#c2410c">風と波</span><br>・<span style="color:#c2410c">警報・注意報</span><br>・荒れそうなら<span style="color:#1f8a4c">中止か、早めに切り上げる</span></div><div style="font-size:21px;color:#3a5a78;margin-top:8px">海上保安庁の呼びかけから</div>`, fadeIn(tk, 0.3), pos, posP);
+    if (k === 1) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">予報の波の高さは「平均的な高さ」</b><div style="font-size:${P ? 29 : 28}px;font-weight:900;margin-top:8px;line-height:1.5">1000回に1回は、<span style="color:#e3412b">その2倍近い波</span>が来る</div><div style="font-size:21px;color:#3a5a78;margin-top:8px">気象庁・海上保安庁の資料から（有義波高）</div>`, fadeIn(tk, 0.3), pos, posP);
+    if (k === 2) {
+      label(KZp(-2.2, KZ_TOPY + 1.4, 0), "ライフジャケット", "必ず着ける", fadeIn(tk, 0.4), "gold ans", P ? 140 : 200, P ? -260 : -190);
+      label(KZp(0, KZ_TOPY, -8), "波をかぶる低い所・先端", "近づかない", fadeIn(tk, 1.6), "red ans", P ? 60 : 260, P ? 260 : 170);
+    }
+    kzTag("模式図");
+  },
+  kz_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 210;
+    kzSeaBase({ wdir: 1, wamp: 1.0 });
+    kzSeaView(t, 70, 1.05);
+    kzSeaWind(T, 1, 0.7);
+    html += acDim(0.5);
+    const rows = [["追い風", "遠くまで飛ぶ", "山なりに投げると風に乗る", "#2a9d5c"], ["向かい風・横風", "低い弾道、竿先を下げる", "糸ふけを小さく", "#e08a2a"], ["波", "強く・長く・遠くから吹くほど大きい", "風裏は波が小さい。うねりに注意", "#1f6fd1"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 66 : 64}px;opacity:${fadeIn(t, 0.1)}">風の日 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 30 : 32}px;padding:10px 0;width:${P ? 250 : 270}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 34 : 40}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;
