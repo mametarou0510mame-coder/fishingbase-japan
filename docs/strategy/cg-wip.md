@@ -13,20 +13,4 @@
 
 （作り直しも完了。2026-11-23 cg-nabura：ミノーの向き・ブリが水面から出る場面を直した。書き出し 45075990834・圧縮 45078185593・Blender 差しかえ 45078860731（コマは 44971302967）。long-posts.json から外して、長尺だけ出し直す（オーナー指示。ショートはそのまま）。古い記録は data/sns/long-posts-retired.json）
 
-## 作りかけ：cg-kaze（2026-11-23 開始、3DCG 見える化）
-- 企画：A-1 の先頭「風と波で釣り場はこう変わる 追い風・向かい風・横風」
-- タイトル案：【見える化】風の日、釣り場はどう変わる？ 追い風・向かい風・横風と、波のでき方
-- 接頭辞 kz_*。構成：kz_hook → kz_fly（追い風・向かい風。ルアーが飛ぶ道を計算 kzFly）→ kz_side（横風・糸ふけ。上から）→ kz_nami（風浪・うねり。kzSea の波）→ kz_quiz（どっちの岸が釣りやすい？答え：風を背中に受ける岸＝風裏）→ kz_bait（風が当たる岸に小魚が寄ると言われる。Fish Kit katakuchi・seabass）→ kz_safe → kz_sum → ask → end
-- 事実：気象庁「波浪の知識」・波浪の解説資料 r4（風浪は風が強いほど・吹送距離と吹続時間が長いほど発達／うねりは風が弱まっても残り、岸の近くで高くなる／1000波に1波は有義波高の2倍近い）、海上保安庁（ライフジャケット・最新の気象海象・荒天なら中止）、TSURI HACK・シマノ・BE-PAL（追い風・向かい風・横風、竿を下げる・低い弾道、風表にベイトが寄ると言われる）
-- Blender：scenes/kaze.py（nabura.py をもとに、シーバスがジグを追って食う）
-- [x] fish-knowledge.md に出典
-- [x] main.js kz_*
-- [x] 台本・ショート・narrate
-- [x] 静止画の確認・--clear
-- [x] Blender 場面・check_scene
-- [x] commit・push
-- [x] 静止画（横・縦）を確認、--clear 最小 0.56m、check_scene kaze OK
-- [x] 固定コメント data/sns/yt-comments/cg-kaze.txt（ASIN は登録ずみのものを使用）
-- [x] cg-video 45090512331・cg-compress 済み（long-media に cg-kaze.mp4.part-*・jpg・chapters）・Blender test 45091586623（魚・ジグ・文字 OK）
-- [ ] Blender full 45093535691 の完了を待つ → check と summary を確かめる → ORDER に入れる（full が終わる前に入れない）
-- [ ] ORDER・固定コメント・plan 更新
+（作りかけはなし。2026-11-23 見える化「風の日、釣り場はどう変わる？」cg-kaze を ORDER に入れて完了。書き出し 45090512331・圧縮ずみ・Blender full 45093535691・最小すきま 5.233m）
