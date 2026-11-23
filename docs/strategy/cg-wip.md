@@ -15,15 +15,4 @@
 
 （作りかけはなし。2026-11-23 見える化「風の日、釣り場はどう変わる？」cg-kaze を ORDER に入れて完了。書き出し 45090512331・圧縮ずみ・Blender full 45093535691・最小すきま 5.233m）
 
-## 作りかけ（アカデミー）：R9「魚にも『昼型』と『夜型』がいる？」cg-hiruyoru（hy_*）2026-11-23 開始
-- 事実：fish-knowledge.md「昼の魚・夜の魚」（島根県水産技術センター・水産海洋研究 2021。抄録を確認）＋ケンサキイカの夜釣漁業（島根県水産技術センター研究報告 2024）
-- 構成：つかみ（Blender：昼の海底のマダイ）→ 調べ方（網 20回・漁船 487件）→ 2倍のものさし → クイズ（マダイは？）→ 昼タイプ9種 → 夜タイプ4種 → クイズ2（ケンサキイカ：網では昼、漁は夜の集魚灯）→ なぜ大事（資源の数え方）→ 釣りでは → まとめ・ask・end
-- [x] 事実の確認・fish-knowledge.md に追記
-- [x] main.js の hy_*・hy_thumb
-- [x] 台本 cg-hiruyoru.json・short-cg-hiruyoru.json
-- [x] Blender の場面（scenes/hiruyoru.py）・check_scene
-- [x] ローカル静止画の確認
-- [x] cg-video 45113730520 成功・cg-compress 45116205270 起動・blender test 45113739614 OK（最小すきま 0.588m）
-- [ ] Blender full（samples 64、起動ずみ）の完了と check・summary の確認 → そのあと ORDER（cg-kaze の次）・plan の制作済み（11/26 予定）
-- [x] 固定コメント data/sns/yt-comments/cg-hiruyoru.txt
-- [ ] ORDER・固定コメント・plan の制作済み
+（作りかけはなし。2026-11-23 アカデミー R9「魚にも『昼型』と『夜型』がいる？」cg-hiruyoru を ORDER に入れて完了。書き出し 45113730520・Blender full 45116440276（1台落ちて失敗ジョブだけ再実行）・最小すきま 0.587m）
