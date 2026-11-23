@@ -27,6 +27,7 @@
 | **上から見た海と船・ナブラ** | `nbBase()`・`nbLook(cx, cz, 高さ, 引き)`、`nbBoat(i, x, z, 向き, 速さ, T)`（ftBoat の複製4隻・引き波つき）、`nbNabura(T, x, z, k)`（泡・しぶき・鳥山）、`nbSmallAt`（カヤック・SUP）、`nbRing`・`nbPath`・`nbCast`・`nbArrow`・`nbMini` | 沖の海面を上から。船の近づき方・投げる距離・マナーの回に。cg-nabura（nb_*） |
 | **水の中の小魚の群れと突っ込む青物（色の加工なし）** | `nbUnder(T, { raid })`・`nbBall`・`nbRaid` | rcBase の水の中で、カタクチイワシの群れにブリ・サワラが横から突っ込む（T だけで決まる）。cg-nabura |
 | **ジャークベイト・キャスティングのジグ（計算）** | `FT_BODY.nbMinnow`・`nbJig`、`FT_SEQ.nb_jerk`・`nb_bite`・`nb_sink`、模型 `nbMinnowM`・`nbJigM`、`nbFollow` | 船から投げて、しゃくって止める／カウントダウンで沈めて速巻き。しゃくりは2次元なので短く速い巻きで入れる |
+| **風の流れ・波の立つ海・ルアーが飛ぶ道（計算）** | `kzWind(T, { c, dir, Ls, Lw, y0, y1, at })`（白く光る風の線。どの絵にも使える）、`kzWindTag(向き, 文字)`、`kzSeaBase({ wdir, wamp, swell, right })`・`kzSeaView`（風上の岸からの距離で大きくなる風浪と、岸へ寄るうねり。向こう岸つき）、`kzFly(風, 角度, 横風)`・`kzFlyAt`・`kzFlyDraw`（重さ・空気の抵抗・風の簡単な計算でルアーが飛ぶ道）、`kzTopRig`（上から見た横風の糸ふけ）、`kzDrift`（表面の水の動きの粒） | 2026-11-23 cg-kaze（kz_*）。風・波・投げ方・天気の回に。波の大きさと糸の形は模式図 |
 | 画面の部品 | `ftMini`・`ftCtl`（竿とリール）・`ftGraph`・`agGraph`・`ftChip`・`ftNote`・`ftCard`・`ftFinder`・`ftThumbText`、`label`・`legend`・`bigText`・`card`・`drawBar` | 左上の全体図、右上の竿とリール、字幕チップ、注記など |
 | 魚（Fish Kit） | `fkGet(id, i, cm)`・`fkPlace(f, 位置, 向き, 頭の上げ角, T)`、`endFish` | 写真から作った海水魚20種（2026-11-20 新しいモデル集 https://cda-social.github.io/aquarium/models-gallery.html に入れ替え。全部 `loadFish` で読み込み済み。イサキの幼魚 isaki_young が増えた） |
 | **エビ（テナガエビ・レッドビーシュリンプ）** | `vendor/squidkit/shrimp-kit.js` の `createShrimp(id, { folder, home, floorY })` | 2026-11-20 追加。底を歩く・餌をつまむ・泳ぐ・跳ねる。テナガエビ釣り・河口の回に |
@@ -52,7 +53,7 @@
 | **テトラ（消波ブロック）** | `parts.build_tetra(TETRA, mat)`・`parts.tetra_dist(p, TETRA)`（場面に `ENV = "tetra"` と `TETRA = [(x, y, z, rx, ry, rz, 大きさ)]`） | テトラを並べる。`check_scene.py` が魚とテトラの距離も確かめる |
 | **ワーム（ジグヘッド＋ワーム）** | 場面に `LURE = "jig"`・`JIG_MAT = "worm"` | オレンジの胴と鉛の頭。アシストフックとリングは出さない |
 | 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない）、`scenes/tetra.py`（テトラのすそのカサゴとワーム）、`scenes/slope.py`（坂の終わりの段差と捨て石のカサゴ・ワーム。ENV="reef" の reef_h で段差と石を作る） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
-| **仕掛けなしの場面** | 場面に `LURE = "none"` | 道糸も出さない。魚の群れだけの冒頭に。`scenes/iwashi.py`（カタクチイワシ64匹のベイトボール。終わりに散って消える）、`scenes/aji.py`（マアジ40匹が輪をえがいて泳ぎ、終わりに散って消える）、`scenes/sawara.py`（サワラ14匹が大きな輪をえがき、終わりに散って消える）。`scenes/nabura.py`（中層を速巻きで上がるジグをブリが追って食う・うしろをブリの群れ） |
+| **仕掛けなしの場面** | 場面に `LURE = "none"` | 道糸も出さない。魚の群れだけの冒頭に。`scenes/iwashi.py`（カタクチイワシ64匹のベイトボール。終わりに散って消える）、`scenes/aji.py`（マアジ40匹が輪をえがいて泳ぎ、終わりに散って消える）、`scenes/sawara.py`（サワラ14匹が大きな輪をえがき、終わりに散って消える）。`scenes/nabura.py`（中層を速巻きで上がるジグをブリが追って食う・うしろをブリの群れ）、`scenes/kaze.py`（nabura の魚をシーバス suzuki にしたもの） |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
 ### 書き出し済みの映像（long-media ブランチ。`blender_open.clip` にパスを書くと、書き出さずにそのまま使える）

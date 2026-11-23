@@ -27,5 +27,6 @@
 - [x] commit・push
 - [x] 静止画（横・縦）を確認、--clear 最小 0.56m、check_scene kaze OK
 - [x] 固定コメント data/sns/yt-comments/cg-kaze.txt（ASIN は登録ずみのものを使用）
-- [ ] cg-video（実行 45090512331）→ cg-compress → blender test → full
+- [x] cg-video 45090512331・cg-compress 済み（long-media に cg-kaze.mp4.part-*・jpg・chapters）・Blender test 45091586623（魚・ジグ・文字 OK）
+- [ ] Blender full 45093535691 の完了を待つ → check と summary を確かめる → ORDER に入れる（full が終わる前に入れない）
 - [ ] ORDER・固定コメント・plan 更新
