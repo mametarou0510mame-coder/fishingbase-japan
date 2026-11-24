@@ -9,6 +9,17 @@
 
 ---
 
+## 作りかけ：見える化「魚からはどこまで見えている？」cg-shikai（A-1 #3 魚の視界。2026-11-24 開始）
+- [ ] 台本 content/cg/cg-shikai.json・ショート short-cg-shikai.json
+- [ ] main.js に sk_* ショットと sk_thumb
+- [ ] Blender の場面 shikai
+- [ ] ローカルの静止画確認
+- [ ] cg-video（chunks=8）→ cg-compress
+- [ ] cg-blender-open test → full
+- [ ] ORDER に入れる・固定コメント・企画リスト更新
+
+次にやること：台本と main.js の sk_* を作る。
+
 （作りかけはなし。2026-11-22 アカデミー R15「もしもサワラがいなくなったら？」cg-sawara-moshi を ORDER に入れて完了。書き出し 44986093157・Blender full 44989380244・最小すきま 1.945m）
 
 （作り直しも完了。2026-11-23 cg-nabura：ミノーの向き・ブリが水面から出る場面を直した。書き出し 45075990834・圧縮 45078185593・Blender 差しかえ 45078860731（コマは 44971302967）。long-posts.json から外して、長尺だけ出し直す（オーナー指示。ショートはそのまま）。古い記録は data/sns/long-posts-retired.json）
