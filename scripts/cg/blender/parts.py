@@ -110,7 +110,7 @@ class Kelp:
     """帯の葉の海藻。roots：[(x, y, z, 長さ, 向き, 位相)]。update(t) で毎コマゆらす（動きは時刻 t だけで決まる）"""
     NS = 10
 
-    def __init__(self, roots, mat, width=0.05, lean=(0.2, 0.0)):
+    def __init__(self, roots, mat, width=0.05, lean=(0.2, 0.0), name="kelp", build=None):
         self.r = np.array(roots, dtype=float)
         self.lean = lean
         self.width = width
@@ -119,12 +119,12 @@ class Kelp:
         for b in range(nb):
             o = b * (ns + 1) * 2
             faces += [(o + 2 * i, o + 2 * i + 1, o + 2 * i + 3, o + 2 * i + 2) for i in range(ns)]
-        me = bpy.data.meshes.new("kelp")
+        me = bpy.data.meshes.new(name)
         me.from_pydata([(0, 0, 0)] * (nb * (ns + 1) * 2), [], faces)
         me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
-        self.ob = bpy.data.objects.new("kelp", me)
+        self.ob = bpy.data.objects.new(name, me)
         bpy.context.scene.collection.objects.link(self.ob)
-        me.materials.append(mat("kelp", b_kelp))
+        me.materials.append(mat(name, build or b_kelp))
         sol = self.ob.modifiers.new("s", "SOLIDIFY")
         sol.thickness = 0.004
         self.update(0.0)
@@ -361,3 +361,50 @@ def build_tetra(tetras, mat):
         o.scale = (s, s, s)
         obs.append(o)
     return obs
+
+
+# ---------------------------------------------------------------- ノリ養殖の網と垂れるノリ（2026-11-24 cg-nori）
+def b_nori(nt, n, l):
+    """ノリの葉：暗い赤茶〜こげ茶、光が少し透ける"""
+    p = _principled(nt)
+    tc = n.new("ShaderNodeTexCoord")
+    noi = n.new("ShaderNodeTexNoise")
+    noi.inputs["Scale"].default_value = 3.0
+    l.new(tc.outputs["Object"], noi.inputs["Vector"])
+    ramp = n.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.3
+    ramp.color_ramp.elements[0].color = (0.035, 0.012, 0.008, 1)
+    ramp.color_ramp.elements[1].position = 0.75
+    ramp.color_ramp.elements[1].color = (0.09, 0.05, 0.012, 1)
+    l.new(noi.outputs["Fac"], ramp.inputs["Fac"])
+    l.new(ramp.outputs["Color"], p.inputs["Base Color"])
+    p.inputs["Roughness"].default_value = 0.45
+    _set(p, "Subsurface Weight", 0.3)
+    _set(p, "Subsurface Radius", (0.03, 0.012, 0.005))
+
+
+def b_netrope(nt, n, l):
+    p = _principled(nt)
+    p.inputs["Base Color"].default_value = (0.62, 0.62, 0.55, 1)
+    p.inputs["Roughness"].default_value = 0.8
+
+
+def build_nori(z, mat, x=(-4.0, 4.0), y=(-1.0, 6.0), step=0.3, n=1600, seed=5):
+    """高さ z に水平のノリ網（step m の目）を張り、目から葉を垂らす。戻り値の update(t) で毎コマゆらす（時刻 t だけで決まる）"""
+    nx, ny = int(round((x[1] - x[0]) / step)), int(round((y[1] - y[0]) / step))
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=nx, y_subdivisions=ny, size=1.0)
+    g = bpy.context.object
+    g.name = "norinet"
+    g.scale = (x[1] - x[0], y[1] - y[0], 1.0)
+    g.location = ((x[0] + x[1]) / 2, (y[0] + y[1]) / 2, z)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    w = g.modifiers.new("w", "WIREFRAME")
+    w.thickness = 0.012
+    g.data.materials.append(mat("netrope", b_netrope))
+    rng = np.random.default_rng(seed)
+    roots = []
+    for _ in range(n):
+        px = x[0] + step * int(rng.integers(1, nx))
+        py = y[0] + step * int(rng.integers(1, ny))
+        roots.append((px + rng.uniform(-0.03, 0.03), py + rng.uniform(-0.03, 0.03), z, -rng.uniform(0.16, 0.38), rng.uniform(0, math.pi), rng.uniform(0, 6.28)))
+    return Kelp(roots, mat, width=0.018, lean=(0.12, 0.0), name="nori", build=b_nori)

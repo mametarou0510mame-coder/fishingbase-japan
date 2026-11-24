@@ -13,9 +13,9 @@
 - 事実：fish-knowledge.md「クロダイ（冬のノリ食害）」（徳島水研だより118号・岡山県水産研究所 2024年2月／7月）
 - 構成：nr_hook → nr_net（ノリ網・岡山で県下全域に）→ nr_cam（徳島のカメラ）→ nr_quiz（249尾）→ nr_oka（岡山：約1,000個体・葉の先が短く）→ nr_time（昼前・夕方）→ nr_temp（10.7〜12.3℃でも・2月末まで）→ nr_why（要因）→ nr_guard（防護網・敷網）→ nr_tsuri → nr_sum → ask → end。部品：ノリ網 nrNet・ノリの葉 nrNori・クロダイ（Fish Kit kurodai）
 - [x] 企画を選び、A-2 に新しい企画を3つ追記（R16 イカナゴの夏眠・R17 ヒラメの目・R18 放流魚）、fish-knowledge に節を足した
-- [ ] main.js（nr_*・nr_thumb）、content/cg/cg-nori.json・short-cg-nori.json
-- [ ] Blender の場面 scenes/nori.py（ENV="nori"：ノリ網と葉）・check_scene
-- [ ] 静止画の確認 → push
+- [x] main.js（nr_*・nr_thumb）、content/cg/cg-nori.json・short-cg-nori.json（約3分02秒・ショート43.7秒）
+- [x] Blender の場面 scenes/nori.py（ENV="nori"：parts.build_nori）・check_scene 最小すきま 1.11m
+- [x] 静止画の確認（--clear 最小 1.075m）→ push
 - [ ] cg-video（8分割）→ cg-compress → Blender test → full
 - [ ] ORDER に入れる・固定コメント・plan の制作済みへ移す
 

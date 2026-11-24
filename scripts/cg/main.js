@@ -10932,6 +10932,315 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// アカデミー R11 冬のチヌはノリを食べに来る？（cg-nori、nr_*）2026-11-24
+// 事実は docs/research/fish-knowledge.md「クロダイ（冬のノリ食害）」だけ：
+//   徳島水研だより118号（2024年5月、岡本裕太）：2024年1月17〜21日、徳島市沿岸のノリ漁場1か所、養殖の枠の水深50cm前後にタイムラプスカメラ、
+//     1分に1回撮影（6〜17時）。1時間に写った尾数の最多は1月18日10時台の249尾（11.8℃）。昼前に多く正午に減り夕方に多い傾向。
+//     これまでは15〜17℃で出現、今回は10.7〜12.3℃でも大量に出現。生産者の話：2月末まで、10℃を下回ると減る。透明の敷網が効いた所も。確実な方法はまだない。
+//   岡山県水産研究所（2024年2月）：要因は秋〜冬の水温降下の鈍化と、魚価の低迷で積極的に漁獲されなくなったこと。
+//   岡山県水産研究所（2024年7月）：ここ数年で県下全域に。2023年12月4〜8日 犬島周辺、3区（防護網・忌避材・通常）、多いときは1時間に延べ約1,000個体以上、
+//     葉の先がささくれ立って短く。防護網区は来遊なし・食べた跡なし。
+// 249尾と約1,000個体は物差しがちがうので並べて比べない。ノリ網のまわりで釣ることは勧めない（養殖施設）。
+// 土台は rcBase（水の中）。海面のすぐ下にノリ網（nrNet、模式図）と、網から垂れるノリの葉（nrNori）、砂の海底（hyFloor の材質を使い回す）。
+// 魚は Fish Kit の kurodai。魚の色は 3D モデルのまま。魚の動きはイメージ
+// 使い回せる部品：nrWater()（浅い冬の海の水の中・海面つき）、nrNet・nrNori（養殖の網と垂れる海藻。nrU.cut で葉が短くなる）、nrFish（クロダイの群れ・葉をつつく魚）、nrCamBox（水中カメラ）
+// =====================================================================
+const NR_D = 3.2, NR_NET = -0.14; // 海底の深さ・網の高さ（模式図。実際の深さではない）
+const nrGrp = new THREE.Group();
+nrGrp.position.copy(RC);
+world.add(nrGrp);
+extras.push(nrGrp);
+const nrFloor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1).rotateX(-Math.PI / 2).translate(0, -NR_D, 0), hyFloor.material);
+nrGrp.add(nrFloor);
+const nrU = { time: U.time, cut: { value: 0 }, cutX: { value: 99 }, fogc: hyU.fogc };
+// 網：縦横のロープ（InstancedMesh）＋まわりの浮き
+const NR_W = 16, NR_Z = 12, NR_S = 0.3;
+const nrNet = (() => {
+  const g = new THREE.Group();
+  const nx = Math.round(NR_W / NR_S) + 1, nz = Math.round(NR_Z / NR_S) + 1;
+  const geo = new THREE.CylinderGeometry(0.008, 0.008, 1, 5);
+  const im = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ color: 0xd8dccf }), nx + nz);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+  let n = 0;
+  for (let i = 0; i < nx; i++) { q.setFromAxisAngle(V(1, 0, 0), Math.PI / 2); sc.set(1, NR_Z, 1); m.compose(V(-NR_W / 2 + i * NR_S, NR_NET, 0), q, sc); im.setMatrixAt(n++, m); }
+  for (let j = 0; j < nz; j++) { q.setFromAxisAngle(V(0, 0, 1), Math.PI / 2); sc.set(1, NR_W, 1); m.compose(V(0, NR_NET, -NR_Z / 2 + j * NR_S), q, sc); im.setMatrixAt(n++, m); }
+  g.add(im);
+  // 枠の太いロープと浮き（オレンジ）
+  const rope = (a, b) => { const d = b.clone().sub(a), r = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, d.length(), 8), new THREE.MeshBasicMaterial({ color: 0x8a7a5a })); r.position.copy(a).add(b).multiplyScalar(0.5); r.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize()); g.add(r); };
+  const X = NR_W / 2, Z = NR_Z / 2;
+  rope(V(-X, NR_NET, -Z), V(X, NR_NET, -Z)); rope(V(-X, NR_NET, Z), V(X, NR_NET, Z)); rope(V(-X, NR_NET, -Z), V(-X, NR_NET, Z)); rope(V(X, NR_NET, -Z), V(X, NR_NET, Z));
+  for (let i = 0; i <= 8; i++) [-Z, Z].forEach((z) => { const f = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), new THREE.MeshBasicMaterial({ color: 0xff8a1a })); f.position.set(-X + i * (2 * X / 8), -0.02, z); g.add(f); });
+  // 網を止める支柱（模式図。四すみと辺のまん中）
+  [[-X, -Z], [X, -Z], [-X, Z], [X, Z]].forEach(([x, z]) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, NR_D + 0.8, 8), new THREE.MeshBasicMaterial({ color: 0x6b5a40 })); p.position.set(x, (0.8 - NR_D) / 2, z); g.add(p); });
+  nrGrp.add(g);
+  return g;
+})();
+// ノリの葉：網の目から垂れる細い葉（暗い赤茶〜緑）。aP＝（位相, 長さ, 根もとの x）
+const nrNori = (() => {
+  const r = rng(7213), N = 4600, geo = new THREE.PlaneGeometry(0.028, 1, 1, 8).translate(0, -0.5, 0);
+  const im = new THREE.InstancedMesh(geo, new THREE.ShaderMaterial({
+    uniforms: nrU, side: THREE.DoubleSide, transparent: true,
+    vertexShader: `attribute vec3 aP; uniform float time; uniform float cut; uniform float cutX; varying float vU; varying float vD; varying float vK;
+      void main(){ vec3 p = position; float u = -p.y; float c = cut * step(aP.z, cutX); float L = aP.y * (1.0 - 0.55 * c * (0.6 + 0.4 * fract(aP.x * 3.7)));
+        p.y = -u * L; p.x *= (1.0 - 0.55 * u) * (1.0 + 0.5 * c * sin(u * 40.0 + aP.x));
+        vec4 w = modelMatrix * instanceMatrix * vec4(p, 1.0);
+        w.x += (sin(time * 0.9 + aP.x + u * 2.5) * 0.06 + 0.05) * u * L * 2.0; w.z += cos(time * 0.7 + aP.x * 1.3 + u * 2.0) * 0.05 * u * L * 2.0;
+        vU = u; vK = fract(aP.x * 1.91); vD = length(w.xyz - cameraPosition); gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform vec3 fogc; varying float vU; varying float vD; varying float vK;
+      void main(){ vec3 c = mix(vec3(0.20, 0.10, 0.07), vec3(0.24, 0.20, 0.08), vK); c *= 0.85 + 0.35 * (1.0 - vU);
+        c = mix(c, fogc, smoothstep(5.0, 30.0, vD)); gl_FragColor = vec4(c, 0.92); }`,
+  }), N);
+  const ap = new Float32Array(N * 3), m = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V(1, 1, 1);
+  for (let i = 0; i < N; i++) {
+    const x = -NR_W / 2 + 0.2 + r() * (NR_W - 0.4), z = -NR_Z / 2 + 0.2 + r() * (NR_Z - 0.4);
+    const xs = Math.round(x / NR_S) * NR_S, zs = Math.round(z / NR_S) * NR_S; // 網の目の上
+    q.setFromAxisAngle(V(0, 1, 0), r() * Math.PI);
+    m.compose(V(xs + (r() - 0.5) * 0.06, NR_NET, zs + (r() - 0.5) * 0.06), q, one);
+    im.setMatrixAt(i, m);
+    ap[i * 3] = r() * 6.28; ap[i * 3 + 1] = 0.18 + r() * 0.22; ap[i * 3 + 2] = xs;
+  }
+  geo.setAttribute("aP", new THREE.InstancedBufferAttribute(ap, 3));
+  im.frustumCulled = false;
+  im.renderOrder = 4;
+  nrGrp.add(im);
+  return im;
+})();
+// 水中カメラ（タイムラプスカメラの模式図）：網の下、水深50cm前後
+const nrCamBox = (() => {
+  const g = new THREE.Group();
+  const b = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.1), new THREE.MeshStandardMaterial({ color: 0x2b2f36, roughness: 0.5 }));
+  const l = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.04, 16).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x8fd3f2, roughness: 0.1, metalness: 0.5 }));
+  l.position.z = 0.07;
+  const rp = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.4, 6), new THREE.MeshBasicMaterial({ color: 0xd8dccf }));
+  rp.position.y = 0.26;
+  g.add(b, l, rp);
+  nrGrp.add(g);
+  return g;
+})();
+// 浅い冬の海の水の中（海面と網が見える）。濁りは少しだけ
+function nrWater() {
+  hyWater(0);
+  hyGrp.visible = false;
+  nrGrp.visible = true;
+  rcGrp.children.forEach((c) => (c.visible = c === rcSurf));
+  rcSurf.material.uniforms.minA.value = 0.35;
+  rcSkyU.top.value.set(0.42, 0.70, 0.80);
+  rcSkyU.bot.value.set(0.10, 0.30, 0.36);
+  hyU.fogc.value.set(0.20, 0.44, 0.50);
+  nrU.cut.value = 0;
+  nrU.cutX.value = 99;
+  nrCamBox.visible = false;
+}
+const NRp = (x, y, z = 0) => RCp(x, y, z);
+// クロダイの群れ。eat：葉をつつく魚の割合（頭を上げて口を葉の先へ）。face：1 右向き、-1 左向き、0 魚ごと
+const NR_OFF = (() => { const r = rng(6113); return Array.from({ length: 24 }, () => ({ x: r() * 2 - 1, h: r(), z: r() * 2 - 1, p: r() * 6.28, w: 0.7 + r() * 0.6, k: r(), e: r() })); })();
+function nrFish(T, o = {}) {
+  const { n = 10, cx = 0, sx = 3, z0 = 0, sz = 1.2, eat = 0.4, face = 0, h0 = -1.0, h1 = -2.1, sc = 1.1 } = o;
+  for (let i = 0; i < 24; i++) {
+    const q = NR_OFF[i], cm = 36 + Math.round(q.k * 10), f = fkGet("kurodai", 1400 + i, cm);
+    if (!f) continue;
+    if (i >= n) { f.object.visible = false; continue; }
+    const dir = face || (q.p > 3.14 ? 1 : -1), nib = q.e < eat;
+    const x = cx + q.x * sx + 0.3 * Math.sin(T * 0.22 * q.w + q.p), z = z0 + 0.7 + q.z * sz;
+    let my, ang;
+    if (nib) { const bob = 0.5 + 0.5 * Math.sin(T * 1.2 * q.w + q.p); my = -0.5 - 0.2 * bob; ang = 0.5 + 0.18 * bob; }
+    else { my = lerp(h0, h1, q.h) + 0.08 * Math.sin(T * 0.5 * q.w + q.p); ang = 0.05 * Math.sin(T * 0.4 + q.p); }
+    fkPut("kurodai", 1400 + i, x, my, dir > 0 ? ang : Math.PI - ang, T, { at: NRp, floor: () => -NR_D, z, cm, sc, freq: 1.2, amp: 0.05 });
+  }
+}
+const nrC = () => NRp(0, -1.2, 0);
+const nrSrcT = "徳島県水産研究所（徳島水研だより 2024）";
+const nrSrcO = "岡山県農林水産総合センター水産研究所（2024）";
+const nrNote = (txt = "魚の動きはイメージ。網とノリは模式図") => ftNote(txt);
+// ふつうの場面のカメラ：網の下、少し下から見上げる
+function nrCam(t, o = {}) {
+  const P = PORTRAIT, c = nrC().clone().add(V(o.dx ?? 0, o.dy ?? 0, 0));
+  iwCam(c, o.dist ?? (P ? 5.4 : 3.8), (o.ang ?? 0) + 0.06 * Math.sin(t * 0.15), o.up ?? -0.35, 50, c.clone().add(V(o.lx ?? 0, o.ly ?? 0.25, 0)));
+}
+
+Object.assign(SHOTS, {
+  nr_thumb(t, d, s) {
+    nrWater();
+    const T = 5;
+    nrFish(T, { n: 12, cx: 1.6, sx: 2.2, z0: 0.2, sz: 1.0, eat: 0.6, h0: -1.0, h1: -1.9 });
+    const c = NRp(1.4, -0.9, 0.3);
+    iwCam(c, 3.4, 0.1, -0.55, 50, c.clone().add(V(-0.9, 0.15, 0)));
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：網の下にチヌが集まり、葉をつつく（本番は Blender の冒頭）
+  nr_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2;
+    nrWater();
+    nrFish(T, { n: Math.round(lerp(6, 14, ease(clamp01(t / 6)))), cx: 0, sx: P ? 1.5 : 2.8, z0: 0.3, sz: 1.0, eat: 0.5 });
+    nrCam(t, { dist: lerp(P ? 5.6 : 4.2, P ? 5.0 : 3.6, ease(t / d)), ly: P ? 0.6 : 0.3 });
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.55),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "冬のチヌは<br>ノリを食べに来る？", "徳島県・岡山県の調査から", a);
+    academyBadge();
+    nrNote("魚の動きはイメージ。網とノリは模式図");
+  },
+  // ノリ網とチヌ：k0 網で育てる・食害 → k1 岡山で県下全域に
+  nr_net(t, d, s, k) {
+    const P = PORTRAIT, T = t + 12;
+    nrWater();
+    nrFish(T, { n: 8, cx: P ? 0 : 2.2, sx: 2.2, z0: 0, sz: 1.0, eat: 0.5 });
+    nrCam(t, { dx: P ? 0 : 1.2, dist: P ? 5.8 : 4.2, lx: P ? 0 : -1.4, ly: P ? -0.6 : 0.4 });
+    if (!P) label(NRp(-0.6, NR_NET - 0.3, 0.8), "ノリの網", "海面のすぐ下・模式図", fadeIn(t, 0.6), "", -60, -60);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    let inner = `<b style="font-size:${P ? 38 : 40}px">ノリは、海に張った<span style="color:#1d8a3a">網</span>で育てる</b><div style="font-size:${P ? 31 : 32}px;font-weight:900;margin-top:10px">その網にチヌ（クロダイ）が来て食べる<br>＝<span style="color:#c2410c">食害</span>（しょくがい）</div>`;
+    if (k >= 1) inner += `<div style="opacity:${a1};margin-top:14px;border-top:3px dashed #9fb3c6;padding-top:12px;font-size:${P ? 31 : 32}px;font-weight:900">岡山県：一部の漁場だけだったのが<br>ここ数年で<span style="color:#c2410c">県下全域</span>に広がった</div><div style="font-size:23px;color:#3a5a78;margin-top:4px;opacity:${a1}">チヌの食害は全国的に問題になっている（岡山県の資料）</div>`;
+    html += ftCard(P, inner, fadeIn(t, 0.3), [70, 190, 860], [60, 400, 960]);
+    iwSrc(k >= 1 ? nrSrcO : "");
+    academyBadge();
+    nrNote();
+  },
+  // カメラで調べた：k0 徳島 2024年1月 → k1 水深50cm・1分に1回
+  nr_cam(t, d, s, k) {
+    const P = PORTRAIT, T = t + 30;
+    nrWater();
+    nrCamBox.visible = true;
+    nrCamBox.position.set(P ? 0.2 : 1.0, -0.5, 1.2);
+    nrCamBox.rotation.set(0, Math.PI, 0);
+    nrFish(T, { n: 9, cx: P ? 0.2 : 1.0, sx: 2.2, z0: -0.8, sz: 0.9, eat: 0.5 });
+    const c = NRp(P ? 0.2 : 1.0, -0.8, 1.2);
+    iwCam(c, P ? 3.4 : 2.6, 0.5 + 0.05 * Math.sin(t * 0.2), 0.1, 50, c.clone().add(V(P ? 0 : -0.8, P ? -0.2 : 0.1, -0.4)));
+    const flash = k >= 1 && ((t - (s._k1 ?? 0)) % 1.5) < 0.12;
+    if (flash) html += `<div style="position:absolute;inset:0;background:rgba(255,255,255,.35)"></div>`;
+    if (!P) label(nrCamBox.getWorldPosition(V()), "カメラ", k >= 1 ? "水深50cm前後・1分に1回" : "ノリの網の枠に", fadeIn(t, 0.5), "", 160, -40);
+    const row = (i, hd, txt, col) => { if (k < i) return ""; const a = fadeIn(t - (s[`_k${i}`] ?? 0), 0.3); return `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${a}"><b style="background:${col};color:#fff;font-size:${P ? 26 : 28}px;padding:8px 0;width:${P ? 170 : 160}px;text-align:center;border-radius:14px;flex:none">${hd}</b><div style="font-size:${P ? 31 : 32}px;font-weight:900">${txt}</div></div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">徳島県のカメラ調査</b>` +
+      row(0, "いつ", "<span style=\"color:#c2410c\">2024年1月</span>17〜21日（5日間）", "#1f6fd1") +
+      row(0, "どこ", "徳島市の沿岸のノリの漁場", "#1f6fd1") +
+      row(1, "撮り方", "水深<span style=\"color:#c2410c\">50cm</span>前後・<span style=\"color:#c2410c\">1分に1回</span><br>日の出〜日の入り（6〜17時）", "#c2410c") +
+      row(1, "数え方", "1時間に写った<span style=\"color:#c2410c\">チヌの数</span>", "#1d8a3a"), fadeIn(t, 0.3), [70, 190, 800], [60, 420, 960]);
+    iwSrc(nrSrcT);
+    academyBadge();
+    nrNote("魚の動きはイメージ。網・ノリ・カメラは模式図");
+  },
+  // クイズ：いちばん多い1時間に何尾？ k0 問い → k1 選択肢 → k2 正解 C 249尾
+  nr_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 50, t2 = s._k2 ?? 99, ans = t > t2 + 1.2;
+    nrWater();
+    nrFish(T, { n: ans ? 24 : 12, cx: P ? 0 : 1.8, sx: ans ? 3.2 : 2.4, z0: 0, sz: 1.3, eat: 0.45 });
+    nrCam(t, { dx: P ? 0 : 1.4, dist: P ? 5.8 : 4.3, lx: P ? 0 : -1.4, ly: P ? -0.8 : 0.3 });
+    const opts = [["A", "25尾"], ["B", "100尾"], ["C", "249尾"]];
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:430px" : "left:70px;top:190px;width:720px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 44 : 42}px;font-weight:900;margin:14px 0 4px">いちばん多い1時間に<br>写ったチヌは何尾？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans && !P) html += ftCard(P, `<b style="font-size:38px">正解 <span style="color:#1d8a3a">C</span>：<span style="color:#c2410c">249尾</span></b><div style="font-size:30px;font-weight:900;margin-top:8px">2024年1月18日 10時台の1時間<br>水温 11.8℃</div>`, fadeIn(t - t2 - 1.2, 0.2), [900, 660, 760], [60, 1150, 960]);
+    iwSrc(k >= 2 ? nrSrcT : "");
+    academyBadge();
+    nrNote(ans ? "魚の数はイメージ（249尾を描いてはいない）" : "魚の動きはイメージ");
+  },
+  // 岡山の調査：k0 2023年12月・網の下にカメラ → k1 群れ・1時間に延べ約1,000以上 → k2 葉の先が短く
+  nr_oka(t, d, s, k) {
+    const P = PORTRAIT, T = t + 70;
+    nrWater();
+    if (k >= 2) { nrU.cut.value = ease(clamp01((t - (s._k2 ?? 99)) / 1.5)); nrU.cutX.value = P ? 99 : 1.5; }
+    nrFish(T, { n: k >= 1 ? 20 : 8, cx: P ? 0 : 1.6, sx: k >= 1 ? 3.0 : 2.0, z0: 0, sz: 1.2, eat: 0.55 });
+    nrCam(t, { dx: P ? 0 : 1.4, dist: k >= 2 ? (P ? 4.2 : 3.4) : (P ? 5.8 : 4.2), lx: P ? 0 : -1.4, ly: k >= 2 ? (P ? 0.2 : 0.7) : (P ? -0.6 : 0.3) });
+    const row = (i, txt) => { if (k < i) return ""; const a = fadeIn(t - (s[`_k${i}`] ?? 0), 0.3); return `<div style="font-size:${P ? 31 : 32}px;font-weight:900;margin-top:12px;opacity:${a}">${txt}</div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">岡山県のカメラ調査</b>` +
+      row(0, "<span style=\"color:#1f6fd1\">2023年12月</span>4〜8日・犬島のまわり<br>ノリを最初に摘み取る前、網の下にカメラ") +
+      row(1, "群れで来て、多いときは1時間に<br><span style=\"color:#c2410c;font-size:1.25em\">のべ約1,000匹以上</span>") +
+      row(2, "ノリの葉は<span style=\"color:#c2410c\">先がささくれて短く</span><br>＝食べた跡"), fadeIn(t, 0.3), [70, 190, 800], [60, 420, 960]);
+    if (k >= 2 && !P) label(NRp(0.6, -0.42, 0.6), "先が短くなった葉", "模式図", fadeIn(t - (s._k2 ?? 99), 0.8), "ans", 0, -80);
+    iwSrc(nrSrcO);
+    academyBadge();
+    nrNote("魚の数・動きはイメージ。網とノリは模式図");
+  },
+  // 来る時間：昼前に多い → 正午に減る → 夕方に多い（傾向の模式図）
+  nr_time(t, d, s, k) {
+    const P = PORTRAIT, T = t + 90;
+    nrWater();
+    nrFish(T, { n: 10, cx: P ? 0 : 2.6, sx: 2.2, z0: -0.4, sz: 1.0, eat: 0.4 });
+    nrCam(t, { dx: P ? 0 : 1.6, dist: P ? 6.2 : 4.3, lx: P ? 0 : -1.6, ly: P ? -1.0 : 0.3 });
+    html += acDim(0.15);
+    const a1 = k >= 1 ? ease(clamp01((t - (s._k1 ?? 99)) / 2.5)) : 0;
+    const Wg = P ? 860 : 760, Hg = 260, hrs = [6, 8, 10, 12, 14, 16];
+    const f = (h) => 0.25 + 0.55 * Math.exp(-((h - 10) ** 2) / 3) + 0.5 * Math.exp(-((h - 16) ** 2) / 2.2) - 0.05 * Math.exp(-((h - 12.5) ** 2) / 1.2);
+    const N = 60, pts = [];
+    for (let i = 0; i <= N; i++) { const h = 6 + (11 * i) / N; if (i / N > a1) break; pts.push(`${(Wg * (h - 6)) / 11},${Hg - Hg * clamp01(f(h))}`); }
+    const svg = `<svg width="${Wg}" height="${Hg + 50}" style="overflow:visible"><line x1="0" y1="${Hg}" x2="${Wg}" y2="${Hg}" stroke="#10345a" stroke-width="4"/>${hrs.map((h) => `<text x="${(Wg * (h - 6)) / 11}" y="${Hg + 40}" font-size="28" font-weight="900" fill="#10345a" text-anchor="middle">${h}時</text>`).join("")}${pts.length > 1 ? `<polyline points="${pts.join(" ")}" fill="none" stroke="#e3412b" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>` : ""}${a1 > 0.45 ? `<text x="${(Wg * 4) / 11}" y="${Hg - Hg * f(10) - 18}" font-size="30" font-weight="900" fill="#c2410c" text-anchor="middle">昼前</text>` : ""}${a1 > 0.65 ? `<text x="${(Wg * 6.5) / 11}" y="${Hg - Hg * f(12.5) + 50}" font-size="28" font-weight="900" fill="#1f4f9a" text-anchor="middle">正午は減る</text>` : ""}${a1 > 0.95 ? `<text x="${(Wg * 10) / 11 - 20}" y="${Hg - Hg * f(16) - 18}" font-size="30" font-weight="900" fill="#c2410c" text-anchor="middle">夕方</text>` : ""}</svg>`;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">チヌが来る時間の<span style="color:#c2410c">傾向</span>（徳島）</b><div style="margin-top:18px">${svg}</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">線は傾向の模式図（実際の数ではない）。日によってばらつきがある</div>`, fadeIn(t, 0.3), [70, 190, 840], [60, 420, 960]);
+    iwSrc(nrSrcT);
+    academyBadge();
+    nrNote();
+  },
+  // 水温：k0 これまで15〜17℃ → k1 今回 10.7〜12.3℃でも → k2 2月末まで（生産者の話）
+  nr_temp(t, d, s, k) {
+    const P = PORTRAIT, T = t + 110;
+    nrWater();
+    nrFish(T, { n: k >= 1 ? 16 : 6, cx: P ? 0 : 2.6, sx: 2.4, z0: -0.4, sz: 1.0, eat: 0.5 });
+    nrCam(t, { dx: P ? 0 : 1.6, dist: P ? 6.2 : 4.3, lx: P ? 0 : -1.6, ly: P ? -1.0 : 0.3 });
+    html += acDim(0.12);
+    const H0 = 8, H1 = 18, Ht = P ? 330 : 440, y = (c) => Ht - (Ht * (c - H0)) / (H1 - H0);
+    const a0 = fadeIn(t, 0.3), a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    const band = (c0, c1, col, txt, a, x) => `<rect x="${x}" y="${y(c1)}" width="150" height="${y(c0) - y(c1)}" rx="12" fill="${col}" opacity="${0.9 * a}"/><text x="${x + 75}" y="${y(c1) - 14}" font-size="27" font-weight="900" fill="${col}" text-anchor="middle" opacity="${a}">${txt}</text>`;
+    const svg = `<svg width="${P ? 600 : 560}" height="${Ht + 30}" style="overflow:visible">${[8, 10, 12, 14, 16, 18].map((c) => `<line x1="70" y1="${y(c)}" x2="${P ? 560 : 520}" y2="${y(c)}" stroke="#c7d3de" stroke-width="2"/><text x="56" y="${y(c) + 10}" font-size="26" font-weight="900" fill="#10345a" text-anchor="end">${c}℃</text>`).join("")}${band(15, 17, "#e08a00", "これまで", a0, 110)}${band(10.7, 12.3, "#1f6fd1", "今回", a1, 320)}${k >= 2 ? `<line x1="70" y1="${y(10)}" x2="${P ? 560 : 520}" y2="${y(10)}" stroke="#e3412b" stroke-width="5" stroke-dasharray="14 10" opacity="${fadeIn(t - (s._k2 ?? 99), 0.3)}"/>` : ""}</svg>`;
+    let side = `<div style="font-size:${P ? 30 : 31}px;font-weight:900;line-height:1.5">これまで：<span style="color:#e08a00">15〜17℃</span>くらいで確認</div>`;
+    if (k >= 1) side += `<div style="font-size:${P ? 30 : 31}px;font-weight:900;line-height:1.5;opacity:${a1};margin-top:8px">今回：<span style="color:#1f6fd1">10.7〜12.3℃</span>でも<br>たくさん来て、さかんに食べた</div>`;
+    if (k >= 2) side += `<div style="font-size:${P ? 28 : 29}px;font-weight:900;line-height:1.5;opacity:${fadeIn(t - (s._k2 ?? 99), 0.3)};margin-top:8px;border-top:3px dashed #9fb3c6;padding-top:8px">例年は年明けに収まるのに<br><span style="color:#c2410c">2月末まで</span>続いた<br><span style="font-size:0.8em;color:#3a5a78">（生産者の話。<span style="color:#e3412b">10℃</span>を下回ると減った）</span></div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">チヌが来た水温（徳島）</b><div style="display:flex;gap:24px;align-items:flex-start;margin-top:14px;${P ? "flex-direction:column;align-items:center" : ""}"><div>${svg}</div><div style="${P ? "" : "width:520px"}">${side}</div></div>`, a0, [70, 190, 1180], [60, 360, 960]);
+    iwSrc(nrSrcT);
+    academyBadge();
+    nrNote();
+  },
+  // なぜ？：岡山県の資料の要因
+  nr_why(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130;
+    nrWater();
+    nrFish(T, { n: 14, cx: P ? 0 : 2.4, sx: 2.6, z0: -0.3, sz: 1.1, eat: 0.5 });
+    nrCam(t, { dx: P ? 0 : 1.6, dist: P ? 6.2 : 4.3, lx: P ? 0 : -1.6, ly: P ? -1.0 : 0.3 });
+    html += acDim(0.15);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    const box = (n, txt, col, a) => `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${a}"><b style="background:${col};color:#fff;font-size:34px;width:60px;height:60px;line-height:60px;text-align:center;border-radius:50%;flex:none">${n}</b><div style="font-size:${P ? 31 : 32}px;font-weight:900">${txt}</div></div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">なぜ、長引く・広がる？</b>${k >= 1 ? `<div style="font-size:26px;color:#3a5a78;margin-top:8px;opacity:${a1}">岡山県の資料が挙げる要因</div>` + box(1, "秋〜冬に<span style=\"color:#c2410c\">水温が下がるのがおそい</span>", "#c2410c", a1) + box(2, "魚の値段が低く<br><span style=\"color:#1f4f9a\">チヌがあまり獲られなくなった</span>", "#1f4f9a", k >= 1 ? fadeIn(t - (s._k1 ?? 99), 1.2) : 0) : ""}`, fadeIn(t, 0.3), [70, 190, 820], [60, 420, 960]);
+    iwSrc(k >= 1 ? "岡山県農林水産総合センター水産研究所（2024年2月）" : "");
+    academyBadge();
+    nrNote();
+  },
+  // ノリを守る：k0 3つの方法 → k1 網で囲う区だけ来ない → k2 確実な方法はまだない
+  nr_guard(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150;
+    nrWater();
+    nrFish(T, { n: 10, cx: P ? 0 : 2.6, sx: 2.2, z0: -0.4, sz: 1.0, eat: 0.4 });
+    nrCam(t, { dx: P ? 0 : 1.6, dist: P ? 6.2 : 4.3, lx: P ? 0 : -1.6, ly: P ? -1.0 : 0.3 });
+    html += acDim(0.15);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0, a2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.3) : 0;
+    const col = (hd, sub, ok, i) => { const a = fadeIn(t, 0.3 + i * 0.4); return `<div style="flex:1;opacity:${a};text-align:center;background:${k >= 1 && ok ? "#e5f7ea" : "#f3f6f9"};border:4px solid ${k >= 1 && ok ? "#1d8a3a" : "#c7d3de"};border-radius:18px;padding:12px 8px"><div style="font-size:${P ? 29 : 30}px;font-weight:900">${hd}</div><div style="font-size:22px;color:#3a5a78">${sub}</div>${k >= 1 ? `<div style="font-size:${P ? 27 : 28}px;font-weight:900;margin-top:8px;opacity:${a1};color:${ok ? "#1d8a3a" : "#c2410c"}">${ok ? "チヌ 来ない<br>食べた跡 なし" : "チヌ 来た<br>食べた跡 あり"}</div>` : ""}</div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">ノリを守る方法を比べた（岡山県）</b><div style="display:flex;gap:16px;margin-top:14px">${col("網で囲う", "防護網", 1, 0)}${col("光る板", "金属の板を下げる", 0, 1)}${col("何もしない", "", 0, 2)}</div>${k >= 2 ? `<div style="opacity:${a2};margin-top:14px;font-size:${P ? 30 : 31}px;font-weight:900">ただし<span style="color:#c2410c">確実に効く方法はまだない</span>（徳島県の資料）<br><span style="font-size:0.85em">手間とお金も課題</span></div>` : ""}<div style="font-size:22px;color:#3a5a78;margin-top:6px">2023年12月の5日間の試験の結果</div>`, fadeIn(t, 0.3), [70, 190, 900], [60, 420, 960]);
+    iwSrc(k >= 2 ? "岡山県水産研究所（2024）・徳島県水産研究所（2024）" : nrSrcO);
+    academyBadge();
+    nrNote();
+  },
+  // だから釣りでは：k0 冬でも浅い海に群れ → k1 ノリの網には近づかない
+  nr_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 170;
+    nrWater();
+    nrFish(T, { n: 12, cx: 0, sx: 3.0, z0: -0.2, sz: 1.2, eat: 0.35 });
+    nrCam(t, { dist: P ? 6 : 4.2, ly: P ? 0 : 0.6 });
+    if (k === 0) html += ftCard(P, `<b style="font-size:36px">冬でも、水温11℃前後の<span style="color:#1d8a3a">浅い海</span>に<br>チヌの群れが来ることがある</b>`, fadeIn(t, 0.5), [230, 170, 1460], [60, 420, 960]);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:36px">ノリの養殖の網は、漁業者の大切な施設</b><div style="font-size:34px;font-weight:900;margin-top:8px;color:#e3412b">近づかない・網のまわりで釣らない</div>`, fadeIn(t - (s._k1 ?? 99), 0.3), [230, 170, 1460], [60, 420, 960]);
+    academyBadge();
+    nrNote();
+  },
+  nr_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 190;
+    nrWater();
+    nrFish(T, { n: 12, cx: 0, sx: 3.0, z0: -1.2, sz: 1.2, eat: 0.4 });
+    nrCam(t, { dist: P ? 6.2 : 4.6, ly: 0.3 });
+    html += acDim(0.45);
+    const rows = [["カメラ", "冬のノリの網に、チヌが群れで来て食べた", "徳島県・岡山県の水産研究所の調査", "#1f6fd1"], ["249尾", "徳島：いちばん多い1時間（1月・11.8℃）", "昼前と夕方に多い傾向", "#e08a00"], ["11℃前後", "低い水温でもたくさん来た", "例年より長く、2月末まで（生産者の話）", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 58 : 60}px;opacity:${fadeIn(t, 0.1)}">冬のチヌとノリ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 // =====================================================================
