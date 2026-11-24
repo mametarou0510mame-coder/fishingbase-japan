@@ -14,11 +14,11 @@
 - [x] main.js に sk_* ショットと sk_thumb（静止画・縦・すきま最小 0.73m 確認ずみ）
 - [x] Blender の場面 shikai（check_scene：すきま最小 0.38m）
 - [x] ローカルの静止画確認
-- [ ] cg-video（chunks=8）→ cg-compress
-- [ ] cg-blender-open test → full
+- [x] cg-video（chunks=8）45299045780 → cg-compress 45303767327
+- [ ] cg-blender-open test（45301997509 OK）→ full 45303771457（実行中。終わったら cg/open/cg-shikai-summary.txt を確かめる）
 - [ ] ORDER に入れる・固定コメント・企画リスト更新
 
-次にやること：cg-video（slug=cg-shikai, chunks=8）を起動。
+次にやること：Blender full 45303771457 の完了を待つ → ORDER に入れる（固定コメント data/sns/yt-comments/cg-shikai.txt は作成ずみ）→ 企画リスト更新。
 
 （作りかけはなし。2026-11-22 アカデミー R15「もしもサワラがいなくなったら？」cg-sawara-moshi を ORDER に入れて完了。書き出し 44986093157・Blender full 44989380244・最小すきま 1.945m）
 
