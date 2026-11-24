@@ -9,16 +9,7 @@
 
 ---
 
-## 作りかけ：見える化「魚からはどこまで見えている？」cg-shikai（A-1 #3 魚の視界。2026-11-24 開始）
-- [x] 台本 content/cg/cg-shikai.json・ショート short-cg-shikai.json（約3分01秒・ショート約44秒）
-- [x] main.js に sk_* ショットと sk_thumb（静止画・縦・すきま最小 0.73m 確認ずみ）
-- [x] Blender の場面 shikai（check_scene：すきま最小 0.38m）
-- [x] ローカルの静止画確認
-- [x] cg-video（chunks=8）45299045780 → cg-compress 45303767327
-- [ ] cg-blender-open test（45301997509 OK）→ full 45303771457（実行中。終わったら cg/open/cg-shikai-summary.txt を確かめる）
-- [ ] ORDER に入れる・固定コメント・企画リスト更新
-
-次にやること：Blender full 45303771457 の完了を待つ → ORDER に入れる（固定コメント data/sns/yt-comments/cg-shikai.txt は作成ずみ）→ 企画リスト更新。
+（作りかけはなし。2026-11-24 見える化「魚からはどこまで見えている？」cg-shikai を ORDER に入れて完了。書き出し 45299045780（render 2 が Install で止まったので取り消して再実行）・圧縮 45307006335・Blender full 45303771457・最小すきま 0.379m）
 
 （作りかけはなし。2026-11-22 アカデミー R15「もしもサワラがいなくなったら？」cg-sawara-moshi を ORDER に入れて完了。書き出し 44986093157・Blender full 44989380244・最小すきま 1.945m）
 
