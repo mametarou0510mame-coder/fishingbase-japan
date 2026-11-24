@@ -9,17 +9,7 @@
 
 ---
 
-## 作りかけ（アカデミー）R11「冬のチヌはノリを食べに来る？」cg-nori（2026-11-24 開始。ツレドキアカデミーの制作タスク）
-- 事実：fish-knowledge.md「クロダイ（冬のノリ食害）」（徳島水研だより118号・岡山県水産研究所 2024年2月／7月）
-- 構成：nr_hook → nr_net（ノリ網・岡山で県下全域に）→ nr_cam（徳島のカメラ）→ nr_quiz（249尾）→ nr_oka（岡山：約1,000個体・葉の先が短く）→ nr_time（昼前・夕方）→ nr_temp（10.7〜12.3℃でも・2月末まで）→ nr_why（要因）→ nr_guard（防護網・敷網）→ nr_tsuri → nr_sum → ask → end。部品：ノリ網 nrNet・ノリの葉 nrNori・クロダイ（Fish Kit kurodai）
-- [x] 企画を選び、A-2 に新しい企画を3つ追記（R16 イカナゴの夏眠・R17 ヒラメの目・R18 放流魚）、fish-knowledge に節を足した
-- [x] main.js（nr_*・nr_thumb）、content/cg/cg-nori.json・short-cg-nori.json（約3分02秒・ショート43.7秒）
-- [x] Blender の場面 scenes/nori.py（ENV="nori"：parts.build_nori）・check_scene 最小すきま 1.11m
-- [x] 静止画の確認（--clear 最小 1.075m）→ push
-- [x] cg-video（8分割）45329169274（render 3・6 と finish が Install で止まり、取り消して再実行）→ cg-compress 45338408379 → Blender test 45331515149（OK・すきま 1.069m）
-- [ ] Blender full 45340723375（終わったら cg/open/cg-nori-summary.txt と check を見る）
-- [x] 固定コメント data/sns/yt-comments/cg-nori.txt
-- [ ] ORDER に入れる（cg-shikai の後）・plan の制作済みへ移す
+（作りかけはなし。2026-11-24 アカデミー R11「冬のチヌはノリを食べに来る？」cg-nori を ORDER に入れて完了。書き出し 45329169274（render 3・6・finish が Install で止まり再実行）・圧縮 45338408379・Blender full 45340723375・最小すきま 1.069m）
 
 （作りかけはなし。2026-11-24 見える化「魚からはどこまで見えている？」cg-shikai を ORDER に入れて完了。書き出し 45299045780（render 2 が Install で止まったので取り消して再実行）・圧縮 45307006335・Blender full 45303771457・最小すきま 0.379m）
 
