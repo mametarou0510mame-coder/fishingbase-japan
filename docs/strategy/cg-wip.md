@@ -16,8 +16,10 @@
 - [x] main.js（nr_*・nr_thumb）、content/cg/cg-nori.json・short-cg-nori.json（約3分02秒・ショート43.7秒）
 - [x] Blender の場面 scenes/nori.py（ENV="nori"：parts.build_nori）・check_scene 最小すきま 1.11m
 - [x] 静止画の確認（--clear 最小 1.075m）→ push
-- [ ] cg-video（8分割）45329169274 → cg-compress → Blender test → full
-- [ ] ORDER に入れる・固定コメント・plan の制作済みへ移す
+- [x] cg-video（8分割）45329169274（render 3・6 と finish が Install で止まり、取り消して再実行）→ cg-compress 45338408379 → Blender test 45331515149（OK・すきま 1.069m）
+- [ ] Blender full 45340723375（終わったら cg/open/cg-nori-summary.txt と check を見る）
+- [x] 固定コメント data/sns/yt-comments/cg-nori.txt
+- [ ] ORDER に入れる（cg-shikai の後）・plan の制作済みへ移す
 
 （作りかけはなし。2026-11-24 見える化「魚からはどこまで見えている？」cg-shikai を ORDER に入れて完了。書き出し 45299045780（render 2 が Install で止まったので取り消して再実行）・圧縮 45307006335・Blender full 45303771457・最小すきま 0.379m）
 
