@@ -12660,6 +12660,311 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 【見える化】魚からはどこまで見えている？（cg-shikai、sk_*）2026-11-24
+// 事実は docs/research/fish-knowledge.md「魚の視覚」だけ：
+//   三重大学 宮﨑（魚の視力0.1〜0.4の近視・澄んだ所でも大きな物はせいぜい40m・クロマグロは前方斜め上がよく見える）、
+//   塩原・有元 日本水産学会誌69(4) 2003（マダイの視力 500lx 0.24・100lx 0.19・10lx 0.15・1〜0.1lx 0.10）、
+//   塩原・有元 65(4) 1999（マダイは正面の両眼視野・前下方へもまっすぐ近づく・吻の下が死角＝両目が体軸に対して傾く）、
+//   宮城ほか 67(3) 2001（ブリ 15mm 0.04 → 390mm 0.23）、川村ほか 1981（マグロ・カジキ類 0.3〜0.5）、鳥澤ほか 2002（クロソイ 0.09〜0.11）、
+//   McComb ほか 2009（レモンザメ 片眼159°・両眼10°・死角52°。数値はサメの例だけ）、色覚（メジナ・オオクチバス・ホッケ・マコガレイ／マグロ類・クロソイ）。
+// 使わない：真骨魚の視野の度数、マダイの「真後ろは見えない」、クロダイの視力、透明度から見える距離への換算。
+// 土台は hyWater（rcBase の水の中＋砂の海底）。魚は Fish Kit（色はモデルのまま）。ぼやけた見え方（backdrop-filter）と視野の扇は模式図・イメージ
+// 使い回せる部品：skBlur（画面の一部をぼかす＝魚の目のイメージ）、skFan（目から出る見える範囲の扇。xy＝横から・xz＝上から）、skEye（Fish Kit の魚の目の位置の目安）、skLure（タイラバを水の中に置く）
+// =====================================================================
+const SKp = (x, y, z = 0) => HYp(x, y, z);
+const skY = (h) => -HY_D + h; // 底からの高さ h → y
+const SK_FL = () => -HY_D;
+// マダイを口の位置で置く（fkPut。埋まらないように上げて記録）
+function skTai(i, mx, h, ang, T, o = {}) {
+  return fkPut(o.id ?? "madai", 1300 + i, mx, skY(h), ang, T, { at: SKp, floor: SK_FL, z: o.z ?? 0, cm: o.cm ?? 45, sc: o.sc ?? 1, freq: o.freq ?? 1.3, amp: o.amp ?? 0.045 });
+}
+// 目の位置の目安（口から体の向きに 0.15L 後ろ、0.06L 上）。r は fkPut の戻り値、ang は口の向き
+function skEye(r, ang, z = 0) {
+  if (!r) return SKp(0, skY(1), z);
+  const c = Math.cos(ang), s = Math.sin(ang), L = r.L;
+  return SKp(r.mx - c * 0.15 * L - s * 0.06 * L, r.my - s * 0.15 * L + c * 0.06 * L, z);
+}
+// ルアー（rcLures の赤いミノー型。色はそのまま）を置く。yaw：頭の向き（0＝+x）
+function skLure(x, h, z, vis = 1, T = 0, yaw = 0, g = rcLures[0]) {
+  g.visible = true;
+  g.position.copy(SKp(x, skY(h), z));
+  g.rotation.set(0, yaw, 0.12 * Math.sin(T * 2.2), "YXZ");
+  g.scale.setScalar(vis);
+  rcTintObj(g, 0);
+}
+// 画面の一部をぼかす（魚の目のぼやけのイメージ）。rect：[左, 上, 幅, 高さ]
+function skBlur(rect, px, a = 1) {
+  if (a <= 0.01) return;
+  html += `<div style="position:absolute;left:${rect[0]}px;top:${rect[1]}px;width:${rect[2]}px;height:${rect[3]}px;backdrop-filter:blur(${(px * a).toFixed(1)}px);-webkit-backdrop-filter:blur(${(px * a).toFixed(1)}px)"></div>`;
+}
+// 目から出る扇（見える範囲の模式図）。eye：3D の点、a0・a1：角度（ラジアン。plane="xy" は横から：0＝+x・上が正、"xz" は上から：0＝+x・+z が正）
+function skFan(eye, a0, a1, R, col, a, plane = "xy", o = {}) {
+  if (a <= 0.01) return;
+  const n = 28, pts = [project(eye)];
+  for (let i = 0; i <= n; i++) {
+    const th = lerp(a0, a1, i / n), c = Math.cos(th) * R, s = Math.sin(th) * R;
+    pts.push(project(plane === "xy" ? eye.clone().add(V(c, s, 0)) : eye.clone().add(V(c, 0, s))));
+  }
+  if (pts.some((p) => p.behind)) return;
+  const id = `skg${Math.round(Math.random() * 1e9)}`, p0 = pts[0];
+  const far = pts[Math.floor(n / 2) + 1];
+  lines += `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${p0.x}" cy="${p0.y}" r="${Math.hypot(far.x - p0.x, far.y - p0.y)}"><stop offset="0" stop-color="${col}" stop-opacity="${(o.a0 ?? 0.6) * a}"/><stop offset="1" stop-color="${col}" stop-opacity="${(o.a1 ?? 0.08) * a}"/></radialGradient></defs>`;
+  lines += `<polygon points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="url(#${id})" stroke="${col}" stroke-opacity="${0.9 * a}" stroke-width="${o.w ?? 4}" stroke-linejoin="round" ${o.dash ? `stroke-dasharray="${o.dash}"` : ""}/>`;
+}
+const skNote = (txt = "魚の動きはイメージ。見え方のぼかし・見える範囲は模式図") => ftNote(txt);
+const SK_LEG = [["#2ecc71", "よく見える範囲（両目）"], ["#4cc3ff", "片目で見える範囲"], ["#e3412b", "見えにくい所（死角）"]];
+// 横から見たマダイの基本の絵：主役（右向き）。o.x・o.h で口の位置
+function skHero(T, o = {}) {
+  const mx = o.x ?? 0.25, h = o.h ?? 1.0, ang = o.ang ?? 0;
+  const r = skTai(0, mx + 0.02 * Math.sin(T * 0.5), h + 0.03 * Math.sin(T * 0.7), ang, T, { cm: 45, sc: o.sc ?? 1, z: o.z ?? 0 });
+  return { r, ang, eye: skEye(r, ang, o.z ?? 0), mx, h };
+}
+// 魚の目で見る（主役の目の少し後ろから前を）
+function skPov(t, h = 1.0, P = PORTRAIT) {
+  const c = SKp(0.4, skY(h - 0.05), 0);
+  iwCam(c, P ? 0.45 : 0.5, -Math.PI / 2 + 0.03 * Math.sin(t * 0.3), 0.06, 50, SKp(2.0, skY(h - 0.12), 0));
+}
+// 前の景色：タイラバ2つ（左・右）と、奥のマダイ
+function skScene(T, o = {}) {
+  const P = PORTRAIT, zz = o.zz ?? (P ? 0.24 : 0.36);
+  if (o.two !== false) {
+    // 2つ目は複製（同じ模型）
+    if (!skLure2) { skLure2 = rcLures[0].clone(true); world.add(skLure2); extras.push(skLure2); }
+    skLure(1.25, 0.92 + 0.02 * Math.sin(T * 0.8), -zz, 1.5, T, -Math.PI / 2);
+    skLure(1.25, 0.92 + 0.02 * Math.sin(T * 0.8 + 0.4), zz, 1.5, T + 0.4, -Math.PI / 2, skLure2);
+  } else skLure(1.25, 0.92, 0, 1.5, T, -Math.PI / 2);
+  hyTais(T, { n: o.n ?? 5, cx: 3.2, sx: 1.4, z0: 0, sz: 1.4, h0: 0.7, h1: 1.5, dir: Math.PI, sp: 0.2 });
+}
+let skLure2 = null;
+// 横から見る（主役の魚を中心に）
+function skSide(t, r, dist, o = {}) {
+  const P = PORTRAIT, c = SKp((r ? r.mx : 0.25) - 0.1 + (o.ox ?? 0), skY(o.cy ?? 0.9), 0);
+  iwCam(c, dist * (P ? 1.1 : 1), (o.ang ?? 0) + 0.04 * Math.sin(t * 0.2), o.up ?? 0.12, 45, c.clone().add(V(0, P ? (o.pd ?? 0.25) : 0, 0)));
+}
+// 視力の数値チップ
+const skVal = (v, col = "#ffd166") => `<span style="color:${col}">${v}</span>`;
+
+Object.assign(SHOTS, {
+  sk_thumb(t, d, s) {
+    hyWater(0);
+    const T = 3;
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    skLure(0.66, 0.66, 0.05, 1.2, T, Math.PI - 0.3);
+    hyTais(T, { n: 3, cx: 1.8, sx: 1.2, z0: -2.2, sz: 0.6, h0: 0.9, h1: 1.6, dir: Math.PI });
+    const c = SKp(0.12, skY(0.86), 0);
+    iwCam(c, 1.25, 0.05, 0.05, 45, c.clone().add(V(-0.42, 0, 0)));
+    skFan(hr.eye, -0.85, 0.12, 0.6, "#2ecc71", 0.9, "xy");
+    skFan(hr.eye, -1.8, -1.25, 0.32, "#e3412b", 0.9, "xy", { a0: 0.5, a1: 0.3 });
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：マダイの前にタイラバ。目から光る扇（本番は Blender の冒頭に差しかわる）
+  sk_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2;
+    hyWater(0);
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    skLure(0.72, 0.66 + 0.05 * Math.sin(T * 0.6), 0.05, 1.2, T, Math.PI - 0.3);
+    hyTais(T, { n: 4, cx: 1.5, sx: 1.6, z0: -2.4, sz: 0.6, h0: 0.9, h1: 1.7, dir: Math.PI });
+    const c = SKp(0.35, skY(0.85), 0);
+    iwCam(c, P ? 1.7 : 1.55, 0.12 - 0.06 * ease(t / d), 0.06, 45, c.clone().add(V(0, P ? 0.35 : 0.12, 0)));
+    skFan(hr.eye, -0.85, 0.15, 0.6, "#2ecc71", fadeIn(t, 1.0, 1.0), "xy");
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 90, "魚からは、<br>どこまで見えている？", "魚の目を見える化", a);
+    skNote();
+  },
+  // 魚の視力：k0 0.1〜0.4＝近視 → k1 人の目と視力0.2のイメージを左右で比べる → k2 せいぜい40m
+  sk_eye(t, d, s, k) {
+    const P = PORTRAIT, T = t + 8, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    skPov(t);
+    skScene(T, { two: k === 1 });
+    if (k === 1) {
+      skBlur([W / 2, 0, W / 2, H], P ? 7 : 9, fadeIn(tk, 0.3, 0.8));
+      lines += `<line x1="${W / 2}" y1="0" x2="${W / 2}" y2="${H}" stroke="#fff" stroke-width="6" opacity="${fadeIn(tk, 0.2)}"/>`;
+      const tag = (x, txt, sub, col) => `<div style="position:absolute;left:${x}px;top:${P ? 420 : 150}px;transform:translateX(-50%);text-align:center;opacity:${fadeIn(tk, 0.4)}"><div style="background:${col};color:#fff;font-size:${P ? 40 : 46}px;font-weight:900;padding:6px 26px;border-radius:16px;white-space:nowrap">${txt}</div><div style="color:#fff;font-size:${P ? 28 : 30}px;font-weight:900;margin-top:8px;text-shadow:0 2px 6px #000">${sub}</div></div>`;
+      html += tag(W / 4, "人の目", "視力 1.0", "#1f6fd1") + tag((3 * W) / 4, "魚の目", "視力 0.2 くらいのイメージ", "#c2410c");
+    }
+    if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 40 : 40}px">魚の視力は <span style="color:#c2410c">0.1〜0.4</span> くらい</b><div style="font-size:${P ? 36 : 36}px;font-weight:900;margin-top:8px">人でいえば<span style="color:#c2410c">「近視」</span></div><div style="font-size:22px;color:#3a5a78;margin-top:8px">三重大学の資料から</div>`, fadeIn(tk, 0.3), [70, 190, 760], [60, 420, 960]);
+    if (k === 2) {
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 36}px">とても澄んだ海でも</b><div style="font-size:${P ? 34 : 34}px;font-weight:900;margin-top:8px">大きな物が見えるのは<br><span style="color:#c2410c;font-size:${P ? 60 : 60}px">せいぜい 40m</span></div><svg viewBox="0 0 600 70" width="100%" style="margin-top:6px"><line x1="20" y1="35" x2="${20 + 560 * fadeIn(tk, 0.5, 1.5)}" y2="35" stroke="#ffb02e" stroke-width="10" stroke-linecap="round"/><circle cx="20" cy="35" r="14" fill="#c2410c"/><text x="580" y="66" font-size="24" text-anchor="end" fill="#10345a" font-weight="900">40m</text><text x="20" y="66" font-size="24" fill="#10345a" font-weight="900">魚</text></svg><div style="font-size:22px;color:#3a5a78;margin-top:4px">三重大学の資料から（濁った海ではもっと短い）</div>`, fadeIn(tk, 0.3), [70, 190, 760], [60, 420, 960]);
+    }
+    rcSrc(k === 1 ? "" : "三重大学（宮﨑多惠子）の資料");
+    skNote(k === 1 ? "右半分は、視力0.2くらいのぼやけ方のイメージ（模式図）。魚の動きはイメージ" : "魚の目の高さから見た絵（イメージ）");
+  },
+  // 暗いと見えにくい：明るさで水が暗くなり、ぼやけが強まる。棒グラフ（マダイの視力）
+  sk_dark(t, d, s, k) {
+    const P = PORTRAIT, T = t + 30, tk = t - (s[`_k${k}`] ?? 0);
+    const t1 = s._k1 ?? 99, step = k === 0 ? 0 : k === 1 ? Math.min(3, 1 + Math.floor((t - t1) / (P ? 0.8 : 2.2))) : 3;
+    const vis = [0.24, 0.19, 0.15, 0.10], lux = ["500", "100", "10", "1〜0.1"];
+    const nk = [0, 0.35, 0.6, 0.9][step];
+    hyWater(nk);
+    skPov(t);
+    skScene(T, { two: false, n: 4 });
+    skBlur(P ? [0, 800, W, H - 800] : [W * 0.45, 0, W * 0.55, H], lerp(2, 10, step / 3), 1);
+    const rows = vis.map((v, i) => [`${lux[i]}ルクス`, v.toFixed(2), v / 0.26, i === step ? "#c2410c" : i < step ? "#8aa0b4" : i === 0 ? "#ffb02e" : "#cfd8e0"]);
+    iwBars(P, "マダイの視力と明るさ", rows.map((r, i) => (i <= step ? r : [r[0], "", 0.02, "#cfd8e0"])), 1, [70, 190, 860], [60, 420, 960], "日本水産学会誌（塩原・有元 2003）の行動実験");
+    hySun(P, nk > 0.5 ? 1 : 0, ["明るい", "少し暗い", "暗い", "夜のように暗い"][step]);
+    if (k === 2) ftChip("暗いほど、魚からも見えにくい", "#c2410c", fadeIn(tk, 0.3), P ? 1180 : 760);
+    skNote("水の暗さとぼかしは模式図（明るさのイメージ）。魚の動きはイメージ");
+  },
+  // 魚によってちがう：ブリ（小さい・大きい）、マグロ・カジキの仲間、クロソイ
+  sk_kind(t, d, s, k) {
+    const P = PORTRAIT, T = t + 50, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const bx = P ? 0.2 : 1.6 + 0.15 * Math.sin(T * 0.2);
+    const br = skTai(10, bx, 1.4, Math.PI, T, { id: "buri", cm: 39, freq: 2, amp: 0.07, z: 0.4 });
+    const kh = k < 1 ? null : skTai(11, (P ? 0.6 : 2.1) - 0.2 * Math.sin(T * 0.15), 1.75, Math.PI, T, { id: "kihada", cm: 80, freq: 1.8, amp: 0.06, z: -1.6 });
+    const c = SKp(P ? 0.2 : 1.4, skY(1.6), 0);
+    iwCam(c, P ? 3.6 : 2.6, 0.08 * Math.sin(t * 0.2), 0.1, 50, c.clone().add(V(P ? 0 : -1.0, P ? 0.9 : 0, 0)));
+    const rows = [["ブリ 1.5cm", "0.04", 0.04 / 0.5, "#8aa0b4"], ["ブリ 39cm", "0.23", 0.23 / 0.5, "#ffb02e"]];
+    if (k >= 1) rows.push(["マグロ・カジキ", "0.3〜0.5", 1, "#1f6fd1"], ["クロソイ", "0.1くらい", 0.1 / 0.5, "#1d8a3a"]);
+    iwBars(P, "魚の視力くらべ", rows, fadeIn(tk, 0, 1.2), [70, 190, P ? 960 : 1100], [60, 420, 960], "日本水産学会誌・鹿児島大学・Fisheries Science の研究から");
+    if (!P) {
+      if (br) label(SKp(br.cx, br.cy + 0.06, 0.4), "ブリ（39cm）", "視力 0.23", fadeIn(t, 0.8), "", -60, 200);
+      if (kh) label(SKp(kh.cx, kh.cy + 0.1, -1.6), "マグロの仲間", "絵はキハダ", fadeIn(tk, 0.8), "", -80, -110);
+    }
+    skNote("魚の動きはイメージ。棒の高さは視力の値（ブリ 1.5cm は稚魚）");
+  },
+  // 見える範囲：上から見たマダイ。片目の広い扇（水色）、両目の狭い前（緑）→ k1 レモンザメの例（数値）
+  sk_field(t, d, s, k) {
+    const P = PORTRAIT, T = t + 70, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const mx = 0.25, h = 1.0;
+    const r = skTai(0, mx, h, 0, T, { cm: 45, z: 0, amp: 0.03 });
+    const L = r ? r.L : 0.45, ex = mx - 0.15 * L, ey = skY(h + 0.03);
+    const eL = SKp(ex, ey, -0.045), eR = SKp(ex, ey, 0.045);
+    const cxm = mx + (P ? 0.05 : lerp(0.05, 0.62, k >= 1 ? ease(clamp01(tk / 0.8)) : 0));
+    look(SKp(cxm, skY(h) + 7, 0.9), SKp(cxm, skY(h), P ? 0.25 : 0), P ? 13 : 10);
+    rcSky.position.copy(camera.position);
+    const D = Math.PI / 180, a0 = fadeIn(t, 0.6, 1.0) * (k === 0 ? 1 : 1 - 0.6 * fadeIn(tk, 0, 0.6));
+    // 上から：+x が前、+z が画面の下。右目（+z 側）は前から右・後ろへ、左目は反対へ
+    skFan(eR, -5 * D, 154 * D, 0.36, "#4cc3ff", a0, "xz", { a0: 0.45, a1: 0.05 });
+    skFan(eL, 5 * D, -154 * D, 0.36, "#4cc3ff", a0, "xz", { a0: 0.45, a1: 0.05 });
+    skFan(SKp(ex + 0.05, ey, 0), -5 * D, 5 * D, 0.55, "#2ecc71", a0, "xz", { a0: 0.9, a1: 0.35, w: 5 });
+    if (k === 0) {
+      label(SKp(ex - 0.22, ey, -0.2), "片目で見える範囲", "広い", fadeIn(t, 1.4), "", P ? 0 : -320, 20);
+      label(SKp(mx + 0.5, ey, 0), "両目で見える範囲", "前の狭い範囲", fadeIn(t, 2.4), "gold ans", P ? -80 : 40, -120);
+    }
+    if (k === 1) {
+      const sv = (deg0, deg1, R, col, op) => { const p = (dg) => `${(150 + R * Math.cos((dg - 90) * D)).toFixed(1)},${(150 + R * Math.sin((dg - 90) * D)).toFixed(1)}`; let pts = `150,150`; for (let g = deg0; g <= deg1; g += 2) pts += ` ${p(g)}`; return `<polygon points="${pts} ${p(deg1)}" fill="${col}" opacity="${op}"/>`; };
+      // 前＝上。両目 10°（前）、片目それぞれ 159°、後ろの死角 52°（10 + 149 + 149 + 52 = 360）
+      const svg = `<svg viewBox="0 0 300 300" width="${P ? 380 : 330}">${sv(5, 154, 130, "#4cc3ff", 0.55)}${sv(-154, -5, 130, "#4cc3ff", 0.55)}${sv(-5, 5, 140, "#2ecc71", 0.95)}${sv(154, 206, 130, "#e3412b", 0.8)}<ellipse cx="150" cy="160" rx="16" ry="44" fill="#5b6b78"/><text x="150" y="18" text-anchor="middle" font-size="20" font-weight="900" fill="#10345a">前</text></svg>`;
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">レモンザメ（サメの一種）の例</b><div style="display:flex;align-items:center;gap:16px;margin-top:6px;${P ? "flex-direction:column" : ""}">${svg}<div style="font-size:${P ? 32 : 30}px;font-weight:900;line-height:1.6"><span style="color:#1f6fd1">片目</span>：159°<br><span style="color:#1d8a3a">両目</span>：前の 10°<br><span style="color:#e3412b">後ろの死角</span>：52°</div></div><div style="font-size:22px;color:#3a5a78;margin-top:6px">McComb ほか（2009）。数値はサメの例で、魚によってちがう</div>`, fadeIn(tk, 0.3), [1080, 160, 770], [60, 1080, 960]);
+    }
+    if (!P && k === 0) legend(SK_LEG.slice(0, 2));
+    skNote(k === 0 ? "上から見たマダイ。扇は見える範囲の模式図（角度は魚によってちがう）" : "左のマダイの扇は模式図。右の図はレモンザメの研究の数値");
+  },
+  // クイズ：マダイの死角はどこ？ A 真上・B 鼻先の真下・C 正面 → 正解 B
+  sk_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 90, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    skSide(t, hr.r, 1.5, { ox: P ? 0.05 : -0.15, cy: 0.95, pd: P ? 0.42 : 0.15 });
+    const L = hr.r ? hr.r.L : 0.45;
+    const pA = SKp(hr.mx - 0.2 * L, skY(1.0) + 0.32, 0), pB = SKp(hr.mx - 0.04, skY(1.0) - 0.2, 0), pC = SKp(hr.mx + 0.3, skY(1.0) + 0.02, 0);
+    if (k >= 1) {
+      mapPin(pA, "A", fadeIn(tk, 0.1));
+      mapPin(pB, "B", fadeIn(tk, 0.5));
+      mapPin(pC, "C", fadeIn(tk, 0.9));
+    }
+    const t2 = s._k2 ?? 99, ans = t > t2 + 0.3;
+    if (ans) {
+      skFan(hr.eye, -1.85, -1.25, 0.42, "#e3412b", fadeIn(t - t2, 0.3), "xy", { a0: 0.55, a1: 0.35 });
+      label(pB, "B 鼻先の真下", "えさを見つけるのが遅れた", fadeIn(t - t2, 0.6), "red ans", P ? 0 : 260, P ? 260 : 200);
+    }
+    const opts = [["A", "真上"], ["B", "鼻先の真下"], ["C", "正面"]];
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:400px" : "left:70px;top:170px;width:640px"};padding:20px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 46 : 44}px;font-weight:900;margin:14px 0 4px">マダイの<span style="color:#e3412b">死角</span>は<br>どこ？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(tk + (k > 1 ? 9 : 0), 0.2 + i * 0.35)};${ans && i === 1 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    rcSrc(ans ? "日本水産学会誌（塩原・有元 1999）" : "");
+    skNote("魚の動きはイメージ。死角の範囲は模式図");
+  },
+  // マダイの目：k0 正面は両目・前の下にもまっすぐ → k1 死角のわけ（両目が傾く）→ k2 クロマグロは前の斜め上
+  sk_madai(t, d, s, k) {
+    const P = PORTRAIT, T = t + 110, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    skSide(t, hr.r, 1.5, { ox: P ? 0.05 : 0.12, cy: P ? 0.95 : 1.02, pd: 0.2 });
+    skLure(0.72, 0.74 + 0.03 * Math.sin(T * 0.6), 0.05, 1.1, T, Math.PI - 0.3);
+    if (k <= 1) {
+      skFan(hr.eye, -0.12, 0.2, 0.6, "#2ecc71", fadeIn(t, 0.4), "xy", { a0: 0.8, a1: 0.25, w: 5 });
+      skFan(hr.eye, -1.1, -0.12, 0.55, "#4cc3ff", fadeIn(t, 1.4), "xy", { a0: 0.55, a1: 0.1 });
+      if (k === 0) {
+        label(SKp(hr.mx + 0.5, skY(1.03), 0), "正面＝両目で見る", "", fadeIn(t, 0.8), "gold ans", P ? -40 : -120, -110);
+        label(SKp(0.72, skY(0.74), 0.05), "前の下", "えさにまっすぐ近づいた", fadeIn(t, 2.0), "", P ? -60 : 300, P ? 260 : -30);
+      }
+    }
+    if (k >= 1) skFan(hr.eye, -1.85, -1.25, 0.42, "#e3412b", fadeIn(tk, 0.2), "xy", { a0: 0.55, a1: 0.35 });
+    if (k === 1) {
+      const e = project(hr.eye), q = project(hr.eye.clone().add(V(0.12, 0.05, 0)));
+      lines += `<circle cx="${e.x}" cy="${e.y}" r="${Math.max(16, Math.abs(q.x - e.x) * 0.4)}" fill="none" stroke="#ffd166" stroke-width="6" opacity="${fadeIn(tk, 0.5)}"/>`;
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">鼻先の真下が<span style="color:#e3412b">死角</span>になるわけ</b><div style="font-size:${P ? 31 : 30}px;font-weight:900;margin-top:8px">両目が、体の向きに対して<br><span style="color:#c2410c">傾いてついている</span>ため</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">日本水産学会誌（塩原・有元 1999）</div>`, fadeIn(tk, 0.4), [70, 170, 700], [60, 420, 960]);
+    }
+    if (k === 2) {
+      const arr = (ang, col, txt) => { const x2 = 150 + 110 * Math.cos(ang), y2 = 90 - 110 * Math.sin(ang); return `<line x1="150" y1="90" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="10" stroke-linecap="round"/><circle cx="${x2}" cy="${y2}" r="12" fill="${col}"/><text x="${x2 + 14}" y="${y2 + 8}" font-size="22" font-weight="900" fill="${col}">${txt}</text>`; };
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">よく見える向きは、魚でちがう</b><svg viewBox="0 0 540 180" width="100%" style="margin-top:6px"><ellipse cx="120" cy="90" rx="50" ry="22" fill="#9fb3c6"/><polygon points="70,90 40,70 40,110" fill="#9fb3c6"/><text x="120" y="98" font-size="20" text-anchor="middle" font-weight="900" fill="#10345a">魚</text>${arr(0.55, "#1f6fd1", "クロマグロ 前の斜め上")}${arr(-0.55, "#1d8a3a", "マダイ 前の下")}</svg><div style="font-size:22px;color:#3a5a78">三重大学の資料・日本水産学会誌から（矢印の角度は模式図）</div>`, fadeIn(tk, 0.3), [1120, 260, 720], [60, 420, 960]);
+    }
+    if (!P && k < 2) legend(SK_LEG);
+    rcSrc(k === 2 ? "三重大学（宮﨑多惠子）の資料" : "日本水産学会誌（塩原・有元 1999）");
+    skNote("魚の動きはイメージ。扇は見える範囲の模式図");
+  },
+  // 色は見える？：k0 色を見分ける魚（メジナ ほか）→ k1 ない・乏しい（マグロの仲間・クロソイ）
+  sk_color(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const mj = skTai(20, (P ? 0.4 : 1.9) - 0.12 * Math.sin(T * 0.2), 1.3, Math.PI, T, { id: "kuchibuto", cm: 35, freq: 1.6, amp: 0.06, z: 0.3 });
+    const kh = k < 1 ? null : skTai(21, (P ? 0.9 : 2.15) - 0.2 * Math.sin(T * 0.15), 1.8, Math.PI, T, { id: "kihada", cm: 80, freq: 1.8, amp: 0.06, z: -1.6 });
+    const c = SKp(P ? 0.4 : 1.8, skY(1.6), 0);
+    iwCam(c, P ? 3.4 : 2.4, 0.08 * Math.sin(t * 0.2), 0.1, 50, c.clone().add(V(P ? 0 : -0.95, P ? 0.9 : 0, 0)));
+    const chip = (nm, a, col) => `<span style="display:inline-block;opacity:${a};background:#fff;border:3px solid ${col};color:#10345a;border-radius:14px;padding:6px 16px;margin:6px;font-size:${P ? 30 : 32}px;font-weight:900">${nm}</span>`;
+    const yes = ["メジナ", "オオクチバス", "ホッケ", "マコガレイ"].map((n, i) => chip(n, fadeIn(t, 0.4 + i * 0.3), "#ffb02e")).join("");
+    const no = k >= 1 ? ["マグロの仲間", "クロソイ"].map((n, i) => chip(n, fadeIn(tk, 0.3 + i * 0.3), "#8aa0b4")).join("") : "";
+    html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">色を<span style="color:#c2410c">見分ける</span>魚</b><div>${yes}</div>${k >= 1 ? `<b style="display:block;font-size:${P ? 36 : 34}px;margin-top:10px;opacity:${fadeIn(tk, 0.2)}">色を見分ける力が<span style="color:#5b6b78">ない・乏しい</span>とされる魚</b><div>${no}</div>` : ""}<div style="font-size:22px;color:#3a5a78;margin-top:6px">魚類学雑誌（メジナの行動実験）などの研究から</div>`, fadeIn(t, 0.3), [70, 170, 820], [60, 420, 960]);
+    if (!P) {
+      if (mj) label(SKp(mj.cx, mj.cy + 0.08, 0.3), "メジナ", "", fadeIn(t, 1.0), "gold", -60, -110);
+      if (kh) label(SKp(kh.cx, kh.cy + 0.1, -1.6), "マグロの仲間", "絵はキハダ", fadeIn(tk, 0.8), "", -40, -110);
+    }
+    skNote("魚の動きはイメージ。魚の色は3Dモデルのまま");
+  },
+  // だから釣りでは：k0 魚のいる近くを通す（と言われる）→ k1 見え方は魚・明るさ・水で変わる
+  sk_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    const lx = lerp(1.8, -0.6, ((t * 0.12) % 1));
+    skLure(lx, 0.72, 0.05, 1.2, T, Math.PI);
+    hyTais(T, { n: 4, cx: 1.6, sx: 1.6, z0: -2.4, sz: 0.6, h0: 0.9, h1: 1.7, dir: Math.PI });
+    skSide(t, hr.r, 2.0, { ox: P ? 0.1 : -0.45, cy: 1.0, pd: 0.45 });
+    skFan(hr.eye, -1.1, 0.2, 0.6, "#2ecc71", fadeIn(t, 0.4), "xy", { a0: 0.55, a1: 0.12 });
+    if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">魚は<span style="color:#c2410c">近視</span>。暗いと、もっと見えにくい</b><div style="font-size:${P ? 32 : 31}px;font-weight:900;margin-top:8px;color:#1d8a3a">ルアーや餌は、<br>魚のいる近くを通すのが大切</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">と言われます</div>`, fadeIn(tk, 0.3), [70, 170, 760], [60, 420, 960]);
+    if (k === 1) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">見え方を変えるもの</b><div style="font-size:${P ? 32 : 31}px;font-weight:900;margin-top:8px;line-height:1.6">・魚の<span style="color:#c2410c">種類と大きさ</span><br>・<span style="color:#c2410c">明るさ</span>（時間・天気・深さ）<br>・<span style="color:#c2410c">水のきれいさ</span></div><div style="font-size:${P ? 30 : 29}px;font-weight:900;color:#1d8a3a;margin-top:6px">その日の海で、試してみる</div>`, fadeIn(tk, 0.3), [70, 170, 760], [60, 420, 960]);
+    skNote("魚の動きはイメージ。扇は見える範囲の模式図");
+  },
+  // 安全：暗い時間はライト・ライフジャケット・足もと。船では船長の指示
+  sk_safe(t, d, s, k) {
+    const P = PORTRAIT, T = t + 170;
+    hyWater(0.7);
+    hyTais(T, { n: 5, cx: 0, sx: 2.4, z0: -0.8, sz: 1.0, h0: 0.8, h1: 1.7 });
+    iwCam(hyC(), P ? 8 : 6, 0.1 * Math.sin(t * 0.1), 0.4, 50, hyC().clone().add(V(0, P ? 0 : 0.5, 0)));
+    const row = (ic, txt, i) => `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${fadeIn(t, 0.4 + i * 0.6)}"><b style="background:${["#ffb02e", "#e3412b", "#1f6fd1", "#1d8a3a"][i]};color:#fff;font-size:30px;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none">${ic}</b><div style="font-size:${P ? 34 : 34}px;font-weight:900">${txt}</div></div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">暗い時間は、<span style="color:#e3412b">人の目も見えにくい</span></b>${row("1", "ライトを持つ", 0)}${row("2", "ライフジャケットを着ける", 1)}${row("3", "足もとに気をつける", 2)}${row("4", "船では船長の指示に従う", 3)}`, fadeIn(t, 0.2), [560, 170, 800], [60, 420, 960]);
+    hySun(P, 1, "夜・朝夕");
+  },
+  sk_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 190;
+    hyWater(0);
+    hyTais(T, { n: 7, cx: 0, sx: 3.0, z0: -1.5, sz: 1.2 });
+    iwCam(hyC(), P ? 9 : 6.5, 0.1 * Math.sin(t * 0.1), 0.4);
+    html += acDim(0.45);
+    const rows = [["視力", "0.1〜0.4くらいの近視", "澄んだ海でも、大きな物はせいぜい40m", "#e08a00"], ["明るさ", "暗いと下がる（マダイ 0.24→0.10）", "暗い時間は魚からも見えにくい", "#1f4f9a"], ["見える範囲", "両目で見るのは前の狭い範囲", "マダイは鼻先の真下が死角", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 62 : 60}px;opacity:${fadeIn(t, 0.1)}">魚の目 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 28 : 32}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;
