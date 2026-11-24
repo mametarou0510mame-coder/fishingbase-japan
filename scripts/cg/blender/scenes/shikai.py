@@ -8,10 +8,10 @@ FISH = "madai"
 FISH_LEN = None     # モデルのまま（45cm）
 LURE = "tairaba"
 SEC = 11.0          # 冒頭の章（見積もり約7.5秒 → 本番は約1.3倍）より長く
-T_THUMB = 4.6       # 着底したタイラバを、頭を下げて見ている瞬間
-CAM_OFF = (0.35, -1.55, -0.18)
+T_THUMB = 9.3       # 巻き上がるタイラバのすぐ後ろ下を追う瞬間
+CAM_OFF = (0.4, -1.75, -0.12)
 LENS = 40
-CAM_KMAX = 1.7
+CAM_KMAX = 2.0
 THUMB_SHIFT = -0.2
 THUMB_K = 1.0
 SCHOOL = []
@@ -116,7 +116,7 @@ def swim(t):
 def cam_target(t):
     def c(x):
         body = snout(x) - heading(x) * 0.2
-        return lure_now(x) * 0.38 + body * 0.62 + Vector((0, 0, 0.03))
+        return lure_now(x) * 0.5 + body * 0.5 + Vector((0, 0, 0.03))
     acc = Vector((0, 0, 0))
     for i in range(9):
         acc += c(t + (i - 4) * 0.08)
