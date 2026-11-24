@@ -373,9 +373,9 @@ def b_nori(nt, n, l):
     l.new(tc.outputs["Object"], noi.inputs["Vector"])
     ramp = n.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.3
-    ramp.color_ramp.elements[0].color = (0.035, 0.012, 0.008, 1)
+    ramp.color_ramp.elements[0].color = (0.06, 0.025, 0.01, 1)
     ramp.color_ramp.elements[1].position = 0.75
-    ramp.color_ramp.elements[1].color = (0.09, 0.05, 0.012, 1)
+    ramp.color_ramp.elements[1].color = (0.15, 0.08, 0.02, 1)
     l.new(noi.outputs["Fac"], ramp.inputs["Fac"])
     l.new(ramp.outputs["Color"], p.inputs["Base Color"])
     p.inputs["Roughness"].default_value = 0.45
@@ -407,4 +407,4 @@ def build_nori(z, mat, x=(-4.0, 4.0), y=(-1.0, 6.0), step=0.3, n=1600, seed=5):
         px = x[0] + step * int(rng.integers(1, nx))
         py = y[0] + step * int(rng.integers(1, ny))
         roots.append((px + rng.uniform(-0.03, 0.03), py + rng.uniform(-0.03, 0.03), z, -rng.uniform(0.16, 0.38), rng.uniform(0, math.pi), rng.uniform(0, 6.28)))
-    return Kelp(roots, mat, width=0.018, lean=(0.12, 0.0), name="nori", build=b_nori)
+    return Kelp(roots, mat, width=0.03, lean=(0.12, 0.0), name="nori", build=b_nori)
