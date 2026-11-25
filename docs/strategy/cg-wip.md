@@ -14,7 +14,7 @@
 - 構成：ot_hook → ot_speed（速さ）→ ot_wall（水面で跳ね返る）→ ot_quiz（何%入る？ 0.1%）→ ot_kado（15°・絶対ではない）→ ot_ear（内耳・耳石・うきぶくろ）→ ot_hz（魚で違う）→ ot_side（側線）→ ot_ashi（足音・振動）→ ot_kioku（音で魚が集まる）→ ot_tsuri → ot_safe → ot_sum → ask → end
 - 土台：堤防の断面 otSec（makeSection、OT=V(0,0,-7000)）と hyWater の水の中。Blender は scenes/oto.py（堤防の足元の捨て石とクロダイ、LURE none）
 - [x] main.js（ot_*）・台本・ショート（ot_kioku は長さのため外した）
-- [ ] Blender の場面 oto.py・check_scene
+- [x] Blender の場面 oto.py・check_scene（最小 0.539m）
 - [x] ローカルの静止画確認・--clear（最小 0.380m）
 - [ ] cg-video（8分割）
 - [ ] cg-compress
