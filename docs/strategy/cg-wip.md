@@ -16,9 +16,9 @@
 - [x] main.js（ot_*）・台本・ショート（ot_kioku は長さのため外した）
 - [x] Blender の場面 oto.py・check_scene（最小 0.539m）
 - [x] ローカルの静止画確認・--clear（最小 0.380m）
-- [ ] cg-video（8分割）：実行 45519622908（起動ずみ）
-- [ ] cg-compress
-- [ ] Blender test → full
+- [x] cg-video（8分割）：45519622908 成功
+- [ ] cg-compress（起動ずみ）
+- [ ] Blender test（45519725438 OK・最小 0.538m）→ full
 - [ ] ORDER・固定コメント・企画リスト
 
 （作りかけはなし。2026-11-24 アカデミー R11「冬のチヌはノリを食べに来る？」cg-nori を ORDER に入れて完了。書き出し 45329169274（render 3・6・finish が Install で止まり再実行）・圧縮 45338408379・Blender full 45340723375・最小すきま 1.069m）
