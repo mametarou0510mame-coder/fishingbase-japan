@@ -31,6 +31,7 @@
 | **昼と夜の砂の海底・底びき網（模式図）** | `hyWater(k)`（k＝0 昼・1 夜。rcBase の水を昼／紺の夜に切りかえ。暗くしすぎない）、`hyFloor`（砂の海底 y=-HY_D、遠くは水にとける）、`hyNetAt(x, z)`（底びき網：口の枠・浮き・ひし形の網目の胴・引く綱）、`hyTai`・`hyTais`（Fish Kit のマダイをその場でゆったり）、`hySun(P, 夜, 文字)`（太陽・月のチップ）、`hyFishCard(名前, 絵)`（サイトの魚の絵 assets/fish の名札） | 2026-11-23 cg-hiruyoru（hy_*）。昼と夜・網の調査・3D モデルのない魚の回に |
 | **魚の目の見え方（模式図）** | `skBlur(rect, px, a)`（画面の一部を backdrop-filter でぼかす＝視力の低い目のイメージ。左右で比べる）、`skFan(eye, a0, a1, R, 色, a, "xy"/"xz")`（目から出る見える範囲の扇）、`skEye`（Fish Kit の魚の目の位置の目安）、`skPov`（魚の目の高さから前を見る） | 2026-11-24 cg-shikai（sk_*）。視力・視野・死角・明るさの回に。ぼかしはカードより先に足す（後に足すとカードもぼける） |
 | **ノリ養殖の網と垂れる葉・クロダイの群れ** | `nrWater()`（浅い冬の海の水の中・下から見た海面）、`nrNet`（海面のすぐ下の網・浮き・四すみの支柱）、`nrNori`（網の目から垂れるノリの葉。`nrU.cut`・`nrU.cutX` で葉の先が短くなる＝食べた跡）、`nrFish(T, { n, cx, sx, z0, sz, eat })`（Fish Kit のクロダイ。`eat` の割合の魚が頭を上げて葉の先をつつく）、`nrCamBox`（水中カメラの模式図）、`nrCam(t, o)` | 2026-11-24 cg-nori（nr_*）。養殖・海藻・浅い海の回に。網とノリは模式図 |
+| **堤防の断面と音の線（模式図）** | `otBase(歩く, T)`・`otWide(t, cu, cy, dist)`・`otBed(u)`・`OTp(u, y, z)`、`otArc(c, R, a0, a1, 色, 太さ, 濃さ, keep)`（音の波の円弧。`otInAir`・`otInWater`・`otInGround` で空気・水・地面の中だけ描く）、`otRay(口, 角度, 長さ, 進み, 色, 太さ, 濃さ, 水へ入る濃さ)`（水面で跳ね返る線）、`otSurf`（水面を光らせる）、`otTalk`（話している印）、`otChinus`（捨て石の前のクロダイ）、`otIn(r, f, up)`（Fish Kit の魚の体の中の位置：内耳・うきぶくろ・側線の模式図） | 2026-11-25 cg-oto（ot_*）。垂直な岸壁（上 +2.0m）・足もとの捨て石・砂の底。音・振動・光の線の説明に |
 | 画面の部品 | `ftMini`・`ftCtl`（竿とリール）・`ftGraph`・`agGraph`・`ftChip`・`ftNote`・`ftCard`・`ftFinder`・`ftThumbText`、`label`・`legend`・`bigText`・`card`・`drawBar` | 左上の全体図、右上の竿とリール、字幕チップ、注記など |
 | 魚（Fish Kit） | `fkGet(id, i, cm)`・`fkPlace(f, 位置, 向き, 頭の上げ角, T)`、`endFish` | 写真から作った海水魚20種（2026-11-20 新しいモデル集 https://cda-social.github.io/aquarium/models-gallery.html に入れ替え。全部 `loadFish` で読み込み済み。イサキの幼魚 isaki_young が増えた） |
 | **エビ（テナガエビ・レッドビーシュリンプ）** | `vendor/squidkit/shrimp-kit.js` の `createShrimp(id, { folder, home, floorY })` | 2026-11-20 追加。底を歩く・餌をつまむ・泳ぐ・跳ねる。テナガエビ釣り・河口の回に |
@@ -58,6 +59,7 @@
 | 場面 | `scenes/tairaba.py`（マダイ）、`scenes/jig.py`（ブリと群れ）、`scenes/surf.py`（マゴチ）、`scenes/mebaru.py`（メバルの群れ・根・サビキ）、`scenes/akai.py`（マダイと赤いタイラバ・遠くのマダイ。食わない）、`scenes/tetra.py`（テトラのすそのカサゴとワーム）、`scenes/slope.py`（坂の終わりの段差と捨て石のカサゴ・ワーム。ENV="reef" の reef_h で段差と石を作る） | 動きは時刻 t だけの式。新しい場面はいちばん近いものをコピーして作る |
 | **仕掛けなしの場面** | 場面に `LURE = "none"` | 道糸も出さない。魚の群れだけの冒頭に。`scenes/iwashi.py`（カタクチイワシ64匹のベイトボール。終わりに散って消える）、`scenes/aji.py`（マアジ40匹が輪をえがいて泳ぎ、終わりに散って消える）、`scenes/sawara.py`（サワラ14匹が大きな輪をえがき、終わりに散って消える）。`scenes/nabura.py`（中層を速巻きで上がるジグをブリが追って食う・うしろをブリの群れ）、`scenes/kaze.py`（nabura の魚をシーバス suzuki にしたもの）、`scenes/hiruyoru.py`（昼の砂の海底をマダイ7匹がゆったり左から右へ） |
 | **ノリ養殖の網と垂れる葉** | 場面に `ENV = "nori"`・`NET_Z`（`parts.build_nori`。網は Wireframe、葉は `Kelp` を下向きに） | `scenes/nori.py`（網の下にクロダイ10匹、主役が頭を上げて葉の先をつつく）。2026-11-24 cg-nori |
+| **堤防のすそ（岸壁と捨て石）** | `scenes/oto.py`（`ENV = "reef"`、reef_h に高さ 3.5m の壁と捨て石。クロダイ6匹、仕掛けなし） | 2026-11-25 cg-oto。堤防の足もとの回に |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
 ### 書き出し済みの映像（long-media ブランチ。`blender_open.clip` にパスを書くと、書き出さずにそのまま使える）
