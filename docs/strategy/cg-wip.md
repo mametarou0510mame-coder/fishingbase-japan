@@ -16,7 +16,7 @@
 - [x] main.js（ot_*）・台本・ショート（ot_kioku は長さのため外した）
 - [x] Blender の場面 oto.py・check_scene（最小 0.539m）
 - [x] ローカルの静止画確認・--clear（最小 0.380m）
-- [ ] cg-video（8分割）
+- [ ] cg-video（8分割）：実行 45519622908（起動ずみ）
 - [ ] cg-compress
 - [ ] Blender test → full
 - [ ] ORDER・固定コメント・企画リスト
