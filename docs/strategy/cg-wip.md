@@ -18,7 +18,7 @@
 - [x] ローカルの静止画確認・--clear（最小 0.380m）
 - [x] cg-video（8分割）：45519622908 成功
 - [x] cg-compress（45522481605 成功）
-- [ ] Blender test（45519725438 OK・最小 0.538m）→ full（起動ずみ。終わるまで ORDER に入れない）
+- [ ] Blender test（45519725438 OK・最小 0.538m）→ full 45523680707（起動ずみ。終わるまで ORDER に入れない）
 - [x] 固定コメント（data/sns/yt-comments/cg-oto.txt）・企画リスト（11/28 予定で制作済みへ）
 - [ ] ORDER（full のあと）
 
