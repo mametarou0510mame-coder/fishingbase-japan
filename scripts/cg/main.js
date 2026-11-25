@@ -13274,6 +13274,355 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 【見える化】堤防の足音・話し声は魚に届く？（cg-oto、ot_*）2026-11-25
+// 事実は docs/research/fish-knowledge.md「側線と魚の聴覚・水中の音」だけ：
+//   水中の音速 約1500m/s（JAMSTEC）・空気 約340m/s → 「4〜5倍」、空気→水はエネルギーの約0.1%（Physics World 2018）、
+//   垂直から約15°以内の音だけ水に入る（DOSITS）、内耳と側線・耳石（水産総合研究センター研究報告28）、うきぶくろ（DOSITS）、
+//   側線＝第六番目の感覚（国立科学博物館 中江）・0〜約200Hz を体長の1〜2倍の距離で（DOSITS）、ナマズの後流（Pohlmann ほか 2004）、
+//   マダイ 0・1歳 約300Hz・2歳 約200Hz（岩下ほか 1999）、ヒラメ 上限500Hz未満（藤枝 1998）、マイワシ 約1kHz（赤松ほか 2003）、
+//   地面を伝わる振動・粒子の揺れ（PNNL、研究はまだ少ない）。
+// 使わない：「話し声は絶対届かない」、堤防の足音が水中へ何倍伝わるか、側線と内耳の担当が何Hzで切りかわるか。
+// 土台：堤防の断面 otSec（makeSection。防波堤の上 +2.0m、足もとの捨て石、砂の底 約-6.6m。模式図）と、hyWater の水の中（sk_* の部品）。
+// 音の波・揺れの線は模式図（速さの比だけ合わせてある）。魚の動きはイメージ。魚は Fish Kit（色はモデルのまま）
+// 使い回せる部品：otArc（断面に音の波の円弧を描く。地面の中だけ・水の中だけなどで切れる）、otRay（音の線。水面で跳ね返る）、otWide（断面を望遠で）
+// =====================================================================
+const OT = V(0, 0, -7000), OT_LZ = 1.5, OT_TOP = 2.0;
+const otBed = (u) => (u < 0 ? OT_TOP : u < 5 ? -3.8 - 0.55 * u + 0.18 * Math.sin(u * 3.1) : -6.55 - 0.03 * (u - 5));
+const otSec = makeSection({ origin: OT, bed: otBed, kind: (u) => (u < 0.3 ? 2 : u < 5 ? 1 : 0), u0: -30, u1: 90, depth: 9 });
+const OTp = otSec.P;
+const otMan = secAngler(otSec, -1.6, OT_TOP, OT_LZ - 0.3);
+const OT_MOUTH = [-1.35, OT_TOP + 1.55];
+{
+  // 手すりはなし（足もとが見えるように）。堤防の上のふちに白い線
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 15), secMat(otSec, 0xe8ecee, 0.3));
+  edge.position.set(-0.08, OT_TOP + 0.03, -2.5);
+  otSec.grp.add(edge);
+}
+function otBase(walk = 0, T = 0) {
+  secBase(otSec, 0);
+  otMan.man.visible = true;
+  otMan.rod.visible = false;
+  // walk：歩く（上下にはずむ）
+  otMan.man.position.set(-1.6, OT_TOP + (walk ? 0.05 * Math.abs(Math.sin(T * Math.PI / OT_STEP)) : 0), OT_LZ - 0.3);
+}
+const OT_STEP = 0.6; // 足が着く間隔（秒。模式図）
+// 断面を望遠で（断面が平らに見える）。cu・cy：見る中心、dist：遠さ
+function otWide(t, cu = 4, cy = -1.5, dist = 46) {
+  const P = PORTRAIT;
+  look(OTp(cu + 0.3 * Math.sin(t * 0.05), cy + (P ? 0.3 : 0), OT_LZ + dist * (P ? 1.2 : 1)), OTp(cu, cy + (P ? 0.3 : 0), OT_LZ), 20);
+}
+// 断面に円弧（音の波）を描く。c：[u, y]、R：半径、a0〜a1：角度、keep(u, y)：描く所だけ true
+function otArc(c, R, a0, a1, col, w, op, keep = () => true) {
+  if (op <= 0.01 || R <= 0.02) return;
+  const n = Math.max(16, Math.round(R * 10)), segs = [];
+  let cur = [];
+  for (let i = 0; i <= n; i++) {
+    const a = lerp(a0, a1, i / n), u = c[0] + R * Math.cos(a), y = c[1] + R * Math.sin(a);
+    if (keep(u, y)) cur.push(project(OTp(u, y, OT_LZ)));
+    else if (cur.length) { segs.push(cur); cur = []; }
+  }
+  if (cur.length) segs.push(cur);
+  segs.forEach((q) => { if (q.length > 1) lines += `<polyline points="${q.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${op.toFixed(2)}"/>`; });
+}
+const otInAir = (u, y) => y > 0.02 && y > otBed(u) + 0.02;
+const otInWater = (u, y) => y < -0.02 && y > otBed(u) + 0.02;
+const otInGround = (u, y) => y < otBed(u) - 0.05;
+// 音の線：p0 から向き a へ、水面（y=0）で跳ね返る。prog：0〜1（どこまで進んだか）、pass：水へ入る線の濃さ
+function otRay(p0, a, len, prog, col, w, op, pass = 0) {
+  const dx = Math.cos(a), dy = Math.sin(a), sHit = dy < 0 ? -p0[1] / dy : 1e9, L = len * clamp01(prog);
+  const pt = (u, y) => project(OTp(u, y, OT_LZ));
+  const seg = (a3, b3, c2, ww, oo, dash = "") => { const p = pt(...a3), q = pt(...b3); lines += `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke="${c2}" stroke-width="${ww}" stroke-linecap="round" opacity="${oo.toFixed(2)}" ${dash ? `stroke-dasharray="${dash}"` : ""}/>`; };
+  if (L <= sHit) { seg(p0, [p0[0] + dx * L, p0[1] + dy * L], col, w, op); return null; }
+  const hit = [p0[0] + dx * sHit, 0];
+  seg(p0, hit, col, w, op);
+  const r = L - sHit;
+  seg(hit, [hit[0] + dx * r, dy * -r], col, w, op * 0.9);
+  if (pass > 0.01) seg(hit, [hit[0] + dx * r * 0.25, -Math.min(r * 1.1, 5.5)], "#4cc3ff", Math.max(2, w * 0.6), pass, "10 8");
+  return hit;
+}
+// 水面を光らせる（音の壁）
+function otSurf(a, u0 = -0.1, u1 = 18, col = "#ffffff") {
+  if (a <= 0.01) return;
+  const p = project(OTp(u0, 0, OT_LZ)), q = project(OTp(u1, 0, OT_LZ));
+  lines += `<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="${col}" stroke-width="12" opacity="${0.35 * a}"/><line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="${col}" stroke-width="5" opacity="${0.9 * a}"/>`;
+}
+// 話す口から出る小さな波（話している印）
+function otTalk(T, a) {
+  for (let i = 0; i < 3; i++) {
+    const age = (T * 1.2 + i / 3) % 1;
+    otArc(OT_MOUTH, 0.25 + age * 0.9, -0.7, 0.7, "#ffd166", 5, a * (1 - age));
+  }
+}
+// クロダイ（Fish Kit kurodai）を捨て石の前に。大きく表示（sc）
+function otChinu(i, u, h, ang, T, o = {}) {
+  return fkPut("kurodai", 1400 + i, u, otBed(u) + h, ang, T, { at: OTp, floor: (x) => otBed(x), z: OT_LZ + (o.z ?? 0.3), cm: 40, sc: o.sc ?? 3.0, gap: 0.35, freq: 1.2, amp: 0.05 });
+}
+function otChinus(T, o = {}) {
+  const sc = o.sc ?? 3.0;
+  otChinu(0, 3.4 + 0.25 * Math.sin(T * 0.21), 1.2 + 0.1 * Math.sin(T * 0.5), Math.PI - 0.05, T, { sc });
+  otChinu(1, 6.3 + 0.3 * Math.sin(T * 0.17 + 1), 1.0 + 0.1 * Math.sin(T * 0.45 + 2), 0.05, T + 2, { sc, z: -0.4 });
+  if (o.n !== 2) otChinu(2, 9.2 + 0.3 * Math.sin(T * 0.19 + 2), 1.5, Math.PI - 0.04, T + 4, { sc: sc * 0.9, z: -0.8 });
+}
+const OT_LEG = [["#ffd166", "空気の中の音"], ["#4cc3ff", "水の中の音"], ["#ff8a3d", "地面を伝わる揺れ"]];
+const otNote = (txt = "音の波・揺れの線は模式図。魚の動きはイメージ（魚は大きく表示）") => ftNote(txt);
+// 魚の体の中の位置（右向き・口が mx）。f：0＝口、1＝尾の先。up：体の高さの方向（L 比）
+const otIn = (r, f, up, z = 0) => SKp(r.mx - f * r.L, r.my + up * r.L - 0.02 * r.L, z);
+
+Object.assign(SHOTS, {
+  ot_thumb(t, d, s) {
+    const T = 6;
+    otBase(0, T);
+    otChinus(T);
+    otWide(t, 3.5, -1.0, 34);
+    for (let i = 0; i < 6; i++) otRay(OT_MOUTH, -0.3 - i * 0.085, 30, 1, "#ffd166", 6, 0.95);
+    otSurf(1);
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：堤防の上で話す人。口から音の線が出て、水面で跳ね返る（本番は Blender の冒頭に差しかわる）
+  ot_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2;
+    otBase(0, T);
+    otChinus(T);
+    otWide(t, P ? 2.5 : 4, -1.2, 40 - 4 * ease(t / d));
+    otTalk(T, 1);
+    for (let i = 0; i < 6; i++) otRay(OT_MOUTH, -0.3 - i * 0.085, 30, fadeIn(t, 0.6 + i * 0.15, 1.8), "#ffd166", 6, 0.7);
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 90, "堤防の足音・話し声、<br>魚に届く？", "水の中の音を見える化", a);
+    otNote();
+  },
+  // 水の中の音：同じ所から出た音が、空気（黄）と水（水色）でどこまで進むか。k1 で水が出る
+  ot_speed(t, d, s, k) {
+    const P = PORTRAIT, T = t + 10, tk = t - (s[`_k${k}`] ?? 0);
+    otBase(0, T);
+    otChinus(T, { n: 2 });
+    otWide(t, 5, -1.5, 46);
+    const c = [P ? 6 : 4.5, 0], per = 2.4;
+    for (let i = 0; i < 3; i++) {
+      const age = ((t + i * per / 3) % per), op = 1 - age / per;
+      otArc(c, 0.3 + age * 2.0, 0, Math.PI, "#ffd166", 7, op, otInAir);
+      if (k >= 1) otArc(c, 0.3 + age * 8.8, Math.PI, 2 * Math.PI, "#4cc3ff", 7, op * fadeIn(tk, 0.2), otInWater);
+    }
+    const sp = project(OTp(c[0], c[1], OT_LZ));
+    lines += `<circle cx="${sp.x}" cy="${sp.y}" r="14" fill="#fff" stroke="#10345a" stroke-width="4"/>`;
+    const lane = (nm, v, w, col, a) => `<div style="opacity:${a};margin-top:12px"><div style="font-size:${P ? 30 : 28}px;font-weight:900">${nm}　<span style="color:${col === "#ffd166" ? "#b07800" : "#1f6fd1"}">${v}</span></div><div style="height:26px;width:${(w * 100).toFixed(1)}%;background:${col};border-radius:13px;margin-top:4px"></div></div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">1秒に進む距離</b>${lane("空気の中", "約340m", 0.227 * fadeIn(t, 0.4, 0.8), "#ffd166", 1)}${k >= 1 ? lane("水の中", "約1500m", fadeIn(tk, 0.3, 1.2), "#4cc3ff", fadeIn(tk, 0.1)) : ""}${k >= 1 ? `<div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:12px;opacity:${fadeIn(tk, 1.2)}">水の中は <span style="color:#c2410c">4〜5倍</span> 速い</div>` : ""}<div style="font-size:22px;color:#3a5a78;margin-top:6px">JAMSTEC・イリノイ大学の資料から</div>`, fadeIn(t, 0.2), [1120, 170, 720], [60, 420, 960]);
+    otNote("音の波は模式図（空気と水の速さの比だけ合わせてある）。魚の動きはイメージ");
+  },
+  // 水面で跳ね返る：k0 口から出た音の線が水面で跳ね返る → k1 水面＝音の壁
+  ot_wall(t, d, s, k) {
+    const P = PORTRAIT, T = t + 25, tk = t - (s[`_k${k}`] ?? 0);
+    otBase(0, T);
+    otChinus(T);
+    otWide(t, 4, -1.2, 40);
+    otTalk(T, 1);
+    const prog = fadeIn(t, 0.4, 2.6);
+    for (let i = 0; i < 7; i++) otRay(OT_MOUTH, -0.28 - i * 0.075, 32, prog - i * 0.04, "#ffd166", 6, 0.95);
+    otSurf(k >= 1 ? fadeIn(tk, 0.2) * (0.8 + 0.2 * Math.sin(t * 5)) : 0);
+    if (k === 0) label(OTp(9, 0, OT_LZ), "ほとんど跳ね返る", "", fadeIn(t, 2.6), "red ans", P ? -60 : 120, -200);
+    if (k >= 1) label(OTp(12, 0, OT_LZ), "水面＝音の壁", "空気と水のさかい目", fadeIn(tk, 0.5), "gold ans", P ? -120 : -40, 230);
+    otNote("音の線は模式図。魚の動きはイメージ（魚は大きく表示）");
+  },
+  // クイズ：空気の音が水に入るのは？ A 約半分・B 約10%・C 約0.1% → 正解 C
+  ot_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 40, tk = t - (s[`_k${k}`] ?? 0);
+    otBase(0, T);
+    otChinus(T);
+    otWide(t, P ? 2.2 : 1.5, -1.2, 40);
+    for (let i = 0; i < 7; i++) otRay(OT_MOUTH, -0.28 - i * 0.075, 32, 1, "#ffd166", 5, 0.8, k >= 2 ? 0.25 * fadeIn(tk, 0.6) : 0);
+    otSurf(0.7);
+    const ans = k >= 2 && tk > 0.3;
+    const opts = [["A", "約半分"], ["B", "約10%"], ["C", "約0.1%"]];
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:400px" : "left:1120px;top:170px;width:720px"};padding:20px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 44 : 42}px;font-weight:900;margin:14px 0 4px">空気の音が、<br>水に<span style="color:#1f6fd1">入る</span>のは？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(tk + (k > 1 ? 9 : 0), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}${ans ? `<div style="margin-top:14px;opacity:${fadeIn(tk, 0.6)}"><div style="display:flex;height:34px;border-radius:17px;overflow:hidden;border:3px solid #10345a"><div style="flex:999;background:#ffd166"></div><div style="flex:6;background:#1f6fd1"></div></div><div style="display:flex;justify-content:space-between;font-size:${P ? 28 : 26}px;font-weight:900;margin-top:6px"><span style="color:#b07800">跳ね返る（ほとんど）</span><span style="color:#1f6fd1">入る 約0.1%</span></div></div>` : ""}</div>`;
+    rcSrc(ans ? "Physics World（2018、延世大学・北海道大学の研究紹介）" : "");
+    otNote(ans ? "水色の点線は、わずかに水へ入る音（模式図。太さは実際の割合ではない）" : "音の線は模式図。魚の動きはイメージ");
+  },
+  // 入れる向き：真上から約15°の内側だけ（緑）、ななめは跳ね返る（赤）→ k1 まったく届かないとは言えない
+  ot_kado(t, d, s, k) {
+    const P = PORTRAIT, T = t + 55, tk = t - (s[`_k${k}`] ?? 0);
+    otBase(0, T);
+    otChinus(T);
+    otWide(t, 6, -0.2, 34);
+    const src = [9, 4.0], D = Math.PI / 180, prog = fadeIn(t, 0.4, 2.0);
+    // 緑の三角（真上から ±15°）
+    const pA = project(OTp(...src, OT_LZ)), pL = project(OTp(src[0] - src[1] * Math.tan(15 * D), 0, OT_LZ)), pR = project(OTp(src[0] + src[1] * Math.tan(15 * D), 0, OT_LZ));
+    lines += `<polygon points="${pA.x},${pA.y} ${pL.x},${pL.y} ${pR.x},${pR.y}" fill="#2ecc71" opacity="${0.28 * fadeIn(t, 0.3)}"/>`;
+    [-12, -6, 0, 6, 12].forEach((g, i) => otRay(src, -Math.PI / 2 + g * D, 14, prog, "#2ecc71", 6, 0.95, 0.9 * fadeIn(t, 2.2)));
+    [-50, -35, 35, 50].forEach((g) => otRay(src, -Math.PI / 2 + g * D, 14, prog, "#ff5a4a", 6, 0.9));
+    lines += `<circle cx="${pA.x}" cy="${pA.y}" r="16" fill="#fff" stroke="#10345a" stroke-width="4"/>`;
+    otSurf(0.5);
+    label(OTp(src[0], 0, OT_LZ), "真上から約15°の内側", "水に入れる", fadeIn(t, 2.4), "gold ans", P ? 0 : -60, P ? 330 : 260);
+    label(OTp(src[0] + 3.0, 0, OT_LZ), "ななめは跳ね返る", "", fadeIn(t, 3.0), "red", P ? -40 : 60, -170);
+    if (k >= 1) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">ただし</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:8px">話し声が<br><span style="color:#c2410c">まったく届かないとは言えない</span></div><div style="font-size:22px;color:#3a5a78;margin-top:6px">入るのはごくわずか（約0.1%）</div>`, fadeIn(tk, 0.3), [70, 170, 640], [60, 420, 960]);
+    rcSrc(k === 0 ? "DOSITS（ロードアイランド大学ほか）" : "");
+    otNote("角度と音の線は模式図。魚の動きはイメージ");
+  },
+  // 魚の耳：k0 内耳と側線 → k1 耳石 → k2 うきぶくろ（音で揺れて伝え直す）
+  ot_ear(t, d, s, k) {
+    const P = PORTRAIT, T = t + 70, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    skSide(t, hr.r, P ? 1.25 : 1.05, { ox: P ? -0.18 : 0.12, cy: 1.0, pd: P ? 0.3 : 0.12 });
+    const r = hr.r;
+    if (!r) return;
+    // 側線（頭の後ろ → 背に沿って → 尾のつけね）
+    const ll = [];
+    for (let i = 0; i <= 30; i++) { const f = lerp(0.25, 0.86, i / 30); ll.push(otIn(r, f, 0.13 * Math.sin(Math.PI * (f - 0.1) / 0.85) + 0.02)); }
+    const aS = fadeIn(t, 1.6, 0.8) * (k === 1 ? 0.4 : 1);
+    pathLine(ll, "#2ecc71", aS, 9);
+    // 内耳（目の後ろ）
+    const ear = otIn(r, 0.25, 0.05), pe = project(ear), ps = project(otIn(r, 0.3, 0.05));
+    const er = Math.max(14, Math.abs(ps.x - pe.x) * 0.9);
+    const aE = fadeIn(t, 0.8, 0.6);
+    lines += `<circle cx="${pe.x}" cy="${pe.y}" r="${er}" fill="#ffd166" fill-opacity="${0.35 * aE}" stroke="#ffd166" stroke-width="5" opacity="${aE}"/>`;
+    if (k >= 1) lines += `<ellipse cx="${pe.x}" cy="${pe.y}" rx="${er * 0.45}" ry="${er * 0.28}" fill="#fff" opacity="${fadeIn(tk, 0.3)}"/>`;
+    // うきぶくろ（体のまん中）
+    if (k >= 2) {
+      const b0 = project(otIn(r, 0.38, 0.04)), b1 = project(otIn(r, 0.68, 0.06)), pul = 1 + 0.12 * Math.sin(t * 9) * fadeIn(tk, 0.6);
+      const cx = (b0.x + b1.x) / 2, cy = (b0.y + b1.y) / 2, rx = Math.hypot(b1.x - b0.x, b1.y - b0.y) / 2;
+      lines += `<ellipse cx="${cx}" cy="${cy}" rx="${rx * pul}" ry="${rx * 0.32 * pul}" fill="#4cc3ff" fill-opacity="0.45" stroke="#bfeaff" stroke-width="5" opacity="${fadeIn(tk, 0.2)}"/>`;
+      // 右から来る音の波（水の中）
+      for (let i = 0; i < 3; i++) { const age = (t * 0.8 + i / 3) % 1, xr = lerp(W * (P ? 1.0 : 0.95), cx + rx, age); lines += `<path d="M ${xr} ${cy - 160} Q ${xr - 40} ${cy} ${xr} ${cy + 160}" fill="none" stroke="#4cc3ff" stroke-width="6" opacity="${(1 - age) * fadeIn(tk, 0.3)}"/>`; }
+      lines += `<line x1="${cx - rx}" y1="${cy}" x2="${pe.x + er}" y2="${pe.y}" stroke="#ffd166" stroke-width="5" stroke-dasharray="10 8" opacity="${fadeIn(tk, 1.0)}"/>`;
+      label(otIn(r, 0.53, 0.05), "うきぶくろ", "音で体積が変わり、伝え直す", fadeIn(tk, 0.5), "", P ? 80 : 160, P ? 300 : 250);
+    }
+    if (k === 0) {
+      label(ear, "内耳", "頭の中の耳", aE, "gold", P ? 120 : 260, -150);
+      label(ll[20], "側線", "体の横の感覚器", aS, "", P ? -120 : -220, -170);
+    }
+    if (k === 1) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">内耳の中には <span style="color:#b07800">耳石</span></b><div style="font-size:${P ? 31 : 30}px;font-weight:900;margin-top:8px">炭酸カルシウムでできた石</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">水産総合研究センター研究報告（2009）</div>`, fadeIn(tk, 0.3), [1160, 170, 680], [60, 420, 960]);
+    if (k === 1) label(ear, "耳石", "", fadeIn(tk, 0.5), "gold", P ? 120 : 220, -150);
+    rcSrc(k === 2 ? "DOSITS（ロードアイランド大学ほか）" : k === 0 ? "水産総合研究センター研究報告（2009）" : "");
+    otNote("体の中の位置は模式図。魚の動きはイメージ");
+  },
+  // 魚でちがう：聞こえる音の高さ（対数の目もり）。k0 マダイ → k1 マイワシ・ヒラメ → k2 うきぶくろのない魚
+  ot_hz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 90, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    hyTais(T, { n: 5, cx: 0.6, sx: 2.0, z0: -1.4, sz: 0.8, h0: 0.8, h1: 1.6 });
+    iwCam(hyC(), P ? 6 : 4.6, 0.1 * Math.sin(t * 0.1), 0.3, 50, hyC().clone().add(V(P ? 0 : 1.5, P ? 0.6 : 0, 0)));
+    const x = (hz) => 40 + ((Math.log10(hz) - Math.log10(50)) / (Math.log10(3000) - Math.log10(50))) * 600;
+    const row = (y, nm, body, a) => `<g opacity="${a}"><text x="0" y="${y + 8}" font-size="24" font-weight="900" fill="#10345a">${nm}</text>${body}</g>`;
+    const dot = (hz, y, col, txt) => `<circle cx="${160 + x(hz)}" cy="${y}" r="13" fill="${col}"/><text x="${160 + x(hz) + 20}" y="${y + 8}" font-size="22" font-weight="900" fill="${col}">${txt}</text>`;
+    let g = [50, 100, 200, 500, 1000, 3000].map((hz) => `<line x1="${160 + x(hz)}" y1="20" x2="${160 + x(hz)}" y2="330" stroke="#c9d6e2" stroke-width="2"/><text x="${160 + x(hz)}" y="356" font-size="20" text-anchor="middle" fill="#3a5a78" font-weight="800">${hz >= 1000 ? hz / 1000 + "k" : hz}</text>`).join("");
+    g += row(50, "マダイ 0・1歳", dot(300, 50, "#c2410c", "約300"), fadeIn(t, 0.4));
+    g += row(110, "マダイ 2歳", dot(200, 110, "#c2410c", "約200"), fadeIn(t, 1.0));
+    if (k >= 1) {
+      g += row(180, "マイワシ", dot(1000, 180, "#1f6fd1", "約1000"), fadeIn(tk, 0.3));
+      g += row(250, "ヒラメ", `<rect x="${160 + x(50)}" y="238" width="${x(480) - x(50)}" height="24" rx="12" fill="#1d8a3a" opacity=".75"/><text x="${160 + x(480) + 12}" y="258" font-size="22" font-weight="900" fill="#1d8a3a">上限 500より下</text>`, fadeIn(tk, 1.0));
+    }
+    const svg = `<svg viewBox="0 0 820 370" width="100%">${g}</svg>`;
+    const no = k >= 2 ? `<div style="margin-top:6px;opacity:${fadeIn(tk, 0.2)};font-size:${P ? 30 : 28}px;font-weight:900">うきぶくろのない魚は<span style="color:#c2410c">感度が低い</span>：<br><span style="color:#5b6b78">カレイ・ヒラメの仲間、サメ、エイ</span></div>` : "";
+    html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">よく聞こえる音の高さ（目安・Hz）</b>${svg}${no}<div style="font-size:22px;color:#3a5a78;margin-top:4px">日本水産学会誌・Fisheries Science・DOSITS から。左ほど低い音</div>`, 1, [960, 150, 880], [40, 380, 1000]);
+    otNote("魚の動きはイメージ。点は「いちばんよく聞こえる」「感度がある」高さ、帯は聞こえる範囲");
+  },
+  // 側線：k0 第六番目の感覚 → k1 体の長さの1〜2倍の近さ（輪）と小魚の揺れ → k2 ナマズは後流をたどる
+  ot_side(t, d, s, k) {
+    const P = PORTRAIT, T = t + 110, tk = t - (s[`_k${k}`] ?? 0);
+    hyWater(0);
+    const hr = skHero(T, { x: 0.25, h: 1.0 });
+    const r = hr.r;
+    skSide(t, r, P ? 2.6 : 2.1, { ox: P ? 0.05 : 0.35, cy: 1.0, pd: P ? 0.5 : 0.1 });
+    if (!r) return;
+    const ll = [];
+    for (let i = 0; i <= 30; i++) { const f = lerp(0.25, 0.86, i / 30); ll.push(otIn(r, f, 0.13 * Math.sin(Math.PI * (f - 0.1) / 0.85) + 0.02)); }
+    const glow = 0.6 + 0.4 * Math.sin(t * 4);
+    pathLine(ll, "#2ecc71", 1, 10 + 4 * glow);
+    const cxw = r.mx - 0.5 * r.L, cyw = r.my;
+    // 小魚（カタクチイワシ）が前を横切り、後ろに水の乱れ（点）
+    const sx = lerp(1.6, -1.2, ((t * 0.09) % 1)), sy = skY(1.1) + 0.05 * Math.sin(t * 1.3);
+    const sm = fkGet("katakuchi", 1450, 12);
+    if (k >= 1 && sm) { sm.object.scale.setScalar(1.6); fkPlace(sm, SKp(sx, sy, 0.15), Math.PI, 0, T, { freq: 4, amp: 0.1 }); rcTintObj(sm.object, 0); rfClear(sy - skY(0) - 0.05); }
+    if (k >= 1) {
+      for (let i = 1; i <= 26; i++) { const wx = sx + i * 0.07, a = (1 - i / 26) * fadeIn(tk, 0.3); const p = project(SKp(wx + 0.02 * Math.sin(T * 6 + i), sy + 0.03 * Math.sin(T * 5 + i * 1.7), 0.15)); lines += `<circle cx="${p.x}" cy="${p.y}" r="${7 * (1 - i / 40)}" fill="#bfeaff" opacity="${a}"/>`; }
+      [1, 2].forEach((m, j) => { const c = project(SKp(cxw, cyw, 0)), e = project(SKp(cxw + r.L * (0.5 + m), cyw, 0)), f2 = project(SKp(cxw, cyw + r.L * (0.5 + m) * 0.6, 0)); lines += `<ellipse cx="${c.x}" cy="${c.y}" rx="${Math.abs(e.x - c.x)}" ry="${Math.abs(f2.y - c.y)}" fill="none" stroke="#ffd166" stroke-width="5" stroke-dasharray="16 12" opacity="${fadeIn(tk, 0.5 + j * 0.5)}"/>`; });
+      if (k === 1) label(SKp(cxw + r.L * 2.4, cyw + 0.25, 0), "体の長さの1〜2倍", "低い揺れ（約200Hzまで）", fadeIn(tk, 1.2), "gold", P ? -60 : 120, -150);
+    }
+    if (k === 0) {
+      label(ll[18], "側線", "第六番目の感覚", fadeIn(t, 0.5), "gold ans", P ? 0 : 120, -180);
+      rcSrc("国立科学博物館（中江雅典）の資料");
+    }
+    if (k === 2) {
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">夜に狩りをする<span style="color:#c2410c">ナマズ</span>の研究</b><div style="font-size:${P ? 31 : 30}px;font-weight:900;margin-top:8px">泳ぐ獲物が残した<span style="color:#1f6fd1">水の乱れ</span>を<br>側線でたどった</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">Pohlmann ほか（2004）。絵の魚はマダイ（イメージ）</div>`, fadeIn(tk, 0.3), [70, 170, 760], [60, 420, 960]);
+      label(SKp(sx + 0.9, sy, 0.15), "水の乱れ", "", fadeIn(tk, 0.8), "", P ? 60 : 150, 180);
+    }
+    if (k === 1) rcSrc("DOSITS（ロードアイランド大学ほか）");
+    otNote("側線の線・輪・水の乱れは模式図。魚の動きはイメージ");
+  },
+  // 足音は？：k0 歩く人の足から揺れ（オレンジ）が堤防と地面を伝わる → k1 海底で水の粒が揺れる → k2 研究がまだ少ない
+  ot_ashi(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130, tk = t - (s[`_k${k}`] ?? 0);
+    otBase(1, T);
+    otChinus(T);
+    otWide(t, P ? 2.5 : 3.5, -2.4, 36);
+    const foot = [-1.6, OT_TOP];
+    for (let i = 0; i < 4; i++) {
+      const age = (t + i * 0.9) % 3.6, op = (1 - age / 3.6) * fadeIn(t, 0.4);
+      otArc(foot, 0.3 + age * 3.2, -Math.PI, 0.05, "#ff8a3d", 7, op, otInGround);
+    }
+    // 足が着く印
+    const fp = project(OTp(foot[0], foot[1], OT_LZ)), ph = (T / OT_STEP) % 1;
+    lines += `<circle cx="${fp.x}" cy="${fp.y}" r="${10 + 26 * ph}" fill="none" stroke="#ff8a3d" stroke-width="5" opacity="${1 - ph}"/>`;
+    // 海底の上の水の粒（揺れる）
+    if (k >= 1) {
+      const rr = rng(4413);
+      for (let i = 0; i < 70; i++) {
+        const u = 0.3 + rr() * 11, h = 0.15 + rr() * 1.2, ph2 = rr() * 6.28, y = otBed(u) + h;
+        const amp = 0.06 * Math.exp(-h * 1.5) * (0.6 + 0.4 * Math.sin(T * 14 + ph2));
+        const p = project(OTp(u + amp * Math.sin(T * 22 + ph2), y + amp * Math.cos(T * 19 + ph2), OT_LZ + 0.2));
+        lines += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(5 + 3 * Math.exp(-h)).toFixed(1)}" fill="#bfeaff" opacity="${(0.85 * fadeIn(tk, 0.2 + i * 0.01)).toFixed(2)}"/>`;
+      }
+      if (k === 1) label(OTp(8, otBed(8) + 0.4, OT_LZ), "水の粒が揺れる", "魚が主に感じるのは、この揺れ", fadeIn(tk, 0.6), "gold ans", P ? -60 : 40, -230);
+    }
+    if (k === 0) label(OTp(-1.6, -1.5, OT_LZ), "足音の揺れ", "堤防や地面を伝わる", fadeIn(t, 1.4), "", P ? 160 : 330, -40);
+    if (k === 2) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">地面を伝わる揺れが、魚にどう効くか</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:8px;color:#c2410c">研究は、まだ少ない</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">PNNL（米国 パシフィック・ノースウエスト国立研究所）の資料</div>`, fadeIn(tk, 0.3), [1120, 170, 720], [60, 420, 960]);
+    if (!P && k < 2) legend(OT_LEG.slice(2).concat([["#bfeaff", "水の粒の揺れ"]]), 1);
+    otNote("揺れの線と水の粒は模式図（伝わる強さは表していない）。魚の動きはイメージ（魚は大きく表示）");
+  },
+  // だから釣りでは：k0 話し声は跳ね返る・足音は伝わる → k1 静かに歩く・物を落とさない（と言われる）
+  ot_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150, tk = t - (s[`_k${k}`] ?? 0);
+    otBase(k >= 1 ? 1 : 0, T);
+    otChinus(T);
+    otWide(t, P ? 2.5 : 1.5, -1.6, 38);
+    otTalk(T, k === 0 ? 1 : 0.3);
+    for (let i = 0; i < 5; i++) otRay(OT_MOUTH, -0.3 - i * 0.09, 30, 1, "#ffd166", 5, 0.85);
+    for (let i = 0; i < 3; i++) { const age = (t + i * 1.2) % 3.6; otArc([-1.6, OT_TOP], 0.3 + age * 3.2, -Math.PI, 0.05, "#ff8a3d", 6, (1 - age / 3.6), otInGround); }
+    otSurf(0.5);
+    const rowc = (col, a1, b1) => `<div style="display:flex;align-items:center;gap:16px;margin-top:12px"><span style="width:26px;height:26px;border-radius:50%;background:${col};flex:none"></span><div style="font-size:${P ? 31 : 30}px;font-weight:900">${a1}<br><span style="font-size:${P ? 26 : 25}px;color:#3a5a78">${b1}</span></div></div>`;
+    if (k === 0) html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">話し声と足音のちがい</b>${rowc("#ffd166", "話し声", "水面でほとんど跳ね返る（約0.1%）")}${rowc("#ff8a3d", "足音・物を落とした揺れ", "堤防や海底を伝わる")}`, fadeIn(tk, 0.3), [1120, 170, 720], [60, 420, 960]);
+    if (k === 1) {
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 34}px">足もとの魚をねらうときは</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:8px;color:#1d8a3a;line-height:1.5">・静かに歩く<br>・物を落とさない</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">のがよいと言われます</div>`, fadeIn(tk, 0.3), [1120, 170, 720], [60, 420, 960]);
+    }
+    otNote("音の線・揺れの線は模式図。魚の動きはイメージ（魚は大きく表示）");
+  },
+  // 安全：ライフジャケット・ぬれた所と堤防の端・立入禁止には入らない
+  ot_safe(t, d, s, k) {
+    const P = PORTRAIT, T = t + 170;
+    otBase(0, T);
+    otChinus(T, { n: 2 });
+    otWide(t, P ? 0 : 3.5, 0.6, 30);
+    const row = (ic, txt, i) => `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${fadeIn(t, 0.4 + i * 0.6)}"><b style="background:${["#e3412b", "#ffb02e", "#1f6fd1"][i]};color:#fff;font-size:30px;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none">${ic}</b><div style="font-size:${P ? 34 : 34}px;font-weight:900">${txt}</div></div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">堤防では、<span style="color:#e3412b">安全が先</span></b>${row("1", "ライフジャケットを着ける", 0)}${row("2", "ぬれた所・堤防の端に注意", 1)}${row("3", "立入禁止の場所には入らない", 2)}`, fadeIn(t, 0.2), [1060, 170, 790], [60, 420, 960]);
+    label(OTp(-1.6, OT_TOP + 1.2, OT_LZ - 0.3), "ライフジャケット", "", fadeIn(t, 1.0), "gold", P ? 160 : 300, 120);
+  },
+  ot_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 190;
+    otBase(0, T);
+    otChinus(T);
+    otWide(t, 4, -1.2, 44);
+    html += acDim(0.5);
+    const rows = [["話し声", "水面でほとんど跳ね返る", "水に入るのは約0.1%（真上から約15°の内側だけ）", "#e08a00"], ["魚の耳", "内耳（耳石）と側線", "うきぶくろが音を伝え直す。マダイは約200〜300Hzの低い音", "#1f4f9a"], ["足音", "堤防や海底を伝わる", "足もとをねらうときは静かに", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 62 : 60}px;opacity:${fadeIn(t, 0.1)}">水の中の音 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 28 : 32}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;
