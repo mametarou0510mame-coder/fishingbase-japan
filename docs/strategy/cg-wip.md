@@ -9,6 +9,18 @@
 
 ---
 
+## 作りかけ：見える化（A4）「堤防の足音・話し声は魚に届く？」 slug: cg-oto（接頭辞 ot_）2026-11-25 3DCG 定期タスク
+- 事実は fish-knowledge.md「側線と魚の聴覚・水中の音」だけ（水中の音は空気の4〜5倍速い・水面で約0.1%しか入らない・垂直から約15°以内だけ・内耳と耳石・うきぶくろ・側線は0〜約200Hz を体長の1〜2倍・ナマズの後流・マダイ 約300→200Hz・ヒラメ 上限500Hz未満・マイワシ 約1kHz・キンギョ 3kHzまで・地面を伝わる振動は研究がまだ少ない・音響馴致 300Hz）。「話し声は絶対届かない」「足音が何倍伝わる」は言わない
+- 構成：ot_hook → ot_speed（速さ）→ ot_wall（水面で跳ね返る）→ ot_quiz（何%入る？ 0.1%）→ ot_kado（15°・絶対ではない）→ ot_ear（内耳・耳石・うきぶくろ）→ ot_hz（魚で違う）→ ot_side（側線）→ ot_ashi（足音・振動）→ ot_kioku（音で魚が集まる）→ ot_tsuri → ot_safe → ot_sum → ask → end
+- 土台：堤防の断面 otSec（makeSection、OT=V(0,0,-7000)）と hyWater の水の中。Blender は scenes/oto.py（堤防の足元の捨て石とクロダイ、LURE none）
+- [ ] main.js（ot_*）・台本・ショート
+- [ ] Blender の場面 oto.py・check_scene
+- [ ] ローカルの静止画確認・--clear
+- [ ] cg-video（8分割）
+- [ ] cg-compress
+- [ ] Blender test → full
+- [ ] ORDER・固定コメント・企画リスト
+
 （作りかけはなし。2026-11-24 アカデミー R11「冬のチヌはノリを食べに来る？」cg-nori を ORDER に入れて完了。書き出し 45329169274（render 3・6・finish が Install で止まり再実行）・圧縮 45338408379・Blender full 45340723375・最小すきま 1.069m）
 
 （作りかけはなし。2026-11-24 見える化「魚からはどこまで見えている？」cg-shikai を ORDER に入れて完了。書き出し 45299045780（render 2 が Install で止まったので取り消して再実行）・圧縮 45307006335・Blender full 45303771457・最小すきま 0.379m）
