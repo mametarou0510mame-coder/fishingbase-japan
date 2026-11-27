@@ -21,6 +21,10 @@ on:
         description: "この動画を出す（空なら列の次。道具紹介など時刻を決めて出すとき）"
         required: false
         default: ""
+      publish_at:
+        description: "予約公開の時刻（例 2026-11-28T06:00:00+09:00）。入れると非公開で上げて、この時刻に公開される。公開までに Studio で収益化をオンにする"
+        required: false
+        default: ""
       track:
         description: "列の次を選ぶとき：cg（3DCG・アカデミー）/ long（オーナー OK の long-*）"
         required: false
@@ -46,6 +50,7 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_PUBLISH_AT: ${{ github.event.inputs.publish_at }}
         run: |
           set -o pipefail
           trap 'echo "::error::失敗した行: $BASH_COMMAND"' ERR

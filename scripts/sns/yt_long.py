@@ -180,6 +180,13 @@ def main():
         "snippet": {"title": yt_title(src["title"])[:100], "description": desc_fit(desc), "tags": tags[:25], "categoryId": "26", "defaultLanguage": "ja", "defaultAudioLanguage": "ja"},
         "status": {"privacyStatus": "public", "selfDeclaredMadeForKids": False},
     }
+    # 2026-11-28 オーナー：API で上げた動画は Studio の「アップロードのデフォルト設定」（収益化オンなど）が効かず、
+    # 公開した時点で収益化がオフになっている。収益化は API では切り替えられないので、時刻を決めて出すときは
+    # 「非公開＋予約公開（publishAt）」で先に上げ、公開までに Studio で収益化をオンにできるようにする。
+    pub_at = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--publish-at=")), os.environ.get("YT_PUBLISH_AT", "")).strip()
+    if pub_at:
+        meta["status"] = {"privacyStatus": "private", "publishAt": pub_at, "selfDeclaredMadeForKids": False}
+        print(f"::notice::予約公開 {pub_at}（それまでは非公開。Studio で収益化をオンにしておく）")
     com = comment_text(src)
     if com:
         os.makedirs("data/sns/yt-comments", exist_ok=True)
@@ -215,6 +222,8 @@ def main():
     rec = posted()
     from datetime import datetime, timedelta, timezone
     rec[slug] = {"youtube": vid, "at": datetime.now(timezone(timedelta(hours=9))).isoformat(timespec="minutes")}
+    if pub_at:
+        rec[slug]["publish_at"] = pub_at
     os.makedirs(os.path.dirname(REC), exist_ok=True)
     json.dump(rec, open(REC, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
