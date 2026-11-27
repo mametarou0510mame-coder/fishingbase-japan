@@ -28,8 +28,11 @@
 - [x] ローカル静止画の確認（横・縦・サムネイル）
 - [ ] cg-video（chunks=8）→ cg-compress → Blender test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md の更新
-- 書き出し cg-video 45935747443（起動ずみ）・Blender test 起動ずみ
-次にやること：cg-video の完了を待つ → cg-compress（run_id=45935747443）→ Blender test を確かめる → full
+- [x] cg-video 45935747443 成功・cg-compress 成功（long-media に cg-katsuo.mp4.part-00・.jpg・-chapters.txt）
+- [x] Blender test 45935757974（最小すきま 2.84m。見た目よし）
+- [ ] Blender full 45938402827（mode=full, samples=64）起動ずみ
+- [x] 固定コメント data/sns/yt-comments/cg-katsuo.txt
+次にやること：full の完了を待つ → cg/open/cg-katsuo-check-*.jpg・summary を確かめる → ORDER に入れる → cg-video-plan.md を更新（full が終わる前に ORDER に入れない）
 
 ---
 
