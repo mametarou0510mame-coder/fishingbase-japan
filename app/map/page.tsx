@@ -17,6 +17,7 @@ type Coord = { lat: number; lon: number; rough?: boolean };
 
 // 全国の地図は「Map data」ワークフローが作る（まだ無いときはタブを出さない）
 const JAPAN = (MAP as unknown as Record<string, MapView | undefined>).japan;
+const EAST = (MAP as unknown as Record<string, MapView | undefined>).east; // 東海・関東の拡大（2026-11-27）
 
 export default function MapPage() {
   const coords = COORDS as Record<string, Coord>;
@@ -48,6 +49,7 @@ export default function MapPage() {
         views={[
           { key: "bay", label: "大阪湾まわり", view: MAP.bay, r: 7 },
           { key: "kansai", label: "関西全体", view: MAP.kansai },
+          ...(EAST ? [{ key: "east", label: "東海・関東", view: EAST, r: 7 }] : []),
           ...(JAPAN ? [{ key: "japan", label: "全国", view: JAPAN, r: 6 }] : []),
         ]}
         spots={spots}

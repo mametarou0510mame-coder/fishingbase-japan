@@ -167,6 +167,13 @@ export const AREAS: Area[] = [
     spots: ["tsuruga-nako-ikada", "akaguri-umitsuri-koen"],
     intro: "波の穏やかな若狭湾のエリアです。湾に浮かぶいかだや、海に突き出た桟橋の釣り公園があります。冬に休む施設もあります。",
   },
+  {
+    slug: "mie-ise-shima",
+    name: "三重・伊勢志摩",
+    region: "松阪市・鳥羽市・志摩市・南伊勢町・大紀町・紀北町",
+    spots: ["matsunase-fishing-park", "toba-fishing-park-triton", "kashikojima-kaiyuen", "tsuri-koen-sasukeya", "nishiki-fishing-park", "tsuribori-shotokumaru"],
+    intro: "伊勢湾から伊勢志摩・熊野灘にかけてのエリアです。入り江の静かな海に、マダイや青物を放流した海上釣り堀が集まっています。",
+  },
 ];
 
 export const findArea = (slug: string) => AREAS.find((a) => a.slug === slug);

@@ -2,6 +2,48 @@
  "notes": "釣り場の休園・再開・ルール変更・新規掲載の記録。新しいものを上に追加する。source は必ず公式情報のURL。",
  "items": [
   {
+   "date": "2026-11-27",
+   "kind": "新規掲載",
+   "spot": "toba-fishing-park-triton",
+   "text": "フィッシングパークトリトン（三重県鳥羽市）を掲載しました。海上釣り堀（8:00〜14:00）と釣り筏（5:30〜18:00）があり、マダイ・ヒラメなどを放流しています。",
+   "source": "https://www.kankomie.or.jp/spot/23735"
+  },
+  {
+   "date": "2026-11-27",
+   "kind": "新規掲載",
+   "spot": "kashikojima-kaiyuen",
+   "text": "賢島フィッシングパーク 海遊苑（三重県志摩市）を掲載しました。英虞湾の海上釣り堀（9:00〜17:00）で、釣った魚を料理してもらえます。",
+   "source": "https://www.kankomie.or.jp/spot/24987"
+  },
+  {
+   "date": "2026-11-27",
+   "kind": "新規掲載",
+   "spot": "matsunase-fishing-park",
+   "text": "松名瀬フィッシングパーク（三重県松阪市）を掲載しました。陸続きの釣り堀で予約不要、7:00〜16:00です。",
+   "source": "https://www.kankomie.or.jp/spot/24656"
+  },
+  {
+   "date": "2026-11-27",
+   "kind": "新規掲載",
+   "spot": "tsuri-koen-sasukeya",
+   "text": "釣り公園 佐助屋（三重県南伊勢町）を掲載しました。マダイを中心に青物も放流している釣り堀です。",
+   "source": "https://www.kankomie.or.jp/spot/24646"
+  },
+  {
+   "date": "2026-11-27",
+   "kind": "新規掲載",
+   "spot": "nishiki-fishing-park",
+   "text": "錦フィッシングパーク（三重県大紀町）を掲載しました。錦漁港から船で渡る海上釣り堀で、要予約・月曜と火曜が休みです。",
+   "source": "https://www.kankomie.or.jp/spot/24657"
+  },
+  {
+   "date": "2026-11-27",
+   "kind": "新規掲載",
+   "spot": "tsuribori-shotokumaru",
+   "text": "釣り堀 正徳丸（三重県紀北町）を掲載しました。完全予約制の海上釣り堀で、火曜が休みです。",
+   "source": "https://www.kankomie.or.jp/spot/24397"
+  },
+  {
    "date": "2026-11-20",
    "kind": "新規掲載",
    "spot": "sendaiko-umi-no-hiroba",
