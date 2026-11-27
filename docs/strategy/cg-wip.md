@@ -20,21 +20,8 @@
 
 ---
 
-## 作りかけ（アカデミー）R12 カツオは昼も夜も浅い？ 浮魚礁とアーカイバルタグ（slug: cg-katsuo、2026-11-27 開始）
-- [x] 企画を選ぶ（A-2 の1番）・fish-knowledge.md の「カツオ（浮魚礁）」の節に抄録と和歌山県の資料を足した
-- [x] 台本 content/cg/cg-katsuo.json・short-cg-katsuo.json（本編 約2分45秒・ショート 44.5秒の見積もり）
-- [x] main.js に kt_* ショットと kt_thumb（カツオの3Dモデルは Fish Kit にないので、同じサバ科のキハダのモデルを使い、画面に断り書き）
-- [x] Blender 場面 scenes/katsuo.py（ENV="fad"：parts.build_fad の係留ロープ。check_scene 最小すきま 2.85m）
-- [x] ローカル静止画の確認（横・縦・サムネイル）
-- [ ] cg-video（chunks=8）→ cg-compress → Blender test → full
-- [ ] ORDER・固定コメント・cg-video-plan.md の更新
-- [x] cg-video 45935747443 成功・cg-compress 成功（long-media に cg-katsuo.mp4.part-00・.jpg・-chapters.txt）
-- [x] Blender test 45935757974（最小すきま 2.84m。見た目よし）
-- [ ] Blender full 45938402827（mode=full, samples=64）起動ずみ
-- [x] 固定コメント data/sns/yt-comments/cg-katsuo.txt
-次にやること：full の完了を待つ → cg/open/cg-katsuo-check-*.jpg・summary を確かめる → ORDER に入れる → cg-video-plan.md を更新（full が終わる前に ORDER に入れない）
+（作りかけはなし。2026-11-27 アカデミー R12「カツオは昼も夜も浅い？」cg-katsuo を ORDER に入れて完了。書き出し 45935747443・Blender full 45938402827・最小すきま 2.830m）
 
----
 
 （作りかけはなし。2026-11-25 見える化（A4）「堤防の足音・話し声は魚に届く？」cg-oto を ORDER に入れて完了。書き出し 45519622908・圧縮 45522481605・Blender full 45523680707・最小すきま 0.526m）
 
