@@ -8753,6 +8753,19 @@ Object.assign(SHOTS, {
     bigText(PORTRAIT ? 0 : 30, "サーフの釣れる場所は<br>離岸流で決まる", "論文と海上保安庁の調査から見える化", a);
     if (t > 3) label(SFTp(48, 0.5, 0), "離岸流", "沖へ戻る、細く速い流れ", fadeIn(t, 3.2), "gold ans", PORTRAIT ? 0 : 380, 130);
   },
+  // はじめに：k0 この動画でわかること（上から見た砂浜と流れ） → k1 章の一覧
+  rg_intro(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    rgTop(t + 40, { alpha: k === 1 ? 0.6 : 1 });
+    sfTopView(lerp(36, 38, ease(t / Math.max(d, 1))), 0, 1, t);
+    if (k === 0) label(SFTp(48, 0.5, 0), "離岸流", "沖へ戻る、細く速い流れ", fadeIn(t, 0.6), "gold ans", P ? 0 : 340, -60);
+    if (k === 1) {
+      const rows = ["離岸流のでき方", "流れの意外な動き", "魚との関係", "投げる場所と時間帯"];
+      html += acDim(0.35);
+      html += acCard(`<div style="font-size:${P ? 34 : 34}px;font-weight:900;color:#10345a">この動画でわかること</div>${rows.map((x, i) => `<div style="font-size:${P ? 32 : 32}px;font-weight:800;margin-top:12px;opacity:${fadeIn(tk(1), 0.3 + i * 0.7)}"><span style="color:#c2410c">${i + 1}.</span> ${x}</div>`).join("")}`, fadeIn(tk(1), 0.1), P ? [80, 700, 920] : [560, 220, 800]);
+    }
+    icPremise();
+  },
   // 離岸流とは：k0 波が水を運ぶ → k1 戻り道 → k2 幅・速さ → k3 着色剤 → k4 細くて速い・日々変わる
   rg_what(t, d, s, k) {
     const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
