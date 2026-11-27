@@ -20,6 +20,18 @@
 
 ---
 
+## 作りかけ（アカデミー）R12 カツオは昼も夜も浅い？ 浮魚礁とアーカイバルタグ（slug: cg-katsuo、2026-11-27 開始）
+- [x] 企画を選ぶ（A-2 の1番）・fish-knowledge.md の「カツオ（浮魚礁）」の節に抄録と和歌山県の資料を足した
+- [ ] 台本 content/cg/cg-katsuo.json・short-cg-katsuo.json
+- [ ] main.js に kt_* ショットと kt_thumb（カツオの3Dモデルは Fish Kit にないので、同じサバ科のキハダのモデルを使い、画面に断り書き）
+- [ ] Blender 場面 scenes/katsuo.py（check_scene.py で確認）
+- [ ] ローカル静止画の確認
+- [ ] cg-video（chunks=8）→ cg-compress → Blender test → full
+- [ ] ORDER・固定コメント・cg-video-plan.md の更新
+次にやること：台本を書く
+
+---
+
 （作りかけはなし。2026-11-25 見える化（A4）「堤防の足音・話し声は魚に届く？」cg-oto を ORDER に入れて完了。書き出し 45519622908・圧縮 45522481605・Blender full 45523680707・最小すきま 0.526m）
 
 （作りかけはなし。2026-11-24 アカデミー R11「冬のチヌはノリを食べに来る？」cg-nori を ORDER に入れて完了。書き出し 45329169274（render 3・6・finish が Install で止まり再実行）・圧縮 45338408379・Blender full 45340723375・最小すきま 1.069m）
