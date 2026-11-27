@@ -13,7 +13,7 @@
 - [x] main.js に nk_* と nk_thumb（糸は新しい nkSim：鎖のモデル。FT_BODY は使わない）
 - [x] 台本 cg-nimaishio.json・ショート short-cg-nimaishio.json、Blender の場面 scenes/nimai.py（check_scene 0.542m）
 - [x] ローカルの静止画の確認（--clear 最小 1.27m）
-- [ ] cg-video（書き出し）→ cg-compress → Blender test → full
+- [ ] cg-video（書き出し 45936514602 を起動）→ cg-compress → Blender test → full
 - [ ] ORDER に入れる・固定コメント・企画リストの更新
 
 次にやること：一番上の [ ] から。
