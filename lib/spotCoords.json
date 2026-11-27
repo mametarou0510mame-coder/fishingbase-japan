@@ -523,5 +523,47 @@
   "address": "福井県敦賀市名子37号19-1",
   "matched": "福井県敦賀市名子",
   "rough": false
+ },
+ "toba-fishing-park-triton": {
+  "lat": 34.3913,
+  "lon": 136.8802,
+  "address": "三重県鳥羽市千賀町183",
+  "matched": "三重県鳥羽市千賀町",
+  "rough": false
+ },
+ "kashikojima-kaiyuen": {
+  "lat": 34.3104,
+  "lon": 136.8282,
+  "address": "三重県志摩市阿児町神明682-16",
+  "matched": "三重県志摩市阿児町神明６８２番地",
+  "rough": false
+ },
+ "matsunase-fishing-park": {
+  "lat": 34.598,
+  "lon": 136.5845,
+  "address": "三重県松阪市松名瀬町1423",
+  "matched": "三重県松阪市松名瀬町",
+  "rough": false
+ },
+ "tsuri-koen-sasukeya": {
+  "lat": 34.3176,
+  "lon": 136.6377,
+  "address": "三重県度会郡南伊勢町迫間浦",
+  "matched": "三重県南伊勢町迫間浦",
+  "rough": false
+ },
+ "nishiki-fishing-park": {
+  "lat": 34.2368,
+  "lon": 136.3954,
+  "address": "三重県度会郡大紀町錦",
+  "matched": "三重県大紀町錦",
+  "rough": false
+ },
+ "tsuribori-shotokumaru": {
+  "lat": 34.1977,
+  "lon": 136.3613,
+  "address": "三重県北牟婁郡紀北町東長島3043-27",
+  "matched": "三重県紀北町東長島３０４３番地",
+  "rough": false
  }
 }
