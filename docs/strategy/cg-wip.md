@@ -28,7 +28,8 @@
 - [x] ローカル静止画の確認（横・縦・サムネイル）
 - [ ] cg-video（chunks=8）→ cg-compress → Blender test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md の更新
-次にやること：cg-video.yml（slug=cg-katsuo, chunks=8）を起動
+- 書き出し cg-video 45935747443（起動ずみ）・Blender test 起動ずみ
+次にやること：cg-video の完了を待つ → cg-compress（run_id=45935747443）→ Blender test を確かめる → full
 
 ---
 
