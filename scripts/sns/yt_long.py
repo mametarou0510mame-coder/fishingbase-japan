@@ -135,7 +135,8 @@ def main():
         today = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
         cg = sys.argv[1] == "next"
         mine = lambda s: s.startswith("cg-") == cg  # noqa: E731
-        if sum(v.get("at", "").startswith(today) and mine(k) for k, v in done.items()) >= (PER_DAY if cg else LONG_PER_DAY) and "--force" not in sys.argv:
+        # "extra": true の記録（オーナーが例外として出した回）は1日の本数に数えない（2026-11-28 cg-rigan を朝6時に出し、18時の枠もいつもどおり出す）
+        if sum(v.get("at", "").startswith(today) and mine(k) and not v.get("extra") for k, v in done.items()) >= (PER_DAY if cg else LONG_PER_DAY) and "--force" not in sys.argv:
             print("")
             return
         left = [s for s in ORDER if s not in done and s not in HOLD and mine(s) and (cg or s in APPROVED) and NOT_BEFORE.get(s, "") <= today]
