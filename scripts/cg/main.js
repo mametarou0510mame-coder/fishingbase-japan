@@ -8425,11 +8425,11 @@ const SF_GLSL = `float sm(float x){ x = clamp(x,0.,1.); return x*x*(3.-2.*x); }
   const land = new THREE.Mesh(new THREE.PlaneGeometry(1400, 300).rotateX(-Math.PI / 2).translate(0, 1.4, -170), new THREE.MeshBasicMaterial({ color: 0xd9ceb0 }));
   sfTop.add(deep, land);
   const surf = new THREE.Mesh(sg, new THREE.ShaderMaterial({
-    uniforms: { time: U.time, foamK: { value: 1 } }, transparent: true, depthWrite: false,
+    uniforms: { time: U.time, foamK: { value: 1 }, tide: { value: 0 } }, transparent: true, depthWrite: false,
     vertexShader: `varying vec3 vL; void main(){ vL = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
-    fragmentShader: `uniform float time; uniform float foamK; varying vec3 vL; ${SF_GLSL}
-      void main(){ float u = vL.z, w = vL.x, d = -bed(u, w);
-        float zone = smoothstep(0.9, 0.45, d) * smoothstep(34.0, 38.0, u) * step(abs(w), 160.0) + smoothstep(5.0, 1.0, u)*step(0.0, u);
+    fragmentShader: `uniform float time; uniform float foamK; uniform float tide; varying vec3 vL; ${SF_GLSL}
+      void main(){ float u = vL.z, w = vL.x, d = -bed(u, w) + tide;
+        float zone = smoothstep(0.9, 0.45, d) * smoothstep(-0.15, 0.1, d) * smoothstep(34.0, 38.0, u) * step(abs(w), 160.0) + smoothstep(5.0, 1.0, u)*step(0.0, u);
         float band = smoothstep(0.35, 0.95, sin(u*0.55 + time*1.6 + sin(w*0.08)*0.8));
         float f = clamp(zone, 0., 1.) * (0.35 + 0.65*band) * foamK;
         float glint = pow(abs(sin(u*0.9 + time*0.7)*sin(w*0.6 - time*0.5)), 6.0);
@@ -8472,7 +8472,7 @@ function sfTopMini(hi, a = 1) {
     <text x="4" y="76" font-size="8" fill="#10345a" font-weight="900">砂浜</text><text x="60" y="15" font-size="8" fill="#fff" font-weight="900">沖</text>
     ${hi ? `<circle cx="${hi[0]}" cy="${hi[1]}" r="8" fill="none" stroke="#2ecc71" stroke-width="3"/>` : ""}</svg></div>`;
 }
-function sfTopBase() { base(0); U.under.value = 0; sky.visible = true; sfTop.visible = true; wall.visible = top.visible = false; if (WALL_BAR) WALL_BAR.visible = false; sfTop.userData.surf.material.uniforms.foamK.value = 1; }
+function sfTopBase() { base(0); U.under.value = 0; sky.visible = true; sfTop.visible = true; wall.visible = top.visible = false; if (WALL_BAR) WALL_BAR.visible = false; sfTop.userData.surf.material.uniforms.foamK.value = 1; sfTop.userData.surf.material.uniforms.tide.value = 0; }
 
 Object.assign(SHOTS, {
   sf_thumb(t, d, s) {
@@ -8645,6 +8645,404 @@ Object.assign(SHOTS, {
       const a = fadeIn(t, 0.4 + i * 0.45);
       html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1200}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 34}px;padding:10px 0;width:${P ? 220 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 38 : 44}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 30}px;color:#3a5a78">${c1}</div></div></div>`;
     });
+  },
+});
+
+// =====================================================================
+// 【見える化】サーフの釣れる場所は「離岸流」で決まる（cg-rigan、rg_*）2026-11-27。sf_* の上から見た砂浜（sfTop・sfFlow）を土台にする
+// 参考：Castelle ほか 2016 Earth-Science Reviews 163（離岸流は3系統・6タイプ）／MacMahan ほか 2006 Coastal Engineering 53（総説。潮位が下がると強まる）
+//   MacMahan ほか 2010 Marine Geology 268（GPS の浮き：サーフゾーンの外へ出たのは1時間に約19%、多くは渦で戻る）／Austin ほか 2010（干潮前後に最大 1.3m/s）
+//   Bruneau ほか 2014（干潮〜潮位の中ほどで最も強い例が多い）／Morgan ほか 2016（離岸流のある遠浅の浜は波打ち際のプランクトンが多い）
+//   須田ほか 2009 水産大学校研究報告 58(2)（土井ヶ浜：若いヒラメが水深0.5〜1mまで入りアミ類を食べる。満潮より干潮で多い）
+//   海上保安庁 第一管区（幅10〜30m、最大約2m/s、見分け方）・第七管区（着色剤の調査）・第九管区（防波堤・防砂堤・岬沿い）
+// 「離岸流に魚が集まる」は直接の論文が見つからなかったので、画面でも「仮説」と出す。浮き・エサの粒の動きは模式図
+// =====================================================================
+// 突堤（構造物の離岸流の説明だけで出す）。上から見た砂浜の w=-78 に、岸から沖へ 44m
+const rgGroin = new THREE.Mesh(new THREE.BoxGeometry(5, 2.2, 46), ftLit(0x9aa3a8));
+rgGroin.position.copy(SFTp(19, 0.9, -78));
+world.add(rgGroin);
+extras.push(rgGroin);
+// 浮き（オレンジ）とエサの粒（水色）
+const rgBuoy = new THREE.InstancedMesh(new THREE.SphereGeometry(1.15, 14, 10), new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true }), 12);
+const rgDot = new THREE.InstancedMesh(new THREE.SphereGeometry(0.85, 8, 6), new THREE.MeshBasicMaterial({ color: 0xfff06a, transparent: true, opacity: 0.95 }), 80);
+[rgBuoy, rgDot].forEach((m) => { m.frustumCulled = false; m.renderOrder = 32; world.add(m); extras.push(m); });
+// 渦の道（u, w）。片側（s=+1）。溝を沖へ → 頭で外へ開く → 砂州の上を岸へ → 岸に沿って溝へ（模式図）
+const RG_LOOP = [[4, 1.5], [20, 2], [40, 2.5], [55, 4], [63, 12], [61, 24], [51, 32], [37, 34], [23, 31], [11, 24], [5, 13]];
+function rgCat(P, f) {
+  const n = P.length, x = ((f % 1) + 1) % 1 * n, i = Math.floor(x), u = x - i;
+  const p0 = P[(i - 1 + n) % n], p1 = P[i], p2 = P[(i + 1) % n], p3 = P[(i + 2) % n];
+  const c = (a, b, cc, d) => 0.5 * (2 * b + (-a + cc) * u + (2 * a - 5 * b + 4 * cc - d) * u * u + (-a + 3 * b - 3 * cc + d) * u * u * u);
+  return [c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])];
+}
+// i 番目の浮きの位置 [u, w, 濃さ]。0〜7 は渦、8・9 は沖へ出ていく
+function rgBuoyAt(i, t) {
+  if (i < 8) {
+    const s = i % 2 ? 1 : -1, ph = Math.floor(i / 2) * 0.25 + (s > 0 ? 0.11 : 0);
+    const q = rgCat(RG_LOOP, ph + t / 26);
+    return [q[0], q[1] * s + Math.sin(t * 0.7 + i) * 0.6, 1];
+  }
+  const t0 = i === 8 ? 4 : 17, k = Math.max(0, t - t0), u = 4 + k * 4.2;
+  return [u, (i === 8 ? -1 : 1) * (1.5 + Math.max(0, u - 50) * 0.06), k <= 0 ? 0 : clamp01((130 - u) / 15)];
+}
+function rgBuoys(t, a = 1, trail = 6) {
+  rgBuoy.visible = a > 0.01;
+  rgBuoy.material.opacity = a;
+  for (let i = 0; i < 10; i++) {
+    const [u, w, al] = rgBuoyAt(i, t);
+    _p.copy(SFTp(u, 0.7, w)); _q.identity(); _s.setScalar(al > 0.02 ? 1 : 0.001);
+    _m.compose(_p, _q, _s);
+    rgBuoy.setMatrixAt(i, _m);
+    if (trail > 0 && al > 0.02) {
+      const pts = [];
+      for (let j = 0; j <= 24; j++) { const tt = t - trail * (1 - j / 24); if (tt < 0) continue; const q = rgBuoyAt(i, tt); if (q[2] < 0.02) continue; const p = project(SFTp(q[0], 0.7, q[1])); if (!p.behind) pts.push(p); }
+      if (pts.length > 2) lines += `<polyline points="${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#ffb45e" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 12" opacity="${(0.85 * a * al).toFixed(2)}"/>`;
+    }
+  }
+  rgBuoy.count = 10;
+  rgBuoy.instanceMatrix.needsUpdate = true;
+}
+// エサの粒：渦にのって回り続ける（模式図）
+function rgDots(t, a = 1) {
+  rgDot.visible = a > 0.01;
+  rgDot.material.opacity = 0.95 * a;
+  for (let i = 0; i < 80; i++) {
+    const s = i % 2 ? 1 : -1, f = _fh(i * 1.7) + t / 30, q = rgCat(RG_LOOP, f);
+    const j = (_fh(i * 3.1) - 0.5) * 9, jw = (_fh(i * 5.3) - 0.5) * 7;
+    _p.copy(SFTp(q[0] + j * 0.6, 0.6, (q[1] + jw) * s)); _q.identity(); _s.setScalar(1);
+    _m.compose(_p, _q, _s);
+    rgDot.setMatrixAt(i, _m);
+  }
+  rgDot.count = 80;
+  rgDot.instanceMatrix.needsUpdate = true;
+}
+// 着色剤：岸から溝を沖へ伸びる黄緑の筋（L：先端の u）
+function rgDye(L, a) {
+  if (a <= 0.01 || L < 3) return;
+  const pts = [], wide = [];
+  for (let u = 1; u <= L; u += 1.5) {
+    const sw = Math.sin(u * 0.15) * 1.2, p = project(SFTp(u, 0.5, sw));
+    if (!p.behind) pts.push(p);
+  }
+  const tail = (k) => pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const head = project(SFTp(L, 0.5, 0));
+  lines += `<polyline points="${tail()}" fill="none" stroke="#b6ff4a" stroke-width="34" stroke-linecap="round" opacity="${(0.35 * a).toFixed(2)}"/><polyline points="${tail()}" fill="none" stroke="#d8ff6a" stroke-width="12" stroke-linecap="round" opacity="${(0.6 * a).toFixed(2)}"/>`;
+  if (L > 50) lines += `<ellipse cx="${head.x}" cy="${head.y}" rx="${Math.min(120, (L - 50) * 6)}" ry="${Math.min(40, (L - 50) * 2)}" fill="#b6ff4a" opacity="${(0.3 * a).toFixed(2)}"/>`;
+}
+// 出典の小さな札（画面の下の字幕の上）
+const rgSrc = (txt, a = 1) => { html += `<div style="position:absolute;${PORTRAIT ? "left:40px;right:40px;top:1560px" : "right:60px;bottom:180px"};opacity:${a};background:rgba(6,22,42,.82);border-radius:12px;padding:6px 16px;color:#eaf6ff;font-size:${PORTRAIT ? 24 : 22}px;font-weight:800">出典：${txt}</div>`; };
+const RG_TLEG = [["#4cc3ff", "流れ（模式図）"], ["#ffffff", "白く崩れる波"]];
+function rgTop(T, o = {}) {
+  sfTopBase();
+  sfFlow(T, { alpha: o.alpha ?? 1, speed: o.speed ?? 3.2, focus: o.focus ?? null });
+}
+
+Object.assign(SHOTS, {
+  rg_thumb(t, d, s) {
+    rgTop(40);
+    sfTopView(36, 46, 0.85);
+    rgDye(62, 0.9);
+    if (s.clean) return;
+    html += ftThumbText(s, 1000);
+  },
+  // つかみ：上から見た砂浜と、沖へ戻る流れ
+  rg_hook(t, d, s) {
+    rgTop(t + 30, { focus: { x: SFT.x, z: SFT.z + 40, r: 16, dim: 0.45 } });
+    sfTopView(lerp(40, 35, ease(t / Math.max(d, 1))), 0, 1, t);
+    const a = PORTRAIT ? 1 : clamp01(t / 0.3);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${PORTRAIT ? 760 : 400}px;background:linear-gradient(rgba(2,14,28,.65),rgba(2,14,28,0))"></div>`;
+    bigText(PORTRAIT ? 0 : 30, "サーフの釣れる場所は<br>離岸流で決まる", "論文と海上保安庁の調査から見える化", a);
+    if (t > 3) label(SFTp(48, 0.5, 0), "離岸流", "沖へ戻る、細く速い流れ", fadeIn(t, 3.2), "gold ans", PORTRAIT ? 0 : 380, 130);
+  },
+  // 離岸流とは：k0 波が水を運ぶ → k1 戻り道 → k2 幅・速さ → k3 着色剤 → k4 細くて速い・日々変わる
+  rg_what(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    rgTop(t + 50, { alpha: k === 0 ? 0.35 : k === 3 ? 0.4 : 1 });
+    sfTopView(k >= 2 ? 34 : 38, 0, k === 2 ? 0.8 : 1, t);
+    if (k === 0) {
+      [-50, -25, 0, 25, 50].forEach((w, i) => i < 5 && arrow(i, SFT.x + w, SFT.z + 70, SFT.x + w, SFT.z + 46, "#ffffff", fadeIn(tk(0), 0.4 + i * 0.15), 2.0));
+      label(SFTp(8, 0.5, -30), "岸に水がたまる", "", fadeIn(tk(0), 2.4), "gold", P ? 0 : -200, -80);
+    }
+    if (k === 1) {
+      arrow(0, SFT.x - 46, SFT.z + 12, SFT.x - 12, SFT.z + 12, "#4cc3ff", fadeIn(tk(1), 0.2), 2.4);
+      arrow(1, SFT.x + 46, SFT.z + 12, SFT.x + 12, SFT.z + 12, "#4cc3ff", fadeIn(tk(1), 0.2), 2.4);
+      arrow(2, SFT.x, SFT.z + 16, SFT.x, SFT.z + 58, "#4cc3ff", fadeIn(tk(1), 1.0), 3.2);
+      label(SFTp(56, 0.5, 0), "離岸流", "沖への戻り道", fadeIn(tk(1), 1.4), "gold ans", P ? 0 : 300, -60);
+    }
+    if (k === 2) {
+      const a = fadeIn(tk(2), 0.2);
+      // 幅の目盛り（w=-10〜+10 ≒ 20m）
+      const p0 = project(SFTp(30, 0.6, -10)), p1 = project(SFTp(30, 0.6, 10));
+      lines += `<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="#ffd166" stroke-width="6" opacity="${a}"/><line x1="${p0.x}" y1="${p0.y - 18}" x2="${p0.x}" y2="${p0.y + 18}" stroke="#ffd166" stroke-width="6" opacity="${a}"/><line x1="${p1.x}" y1="${p1.y - 18}" x2="${p1.x}" y2="${p1.y + 18}" stroke="#ffd166" stroke-width="6" opacity="${a}"/>`;
+      html += acCard(`<div style="font-size:${P ? 34 : 32}px;font-weight:900;color:#10345a">離岸流の大きさ</div><div style="font-size:${P ? 30 : 30}px;font-weight:800;margin-top:12px;line-height:1.6">幅　<span style="color:#c2410c;font-size:44px">10〜30m</span><br>長さ　沖へ<span style="color:#c2410c">数十〜数百m</span><br>速さ　最大<span style="color:#c2410c;font-size:44px">秒速2m</span><br><span style="font-size:24px;color:#3a5a78">＝オリンピックの自由形の選手くらい</span></div>`, a, P ? [60, 1130, 960] : [1250, 300, 560]);
+      rgSrc("海上保安庁 第一管区海上保安本部「離岸流」", a);
+    }
+    if (k === 3) {
+      const L = Math.min(72, 4 + tk(3) * 7);
+      rgDye(L, fadeIn(tk(3), 0.1));
+      label(SFTp(Math.min(L, 60), 0.5, 0), "着色剤が筋になって沖へ", "（再現イメージ）", fadeIn(tk(3), 2.5), "gold", P ? 0 : 320, -60);
+      rgSrc("第七管区海上保安本部 離岸流の調査（海面着色剤）", fadeIn(tk(3), 0.3));
+    }
+    if (k === 4) {
+      const rows = [["山口県 菊ヶ浜", "6か所中 5か所", "#1f6fd1"], ["山口県 二位ノ浜", "4か所中 2か所", "#1f6fd1"], ["福岡県 勝馬", "確認されず", "#8a96a3"]];
+      html += acCard(`<div style="font-size:${P ? 32 : 30}px;font-weight:900;color:#10345a">海水浴場の離岸流調査</div>${rows.map(([a1, b1, c1], i) => `<div style="font-size:${P ? 30 : 28}px;font-weight:800;margin-top:10px;opacity:${fadeIn(tk(4), 0.4 + i * 1.6)}">${a1}　<span style="color:${c1 === "#8a96a3" ? "#6b7785" : "#c2410c"};font-size:${P ? 36 : 34}px">${b1}</span></div>`).join("")}<div style="font-size:22px;color:#3a5a78;margin-top:10px">いつも、どこにでもあるわけではない</div>`, fadeIn(tk(4), 0.2), P ? [60, 1130, 960] : [1240, 300, 600]);
+      rgSrc("第七管区海上保安本部 離岸流の調査結果（2018・2019年）", fadeIn(tk(4), 0.2));
+    }
+    if (k === 5) {
+      label(SFTp(40, 0.5, 0), "細くて速い", "サーフ全体ではなく、細い帯に集まる", fadeIn(tk(5), 0.3), "gold ans", 0, -170);
+      noMark(SFTp(40, 0.5, -48), "ここは流れが弱い", fadeIn(tk(5), 1.6));
+    }
+    sfTopMini(k >= 1 ? [50, 40] : null);
+    legend(RG_TLEG);
+    icPremise();
+  },
+  // なぜできるのか：k0 3系統6タイプ → k1 砂州と溝 → k2 岸に沿って溝へ（地形⇄流れ） → k3 突堤の離岸流
+  rg_why(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    if (k === 3) {
+      rgTop(t + 70, { alpha: 0.25 });
+      rgGroin.visible = true;
+      sfTopView(30, -60, 0.8, t);
+      const a = fadeIn(tk(3), 0.3);
+      arrow(0, SFT.x - 30, SFT.z + 10, SFT.x - 72, SFT.z + 10, "#4cc3ff", a, 2.4);
+      arrow(1, SFT.x - 72, SFT.z + 12, SFT.x - 72, SFT.z + 52, "#4cc3ff", fadeIn(tk(3), 1.2), 3.0);
+      label(SFTp(44, 1.5, -78), "突堤・防砂堤", "岸に沿った流れをせき止める", a, "gold", P ? 0 : -260, -80);
+      label(SFTp(50, 0.5, -72), "沿って沖へ", "", fadeIn(tk(3), 1.6), "gold ans", P ? 0 : 260, -40);
+      rgSrc("第九管区海上保安本部「離岸流観測写真」（防波堤・防砂堤・岬の沿い、離岸堤の端）", a);
+      icPremise();
+      return;
+    }
+    rgTop(t + 70, { alpha: k === 0 ? 0.5 : 1 });
+    sfTopView(k === 0 ? 38 : 40, 0, k === 0 ? 1.05 : 0.8, t);
+    if (k === 0) {
+      html += acDim(0.45);
+      const rows = [["波と流れだけでできる", "シア（流れのゆらぎ）・フラッシュ（一時的）", "#8aa0b4", 0], ["海底の地形でできる", "溝の離岸流・沖の地形に集まる離岸流", "#1f6fd1", 1], ["岸の構造物・岬でできる", "沿って曲がる離岸流・陰にできる離岸流", "#e08a2a", 1]];
+      html += `<div class="big" style="top:${P ? 420 : 100}px;font-size:${P ? 54 : 52}px;opacity:${fadeIn(t, 0.1)}">離岸流は<span style="color:#ffd166">3系統・6タイプ</span></div>`;
+      rows.forEach(([a1, b1, col, hot], i) => {
+        const a = fadeIn(t, 0.6 + i * 0.5);
+        html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 600 : 220) + i * (P ? 230 : 170)}px;width:${P ? 880 : 1200}px;padding:16px 28px;opacity:${a};display:flex;align-items:center;gap:24px;${hot ? "outline:6px solid #2ecc71" : ""}"><b style="background:${col};color:#fff;font-size:${P ? 30 : 32}px;padding:10px 18px;border-radius:16px;flex:none">${a1}</b><div style="font-size:${P ? 28 : 30}px;font-weight:800">${b1}${hot ? `<div style="color:#1f8a4c;font-size:${P ? 24 : 26}px">← 釣り人が覚えたい</div>` : ""}</div></div>`;
+      });
+      rgSrc("Castelle ほか 2016, Earth-Science Reviews 163", fadeIn(t, 1));
+      return;
+    }
+    if (k === 1) {
+      label(SFTp(44, 0.5, -34), "砂州", "浅い。波が白く崩れる", fadeIn(tk(1), 0.3), "gold", P ? 0 : 300, -60);
+      label(SFTp(44, 0.5, 34), "砂州", "", fadeIn(tk(1), 0.5), "gold", P ? 0 : -160, -90);
+    }
+    label(SFTp(42, 0.5, 0), "溝", "深い。波が崩れにくい", k === 1 ? fadeIn(tk(1), 1.2) : 1, "gold ans", 0, P ? -260 : -260);
+    if (k >= 2) {
+      const a = fadeIn(tk(2), 0.2);
+      arrow(0, SFT.x - 46, SFT.z + 12, SFT.x - 12, SFT.z + 12, "#4cc3ff", a, 2.4);
+      arrow(1, SFT.x + 46, SFT.z + 12, SFT.x + 12, SFT.z + 12, "#4cc3ff", a, 2.4);
+      arrow(2, SFT.x, SFT.z + 16, SFT.x, SFT.z + 58, "#4cc3ff", fadeIn(tk(2), 0.9), 3.2);
+      html += acCard(`<div style="font-size:${P ? 34 : 34}px;font-weight:900;color:#10345a">流れの正体は<span style="color:#c2410c">地形</span></div><div style="font-size:${P ? 28 : 28}px;font-weight:800;margin-top:10px;line-height:1.55">溝があるから → 流れができる<br>流れがあるから → 溝が掘られる</div>`, fadeIn(tk(2), 3.5), P ? [60, 1150, 960] : [1240, 300, 580]);
+    }
+    sfTopMini([50, 40]);
+    legend(RG_TLEG);
+    icPremise();
+  },
+  // 実は沖に出ない：k0 GPS の浮きを流す → k1 多くは渦で戻る（1時間に約19%だけ外へ） → k2 回り続ける場所
+  rg_drift(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    rgTop(t + 90, { alpha: 0.45 });
+    sfTopView(42, 0, 1.15, t);
+    rgBuoys(t * 1.6, fadeIn(t, 0.6), 7);
+    label(SFTp(4, 0.8, 8), "GPS付きの浮き", "", k === 0 ? fadeIn(t, 1.2) : 0, "gold", P ? 0 : 220, -60);
+    if (k >= 1) {
+      html += acCard(`<div style="font-size:${P ? 32 : 30}px;font-weight:900;color:#10345a">GPS付きの浮きの研究</div><div style="font-size:${P ? 28 : 28}px;font-weight:800;margin-top:10px;line-height:1.55">波が崩れる帯の外へ出たのは<br><span style="color:#c2410c;font-size:56px">1時間に約19%</span><br>多くは<span style="color:#1f6fd1">渦を描いて戻ってきた</span></div>`, fadeIn(tk(1), 0.3), P ? [60, 1150, 960] : [1300, 330, 520]);
+      rgSrc("MacMahan ほか 2010, Marine Geology 268（米国モントレー湾）", fadeIn(tk(1), 0.3));
+    }
+    if (k >= 3) html += acCard(`<div style="font-size:28px;font-weight:900;color:#10345a">頭にGPSを着けた人でも</div><div style="font-size:24px;font-weight:800;margin-top:6px">同じように渦の中を回った</div>`, fadeIn(tk(3), 0.3), P ? [60, 1500, 960] : [1300, 640, 520]);
+    if (k >= 2) label(SFTp(48, 0.6, -30), "回り続ける場所", "流されたものが留まりやすい", fadeIn(tk(2), 2.5), "gold ans", P ? 0 : -260, -70);
+    html += `<div style="position:absolute;${P ? "left:40px;top:1480px" : "left:70px;bottom:180px"};color:#eaf6ff;font-size:22px;font-weight:800;text-shadow:0 2px 6px #000">※浮きの動きは模式図。波や地形で沖へ抜けやすい日もある</div>`;
+    legend([["#ff8a2a", "浮き（模式図）"], ["#4cc3ff", "流れ（模式図）"]]);
+    icPremise();
+  },
+  // 魚との関係：k0 問い → k1 わかっていること → k2 わかっていないこと → k3 仮説（渦にエサがたまる）
+  rg_fish(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    rgTop(t + 110, { alpha: k === 4 ? 0.4 : 0.6 });
+    sfTopView(40, 0, k === 4 ? 0.95 : 1.1, t);
+    if (k === 4) {
+      rgDots(t, fadeIn(tk(4), 0.3));
+      const a = fadeIn(tk(4), 0.3);
+      html += `<div style="position:absolute;${P ? "left:40px;top:230px" : "left:70px;top:190px"};background:#e3412b;color:#fff;font-weight:900;font-size:${P ? 34 : 32}px;padding:6px 22px;border-radius:999px;opacity:${a}">仮説（模式図）</div>`;
+      const steps = [["渦で水が留まる", "MacMahan ほか 2010"], ["エサになる生き物が多い浜", "Morgan ほか 2016"], ["ヒラメは波打ち際でアミを食べる", "須田ほか 2009"]];
+      html += acCard(`<div style="font-size:${P ? 30 : 28}px;font-weight:900;color:#10345a">3つを並べると…</div>${steps.map(([x, y], i) => `<div style="font-size:${P ? 27 : 26}px;font-weight:800;margin-top:8px;opacity:${fadeIn(tk(4), 0.6 + i * 1.2)}">${i + 1}. ${x}<span style="font-size:20px;color:#3a5a78">　${y}</span></div>`).join("")}<div style="font-size:${P ? 32 : 30}px;font-weight:900;margin-top:12px;color:#c2410c;opacity:${fadeIn(tk(4), 4.4)}">→ 離岸流のまわりは<br>エサがたまりやすい“かも”</div>`, a, P ? [60, 1120, 960] : [1230, 280, 620]);
+      return;
+    }
+    html += acDim(0.4);
+    html += `<div class="big" style="top:${P ? 360 : 90}px;font-size:${P ? 60 : 56}px;opacity:${fadeIn(t, 0.1)}">魚は離岸流にいる？</div>`;
+    const known = `<div style="font-size:${P ? 32 : 32}px;font-weight:900;color:#1f8a4c">わかっていること</div>
+      <div style="font-size:${P ? 27 : 27}px;font-weight:800;margin-top:10px;line-height:1.5">・離岸流のある遠浅のサーフは、急深の浜より<span style="color:#c2410c">波打ち際のプランクトンがずっと多い</span><div style="font-size:20px;color:#3a5a78">Morgan ほか 2016（米国カリフォルニア）</div></div>
+      <div style="font-size:${P ? 27 : 27}px;font-weight:800;margin-top:10px;line-height:1.5">・若いヒラメは<span style="color:#c2410c">水深0.5〜1m</span>の波打ち際まで入り、主に<span style="color:#c2410c">アミ</span>を食べる<div style="font-size:20px;color:#3a5a78">須田ほか 2009（山口県 土井ヶ浜）</div></div>`;
+    const unknown = `<div style="font-size:${P ? 32 : 32}px;font-weight:900;color:#e3412b">まだわかっていないこと</div><div style="font-size:${P ? 27 : 27}px;font-weight:800;margin-top:10px;line-height:1.5">「離岸流の溝に魚が集まる」を<br>直接確かめた論文は、<span style="color:#c2410c">今回調べた範囲では見つからなかった</span></div>`;
+    if (k >= 1) html += card(P ? 60 : 150, P ? 560 : 220, P ? 960 : 760, known, fadeIn(tk(1), 0.2), "padding:22px 28px");
+    const season = `<div style="font-size:${P ? 32 : 32}px;font-weight:900;color:#1f6fd1">若いヒラメの1年</div><div style="font-size:${P ? 27 : 27}px;font-weight:800;margin-top:10px;line-height:1.6">4月　波打ち際に現れる<br>10月　約10cm<br>12月　12〜15cm<br>冬　数が減る（沖へ移る）<div style="font-size:20px;color:#3a5a78">須田ほか 2009（山口県 土井ヶ浜）</div></div>`;
+    if (k === 2) html += card(P ? 60 : 1000, P ? 1120 : 220, P ? 960 : 770, season, fadeIn(tk(2), 0.2), "padding:22px 28px");
+    if (k >= 3) html += card(P ? 60 : 1000, P ? 1120 : 220, P ? 960 : 770, unknown, fadeIn(tk(3), 0.2), "padding:22px 28px");
+  },
+  // どこに投げるか：k0 見つけ方 → k1 崩れない帯＝溝 → k2 偏光グラス・高い所 → k3 ねらい3か所 → k4 手前から → k5 溝を横切らせる
+  rg_cast(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    rgTop(t + 130, { alpha: k === 0 ? 0.5 : 0.85 });
+    sfTopView(38, 0, 1.0, t);
+    html += `<div style="position:absolute;${P ? "right:40px;top:230px" : "right:60px;top:120px"};background:#1f6fd1;color:#fff;font-weight:900;font-size:${P ? 30 : 28}px;padding:6px 22px;border-radius:999px">ここからは釣り方の提案</div>`;
+    if (k === 0) {
+      html += acCard(`<div style="font-size:${P ? 34 : 32}px;font-weight:900;color:#10345a">離岸流の目印</div><div style="font-size:${P ? 30 : 28}px;font-weight:800;margin-top:10px;line-height:1.6">① 岸が<span style="color:#c2410c">凹んで</span>いる（その先が深い）<br>② 水面が<span style="color:#c2410c">ざわつく</span><br>③ まわりと<span style="color:#c2410c">波の形</span>が違う<br>④ <span style="color:#c2410c">ゴミ</span>が集まる</div>`, fadeIn(tk(0), 2.0), P ? [60, 1130, 960] : [1240, 300, 600]);
+      rgSrc("第一管区海上保安本部「離岸流 現地での見分け方」", fadeIn(tk(0), 2.0));
+    }
+    if (k === 1 || k === 2) {
+      label(SFTp(42, 0.5, 0), "一か所だけ崩れない帯＝溝", "", k === 1 ? fadeIn(tk(1), 0.2) : 1, "gold ans", P ? 0 : 320, -80);
+      sfTarget(42, 0, 9, 0.8, t, true);
+    }
+    if (k === 2) {
+      html += acCard(`<div style="font-size:${P ? 32 : 30}px;font-weight:900;color:#10345a">見つけやすくするコツ</div><div style="font-size:${P ? 30 : 28}px;font-weight:800;margin-top:10px;line-height:1.6">・<span style="color:#c2410c">偏光グラス</span>で水面のぎらつきを消す<br>・<span style="color:#c2410c">高い所</span>（堤防・砂丘）から見下ろす</div>`, fadeIn(tk(2), 0.2), P ? [60, 1130, 960] : [1240, 560, 600]);
+    }
+    if (k >= 3) {
+      const pts = [[40, -12, "①砂州の肩"], [40, 12, "①砂州の肩"], [9, 13, "②合流点"], [66, 0, "③離岸流の頭"]];
+      pts.forEach(([u, w, txt], i) => {
+        const a = k === 3 ? fadeIn(tk(3), 0.4 + [0, 0, 2.6, 5.0][i]) : 1;
+        if (i < 2) sfTarget(u, w, 5, a, t, i === 1);
+        mapPin(SFTp(u, 0.6, w), i === 1 ? "①" : txt.slice(0, 1), a, ["#2ecc71", "#2ecc71", "#e08a2a", "#1f6fd1"][i]);
+        if (i !== 1 && k <= 4) label(SFTp(u, 0.6, w), txt, ["流れの速い所と遅い所の境目", "", "岸に沿った流れが溝に入る", "沖で流れが弱まって広がる"][i], a, "gold", P ? 0 : [-300, 0, -260, 300][i], [-60, 0, 60, -60][i]);
+      });
+    }
+    if (k === 4) {
+      html += acCard(`<div style="font-size:${P ? 32 : 30}px;font-weight:900;color:#10345a">探る順番</div><div style="font-size:${P ? 30 : 28}px;font-weight:800;margin-top:10px;line-height:1.6">1. ②合流点（岸の近く）<br>2. ①砂州の肩<br>3. ③離岸流の頭（遠投）</div>`, fadeIn(tk(4), 0.2), P ? [60, 1130, 960] : [1300, 520, 520]);
+    }
+    if (k === 5) {
+      const a = fadeIn(tk(5), 0.2), prog = clamp01(tk(5) / 5);
+      const path = [];
+      for (let j = 0; j <= 20; j++) { const f = j / 20; path.push(SFTp(lerp(52, 2, f), 0.7, lerp(26, -8, f) + Math.sin(f * 9) * 1.5)); }
+      pathLine(path, "#ffd166", prog * a, 10, "4 16");
+      label(SFTp(26, 0.7, 8), "溝を横切らせて、境目を何度も通す", "", fadeIn(tk(5), 1.0), "gold ans", P ? 0 : 340, 60);
+    }
+    icPremise();
+  },
+  // 潮位で変わる：k0 クイズ → k1 干潮へ下げて強まる → k2 満潮では弱い・1.3m/s の例 → k3 大潮の干潮で干上がると弱まる → k4 下げ〜干潮
+  rg_tide(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    const lv = k === 0 ? 0.35 : k === 1 ? lerp(0.9, -0.25, ease(tk(1) / 7)) : k === 2 ? (tk(2) < 4 ? 0.9 : lerp(0.9, -0.25, ease((tk(2) - 4) / 2))) : k === 3 ? lerp(-0.25, -0.95, ease(tk(3) / 3)) : -0.25;
+    const pow = lv > -0.3 ? clamp01((0.95 - lv) / 1.2) : 1 - 0.65 * clamp01((-0.3 - lv) / 0.6);
+    rgTop(t + 150, { alpha: 0.3 + 0.7 * pow, speed: 1.2 + 3.2 * pow });
+    sfTop.userData.surf.material.uniforms.tide.value = lv;
+    sfTopView(40, 8, 1.0, t);
+    if (k === 0) {
+      html += acDim(0.35);
+      html += `<div class="big" style="top:${P ? 420 : 200}px;font-size:${P ? 60 : 60}px">クイズ　離岸流が強いのは？</div>`;
+      html += `<div style="position:absolute;left:${P ? 120 : 560}px;top:${P ? 700 : 420}px;width:${P ? 840 : 800}px">${[["A", "満潮"], ["B", "干潮"]].map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t, 1 + i * 0.4)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+      return;
+    }
+    const gL = P ? 60 : 70, gT = P ? 330 : 280, gH = P ? 420 : 380;
+    const lvY = gT + gH * (1 - (lv + 1.0) / 2.0);
+    html += `<div style="position:absolute;left:${gL}px;top:${gT - 50}px;color:#fff;font-weight:900;font-size:28px;text-shadow:0 2px 6px #000">潮位</div>
+      <div style="position:absolute;left:${gL}px;top:${gT}px;width:90px;height:${gH}px;background:rgba(6,22,42,.75);border:3px solid #fff;border-radius:14px;overflow:hidden"><div style="position:absolute;left:0;right:0;top:${lvY - gT}px;bottom:0;background:linear-gradient(#4cc3ff,#1f6fd1)"></div></div>
+      <div style="position:absolute;left:${gL + 104}px;top:${gT - 6}px;color:#fff;font-weight:900;font-size:26px;text-shadow:0 2px 6px #000">満潮</div><div style="position:absolute;left:${gL + 104}px;top:${gT + gH - 34}px;color:#fff;font-weight:900;font-size:26px;text-shadow:0 2px 6px #000">大潮の干潮</div>
+      <div style="position:absolute;left:${gL + 260}px;top:${gT - 50}px;color:#fff;font-weight:900;font-size:28px;text-shadow:0 2px 6px #000">離岸流の強さ</div>
+      <div style="position:absolute;left:${gL + 260}px;top:${gT}px;width:300px;height:44px;background:rgba(6,22,42,.75);border:3px solid #fff;border-radius:12px;overflow:hidden"><div style="width:${(pow * 100).toFixed(0)}%;height:100%;background:linear-gradient(90deg,#4cc3ff,#e3412b)"></div></div>`;
+    const st = lv > 0.5 ? ["満潮：砂州が深く沈む", "波が崩れにくく、流れは弱い", "gold"] : lv < -0.6 ? ["砂州が干上がる", "波が崩れる場所が減り、かえって弱まる", "gold"] : ["干潮前後：砂州で波が崩れる", "溝の流れが強まる", "gold ans"];
+    label(SFTp(44, 0.5, 34), st[0], st[1], fadeIn(t, 0.6), st[2], P ? 0 : 420, 60);
+    if (k === 1) rgSrc("MacMahan ほか 2006, Coastal Engineering 53／Bruneau ほか 2014", fadeIn(tk(1), 0.4));
+    if (k === 2) {
+      html += acCard(`<div style="font-size:30px;font-weight:900;color:#10345a">実測の例（英国の海岸）</div><div style="font-size:28px;font-weight:800;margin-top:8px">干潮前後に<span style="color:#c2410c;font-size:52px">秒速1.3m</span></div>`, fadeIn(tk(2), 4.2), P ? [60, 1150, 960] : [1280, 560, 520]);
+      rgSrc("Austin ほか 2010, Continental Shelf Research", fadeIn(tk(2), 4.2));
+    }
+    if (k === 3) rgSrc("英国プリマス大学の離岸流研究チームの解説", fadeIn(tk(3), 0.4));
+    if (k === 4) {
+      html += acCard(`<div style="font-size:30px;font-weight:900;color:#10345a">おすすめの時間</div><div style="font-size:34px;font-weight:900;margin-top:8px;color:#c2410c">下げ 〜 干潮</div><div style="font-size:24px;font-weight:800;margin-top:6px">地形も流れも見えやすい。下見にも<br><span style="font-size:20px;color:#3a5a78">ヒラメも満潮より干潮で多く採れた（須田ほか 2009）</span></div>`, fadeIn(tk(4), 0.3), P ? [60, 1150, 960] : [1280, 520, 520]);
+    }
+    icPremise();
+  },
+  // 強くなる浜と日：k0 問い → k1 海上保安庁の条件 → k2 周期の長いうねり → k3 フラッシュ離岸流
+  rg_day(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    rgTop(t + 190, { alpha: k === 3 ? 0.35 : 0.6 });
+    sfTopView(38, 0, 1.05, t);
+    if (k === 3) {
+      // 溝のない所（w=+62）に、数秒だけ現れて消える沖向きの流れ
+      const tt = tk(3), a = clamp01(Math.sin(Math.min(1, Math.max(0, (tt - 0.5) / 8)) * Math.PI) * 1.4);
+      arrow(0, SFT.x + 62, SFT.z + 14, SFT.x + 64, SFT.z + 50, "#9ff3ff", a, 2.6);
+      label(SFTp(48, 0.5, 63), "フラッシュ離岸流", "溝がなくても、数分だけ現れて消える", fadeIn(tt, 1.0), "gold ans", P ? 0 : 360, -40);
+      rgSrc("Castelle ほか 2016, Earth-Science Reviews 163", fadeIn(tt, 0.4));
+      icPremise();
+      return;
+    }
+    html += acDim(0.4);
+    html += `<div class="big" style="top:${P ? 360 : 100}px;font-size:${P ? 58 : 56}px;opacity:${fadeIn(t, 0.1)}">離岸流が<span style="color:#ffd166">できやすい浜・強い日</span></div>`;
+    if (k >= 1) {
+      const rows = ["外洋に面している", "遠浅", "海岸線が長い", "波が海岸にほぼ直角に入る"];
+      html += card(P ? 60 : 150, P ? 560 : 240, P ? 960 : 780, `<div style="font-size:32px;font-weight:900;color:#1f6fd1">できやすい浜</div>${rows.map((x, i) => `<div style="font-size:30px;font-weight:800;margin-top:10px;opacity:${fadeIn(tk(1), 0.3 + i * 0.6)}">✓ ${x}</div>`).join("")}<div style="font-size:20px;color:#3a5a78;margin-top:10px">第一・第十管区海上保安本部</div>`, fadeIn(tk(1), 0.2), "padding:22px 28px");
+    }
+    if (k >= 2) {
+      html += card(P ? 60 : 990, P ? 1120 : 240, P ? 960 : 780, `<div style="font-size:32px;font-weight:900;color:#e08a2a">強くなりやすい日</div><div style="font-size:30px;font-weight:800;margin-top:12px;line-height:1.5"><span style="color:#c2410c">周期の長いうねり</span>の日<br><span style="font-size:26px">（周期 7〜8秒 を超える）</span><br><span style="font-size:24px;color:#3a5a78">波が岸へ水を押し上げ、流れが強まる</span></div><div style="font-size:20px;color:#3a5a78;margin-top:10px">MacMahan 2003（離岸流の研究のまとめから）</div>`, fadeIn(tk(2), 0.2), "padding:22px 28px");
+    }
+  },
+  // クイズ：浮きを100個流すと、1時間で外へ出るのは？
+  rg_quiz(t, d, s, k) {
+    const P = PORTRAIT;
+    rgTop(t + 210, { alpha: 0.5 });
+    sfTopView(40, 0, 1.1, t);
+    rgBuoys(0.2, 1, 0);
+    html += acDim(0.3);
+    html += `<div class="big" style="top:${P ? 300 : 100}px;font-size:${P ? 56 : 54}px">クイズ　浮きを100個流すと…<br><span style="color:#ffd166">1時間で外へ出るのは何個？</span></div>`;
+    if (k >= 1) {
+      const o = [["A", "90個"], ["B", "50個"], ["C", "20個"]];
+      html += `<div style="position:absolute;left:${P ? 120 : 1180}px;top:${P ? 1300 : 420}px;width:${P ? 840 : 600}px">${o.map(([n, x], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 0), 0.2 + i * 0.35)}"><i>${n}</i>${x}</div>`).join("")}</div>`;
+    }
+  },
+  // 流れは脈打つ：k0 いちばん速いのは帯の外の端 → k1 約1分・約10分の強弱 → k2 同じコースを何投か
+  rg_pulse(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    const puls = k >= 1 ? 0.5 + 0.3 * Math.sin(t * 2 * Math.PI / 6) + 0.2 * Math.sin(t * 2 * Math.PI / 23 + 1) : 0.7;
+    rgTop(t + 230, { alpha: 0.5 + 0.5 * puls, speed: 1.4 + 3.4 * puls });
+    sfTopView(40, 0, 1.0, t);
+    if (k === 0) {
+      sfTarget(48, 0, 7, fadeIn(tk(0), 0.4), t);
+      label(SFTp(48, 0.6, 0), "いちばん速い", "波が崩れる帯の外の端の近く", fadeIn(tk(0), 0.6), "gold ans", P ? 0 : 330, -60);
+      label(SFTp(80, 0.6, 0), "沖へ離れるほど弱まる", "", fadeIn(tk(0), 3.5), "gold", P ? 0 : 300, 30);
+      rgSrc("MacMahan ほか 2006, Coastal Engineering 53（総説）", fadeIn(tk(0), 0.4));
+    }
+    if (k === 1) {
+      html += `<div style="position:absolute;left:${P ? 60 : 70}px;top:${P ? 330 : 280}px;color:#fff;font-weight:900;font-size:28px;text-shadow:0 2px 6px #000">離岸流の強さ（イメージ）</div><div style="position:absolute;left:${P ? 60 : 70}px;top:${P ? 380 : 330}px;width:360px;height:48px;background:rgba(6,22,42,.75);border:3px solid #fff;border-radius:12px;overflow:hidden"><div style="width:${(puls * 100).toFixed(0)}%;height:100%;background:linear-gradient(90deg,#4cc3ff,#e3412b)"></div></div>`;
+      html += acCard(`<div style="font-size:30px;font-weight:900;color:#10345a">流れは脈打つ</div><div style="font-size:28px;font-weight:800;margin-top:10px;line-height:1.6">約<span style="color:#c2410c;font-size:44px">1分</span>の短い強弱<br>約<span style="color:#c2410c;font-size:44px">10分</span>の長い強弱</div>`, fadeIn(tk(1), 0.3), P ? [60, 1130, 960] : [1280, 300, 520]);
+      rgSrc("MacMahan ほか 2004（Castelle ほか の論文での紹介）", fadeIn(tk(1), 0.3));
+    }
+    if (k === 2) {
+      [0, 1, 2].forEach((j) => {
+        const path = [];
+        for (let q = 0; q <= 20; q++) { const f = q / 20; path.push(SFTp(lerp(54, 4, f), 0.7, lerp(-24, 6, f) + j * 0.8)); }
+        pathLine(path, "#ffd166", clamp01((tk(2) - j * 1.6) / 1.4), 8, "4 14");
+      });
+      label(SFTp(30, 0.7, -10), "同じコースを何投か続けて", "流れが強まった時にスイッチが入るかも", fadeIn(tk(2), 0.8), "gold ans", P ? 0 : -320, 60);
+    }
+    icPremise();
+  },
+  // 離岸流を探せ：k0 問い（流れは見せない） → k1 ヒント → k2 答え
+  rg_find(t, d, s, k) {
+    const P = PORTRAIT, tk = (i) => t - (s[`_k${i}`] ?? 99);
+    const show = k === 2 ? fadeIn(tk(2), 0.5, 1.2) : 0;
+    rgTop(t + 250, { alpha: 0.02 + 0.9 * show });
+    sfTopView(36, 22, 0.95, 0);
+    html += `<div style="position:absolute;${P ? "left:40px;top:230px" : "left:70px;top:190px"};background:#e3412b;color:#fff;font-weight:900;font-size:${P ? 34 : 32}px;padding:6px 22px;border-radius:999px">練習：離岸流はどこ？</div>`;
+    if (k === 1) html += acCard(`<div style="font-size:30px;font-weight:900;color:#10345a">ヒント</div><div style="font-size:28px;font-weight:800;margin-top:8px;line-height:1.6">・白い波が<span style="color:#c2410c">崩れていない</span>所<br>・岸の線が<span style="color:#c2410c">少し凹んでいる</span>所</div>`, fadeIn(tk(1), 0.2), P ? [60, 1130, 960] : [1300, 300, 520]);
+    if (k === 2) {
+      sfTarget(42, 0, 9, show, t, true);
+      label(SFTp(42, 0.6, 0), "答え：白い波の列が途切れた帯", "", show, "gold ans", P ? 0 : -330, -60);
+      html += `<div style="position:absolute;${P ? "left:40px;top:1480px" : "left:70px;bottom:180px"};color:#eaf6ff;font-size:24px;font-weight:800;text-shadow:0 2px 6px #000">コツ：数分間ながめて、波が崩れるリズムを見る</div>`;
+    }
+  },
+  rg_sum(t, d, s, k) {
+    rgTop(t + 170, { alpha: 0.7 });
+    sfTopView(38, 0, 1.1, t);
+    const P = PORTRAIT;
+    html += acDim(0.5);
+    const rows = [["見つける", "波が崩れない帯＝溝", "凹んだ岸・ざわつき・ゴミも目印", "#1f6fd1"], ["投げる", "砂州の肩・合流点・離岸流の頭", "溝を横切らせて、境目を通す", "#2a9d5c"], ["時間", "下げ 〜 干潮", "潮が引くほど流れは強まる", "#e08a2a"]];
+    html += `<div class="big" style="top:${P ? 560 : 100}px;font-size:${P ? 64 : 62}px;opacity:${fadeIn(t, 0.1)}">離岸流 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 330}px;top:${(P ? 780 : 220) + i * (P ? 240 : 185)}px;width:${P ? 880 : 1200}px;padding:18px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 32 : 34}px;padding:10px 0;width:${P ? 200 : 220}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 38 : 42}px;font-weight:900">${b1}</div><div style="font-size:${P ? 27 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    html += `<div style="position:absolute;${P ? "left:60px;right:60px;top:1540px" : "left:330px;right:330px;bottom:120px"};color:#eaf6ff;font-size:20px;font-weight:700;line-height:1.5;opacity:${fadeIn(t, 2)};text-shadow:0 2px 6px #000">参考：Castelle ほか 2016／MacMahan ほか 2006・2010／Austin ほか 2010／Bruneau ほか 2014／Morgan ほか 2016／須田ほか 2009／海上保安庁（第一・第七・第九管区）。くわしくは概要欄</div>`;
   },
 });
 

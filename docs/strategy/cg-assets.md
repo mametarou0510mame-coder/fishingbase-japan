@@ -42,6 +42,7 @@
 | イカ（Squid Kit） | `loadSquids`・`createSquid` | アオリイカ・コウイカ（cg-video-plan.md の注意を読む） |
 | ルアー・仕掛けの模型 | `ftTenya`、`makeJigReal`、`trRig`（タイラバ）、`sfJig` | テンヤ・メタルジグ・タイラバ |
 | サーフ | `sfBed`・`sfBase`・`sfRig`・`sfTopView` など | 砂浜の断面と上からの絵（離岸流） |
+| **離岸流の浮き・エサの粒・突堤・着色剤（上から見た砂浜）** | `rgBuoys(t, a, trail)`（渦を回る浮き8個＋沖へ出る2個）、`rgDots(t, a)`（渦にたまる黄色い粒）、`rgGroin`（突堤）、`rgDye(L, a)`（黄緑の筋）、`rgSrc(文字)`（出典の札）、水面の `uniforms.tide`（潮位。砂州が干上がると白波が消える） | 2026-11-27 cg-rigan（rg_*）。sfTop・sfFlow と組み合わせる。動きは模式図 |
 | **深さで変わる色（水の中の光）** | `rcBase(d)`・`rcAtt(d)`・`rcSee(hex, d)`・`rcTintObj(obj, d)`・`rcFish`・`rcLure`・`rcDepthBar`・`rcSwatch`・`rcDepthChip`、`RC_K` | 深さ d m の水の中（背景・粒・スネルの窓つき海面）と、色の見え方（模式図）。Fish Kit の魚やルアーの色を深さで変える。色ルアー5本（赤・オレンジ・黄・緑・青）、透明度の白い円板（`rcDisk`）、濁った水（`rcMud`）、光の帯（`rcBeams`）。cg-akai（rc_*）。**魚の色を変える加工は、色の見え方が主題の回だけで使う（2026-11-22 オーナー。ほかの回は 3D モデルの色のまま）** |
 
 ### 見本の場面（部品の確かめ方）
