@@ -144,7 +144,8 @@ def swim(t):
 def cam_target(t):
     def c(x):
         body = snout(x) - heading(x) * 0.12
-        return lure_now(x) * 0.45 + body * 0.55 + Vector((0, 0, -0.10))
+        w = 0.45 + 0.4 * (1 - sstep(T_LAND, T_LAND + 2.5, x))   # はじめは沈んでくるオモリと糸を多めに映す
+        return lure_now(x) * w + body * (1 - w) + Vector((0, 0, -0.10))
     acc = Vector((0, 0, 0))
     for i in range(9):
         acc += c(t + (i - 4) * 0.08)
