@@ -13910,6 +13910,391 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// 【CG実験】船の仕掛けはどう沈む？ オモリの重さ・潮の速さ・二枚潮（cg-nimaishio、nk_*）2026-11-27
+// 事実は docs/research/fish-knowledge.md「船の仕掛けの沈み方（オモリ・潮・二枚潮）」の節だけ
+//   （ダイワ 換算表・オモリの種類／TSURI HACK「船釣りの道具は周りとそろえる」・二枚潮／シマノ 走水のアジ・沖イカ／Honda 細いライン／つりニュース 速潮）
+// 糸とオモリの動きは nkSim（糸を24本の短い棒の鎖にした、重さ・水の抵抗・潮の簡単な物理モデル）の計算。
+// 係数は太さ・重さから決めた目安で、実物の計測値ではない。船は止まっているものとして計算。計算で出た数値（沈む速さ・流された距離）は言わない。
+// 1 = 1m。海面 y=0、海底 y=-70（ftBase）。魚（Fish Kit のマアジ）は fkSchool で海底より 0.3m 以上、上に置く
+// =====================================================================
+// o.m：オモリの重さ[kg]、o.dline：糸の太さ[m]、o.cur(y, t)：潮の速さ（+x 向き、m/s）、o.tipX：竿先の横の位置、o.lift：着底後に巻き上げる長さ、
+// o.redrop：[時刻]（その時刻にもう一度クラッチを切って底を取り直す）
+function nkSim(o) {
+  const n = 24, dt = 1 / 1000, dur = o.dur ?? 70, BOT = o.bot ?? FT_BOT, tip = [o.tipX ?? 0, FT_TIP];
+  const mS = o.m * 1.08, W = G_W(o.m, 11.34), dS = Math.cbrt((o.m / 11340) * 6 / Math.PI);
+  const kS = 0.5 * 1025 * 0.9 * Math.PI * dS * dS / 4, dL = o.dline ?? 0.00024, cur = o.cur ?? (() => 0), mN = 0.004;
+  let L = 3, landed = -1, drops = (o.redrop ?? []).slice(), mode = "free", liftEnd = -1;
+  const P = [], Vv = [];
+  for (let i = 0; i <= n; i++) { P.push([tip[0], tip[1] - (L * i) / n]); Vv.push([0, 0]); }
+  const rec = [], REC = 50, steps = Math.round(dur / dt), old = P.map((p) => [0, 0]);
+  for (let k = 0; k <= steps; k++) {
+    const t = k * dt, l = L / n;
+    let Fx = 0, Fy = -W;
+    for (let i = 1; i <= n; i++) {
+      const p = P[i], v = Vv[i], w = cur(p[1], t), last = i === n, a = P[i - 1], b = last ? P[i] : P[i + 1];
+      let tx = b[0] - a[0], ty = b[1] - a[1];
+      const tl = Math.hypot(tx, ty) || 1;
+      tx /= tl; ty /= tl;
+      const m = last ? mS : mN;
+      let vx = v[0], vy = v[1] - (last ? W / m : 0) * dt;
+      const rx = vx - w, ry = vy, rt = rx * tx + ry * ty, nx = rx - rt * tx, ny = ry - rt * ty, rn = Math.hypot(nx, ny);
+      const kl = 0.5 * 1025 * 1.2 * dL * l * (last ? 0.5 : 1);
+      let fx = nx / (1 + (kl * rn * dt) / m) - nx, fy = ny / (1 + (kl * rn * dt) / m) - ny; // 抵抗（糸は流れに直角な成分だけ。暗に解く）
+      if (last) { const r = Math.hypot(rx, ry), f = 1 / (1 + (kS * r * dt) / m); fx += rx * f - rx; fy += ry * f - ry; }
+      Fx += (fx * m) / dt; Fy += (fy * m) / dt;
+      v[0] = vx + fx; v[1] = vy + fy;
+    }
+    for (let i = 1; i <= n; i++) { old[i][0] = P[i][0]; old[i][1] = P[i][1]; P[i][0] += Vv[i][0] * dt; P[i][1] += Vv[i][1] * dt; }
+    if (drops.length && t >= drops[0]) { drops.shift(); landed = -1; mode = "free"; }
+    if (mode === "free") {
+      // クラッチを切っている間：鎖がのびたぶんだけ糸が出る
+      let sum = 0;
+      for (let i = 0; i < n; i++) sum += Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+      if (sum > L) L += (sum - L) * 0.97;
+    } else if (mode === "reel") { L -= 1.2 * dt; if (P[n][1] >= BOT + (o.lift ?? 1) || t >= liftEnd + 6) mode = "wait"; } // 糸ふけを巻き取り、オモリが底から約1m上がるまで巻く
+    const lw = L / n;
+    for (let it = 0; it < 8; it++) {
+      P[0][0] = tip[0]; P[0][1] = tip[1];
+      for (let i = 0; i < n; i++) {
+        const a = P[i], b = P[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1e-9;
+        if (d <= lw) continue; // 糸はたるむ（押し返さない）
+        const wa = i === 0 ? 0 : 1, wb = i + 1 === n ? mN / mS : 1, s = (d - lw) / d / (wa + wb);
+        a[0] += dx * s * wa; a[1] += dy * s * wa; b[0] -= dx * s * wb; b[1] -= dy * s * wb;
+      }
+    }
+    for (let i = 1; i <= n; i++) {
+      if (P[i][1] < BOT) {
+        P[i][1] = BOT;
+        P[i][0] = old[i][0] + (P[i][0] - old[i][0]) * 0.3;
+        if (i === n && landed < 0) { landed = t; if (mode === "free") { mode = "land"; liftEnd = t + 1 + 1.5; } }
+      }
+      Vv[i][0] = (P[i][0] - old[i][0]) / dt; Vv[i][1] = (P[i][1] - old[i][1]) / dt;
+    }
+    if (mode === "land" && t >= liftEnd - 1.5) mode = "reel";
+    if (k % REC === 0) {
+      const f = new Float32Array(2 * (n + 1));
+      for (let i = 0; i <= n; i++) { f[2 * i] = P[i][0]; f[2 * i + 1] = P[i][1]; }
+      rec.push({ p: f, L, T: mode === "free" ? 0.15 : Math.hypot(Fx, Fy), m: mode });
+    }
+  }
+  const hz = 1000 / REC;
+  return {
+    rec, hz, dur, W,
+    // 時刻 t の点の列 [[x, y], …]（0＝竿先、最後＝オモリ）
+    pts(t) {
+      const u = Math.max(0, Math.min(rec.length - 1.001, t * hz)), i = Math.floor(u), f = u - i, a = rec[i].p, b = rec[i + 1].p, out = [];
+      for (let j = 0; j <= n; j++) out.push([a[2 * j] + (b[2 * j] - a[2 * j]) * f, a[2 * j + 1] + (b[2 * j + 1] - a[2 * j + 1]) * f]);
+      return out;
+    },
+    st(t) { return rec[Math.max(0, Math.min(rec.length - 1, Math.round(t * hz)))]; },
+    land: (() => { for (let i = 0; i < rec.length; i++) if (rec[i].p[2 * n + 1] <= BOT + 0.001) return i / hz; return -1; })(),
+  };
+}
+// 潮の形：一様（v）と、二枚潮（mid より上は v1、下は v2。境目はなめらかに）
+const nkTwo = (v1, v2, mid = -30) => (y) => v1 + (v2 - v1) / (1 + Math.exp((y - mid) / 3));
+const NK_DEF = {
+  calm30: { m: 0.1125, dur: 50 },
+  cur30: { m: 0.1125, cur: () => 0.5, dur: 90 },
+  w10: { m: 0.0375, cur: () => 0.5, dur: 90 },
+  w80: { m: 0.3, cur: () => 0.5, dur: 90 },
+  thin: { m: 0.1125, dline: 0.00017, cur: () => 0.5, dur: 90 },
+  thick: { m: 0.1125, dline: 0.00037, cur: () => 0.5, dur: 90 },
+  qA: { m: 0.0375, tipX: -8, cur: () => 0.5, dur: 90 },
+  qB: { m: 0.3, tipX: 1, cur: () => 0.5, dur: 90 },
+  nimai: { m: 0.1125, cur: nkTwo(0.45, -0.35), dur: 80 },
+  soko: { m: 0.0375, cur: () => 0.35, dur: 110, redrop: [85] },
+};
+const NK_SIMS = {};
+const nkRun = (name) => NK_SIMS[name] || (NK_SIMS[name] = nkSim(NK_DEF[name]));
+// 船と竿（竿先は x=tipX、y=FT_TIP）。i：竿の番号（0〜2）
+function nkBoat(T, tips = [0]) {
+  const bob = ftSurf(0, T) * 0.5;
+  ftBoat.position.set(-1, bob, 0);
+  ftBoat.rotation.z = Math.sin(T * 0.7) * 0.012;
+  tips.forEach((x, i) => ftRodSet(ftRods[i], FTp(x + 0.05 - (i ? 0 : 0), 2.25 + bob, 1.45), FTp(x, FT_TIP + bob, FT_LZ)));
+}
+// 糸（計算した鎖）とオモリの印を描く。カメラを決めたあとに呼ぶ
+function nkDraw(sim, ts, o = {}) {
+  let pts = sim.pts(ts);
+  if (o.above) { const sy = pts[pts.length - 1][1]; pts = pts.filter((p, i) => i === pts.length - 1 || p[1] > sy + 0.05); } // 近くで見るとき：オモリより下にたまった糸は描かない
+  camera.getWorldDirection(_ftF);
+  pts = pts.filter((p, i) => i === pts.length - 1 || FTp(p[0], p[1], FT_LZ).sub(camera.position).dot(_ftF) > 0.5); // カメラの後ろの点は描かない
+  const q = pts.map(([x, y]) => project(FTp(x, y, FT_LZ)));
+  const col = o.col ?? "#ffb45e", w = o.w ?? 5;
+  if (o.trail) {
+    const tr = [];
+    for (let i = 0; i <= 40; i++) { const tt = ts - o.trail * (1 - i / 40); if (tt < 0) continue; const p = sim.pts(tt), s = p[p.length - 1]; tr.push(project(FTp(s[0], s[1], FT_LZ))); }
+    if (tr.length > 2) lines += `<polyline points="${tr.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#8ff0ff" stroke-width="9" stroke-linecap="round" stroke-dasharray="0.1 18" opacity="0.9"/>`;
+  }
+  lines += `<polyline points="${q.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#0b2a44" stroke-width="${w + 4}" stroke-linejoin="round" stroke-linecap="round" opacity="0.35"/><polyline points="${q.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" ${sim.st(ts).m === "free" ? "" : ""}/>`;
+  const s = q[q.length - 1];
+  if (o.dot !== false) lines += `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="${o.r ?? 13}" fill="${col}" stroke="#fff" stroke-width="4"/>`;
+  return { pts, s: pts[pts.length - 1], q };
+}
+// 右上の「竿とリール」に渡す形（計算の記録から）
+function nkSt(sim, ts) {
+  const r = sim.st(ts);
+  return { c0: { free: r.m === "free", kind: r.m === "reel" ? "reel" : "wait", turning: r.m === "reel" }, a: [0, 0, 0, 0, 0, -r.L * 0.4], T: r.m === "free" ? 0 : r.T * 3 };
+}
+// 横から見た海の断面。cx：真ん中の横の位置、dist：遠さ
+const nkView = (t, cx = 18, cy = -38.5, dist = 125) => (PORTRAIT ? look(FTp(cx + Math.sin(t * 0.05) * 0.5, cy + 9, dist * 0.56), FTp(cx, cy + 9, 0), 50) : look(FTp(cx + Math.sin(t * 0.05) * 0.8, cy, dist), FTp(cx, cy, 0), 50));
+// 深さの目盛り（左の端）
+function nkRuler(a = 1) {
+  if (a <= 0.01) return;
+  [0, 35, 70].forEach((m) => { const p = project(FTp(-22, -m, FT_LZ)); if (!p.behind) html += `<div style="position:absolute;left:${Math.max(16, p.x)}px;top:${p.y}px;transform:translateY(-50%);opacity:${a};color:#fff;font-size:26px;font-weight:900;text-shadow:0 2px 6px #000">${m}m</div>`; });
+}
+const nkNote = (fish = false) => {
+  const txt = `糸とオモリの動きは簡単な物理モデルの計算（重さ・水の抵抗・潮の速さ。船は止まっているとして計算）${fish ? "。魚の動きはイメージ" : ""}`;
+  if (!PORTRAIT) return ftNote(txt);
+  html += `<div style="position:absolute;left:40px;right:40px;top:1560px;color:#eaf6ff;font-size:23px;font-weight:800;text-shadow:0 2px 6px #000,0 0 3px #000">※${txt}</div>`;
+};
+const nkFast = (x, a = 1) => { if (a <= 0.01) return; html += `<div style="position:absolute;${PORTRAIT ? "left:40px;top:300px" : "left:70px;top:125px"};opacity:${a};background:#10345a;color:#fff;font-weight:900;font-size:28px;padding:6px 18px;border-radius:12px">▶▶ 早送り ×${x}</div>`; };
+const nkTag = (sim, ts, txt, sub, a, cls = "", dx = 0, dy = -110) => { const p = sim.pts(ts), s = p[p.length - 1]; label(FTp(s[0], s[1], FT_LZ), txt, sub, a, cls, dx, dy); };
+// 真下の魚（Fish Kit のマアジ。底から 1〜3m）
+const nkFish = (T, o = {}) => fkSchool("aji", T, { cx: o.cx ?? 3, sx: o.sx ?? 5, h0: 1.0, h1: 3.0, n: o.n ?? 10, cm: 26, zc: FT_LZ - 1.4, sz: 1.0, face: 0 });
+const NK_LEG = [["#ffb45e", "糸とオモリ（計算）"], ["#4cc3ff", "潮の流れ"]];
+// 2本の糸が重なる所（オマツリ）。見つからなければ null
+function nkCross(pa, pb) {
+  for (let i = 1; i < pa.length; i++) for (let j = 1; j < pb.length; j++) {
+    const [a, b] = [pa[i - 1], pa[i]], [c, d] = [pb[j - 1], pb[j]];
+    const den = (b[0] - a[0]) * (d[1] - c[1]) - (b[1] - a[1]) * (d[0] - c[0]);
+    if (Math.abs(den) < 1e-9) continue;
+    const u = ((c[0] - a[0]) * (d[1] - c[1]) - (c[1] - a[1]) * (d[0] - c[0])) / den, v = ((c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])) / den;
+    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && a[1] < -0.8) return [a[0] + u * (b[0] - a[0]), a[1] + u * (b[1] - a[1])];
+  }
+  return null;
+}
+const nkCard = (P, inner, a, posL = [70, 170, 640], posP = [60, 420, 960]) => ftCard(P, inner, a, posL, posP);
+const nkRow = (col, a1, b1, a = 1) => `<div style="display:flex;align-items:center;gap:16px;margin-top:12px;opacity:${a}"><i style="flex:none;width:26px;height:26px;border-radius:50%;background:${col};border:3px solid #fff;box-shadow:0 0 0 2px #10345a"></i><div style="font-size:${PORTRAIT ? 32 : 30}px;font-weight:900">${a1}<span style="font-size:${PORTRAIT ? 26 : 24}px;color:#3a5a78;font-weight:800">　${b1}</span></div></div>`;
+
+Object.assign(SHOTS, {
+  nk_thumb(t, d, s) {
+    ftBase();
+    const T = 6, A = nkRun("w10"), B = nkRun("w80");
+    nkBoat(T);
+    ftFlow(1, { v1: 0.6 });
+    look(FTp(24, -38, 88), FTp(18, -38, 0), 50);
+    ftFlush();
+    nkDraw(A, 89, { col: "#ffe08a", w: 8, r: 18 });
+    nkDraw(B, 89, { w: 8, r: 18 });
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：船から落とした2本の仕掛け。1本はまっすぐ、1本はななめ（本番は Blender の冒頭に差しかわる）
+  nk_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2, sim = nkRun("nimai"), ts = 62 + t * 2;
+    ftBase();
+    nkBoat(T);
+    ftFlow(0.9, { mid: -30, v1: 0.7, v2: -0.55 });
+    nkView(t, P ? 6 : 14, -38.5, 125 - 8 * ease(t / d));
+    ftFlush();
+    const a = project(FTp(0, FT_TIP, FT_LZ)), b = project(FTp(0, FT_BOT, FT_LZ));
+    lines += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#fff" stroke-width="5" stroke-dasharray="14 14" opacity="0.75"/>`;
+    nkDraw(sim, ts, { w: 7 });
+    label(FTp(0, -50, FT_LZ), "思っている形？", "", fadeIn(t, 1.0), "", P ? -200 : -260, -40);
+    nkTag(sim, ts, "計算すると…", "", fadeIn(t, 1.8), "gold", P ? 160 : 260, -160);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.6),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 90, "船の仕掛け、<br>まっすぐ沈んでる？", "オモリと潮を計算で見える化", P ? 1 : clamp01(t / 0.25));
+    nkNote();
+  },
+  // 実験の条件：水深70m・船は止まっている・計算 → k1 オモリの号数と重さ
+  nk_go(t, d, s, k) {
+    const P = PORTRAIT, T = t + 12, tk = t - (s[`_k${k}`] ?? 0), A = nkRun("calm30");
+    ftBase();
+    nkBoat(T);
+    nkView(t, P ? 6 : 18);
+    ftFlush();
+    nkDraw(A, 45);
+    nkRuler(fadeIn(t, 0.3));
+    if (k === 0) html += nkCard(P, `<b style="font-size:${P ? 38 : 36}px">実験の条件</b>${nkRow("#10345a", "水深 70m", "砂の海底", fadeIn(t, 0.3))}${nkRow("#10345a", "船は止まっている", "として計算", fadeIn(t, 0.8))}${nkRow("#ffb45e", "糸とオモリ", "重さ・水の抵抗・潮で計算", fadeIn(t, 1.3))}`, fadeIn(t, 0.1), [1120, 170, 720]);
+    if (k >= 1) {
+      const rows = [["10号", "約37.5g", 0.0375], ["30号", "約112.5g", 0.1125], ["80号", "約300g", 0.3]];
+      html += nkCard(P, `<b style="font-size:${P ? 38 : 36}px">オモリの重さは「号」</b><div style="font-size:${P ? 32 : 30}px;font-weight:900;margin-top:8px">1号 ＝ <span style="color:#c2410c">約3.75g</span></div><div style="display:flex;justify-content:space-around;align-items:flex-end;margin-top:18px">${rows.map(([n, g, m], i) => { const h = 70 * Math.cbrt(m / 0.3); return `<div style="text-align:center;opacity:${fadeIn(tk, 0.4 + i * 0.4)}"><div style="margin:0 auto;width:${(h * 0.55).toFixed(0)}px;height:${h.toFixed(0)}px;border-radius:45% 45% 50% 50% / 30% 30% 70% 70%;background:linear-gradient(90deg,#8d979e,#dfe5ea 45%,#8d979e)"></div><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:8px">${n}</div><div style="font-size:${P ? 26 : 24}px;color:#3a5a78;font-weight:800">${g}</div></div>`; }).join("")}</div><div style="font-size:22px;color:#3a5a78;margin-top:10px">ダイワの換算表から（80号は 80×3.75g）</div>`, fadeIn(tk, 0.1), [1120, 170, 720]);
+    }
+    nkNote();
+  },
+  // 潮がないとき：真下へまっすぐ沈む → 着底したら糸ふけを取る（最後に底へ寄る）
+  nk_calm(t, d, s, k) {
+    const P = PORTRAIT, T = t + 20, sim = nkRun("calm30"), sp = 3.2, ts = Math.min(t * sp, 49);
+    const land = sim.land, tl = land / sp, zk = ease((t - tl - 0.6) / 2.2);
+    ftBase();
+    nkBoat(T);
+    nkFish(T, { cx: 2.2, sx: 2.6 });
+    const pts = sim.pts(ts), S = pts[pts.length - 1];
+    if (zk > 0) {
+      const cxw = P ? 6 : 18;
+      const cam = path(FTp(cxw, -38.5, 125), FTp(0.7, S[1] + 1.4, FT_LZ + 5), zk), tg = path(FTp(cxw, -38.5, 0), FTp(0.7, S[1] + 1.0, FT_LZ), zk);
+      look(cam, tg, 50);
+    } else nkView(t, P ? 6 : 18);
+    if (zk > 0.3) sbPlace(T, S, [S[0], S[1] + 5], [0, 0], { vis: 2.4, sinkVis: 4, cur: 0.1, lw: 4 });
+    ftFlush();
+    nkDraw(sim, ts, { dot: zk < 0.3, above: zk > 0.3 });
+    nkRuler(1 - zk);
+    nkFast(sp, 1 - zk);
+    if (zk < 0.5) nkTag(sim, ts, "まっすぐ真下へ", "潮がないとき", fadeIn(t, 1.2) * (1 - zk * 2), "gold", P ? 200 : 240, -60);
+    if (zk > 0.5) label(FTp(S[0], S[1] + 0.6, FT_LZ), "着いたら、すぐ糸ふけを取る", "たるみを巻き取る", fadeIn(t, tl + 2.2), "gold ans", P ? 0 : 300, -300);
+    if (!P) legend(NK_LEG.slice(0, 1));
+    ftCtl(nkSt(sim, ts), 1);
+    nkNote(zk > 0);
+  },
+  // 潮が流れているとき：ななめに流されて沈む。水色の点＝オモリの通った道
+  nk_cur(t, d, s, k) {
+    const P = PORTRAIT, T = t + 40, sim = nkRun("cur30"), sp = 5, ts = Math.min(t * sp, 89), tk = t - (s[`_k${k}`] ?? 0);
+    ftBase();
+    nkBoat(T);
+    ftFlow(1, { v1: 0.6 });
+    nkView(t, P ? 14 : 18);
+    ftFlush();
+    nkDraw(sim, ts, { trail: 40 });
+    lines += (() => { const a = project(FTp(0, FT_TIP, FT_LZ)), b = project(FTp(0, FT_BOT, FT_LZ)); return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#fff" stroke-width="3" stroke-dasharray="10 12" opacity="0.55"/>`; })();
+    nkRuler();
+    nkFast(sp);
+    label(FTp(-6, -14, FT_LZ), "潮 →", "", fadeIn(t, 0.5), "", P ? 0 : -60, -40);
+    if (k >= 1) nkTag(sim, ts, "糸がななめに", "流されながら沈む", fadeIn(tk, 0.3), "gold ans", P ? -120 : 240, -60);
+    if (!P) legend(NK_LEG);
+    ftCtl(nkSt(sim, ts), 1);
+    nkNote();
+  },
+  // 重さでくらべる：10号（黄）と80号（オレンジ）を同じ潮に → k1 重いほうが真下に近い → k2 潮が速いときは重く
+  nk_omo(t, d, s, k) {
+    const P = PORTRAIT, T = t + 60, A = nkRun("w10"), B = nkRun("w80"), sp = 5.5, ts = Math.min(t * sp + 2, 89), tk = t - (s[`_k${k}`] ?? 0);
+    ftBase();
+    nkBoat(T);
+    ftFlow(1, { v1: 0.6 });
+    nkView(t, P ? 14 : 18);
+    ftFlush();
+    nkDraw(A, ts, { col: "#ffe08a" });
+    nkDraw(B, ts);
+    nkRuler();
+    nkFast(sp);
+    nkTag(A, ts, "10号", "軽い", fadeIn(t, 0.8), "", P ? 160 : 200, -40);
+    nkTag(B, ts, "80号", "重い", fadeIn(t, 1.2), "", P ? -160 : -200, -60);
+    if (k >= 1 && k < 2) html += nkCard(P, `<b style="font-size:${P ? 36 : 34}px">計算の結果</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:10px;line-height:1.5">重いオモリのほうが<br><span style="color:#c2410c">底に早く着く</span><br><span style="color:#c2410c">糸が真下に近い</span></div>`, fadeIn(tk, 0.2), [1250, 300, 610], [60, 420, 960]);
+    if (k >= 2) html += nkCard(P, `<b style="font-size:${P ? 36 : 34}px">潮が速いときは</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:10px;line-height:1.5">オモリやジグを<span style="color:#c2410c">重く</span>して<br>糸が<span style="color:#c2410c">ななめに出すぎない</span>ように</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">と言われます（釣りの解説記事から）</div>`, fadeIn(tk, 0.2), [1250, 300, 610], [60, 420, 960]);
+    legend([["#ffe08a", "10号（約37.5g）"], ["#ffb45e", "80号（約300g）"]]);
+    nkNote();
+  },
+  // 糸の太さ：細い糸（細い線）と太い糸（太い線）。同じ30号
+  nk_ito(t, d, s, k) {
+    const P = PORTRAIT, T = t + 80, A = nkRun("thin"), B = nkRun("thick"), sp = 7, ts = Math.min(t * sp + 8, 89), tk = t - (s[`_k${k}`] ?? 0);
+    ftBase();
+    nkBoat(T);
+    ftFlow(1, { v1: 0.6 });
+    nkView(t, P ? 14 : 18);
+    ftFlush();
+    nkDraw(B, ts, { col: "#ff8a5c", w: 11 });
+    nkDraw(A, ts, { col: "#ffe08a", w: 3 });
+    nkRuler();
+    nkFast(sp);
+    nkTag(B, ts, "太い糸", "潮に押されやすい", fadeIn(t, 0.8), "", P ? 160 : 220, -40);
+    nkTag(A, ts, "細い糸", "", fadeIn(t, 1.2), "", P ? -160 : -220, -80);
+    if (k >= 1) html += nkCard(P, `<b style="font-size:${P ? 36 : 34}px">糸の太さ</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:10px;line-height:1.5">細い糸は<br><span style="color:#c2410c">潮の抵抗を受けにくい</span></div><div style="font-size:22px;color:#3a5a78;margin-top:6px">とされます（Honda釣り倶楽部・釣りの解説記事から）</div>`, fadeIn(tk, 0.2), [1250, 300, 610], [60, 420, 960]);
+    legend([["#ffe08a", "細い糸（30号）"], ["#ff8a5c", "太い糸（30号）"]]);
+    nkNote();
+  },
+  // クイズ：となりとちがう重さのオモリ → B オマツリ（上流の軽いオモリの糸が流れて、重いオモリの糸と重なる）
+  nk_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 100, A = nkRun("qA"), B = nkRun("qB"), tk = t - (s[`_k${k}`] ?? 0);
+    const ts = k < 2 ? Math.min(6 + t * 2, 30) : Math.min(30 + tk * 7.5, 89);
+    ftBase();
+    nkBoat(T, [1, -8]);
+    ftFlow(0.9, { v1: 0.6 });
+    nkView(t, P ? 14 : 18);
+    ftFlush();
+    const ra = nkDraw(A, ts, { col: "#ffe08a" }), rb = nkDraw(B, ts);
+    nkRuler();
+    nkTag(A, ts, "となりの人", "軽いオモリ", fadeIn(t, 0.6), "", P ? -160 : -280, -150);
+    nkTag(B, ts, "あなた", "重いオモリ", fadeIn(t, 0.9), "", P ? -160 : -330, 60);
+    const ans = k >= 2 && tk > 0.3;
+    if (ans) {
+      const c = nkCross(ra.pts, rb.pts);
+      if (c) { const p = project(FTp(c[0], c[1], FT_LZ)); lines += `<circle cx="${p.x}" cy="${p.y}" r="${34 + 4 * Math.sin(t * 6)}" fill="none" stroke="#ff4a3a" stroke-width="7"/>`; label(FTp(c[0], c[1], FT_LZ), "糸が重なる＝オマツリ", "横から見た図", fadeIn(tk, 1.0), "red ans", P ? 0 : -300, 260); }
+    }
+    const opts = [["A", "よく釣れる"], ["B", "糸がからむ（オマツリ）"], ["C", "何も変わらない"]];
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:400px" : "left:1120px;top:170px;width:720px"};padding:20px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 42 : 40}px;font-weight:900;margin:14px 0 4px">となりの人と<span style="color:#1f6fd1">ちがう重さ</span>の<br>オモリを使うと？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="font-size:${P ? 38 : 36}px;opacity:${fadeIn(tk + (k > 1 ? 9 : 0), 0.2 + i * 0.35)};${ans && i === 1 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}${ans ? `<div style="font-size:${P ? 30 : 28}px;font-weight:900;margin-top:14px;opacity:${fadeIn(tk, 0.6)}">号数は<span style="color:#c2410c">船長の指示にそろえる</span></div>` : ""}</div>`;
+    rcSrc(ans ? "TSURI HACK（船釣りの道具と号数の解説）" : "");
+    nkNote();
+  },
+  // 二枚潮：上の潮は右へ、下の潮は左へ → 糸がとちゅうで曲がる → 海面の糸の向きとオモリの場所がずれる
+  nk_nimai(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130, sim = nkRun("nimai"), sp = 4, ts = Math.min(t * sp + 4, 79), tk = t - (s[`_k${k}`] ?? 0);
+    ftBase();
+    nkBoat(T);
+    ftFlow(1, { mid: -30, v1: 0.7, v2: -0.55 });
+    nkView(t, P ? 6 : 14);
+    ftFlush();
+    const r = nkDraw(sim, ts, { trail: k >= 1 ? 30 : 0 });
+    nkRuler();
+    nkFast(sp);
+    label(FTp(16, -12, FT_LZ), "上の潮 →", "", fadeIn(t, 0.5), "", P ? 60 : 120, -30);
+    label(FTp(16, -52, FT_LZ), "← 下の潮", "向きがちがう＝二枚潮", fadeIn(t, 1.2), "gold", P ? 60 : 160, P ? -160 : -30);
+    if (k >= 1) {
+      // 海面近くの糸の向きをそのまま底までのばした線（白の点線）と、本当のオモリの場所
+      const a = r.pts[0], b = r.pts[4], dx = b[0] - a[0], dy = b[1] - a[1], kk = (FT_BOT - a[1]) / dy, g = [a[0] + dx * kk, FT_BOT];
+      const pa = project(FTp(a[0], a[1], FT_LZ)), pg = project(FTp(g[0], g[1], FT_LZ));
+      const t1 = t - (s._k1 ?? 0), al = fadeIn(t1, 1.5);
+      lines += `<line x1="${pa.x}" y1="${pa.y}" x2="${pa.x + (pg.x - pa.x) * al}" y2="${pa.y + (pg.y - pa.y) * al}" stroke="#fff" stroke-width="4" stroke-dasharray="12 12" opacity="0.8"/>`;
+      if (sim.st(ts).m !== "free") {
+        label(FTp(g[0], g[1], FT_LZ), "糸の向きから思う場所", "", fadeIn(t1, 2.2), "", P ? -200 : -330, -120);
+        nkTag(sim, ts, "本当のオモリ", "", fadeIn(t1, 2.8), "gold ans", P ? -140 : -220, -110);
+      }
+    }
+    if (k >= 2) html += nkCard(P, `<b style="font-size:${P ? 36 : 34}px">二枚潮のときは</b><div style="font-size:${P ? 34 : 32}px;font-weight:900;margin-top:10px;line-height:1.5"><span style="color:#c2410c">オマツリが多くなる</span>ことも<br>まわりの人の糸を見て投入</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">シマノ・TSURI HACK の解説から</div>`, fadeIn(tk, 0.2), [1250, 300, 610], [60, 420, 960]);
+    legend([["#ffb45e", "糸とオモリ（計算）"], ["#4cc3ff", "右へ流れる潮"], ["#ff9f40", "左へ流れる潮"]]);
+    nkNote();
+  },
+  // 底を取り直す：軽いオモリが潮に押されて少しずつ底から離れる → もう一度クラッチを切って底を取る → 糸がさらに出る
+  nk_soko(t, d, s, k) {
+    const P = PORTRAIT, T = t + 160, sim = nkRun("soko"), tk = t - (s[`_k${k}`] ?? 0);
+    const ts = Math.min(48 + t * 3.4, 109);
+    ftBase();
+    nkBoat(T);
+    ftFlow(1, { v1: 0.7 });
+    const pts = sim.pts(ts), S = pts[pts.length - 1];
+    look(FTp(S[0] - 2 + Math.sin(t * 0.1), -60, P ? 30 : 26), FTp(S[0] - 4, -63.5, 0), 50);
+    ftFlush();
+    nkDraw(sim, ts, { trail: 25 });
+    const h = S[1] - FT_BOT, ps = project(FTp(S[0], S[1], FT_LZ)), pb = project(FTp(S[0], FT_BOT, FT_LZ));
+    lines += `<line x1="${ps.x}" y1="${ps.y}" x2="${pb.x}" y2="${pb.y}" stroke="#2ecc71" stroke-width="6" opacity="${clamp01(h)}"/>`;
+    const m = sim.st(ts).m;
+    nkFast(3.4);
+    ftChip(m === "free" || m === "land" ? "クラッチを切って、底を取り直す" : m === "reel" ? "底を切る（少し巻く）" : "止めて待つ", m === "free" || m === "land" ? "#1f6fd1" : m === "reel" ? "#e08a2a" : "#2a9d5c", 1);
+    if (ts < 84) nkTag(sim, ts, "少しずつ底から離れる", "潮に押される", fadeIn(t, 1.0), "gold", P ? -120 : -300, -120);
+    if (k >= 1) html += nkCard(P, `<b style="font-size:${P ? 36 : 34}px">底ダチは、こまめに取り直す</b><div style="font-size:${P ? 30 : 28}px;font-weight:900;margin-top:10px;line-height:1.5">潮が速いと、取り直すたびに<br><span style="color:#c2410c">糸がさらに出ていく</span>ことも</div><div style="font-size:22px;color:#3a5a78;margin-top:6px">ダイワ・シマノの解説から</div>`, fadeIn(tk, 0.2), [70, 170, 640], [60, 420, 960]);
+    if (!P) legend(NK_LEG);
+    ftCtl(nkSt(sim, ts), 1);
+    nkNote();
+  },
+  nk_safe(t, d, s, k) {
+    const P = PORTRAIT, T = t + 200, sim = nkRun("w80");
+    ftBase();
+    nkBoat(T);
+    look(FTp(P ? 0 : 3, 1.2, P ? 16 : 12), FTp(P ? 0 : 3.5, 0.6, 0), 50);
+    ftFlush();
+    nkDraw(sim, 89, { dot: false });
+    const row = (ic, txt, i) => `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${fadeIn(t, 0.4 + i * 0.6)}"><b style="background:${["#e3412b", "#ffb02e", "#1f6fd1"][i]};color:#fff;font-size:30px;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none">${ic}</b><div style="font-size:34px;font-weight:900">${txt}</div></div>`;
+    html += ftCard(P, `<b style="font-size:38px">船の上では、<span style="color:#e3412b">安全が先</span></b>${row("1", "ライフジャケットを着ける", 0)}${row("2", "船長の指示を聞く", 1)}${row("3", "オモリの号数も指示にそろえる", 2)}`, fadeIn(t, 0.2), [1060, 170, 790], [60, 420, 960]);
+  },
+  nk_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 220, A = nkRun("w10"), B = nkRun("w80");
+    ftBase();
+    nkBoat(T);
+    ftFlow(0.6, { v1: 0.6 });
+    nkView(t);
+    ftFlush();
+    nkDraw(A, 89, { col: "#ffe08a" });
+    nkDraw(B, 89);
+    html += acDim(0.5);
+    const rows = [["潮なし", "真下へまっすぐ", "着いたら、すぐ糸ふけを取る", "#1f4f9a"], ["潮あり", "ななめに流される", "重いオモリ・細い糸は真下に近い", "#e08a00"], ["二枚潮", "糸がとちゅうで曲がる", "号数は船長の指示に。底はこまめに取り直す", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 62 : 60}px;opacity:${fadeIn(t, 0.1)}">仕掛けの沈み方 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 30 : 34}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 34 : 40}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+  },
+});
+
 window.frame = function (o) {
   // o = { shot, t, d, s, k, T, cap, chapter, progress }
   U.time.value = o.T;
