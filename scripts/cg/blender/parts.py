@@ -408,3 +408,20 @@ def build_nori(z, mat, x=(-4.0, 4.0), y=(-1.0, 6.0), step=0.3, n=1600, seed=5):
         py = y[0] + step * int(rng.integers(1, ny))
         roots.append((px + rng.uniform(-0.03, 0.03), py + rng.uniform(-0.03, 0.03), z, -rng.uniform(0.16, 0.38), rng.uniform(0, math.pi), rng.uniform(0, 6.28)))
     return Kelp(roots, mat, width=0.03, lean=(0.12, 0.0), name="nori", build=b_nori)
+
+
+def b_fadrope(nt, n, l):
+    p = _principled(nt)
+    p.inputs["Base Color"].default_value = (0.20, 0.17, 0.12, 1)
+    p.inputs["Roughness"].default_value = 0.85
+
+
+def build_fad(ropes, mat, top=14.6):
+    """2026-11-27 浮魚礁（表層型）の係留ロープの模式図。ropes＝[(x, y, 太さ)]。海底 z=0 から海面の上 top まで、まっすぐの太いロープ。
+    浮魚礁の形・大きさは資料にないので、ロープだけを見せる（cg-katsuo）"""
+    m = mat("fadrope", b_fadrope)
+    for i, (x, y, r) in enumerate(ropes):
+        bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=r, depth=top, location=(x, y, top / 2))
+        o = bpy.context.object
+        o.name = f"fadrope{i}"
+        o.data.materials.append(m)

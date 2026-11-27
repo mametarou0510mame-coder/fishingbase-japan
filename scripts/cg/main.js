@@ -11121,7 +11121,7 @@ Object.assign(SHOTS, {
   },
   // クイズ：いちばん多い1時間に何尾？ k0 問い → k1 選択肢 → k2 正解 C 249尾
   nr_quiz(t, d, s, k) {
-    const P = PORTRAIT, T = t + 50, t2 = s._k2 ?? 99, ans = t > t2 + 1.2;
+    const P = PORTRAIT, T = t + 50, t2 = s._k2 ?? 99, ans = t > t2 + 0.5;
     nrWater();
     nrFish(T, { n: ans ? 24 : 12, cx: P ? 0 : 1.8, sx: ans ? 3.2 : 2.4, z0: 0, sz: 1.3, eat: 0.45 });
     nrCam(t, { dx: P ? 0 : 1.4, dist: P ? 5.8 : 4.3, lx: P ? 0 : -1.4, ly: P ? -0.8 : 0.3 });
@@ -11233,6 +11233,293 @@ Object.assign(SHOTS, {
     html += acDim(0.45);
     const rows = [["カメラ", "冬のノリの網に、チヌが群れで来て食べた", "徳島県・岡山県の水産研究所の調査", "#1f6fd1"], ["249尾", "徳島：いちばん多い1時間（1月・11.8℃）", "昼前と夕方に多い傾向", "#e08a00"], ["11℃前後", "低い水温でもたくさん来た", "例年より長く、2月末まで（生産者の話）", "#2a9d5c"]];
     html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 58 : 60}px;opacity:${fadeIn(t, 0.1)}">冬のチヌとノリ まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
+// =====================================================================
+// アカデミー R12 カツオは昼も夜も浅い？（cg-katsuo、kt_*）2026-11-27
+// 事実は docs/research/fish-knowledge.md「カツオ（浮魚礁）」だけ：
+//   山根ほか（和歌山県水産試験場・水産研究・教育機構 水産資源研究所）水産海洋研究 89(3) 2025：2020年6月24日放流、同じ表層型浮魚礁で再捕の9個体、
+//     3日19時間〜10日20時間。昼夜とも 91.2〜99.5% の時間を深さ20m未満。夜と昼の平均の深さの差 0.3〜3.7m。明確な昼夜の鉛直移動のパターンなし。
+//     腹腔内温度は周りの水温にかかわらず22℃以上が多い。
+//   和歌山県水産試験場 漁場効果調査：南部の表層型浮魚礁5基（2018〜2020年設置）。2020年9月15日 カツオ45尾（尾叉長32〜44cm）・
+//     12月1日 40尾（37〜52cm）、ブイから 39〜530m／50〜334m。キハダ・シイラ・カマスサワラも少し。小型竿釣り・ひき縄。
+// 「いつも浅い」と一般化しない。浮魚礁の形は資料にないので模式図。深さのグラフは模式図（実際の記録の線ではない）。
+// 土台は ftBase（海の断面。船と海底は隠す）。Fish Kit にカツオがないので、同じサバ科のキハダ（kihada）で表示し、画面に断り書き。魚の色は 3D モデルのまま
+// 使い回せる部品：ktBase()（沖の海の断面・浮魚礁）、ktFad（ブイ・柱・灯り・係留ロープの模式図）、ktLayer(a)（0〜20m の帯と20mの線）、
+//   ktTicks(x, a)（画面左に深さの目盛り）、ktSchool(T, o)（キハダ＝カツオの代わりの群れ）、ktTagAt（記録計の模式図）
+// =====================================================================
+const ktGrp = new THREE.Group();
+ktGrp.position.copy(FT);
+world.add(ktGrp);
+extras.push(ktGrp);
+const ktFad = (() => {
+  const g = new THREE.Group();
+  const fl = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.25, 1.7, 28), ftLit(0xf2c230, { shine: 0.35 }));
+  fl.position.y = -0.25;
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, 0.25, 28), ftLit(0xe3412b));
+  band.position.y = 0.35;
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.6, 10), ftLit(0xdfe6ea));
+  mast.position.y = 1.9;
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), new THREE.MeshBasicMaterial({ color: 0xfff2a8 }));
+  lamp.position.y = 3.3;
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 69, 8), ftLit(0x3a3226, { shine: 0.05 }));
+  rope.position.y = -1.1 - 34.5;
+  g.add(fl, band, mast, lamp, rope);
+  ktGrp.add(g);
+  return g;
+})();
+// 0〜20m の帯（緑・うすく）と 20m の線（黄色）
+const ktBand = new THREE.Mesh(new THREE.BoxGeometry(400, 20, 0.2).translate(0, -10, -6), new THREE.MeshBasicMaterial({ color: 0x2ecc71, transparent: true, opacity: 0.16, depthWrite: false }));
+const ktLine = new THREE.Mesh(new THREE.BoxGeometry(400, 0.35, 0.2).translate(0, -20, -5.9), new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.9, depthWrite: false }));
+ktBand.renderOrder = ktLine.renderOrder = 7;
+ktGrp.add(ktBand, ktLine);
+function ktBase() {
+  ftBase();
+  ftBoat.visible = false;
+  ftGrp.userData.bed.visible = false;
+  ktGrp.visible = true;
+  ktFad.visible = true;
+  ktFad.position.set(0, 0, 0);
+  ktLayer(0);
+  ktTag.visible = false;
+}
+function ktLayer(a) {
+  ktBand.visible = ktLine.visible = a > 0.01;
+  ktBand.material.opacity = 0.16 * a;
+  ktLine.material.opacity = 0.9 * a;
+}
+// 画面の左に深さの目盛り（カメラを決めてから呼ぶ）
+function ktTicks(x, a = 1, ds = [0, 10, 20, 30, 40], z = 0) {
+  if (a <= 0.01) return;
+  ds.forEach((d) => {
+    const p = project(FTp(x, -d, z));
+    if (p.behind || p.y < 60 || p.y > H - 60) return;
+    const hot = d === 20;
+    html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(0,-50%);opacity:${a};color:${hot ? "#ffd166" : "#fff"};font-size:${hot ? 40 : 30}px;font-weight:900;text-shadow:0 2px 6px #000,0 0 3px #000;white-space:nowrap">${d === 0 ? "海面" : `${d}m`}</div>`;
+  });
+}
+const KT_OFF = (() => { const r = rng(5211); return Array.from({ length: 24 }, () => ({ x: r() * 2 - 1, y: r() * 2 - 1, z: r() * 2 - 1, p: r() * 6.283, w: 0.7 + r() * 0.6, k: r() })); })();
+// カツオの群れ（キハダのモデル）。cx・cy：群れの中心（cy は海面からの高さ。マイナスが深い）、sx・sy・sz：広がり、sc：拡大、face：1 右向き・-1 左向き・0 ゆっくり回る
+function ktSchool(T, o = {}) {
+  const { n = 14, cx = 0, cy = -8, sx = 6, sy = 4, z0 = 0, sz = 2, sc = 1, face = 0, i0 = 2100 } = o;
+  const out = [];
+  for (let i = 0; i < KT_OFF.length; i++) {
+    const q = KT_OFF[i], cm = 40 + Math.round(q.k * 10);
+    if (i >= n) { const f = fkGet("kihada", i0 + i, cm); if (f) f.object.visible = false; continue; }
+    const dir = face || (Math.sin(T * 0.1 * q.w + q.p) > 0 ? 1 : -1);
+    const x = cx + q.x * sx + Math.sin(T * 0.25 * q.w + q.p) * sx * 0.15;
+    const y = Math.min(-0.8 * sc, cy + q.y * sy + Math.sin(T * 0.5 * q.w + q.p) * 0.15 * sc);
+    const ang = 0.06 * Math.sin(T * 0.4 + q.p);
+    out.push(fkPut("kihada", i0 + i, x, y, dir > 0 ? ang : Math.PI - ang, T, { at: FTp, z: z0 + q.z * sz, cm, sc, freq: 1.8, amp: 0.06 }));
+  }
+  return out;
+}
+// 記録計（アーカイバルタグ）の模式図：腹の中に入れた本体（見えない）から外へ出た細い棒
+const ktTag = (() => {
+  const g = new THREE.Group();
+  const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 0.09, 8), new THREE.MeshBasicMaterial({ color: 0x1a1a1a }));
+  stalk.position.y = -0.045;
+  const tip = new THREE.Mesh(new THREE.SphereGeometry(0.005, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff8a1a }));
+  tip.position.y = -0.09;
+  g.add(stalk, tip);
+  ktGrp.add(g);
+  return g;
+})();
+function ktTagAt(r, z, sc = 1) {
+  ktTag.visible = true;
+  ktTag.position.set(r.cx - 0.08 * r.L, r.cy - 0.1 * r.L, z + 0.06 * sc);
+  ktTag.rotation.set(0, 0, -0.5);
+  ktTag.scale.setScalar(sc);
+  return FTp(r.cx - 0.08 * r.L, r.cy - 0.1 * r.L, z + 0.06 * sc);
+}
+const ktSrcP = "和歌山県水産試験場・水産研究・教育機構（水産海洋研究 2025）";
+const ktSrcW = "和歌山県水産試験場（浮魚礁の漁場効果調査）";
+const ktNote = (txt = "魚の動きはイメージ。カツオの3Dモデルがないので、同じサバ科のキハダのモデルで表示") => ftNote(txt);
+// 広く見るカメラ：海面〜40m（浮魚礁は x=0）
+const ktWide = (t, o = {}) => { const P = PORTRAIT, cx = o.cx ?? (P ? 0 : 6), cy = o.cy ?? (P ? -16 : -13), dist = o.dist ?? (P ? 40 : 46); look(FTp(cx + Math.sin(t * 0.05) * 1.2, cy, dist), FTp(cx, cy, 0), 50); };
+// 近くで見るカメラ：浮魚礁の下・群れの中（少し見上げる）
+const ktNear = (t, o = {}) => { const P = PORTRAIT, c = FTp(o.cx ?? 3, o.cy ?? -5, 0); look(c.clone().add(V(Math.sin(t * 0.06) * 0.8, o.up ?? -1.5, o.dist ?? (P ? 15 : 12))), c.clone().add(V(o.lx ?? 0, o.ly ?? 0.5, 0)), 50); };
+
+Object.assign(SHOTS, {
+  kt_thumb(t, d, s) {
+    ktBase();
+    const T = 6;
+    ktSchool(T, { n: 16, cx: 3.2, cy: -4.2, sx: 3.2, sy: 1.6, z0: 2, sz: 1.4, sc: 1.3, face: -1 });
+    const c = FTp(2.0, -4.0, 0);
+    look(c.clone().add(V(1.4, -1.4, 10)), c.clone().add(V(-1.6, 0.6, 0)), 50);
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：浮魚礁のまわりにカツオが集まる（本番は Blender の冒頭）
+  kt_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2;
+    ktBase();
+    ktSchool(T, { n: Math.round(lerp(8, 16, ease(clamp01(t / 6)))), cx: P ? 1 : 4, cy: -5, sx: P ? 2.5 : 5, sy: 2.2, z0: 0, sz: 2, sc: 1.3, face: -1 });
+    ktNear(t, { cx: P ? 0.5 : 3, cy: P ? -4 : -3.5, dist: lerp(P ? 17 : 14, P ? 15 : 12, ease(t / d)), ly: P ? 2 : 1.5 });
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.55),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "カツオは<br>昼も夜も浅い？", "和歌山県の浮魚礁の研究から", a);
+    academyBadge();
+    ktNote();
+  },
+  // 浮魚礁とは：k0 海に浮かべた魚礁・カツオなどが集まる → k1 和歌山県の南部に5基
+  kt_fad(t, d, s, k) {
+    const P = PORTRAIT, T = t + 14;
+    ktBase();
+    ktSchool(T, { n: 14, cx: P ? 1 : -2, cy: -9, sx: P ? 5 : 9, sy: 4, z0: 0, sz: 3, sc: 4, face: 0 });
+    ktWide(t, { cx: P ? 0 : 9, cy: P ? -12 : -8, dist: P ? 40 : 40 });
+    label(FTp(0, 0.6, 0), "浮魚礁（表層型）", "海面に浮かぶ・模式図", fadeIn(t, 0.6), "", P ? 160 : 300, P ? -120 : 30);
+    if (!P) label(FTp(0, -17, 0), "海の底につなぐロープ", "模式図", fadeIn(t, 1.4), "", -260, 0);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    let inner = `<b style="font-size:${P ? 38 : 40}px"><span style="color:#1f6fd1">浮魚礁</span>（うきぎょしょう）</b><div style="font-size:${P ? 31 : 32}px;font-weight:900;margin-top:10px">海に浮かべた魚礁<br>まわりに<span style="color:#c2410c">カツオ</span>などが集まる</div>`;
+    if (k >= 1) inner += `<div style="opacity:${a1};margin-top:14px;border-top:3px dashed #9fb3c6;padding-top:12px;font-size:${P ? 31 : 32}px;font-weight:900">和歌山県の南部に<span style="color:#c2410c">5基</span><br><span style="font-size:0.85em">2018〜2020年に置かれた</span></div>`;
+    html += ftCard(P, inner, fadeIn(t, 0.3), [1200, 260, 640], [60, 1000, 960]);
+    iwSrc(k >= 1 ? ktSrcW : "");
+    academyBadge();
+    ktNote("魚の動きはイメージ。魚は大きく表示。浮魚礁は模式図。カツオはキハダの3Dモデルで表示");
+  },
+  // 記録計：k0 アーカイバルタグ → k1 2020年6月24日放流・9尾 → k2 3日19時間〜10日20時間
+  kt_tag(t, d, s, k) {
+    const P = PORTRAIT, T = t + 30;
+    ktBase();
+    ktFad.visible = false;
+    ktSchool(T, { n: 10, cx: 0, cy: -6.3, sx: 3, sy: 0.8, z0: -3, sz: 1.5, sc: 1, face: 1, i0: 2200 });
+    const z = 1.2, x0 = (P ? 0 : 0.0) + 0.05 * Math.sin(T * 0.3);
+    const r = fkPut("kihada", 2300, x0 + 0.22, -6 + 0.02 * Math.sin(T * 0.7), 0.03 * Math.sin(T * 0.5), T, { at: FTp, z, cm: 46, sc: 1, freq: 1.6, amp: 0.05 });
+    const c = FTp(x0 + 0.05, -6.02, z);
+    look(c.clone().add(V(0.08, -0.05, P ? 1.25 : 0.95)), c.clone().add(V(P ? 0 : -0.3, P ? -0.08 : 0, 0)), 50);
+    if (r) {
+      const tp = ktTagAt(r, z);
+      label(tp.clone().add(V(0, -0.09, 0)), "アーカイバルタグ", "深さ・温度を記録（模式図）", fadeIn(t, 0.8), "ans", P ? 0 : -40, P ? 260 : 190);
+    }
+    const row = (i, hd, txt, col) => { if (k < i) return ""; const a = fadeIn(t - (s[`_k${i}`] ?? 0), 0.3); return `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${a}"><b style="background:${col};color:#fff;font-size:${P ? 26 : 28}px;padding:8px 0;width:${P ? 170 : 160}px;text-align:center;border-radius:14px;flex:none">${hd}</b><div style="font-size:${P ? 31 : 32}px;font-weight:900">${txt}</div></div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 40}px">カツオに<span style="color:#c2410c">記録計</span>を付けた</b>` +
+      row(0, "記録", "泳いだ<span style=\"color:#c2410c\">深さ</span>・<span style=\"color:#c2410c\">温度</span>", "#1f6fd1") +
+      row(1, "放流", "<span style=\"color:#c2410c\">2020年6月24日</span>・浮魚礁で", "#1f6fd1") +
+      row(1, "再び獲れた", "同じ浮魚礁で<span style=\"color:#c2410c\">9尾</span>", "#1d8a3a") +
+      row(2, "記録の長さ", "<span style=\"color:#c2410c\">3日19時間〜10日20時間</span>", "#e08a00"), fadeIn(t, 0.3), [70, 200, 760], [60, 330, 960]);
+    iwSrc(ktSrcP);
+    academyBadge();
+    ktNote("魚の動きはイメージ。記録計の形・付け方は模式図。カツオはキハダの3Dモデルで表示");
+  },
+  // クイズ：20m より浅い所にいた時間は？ k0 問い → k1 選択肢 → k2 正解 C 9割以上
+  kt_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 50, t2 = s._k2 ?? 99, ans = t > t2 + 0.5;
+    ktBase();
+    ktLayer(ans ? 1 : 0.5);
+    ktSchool(T, { n: 14, cx: P ? 1 : 10, cy: -9, sx: P ? 5 : 6, sy: 5, z0: 0, sz: 3, sc: 4, face: 0 });
+    ktWide(t, { cx: P ? 0 : -2, cy: P ? -16 : -14 });
+    ktTicks(P ? 2.5 : 2.5, 1, [0, 10, 20]);
+    const opts = [["A", "約半分"], ["B", "約4分の3"], ["C", "9割以上"]];
+    html += `<div class="card" style="${P ? "left:60px;right:60px;top:430px" : "left:70px;top:190px;width:760px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 44 : 42}px;font-weight:900;margin:14px 0 4px">昼も夜も、深さ<span style="color:#c2410c">20m</span>より<br>浅い所にいた時間は？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans && !P) html += ftCard(P, `<b style="font-size:38px">正解 <span style="color:#1d8a3a">C</span>：<span style="color:#c2410c">9割以上</span></b><div style="font-size:30px;font-weight:900;margin-top:8px">9尾それぞれ、昼も夜も<br>時間の <span style="color:#c2410c">91.2〜99.5%</span></div>`, fadeIn(t - t2 - 0.5, 0.2), [1200, 600, 660], [60, 1150, 960]);
+    iwSrc(k >= 2 ? ktSrcP : "");
+    academyBadge();
+    ktNote(ans ? "魚の数・位置はイメージ。魚は大きく表示。カツオはキハダの3Dモデルで表示" : "魚の動きはイメージ。魚は大きく表示");
+  },
+  // 昼と夜の深さ：k0 差は 0.3〜3.7m → k1 はっきりした上下の動きなし（グラフは模式図）
+  kt_depth(t, d, s, k) {
+    const P = PORTRAIT, T = t + 70;
+    ktBase();
+    ktLayer(1);
+    ktSchool(T, { n: 12, cx: P ? 1 : 12, cy: -8, sx: P ? 5 : 6, sy: 4.5, z0: 0, sz: 3, sc: 4, face: 0 });
+    ktWide(t, { cx: P ? 0 : -2, cy: P ? -16 : -14 });
+    ktTicks(P ? 2.5 : 26, 1, [0, 10, 20]);
+    const a1 = ease(clamp01(t / 4));
+    const Wg = P ? 820 : 760, Hg = 300, Dm = 40, y = (m) => (Hg * m) / Dm;
+    // 2日分：昼（6〜18時）と夜を交互に。線は「20m より浅い所でゆれる」模式図
+    let bg = "";
+    for (let i = 0; i < 4; i++) bg += `<rect x="${(Wg * i) / 4}" y="0" width="${Wg / 4}" height="${Hg}" fill="${i % 2 ? "#1c3d6b" : "#d9efff"}" opacity="${i % 2 ? 0.85 : 0.9}"/><text x="${(Wg * (i + 0.5)) / 4}" y="${Hg + 38}" font-size="28" font-weight="900" fill="#10345a" text-anchor="middle">${i % 2 ? "夜" : "昼"}</text>`;
+    const N = 120, pts = [];
+    for (let i = 0; i <= N; i++) { if (i / N > a1) break; const u = i / N, m = 7 + 2.6 * Math.sin(u * 37) + 1.8 * Math.sin(u * 91 + 1) + 1.0 * Math.sin(u * 173) + (i === 41 || i === 97 ? 9 : 0); pts.push(`${(Wg * u).toFixed(1)},${y(Math.max(1, m)).toFixed(1)}`); }
+    const svg = `<svg width="${Wg}" height="${Hg + 50}" style="overflow:visible">${bg}<rect x="0" y="0" width="${Wg}" height="${y(20)}" fill="#2ecc71" opacity=".18"/><line x1="0" y1="${y(20)}" x2="${Wg}" y2="${y(20)}" stroke="#e0a800" stroke-width="5" stroke-dasharray="14 10"/><text x="${Wg - 8}" y="${y(20) + 34}" font-size="28" font-weight="900" fill="#ffd166" text-anchor="end">20m</text>${[0, 20, 40].map((m) => `<text x="-12" y="${y(m) + 10}" font-size="24" font-weight="900" fill="#10345a" text-anchor="end">${m}m</text>`).join("")}${pts.length > 1 ? `<polyline points="${pts.join(" ")}" fill="none" stroke="#e3412b" stroke-width="6" stroke-linejoin="round"/>` : ""}</svg>`;
+    let inner = `<b style="font-size:${P ? 36 : 38}px">泳いだ深さ（<span style="color:#c2410c">模式図</span>）</b><div style="margin:14px 0 0 50px">${svg}</div><div style="font-size:22px;color:#3a5a78;margin-top:2px">線は模式図（実際の記録の線ではない）</div>`;
+    inner += `<div style="font-size:${P ? 30 : 31}px;font-weight:900;margin-top:8px">夜と昼の平均の深さの差：<span style="color:#c2410c">0.3〜3.7m</span></div>`;
+    if (k >= 1) inner += `<div style="font-size:${P ? 30 : 31}px;font-weight:900;margin-top:6px;opacity:${fadeIn(t - (s._k1 ?? 99), 0.3)}">はっきりした<span style="color:#1d8a3a">昼と夜の上下の動き</span>は<br>見られなかった（9尾の記録）</div>`;
+    html += ftCard(P, inner, fadeIn(t, 0.3), [70, 170, 900], [60, 330, 960]);
+    iwSrc(ktSrcP);
+    academyBadge();
+    ktNote("魚の動きはイメージ。魚は大きく表示。カツオはキハダの3Dモデルで表示");
+  },
+  // 腹の中の温度：k0 温度も記録 → k1 周りの水温にかかわらず 22℃以上が多い
+  kt_temp(t, d, s, k) {
+    const P = PORTRAIT, T = t + 90;
+    ktBase();
+    ktFad.visible = false;
+    ktSchool(T, { n: 12, cx: 0, cy: -6.3, sx: 3.5, sy: 0.9, z0: -3, sz: 1.5, sc: 1, face: -1, i0: 2200 });
+    const z = 1.2, x0 = (P ? 0 : 0.0) + 0.05 * Math.sin(T * 0.3);
+    const r = fkPut("kihada", 2300, x0 - 0.22, -6 + 0.02 * Math.sin(T * 0.7), Math.PI - 0.03 * Math.sin(T * 0.5), T, { at: FTp, z, cm: 46, sc: 1, freq: 1.6, amp: 0.05 });
+    const c = FTp(x0 - 0.05, -6.02, z);
+    look(c.clone().add(V(-0.08, -0.05, P ? 1.25 : 0.95)), c.clone().add(V(P ? 0 : -0.42, P ? -0.08 : 0, 0)), 50);
+    if (r) {
+      ktTag.visible = true;
+      ktTag.position.set(r.cx + 0.08 * r.L, r.cy - 0.1 * r.L, z + 0.06);
+      ktTag.rotation.set(0, 0, 0.5);
+      ktTag.scale.setScalar(1);
+    }
+    const H0 = 10, H1 = 30, Ht = P ? 300 : 400, yy = (c2) => Ht - (Ht * (c2 - H0)) / (H1 - H0);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0;
+    const svg = `<svg width="300" height="${Ht + 20}" style="overflow:visible">${[10, 15, 20, 25, 30].map((c2) => `<line x1="80" y1="${yy(c2)}" x2="280" y2="${yy(c2)}" stroke="#c7d3de" stroke-width="2"/><text x="66" y="${yy(c2) + 10}" font-size="26" font-weight="900" fill="#10345a" text-anchor="end">${c2}℃</text>`).join("")}<rect x="130" y="${yy(30)}" width="100" height="${(yy(22) - yy(30)) * a1}" rx="12" fill="#e3412b" opacity="${0.85 * a1}"/><line x1="80" y1="${yy(22)}" x2="280" y2="${yy(22)}" stroke="#e3412b" stroke-width="5" stroke-dasharray="12 8" opacity="${a1}"/><text x="180" y="${yy(22) + 40}" font-size="30" font-weight="900" fill="#c2410c" text-anchor="middle" opacity="${a1}">22℃</text></svg>`;
+    let side = `<div style="font-size:${P ? 31 : 32}px;font-weight:900;line-height:1.5">記録計は、<span style="color:#c2410c">腹の中の温度</span>も記録</div>`;
+    if (k >= 1) side += `<div style="font-size:${P ? 31 : 32}px;font-weight:900;line-height:1.5;opacity:${a1};margin-top:10px">まわりの水温にかかわらず<br><span style="color:#c2410c">22℃以上</span>のことが多かった</div><div style="font-size:22px;color:#3a5a78;margin-top:4px;opacity:${a1}">赤い帯は「22℃以上」の模式図</div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 36 : 38}px">腹の中の温度</b><div style="display:flex;gap:24px;align-items:center;margin-top:14px;${P ? "flex-direction:column" : ""}"><div>${svg}</div><div style="${P ? "" : "width:500px"}">${side}</div></div>`, fadeIn(t, 0.3), [70, 200, 900], [60, 330, 960]);
+    iwSrc(ktSrcP);
+    academyBadge();
+    ktNote("魚の動きはイメージ。記録計は模式図。カツオはキハダの3Dモデルで表示");
+  },
+  // 浮魚礁で釣れた：k0 9月 45尾・12月 40尾 → k1 ブイから 39〜530m → k2 キハダ・シイラ・カマスサワラも
+  kt_catch(t, d, s, k) {
+    const P = PORTRAIT, T = t + 110;
+    ktBase();
+    ktSchool(T, { n: 16, cx: P ? 1 : 4, cy: -5, sx: P ? 3 : 6, sy: 2.4, z0: 0, sz: 2, sc: 1.3, face: 0 });
+    ktNear(t, { cx: P ? 0.5 : -4, cy: -4, dist: P ? 17 : 15, ly: P ? 2 : 1 });
+    html += acDim(0.12);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3, 0.8) : 0, a2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.3) : 0;
+    // 上から見た模式図：まん中がブイ。輪は 100m ごと。釣れた範囲を帯で
+    const R0 = P ? 280 : 200, S = R0 / 550, cx2 = R0 + 20;
+    const ring = (m) => `<circle cx="${cx2}" cy="${cx2}" r="${m * S}" fill="none" stroke="#9fb3c6" stroke-width="2" stroke-dasharray="6 6"/>`;
+    const band2 = (m0, m1, col, al) => `<circle cx="${cx2}" cy="${cx2}" r="${((m0 + m1) / 2) * S}" fill="none" stroke="${col}" stroke-width="${(m1 - m0) * S}" opacity="${0.35 * al}"/>`;
+    const svg = `<svg width="${2 * cx2}" height="${2 * cx2}">${band2(39, 530, "#1f6fd1", a1)}${band2(50, 334, "#c2410c", a1)}${[100, 200, 300, 400, 500].map(ring).join("")}<circle cx="${cx2}" cy="${cx2}" r="12" fill="#f2c230" stroke="#10345a" stroke-width="3"/><text x="${cx2}" y="${cx2 - 22}" font-size="24" font-weight="900" fill="#10345a" text-anchor="middle">ブイ</text><text x="${cx2 + 500 * S}" y="${cx2 + 8}" font-size="22" font-weight="900" fill="#3a5a78" text-anchor="end">500m</text></svg>`;
+    let side = `<div style="font-size:${P ? 31 : 32}px;font-weight:900;line-height:1.5"><span style="color:#1f6fd1">9月15日</span>：カツオ <span style="color:#c2410c">45尾</span><br><span style="font-size:.8em">尾叉長 32〜44cm</span></div><div style="font-size:${P ? 31 : 32}px;font-weight:900;line-height:1.5;margin-top:6px"><span style="color:#c2410c">12月1日</span>：カツオ <span style="color:#c2410c">40尾</span><br><span style="font-size:.8em">尾叉長 37〜52cm</span></div>`;
+    if (k >= 1) side += `<div style="font-size:${P ? 28 : 29}px;font-weight:900;line-height:1.5;margin-top:10px;opacity:${a1};border-top:3px dashed #9fb3c6;padding-top:8px">釣れた位置（ブイから）<br><span style="color:#1f6fd1">9月 39〜530m</span>・<span style="color:#c2410c">12月 50〜334m</span></div>`;
+    if (k >= 2) side += `<div style="font-size:${P ? 28 : 29}px;font-weight:900;margin-top:8px;opacity:${a2}">キハダ・シイラ・カマスサワラも少し</div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 36 : 38}px">浮魚礁で試しに釣った（2020年）</b><div style="display:flex;gap:26px;align-items:center;margin-top:12px;${P ? "flex-direction:column" : ""}"><div>${k >= 1 ? svg : ""}</div><div style="${P ? "" : "width:560px"}">${side}</div></div>${k >= 1 ? `<div style="font-size:22px;color:#3a5a78;margin-top:4px;opacity:${a1}">上から見た模式図（帯は釣れた距離の範囲。向きはイメージ）</div>` : ""}`, fadeIn(t, 0.3), [70, 150, k >= 1 ? 1100 : 660], [60, 330, 960]);
+    iwSrc(ktSrcW);
+    academyBadge();
+    ktNote("魚の動きはイメージ。浮魚礁は模式図。カツオはキハダの3Dモデルで表示");
+  },
+  // だから釣りでは：k0 浅いタナにいた記録 → k1 9尾・最長10日ほど → k2 浮魚礁は漁業の施設・船長の指示
+  kt_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130;
+    ktBase();
+    ktLayer(k === 0 ? 1 : 0.5);
+    ktSchool(T, { n: 14, cx: P ? 1 : 5, cy: -9, sx: P ? 5 : 8, sy: 4, z0: 0, sz: 3, sc: 4, face: 0 });
+    ktWide(t, { cx: P ? 0 : 0, cy: P ? -14 : -12, dist: P ? 40 : 42 });
+    ktTicks(P ? 2.5 : -30, 1, [0, 10, 20]);
+    const msg = [
+      `<b style="font-size:36px">浮魚礁のカツオは、昼も夜も<br><span style="color:#1d8a3a">浅いタナ</span>を泳いでいた記録</b>`,
+      `<b style="font-size:36px">ただし、<span style="color:#c2410c">1つの浮魚礁・9尾・長くて10日ほど</span>の記録</b><div style="font-size:30px;font-weight:900;margin-top:8px">季節や場所が変われば、ちがうかもしれない</div>`,
+      `<b style="font-size:36px">浮魚礁は、漁業のために置かれた施設</b><div style="font-size:34px;font-weight:900;margin-top:8px;color:#e3412b">船で釣りに出るときは、船長の指示に従う</div>`,
+    ];
+    html += ftCard(P, msg[Math.min(k, 2)], fadeIn(t - (s[`_k${Math.min(k, 2)}`] ?? 0), 0.3), [360, 170, 1200], [60, 380, 960]);
+    if (k >= 1) iwSrc(ktSrcP);
+    academyBadge();
+    ktNote("魚の動きはイメージ。魚は大きく表示。カツオはキハダの3Dモデルで表示");
+  },
+  kt_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150;
+    ktBase();
+    ktSchool(T, { n: 16, cx: P ? 1 : 4, cy: -5, sx: P ? 3 : 6, sy: 2.4, z0: 0, sz: 2, sc: 1.3, face: 0 });
+    ktNear(t, { cx: P ? 0.5 : 2, cy: -4, dist: P ? 17 : 15, ly: 1 });
+    html += acDim(0.45);
+    const rows = [["記録計", "浮魚礁に集まったカツオ9尾の深さを記録", "和歌山県水産試験場・水産研究・教育機構", "#1f6fd1"], ["9割以上", "昼も夜も、20mより浅い所にいた時間", "9尾それぞれ 91.2〜99.5%", "#e08a00"], ["0.3〜3.7m", "夜と昼の平均の深さの差", "はっきりした昼夜の上下の動きなし", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 58 : 60}px;opacity:${fadeIn(t, 0.1)}">カツオと浮魚礁 まとめ</div>`;
     rows.forEach(([a1, b1, c1, col], i) => {
       const a = fadeIn(t, 0.4 + i * 0.45);
       html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;

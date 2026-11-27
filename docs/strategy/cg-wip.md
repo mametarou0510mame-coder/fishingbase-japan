@@ -22,13 +22,13 @@
 
 ## 作りかけ（アカデミー）R12 カツオは昼も夜も浅い？ 浮魚礁とアーカイバルタグ（slug: cg-katsuo、2026-11-27 開始）
 - [x] 企画を選ぶ（A-2 の1番）・fish-knowledge.md の「カツオ（浮魚礁）」の節に抄録と和歌山県の資料を足した
-- [ ] 台本 content/cg/cg-katsuo.json・short-cg-katsuo.json
-- [ ] main.js に kt_* ショットと kt_thumb（カツオの3Dモデルは Fish Kit にないので、同じサバ科のキハダのモデルを使い、画面に断り書き）
-- [ ] Blender 場面 scenes/katsuo.py（check_scene.py で確認）
-- [ ] ローカル静止画の確認
+- [x] 台本 content/cg/cg-katsuo.json・short-cg-katsuo.json（本編 約2分45秒・ショート 44.5秒の見積もり）
+- [x] main.js に kt_* ショットと kt_thumb（カツオの3Dモデルは Fish Kit にないので、同じサバ科のキハダのモデルを使い、画面に断り書き）
+- [x] Blender 場面 scenes/katsuo.py（ENV="fad"：parts.build_fad の係留ロープ。check_scene 最小すきま 2.85m）
+- [x] ローカル静止画の確認（横・縦・サムネイル）
 - [ ] cg-video（chunks=8）→ cg-compress → Blender test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md の更新
-次にやること：台本を書く
+次にやること：cg-video.yml（slug=cg-katsuo, chunks=8）を起動
 
 ---
 

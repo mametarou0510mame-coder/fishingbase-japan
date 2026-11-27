@@ -282,6 +282,9 @@ if ENV == "tetra":   # テトラ（消波ブロック）。場面の TETRA に�
 if ENV == "nori":   # 2026-11-24 ノリ養殖の網と垂れる葉（場面に NET_Z）。葉は kelp と同じく毎コマゆらす
     import parts
     kelp = parts.build_nori(M.NET_Z, mat)
+if ENV == "fad":   # 2026-11-27 浮魚礁の係留ロープ（場面に FAD_ROPES。parts.build_fad）
+    import parts
+    parts.build_fad(M.FAD_ROPES, mat)
 if ENV == "reef":
     import parts
     parts.build_reef(M.reef_h, mat)
