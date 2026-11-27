@@ -2,11 +2,15 @@ name: Long video upload
 
 # long-media ブランチに保存した長尺動画を、1日1本 YouTube に投稿する（18時台。出せなかった日は21時台にもう一度試す）。
 # 2026-11-09 オーナー：長尺は1日1本、高クオリティのものを出す（07:17 の回はやめた）。
-# 全部投稿し終わったら何もしない。キューは yt_long.py の ORDER。
+# 2026-11-27 オーナー：通常の長尺（long-*）は毎日2本。cg-* とは別の枠で 12:17 と 20:17（出せなかった分は 23:17）。
+# 全部投稿し終わったら何もしない。キューは yt_long.py の ORDER（long-* は APPROVED にあるものだけ）。
 on:
   schedule:
     - cron: "17 9 * * *" # 18:17 JST
     - cron: "17 12 * * *" # 21:17 JST（18時に出せなかった日だけ）
+    - cron: "17 3 * * *" # 12:17 JST long-* の1本目
+    - cron: "17 11 * * *" # 20:17 JST long-* の2本目
+    - cron: "17 14 * * *" # 23:17 JST long-*（2本出せなかった日だけ）
   workflow_dispatch:
     inputs:
       force:
@@ -17,6 +21,10 @@ on:
         description: "この動画を出す（空なら列の次。道具紹介など時刻を決めて出すとき）"
         required: false
         default: ""
+      track:
+        description: "列の次を選ぶとき：cg（3DCG・アカデミー）/ long（オーナー OK の long-*）"
+        required: false
+        default: "cg"
 
 permissions:
   contents: write
@@ -48,7 +56,10 @@ jobs:
           if [ -n "$S" ]; then
             python -c "import json,sys;sys.exit(0 if sys.argv[1] not in json.load(open('data/sns/long-posts.json')) else 1)" "$S" || { echo "::notice::$S は投稿済みです"; exit 0; }
           else
-            S=$(python scripts/sns/yt_long.py next $F)
+            N=next
+            case "${{ github.event.schedule }}" in "17 3 * * *"|"17 11 * * *"|"17 14 * * *") N=next-long ;; esac
+            [ "${{ github.event.inputs.track }}" = "long" ] && N=next-long
+            S=$(python scripts/sns/yt_long.py $N $F)
           fi
           [ -z "$S" ] && echo "::notice::長尺動画はすべて投稿済みです" && exit 0
           git fetch -q --depth 1 origin +long-media:refs/remotes/origin/long-media

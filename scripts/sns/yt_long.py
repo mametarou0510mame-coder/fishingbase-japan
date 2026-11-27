@@ -34,9 +34,9 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-michihiki",  # 2026-11-06 見える化 潮の満ち引き（定時タスクで force 投稿）
          "long-kanji30", "long-issho", "long-dataquiz", "long-iitsutae",
          # 第6弾（2026-11-05。書き出し済み）
-         "long-hatsumono", "long-shokuchudoku", "long-kisetsu-quiz", "long-osaka-kobe", "long-nakama-quiz", "long-shurui", "long-yougo30",
+         "long-hatsumono", "long-shokuchudoku", "long-kisetsu-quiz", "long-osaka-kobe",  # 2026-11-27 nakama-quiz・shurui・yougo30 は最後に移した
          # 第7弾（2026-11-09。1日1本・高クオリティ。書き出し済み）
-         "long-tsureta-jikan", "long-shime",
+         # （long-tsureta-jikan・long-shime は 2026-11-27 に最後へ移した）
          "cg-aori",
          "cg-fune-tachiuo",
          "cg-fune-tairaba", "cg-fune-aomono",
@@ -55,13 +55,14 @@ ORDER = ["long-shore-jigging", "long-sawara", "long-tachiuo", "long-sabiki", "lo
          "cg-shikai",  # 2026-11-24 見える化 魚からはどこまで見えている？（3DCG 定期タスク。Blender の冒頭・サムネイル差しかえずみ。書き出し 45299045780・圧縮 45307006335・full 45303771457・最小すきま 0.379m）
          "cg-nori",  # 2026-11-24 ツレドキアカデミー R11 冬のチヌはノリを食べに来る？（定期タスク。Blender の冒頭・サムネイル差しかえずみ。書き出し 45329169274・圧縮 45338408379・full 45340723375・最小すきま 1.069m）
          "cg-oto",  # 2026-11-25 見える化（A4） 堤防の足音・話し声は魚に届く？（3DCG 定期タスク。Blender の冒頭・サムネイル差しかえずみ。書き出し 45519622908・圧縮 45522481605・full 45523680707・最小すきま 0.526m）
-         # 第8弾（2026-11-16。書き出し済み。冬の堤防は11月下旬〜12月上旬に出す）
-         # 第9弾（2026-11-20。書き出し済み。12月1日前後に出したい。long-* は今は slug 指定でだけ出る）
-         # 2026-11-23 冬の堤防（11月下旬〜12月上旬）→ 12月の関西（12/1 前後）の順に出す
-         "long-fuyu-teibou", "long-month-12",
-         "long-hajimete-ichinichi", "long-shun-quiz"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
+         # 2026-11-27 オーナー「long は毎日2本ずつ出していい。順番は任せる。事実の再確認が前提」→ 9本を事実確認して直し、書き出し直した。
+         # 季節もの（冬の堤防）を先に。12月の関西は 12/1 から（NOT_BEFORE）。
+         "long-fuyu-teibou", "long-hajimete-ichinichi", "long-shime", "long-tsureta-jikan",
+         "long-nakama-quiz", "long-shun-quiz", "long-shurui", "long-month-12", "long-yougo30"]  # 船釣り見える化 第3・2回（2026-11-12 オーナー：タイラバを今日 11/12 18:17 に、ショートも同時。青物ジギングはそのあと） ／ 2026-11-10 アカデミー R7 ／ 2026-11-11 船釣り見える化 第1回（オーナー指示で当日 force 投稿）
 REC = "data/sns/long-posts.json"
-PER_DAY = 1  # 1日に出す長尺の本数（2026-11-09 オーナー：1日1本。18:17、出せなかった日は 21:17。2026-11-17：3DCG・アカデミーだけで毎日1本）
+PER_DAY = 1  # 3DCG・アカデミー（cg-*）を1日に出す本数（18:17、出せなかった日は 21:17）
+LONG_PER_DAY = 2  # 通常の長尺（long-*）を1日に出す本数（2026-11-27 オーナー：毎日2本。12:17 と 20:17、出せなかったら 23:17）
+NOT_BEFORE = {"long-month-12": "2026-12-01"}  # この日より前は出さない（季節もの）
 
 
 def yt_title(t):
@@ -99,7 +100,9 @@ HOLD = {"cg-gear-lure", "cg-gear-goods"}  # cg-fune-aomono は 2026-11-14 オー
 
 # 2026-11-23 オーナー：通常の長尺（long-*）も、cg-* が切れた日に自動で出す。ただし投稿前にオーナーが見て OK したものだけ。
 # オーナーが動画を見て OK したら、その slug をここに足す（足していない long-* は自動では出ない）
-APPROVED = set()
+# 2026-11-27 オーナー「long は毎日2本ずつ出していい（事実の再確認が前提）」→ 事実確認して直し、書き出し直した9本
+APPROVED = {"long-fuyu-teibou", "long-hajimete-ichinichi", "long-shime", "long-tsureta-jikan", "long-nakama-quiz",
+            "long-shun-quiz", "long-shurui", "long-month-12", "long-yougo30"}
 
 
 def comment_text(src):
@@ -122,18 +125,18 @@ def posted():
 
 
 def main():
-    if sys.argv[1] == "next":  # まだ投稿していない次の動画の slug を出す（1日 PER_DAY 本まで。超えていれば空）
+    if sys.argv[1] in ("next", "next-long"):  # まだ投稿していない次の動画の slug を出す（その日の上限を超えていれば空）
+        # next：3DCG・アカデミー（cg-*）を1日 PER_DAY 本。next-long：オーナーが OK した long-*（APPROVED）を1日 LONG_PER_DAY 本。
+        # 2026-11-27 オーナー：long は毎日2本。cg-* とは別の枠で出す（cg-* の数には数えない）
         from datetime import datetime, timedelta, timezone
         done = posted()
         today = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
-        if sum(v.get("at", "").startswith(today) for v in done.values()) >= PER_DAY and "--force" not in sys.argv:
+        cg = sys.argv[1] == "next"
+        mine = lambda s: s.startswith("cg-") == cg  # noqa: E731
+        if sum(v.get("at", "").startswith(today) and mine(k) for k, v in done.items()) >= (PER_DAY if cg else LONG_PER_DAY) and "--force" not in sys.argv:
             print("")
             return
-        # 2026-11-17 オーナー：YouTube の長尺は 3DCG とツレドキアカデミー（どちらも cg-*）を優先する。
-        # 毎日1本（週に 3DCG 4本・アカデミー 3本）。通常の長尺（long-*）は APPROVED にあるものだけ、cg-* が切れた日に出す
-        left = [s for s in ORDER if s not in done and s not in HOLD and s.startswith("cg-")]
-        # 2026-11-23 オーナー：cg-* が残っていない日は、オーナーが OK した long-* を ORDER の順に1本出す
-        left += [s for s in ORDER if s not in done and s not in HOLD and s in APPROVED and not s.startswith("cg-")]
+        left = [s for s in ORDER if s not in done and s not in HOLD and mine(s) and (cg or s in APPROVED) and NOT_BEFORE.get(s, "") <= today]
         print(left[0] if left else "")
         return
     slug, mp4, thumb, chap = sys.argv[1:5]
