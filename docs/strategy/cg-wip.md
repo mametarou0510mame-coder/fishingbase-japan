@@ -9,10 +9,10 @@
 
 ## 作りかけ：【CG実験】船の仕掛けはどう沈む？ オモリの重さと潮の速さ・二枚潮（slug: cg-nimaishio、接頭辞 nk_）
 - 2026-11-27 開始（定期タスク 9:23）。A-1 の 5（波動）は cg-oto の「側線」の章と事実が重なるので飛ばし、6 を選んだ。
-- [ ] 事実の確認（fish-knowledge.md に節を足す）
-- [ ] main.js に nk_* と nk_thumb、FT_BODY／FT_SEQ の追加
-- [ ] 台本 cg-nimaishio.json・ショート short-cg-nimaishio.json、Blender の場面
-- [ ] ローカルの静止画の確認
+- [x] 事実の確認（fish-knowledge.md「船の仕掛けの沈み方」）
+- [x] main.js に nk_* と nk_thumb（糸は新しい nkSim：鎖のモデル。FT_BODY は使わない）
+- [x] 台本 cg-nimaishio.json・ショート short-cg-nimaishio.json、Blender の場面 scenes/nimai.py（check_scene 0.542m）
+- [x] ローカルの静止画の確認（--clear 最小 1.27m）
 - [ ] cg-video（書き出し）→ cg-compress → Blender test → full
 - [ ] ORDER に入れる・固定コメント・企画リストの更新
 

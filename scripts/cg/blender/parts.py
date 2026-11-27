@@ -224,12 +224,17 @@ class Sabiki:
             v.co.x, v.co.y, v.co.z = v.co.x * w, v.co.y * w, (f - 1.0) * 0.046
         me.materials.append(mat("sb_lead", b_lead))
 
-    def update(self, sink, hooks, t):
+    def update(self, sink, hooks, t, line_dir=None):
         k = self.k
         self.sink.location = sink
         self.line.rotation_mode = "QUATERNION"
-        self.line.rotation_quaternion = (1, 0, 0, 0)
-        self.line.location = sink + Vector((0, 0, 6.0))
+        if line_dir:   # 糸の向き（潮で斜めになる回。場面の LINE_DIR）。ふだんは真上
+            ld = Vector(line_dir).normalized()
+            self.line.rotation_quaternion = ld.to_track_quat("Z", "Y")
+            self.line.location = sink + ld * 6.0
+        else:
+            self.line.rotation_quaternion = (1, 0, 0, 0)
+            self.line.location = sink + Vector((0, 0, 6.0))
         self.line.scale = (1.2, 1.2, 12.0)
         for i, (P, E) in enumerate(hooks[: self.n]):
             d = (E - P)

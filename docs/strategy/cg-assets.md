@@ -33,6 +33,7 @@
 | **ノリ養殖の網と垂れる葉・クロダイの群れ** | `nrWater()`（浅い冬の海の水の中・下から見た海面）、`nrNet`（海面のすぐ下の網・浮き・四すみの支柱）、`nrNori`（網の目から垂れるノリの葉。`nrU.cut`・`nrU.cutX` で葉の先が短くなる＝食べた跡）、`nrFish(T, { n, cx, sx, z0, sz, eat })`（Fish Kit のクロダイ。`eat` の割合の魚が頭を上げて葉の先をつつく）、`nrCamBox`（水中カメラの模式図）、`nrCam(t, o)` | 2026-11-24 cg-nori（nr_*）。養殖・海藻・浅い海の回に。網とノリは模式図 |
 | **堤防の断面と音の線（模式図）** | `otBase(歩く, T)`・`otWide(t, cu, cy, dist)`・`otBed(u)`・`OTp(u, y, z)`、`otArc(c, R, a0, a1, 色, 太さ, 濃さ, keep)`（音の波の円弧。`otInAir`・`otInWater`・`otInGround` で空気・水・地面の中だけ描く）、`otRay(口, 角度, 長さ, 進み, 色, 太さ, 濃さ, 水へ入る濃さ)`（水面で跳ね返る線）、`otSurf`（水面を光らせる）、`otTalk`（話している印）、`otChinus`（捨て石の前のクロダイ）、`otIn(r, f, up)`（Fish Kit の魚の体の中の位置：内耳・うきぶくろ・側線の模式図） | 2026-11-25 cg-oto（ot_*）。垂直な岸壁（上 +2.0m）・足もとの捨て石・砂の底。音・振動・光の線の説明に |
 | **沖の海の断面と浮魚礁（模式図）** | `ktBase()`（ftBase から船と海底を隠す）、`ktFad`（黄色いブイ・柱・灯り・海の底へ下りる係留ロープ。x=0）、`ktLayer(a)`（0〜20m の緑の帯と 20m の黄色い線）、`ktTicks(x, a, [深さ])`（画面に深さの目盛り）、`ktSchool(T, { n, cx, cy, sx, sy, sc, face })`（キハダの群れ。カツオの代わり）、`ktTag`・`ktTagAt`（記録計の模式図）、`ktWide`・`ktNear` | 2026-11-27 cg-katsuo（kt_*）。浮魚礁・沖の表層の魚・深さの話に。カツオの3Dモデルはないので、使うときは「キハダのモデルで表示」と断る |
+| **糸の形の計算・潮の層（船の断面）** | `nkSim({ m, dline, cur(y, t), tipX, lift, redrop })`・`nkRun(name)`・`NK_DEF`、`nkTwo(v1, v2, mid)`（二枚潮）、`nkDraw(sim, ts, { col, w, trail, above })`（鎖の糸とオモリの印）、`nkSt`（ftCtl へ）、`nkCross`（2本の糸が重なる所）、`nkView`・`nkRuler`・`nkFast` | 2026-11-27 cg-nimaishio（nk_*）。糸を24本の棒の鎖にした、重さ・水の抵抗・潮の簡単な物理モデル（船は止まっているとして）。オモリの重さ・糸の太さ・二枚潮で糸の形がどう変わるか。ftSim（仕掛け1つの動き）と組み合わせられる |
 | 画面の部品 | `ftMini`・`ftCtl`（竿とリール）・`ftGraph`・`agGraph`・`ftChip`・`ftNote`・`ftCard`・`ftFinder`・`ftThumbText`、`label`・`legend`・`bigText`・`card`・`drawBar` | 左上の全体図、右上の竿とリール、字幕チップ、注記など |
 | 魚（Fish Kit） | `fkGet(id, i, cm)`・`fkPlace(f, 位置, 向き, 頭の上げ角, T)`、`endFish` | 写真から作った海水魚20種（2026-11-20 新しいモデル集 https://cda-social.github.io/aquarium/models-gallery.html に入れ替え。全部 `loadFish` で読み込み済み。イサキの幼魚 isaki_young が増えた） |
 | **エビ（テナガエビ・レッドビーシュリンプ）** | `vendor/squidkit/shrimp-kit.js` の `createShrimp(id, { folder, home, floorY })` | 2026-11-20 追加。底を歩く・餌をつまむ・泳ぐ・跳ねる。テナガエビ釣り・河口の回に |
@@ -61,6 +62,7 @@
 | **仕掛けなしの場面** | 場面に `LURE = "none"` | 道糸も出さない。魚の群れだけの冒頭に。`scenes/iwashi.py`（カタクチイワシ64匹のベイトボール。終わりに散って消える）、`scenes/aji.py`（マアジ40匹が輪をえがいて泳ぎ、終わりに散って消える）、`scenes/sawara.py`（サワラ14匹が大きな輪をえがき、終わりに散って消える）。`scenes/nabura.py`（中層を速巻きで上がるジグをブリが追って食う・うしろをブリの群れ）、`scenes/kaze.py`（nabura の魚をシーバス suzuki にしたもの）、`scenes/hiruyoru.py`（昼の砂の海底をマダイ7匹がゆったり左から右へ） |
 | **ノリ養殖の網と垂れる葉** | 場面に `ENV = "nori"`・`NET_Z`（`parts.build_nori`。網は Wireframe、葉は `Kelp` を下向きに） | `scenes/nori.py`（網の下にクロダイ10匹、主役が頭を上げて葉の先をつつく）。2026-11-24 cg-nori |
 | **浮魚礁の係留ロープ** | 場面に `ENV = "fad"`・`FAD_ROPES = [(x, y, 太さ)]`（`parts.build_fad`） | `scenes/katsuo.py`（キハダ16匹がロープの手前で輪をえがく。カツオの代わり）。2026-11-27 cg-katsuo |
+| **潮で斜めの糸と、沈んでくるサビキ** | `scenes/nimai.py`（mebaru をもとに、`LINE_DIR` で道糸を斜めに・`knot` を糸に沿って並べる。オモリが潮上から沈んで根の上で止まる） | 2026-11-27 cg-nimaishio。`parts.Sabiki.update(…, line_dir)` に糸の向きを足した（ふだんは真上で今までと同じ） |
 | **堤防のすそ（岸壁と捨て石）** | `scenes/oto.py`（`ENV = "reef"`、reef_h に高さ 3.5m の壁と捨て石。クロダイ6匹、仕掛けなし） | 2026-11-25 cg-oto。堤防の足もとの回に |
 | 題とサムネイルの文字 | `apply_opening.py` | 冒頭の章を差しかえ、題を重ね、サムネイルを作る |
 
