@@ -11939,6 +11939,388 @@ Object.assign(SHOTS, {
   },
 });
 
+// =====================================================================
+// アカデミー R16 イカナゴは夏、砂の中で眠る？（cg-ikanago、ik_*）2026-11-28
+// 事実は docs/research/fish-knowledge.md「イカナゴの夏眠」だけ：
+//   香川県水産試験場（赤井・岡本 香川県水試研報18 2019）：瀬戸内海のイカナゴは水温24℃以上になる7月ごろから海底の砂にもぐり夏眠。夏眠中はえさを食べず肥満度は下がる。
+//     夏眠前の栄養状態がよい個体は11月ごろから生殖腺が発達し、12月に夏眠が終わると同時に産卵。主な夏眠場は備讃瀬戸、水温は近年上昇傾向。
+//     8〜9月の平均水温が27℃を超えた年には衰弱・死亡個体が香川県海域の底びき網に入った。
+//   水産研究・教育機構（梶原・高橋 水産工学61(3) 2025）：D20 が 0.2mm 以下の場所ではイカナゴが有意に少ない。夏眠場は D20 0.2mm 以上（中央粒径おおむね0.3〜4mm以上）。
+//     著者らは夏眠中の呼吸のために砂のすき間が必要と考えている。
+//   広島大学・水産研究・教育機構・兵庫県立農林水産技術総合センターほか（2026 プレスリリース）：瀬戸内海東部の漁獲量は2016年までは年1万トン以上、2017年に前年の約1割、
+//     その後3千トン未満。水温上昇・えさ不足・捕食者の増加が重なった、とくに2016年の捕食者の急増が主な原因（魚食性の魚14種：サワラ・ブリ・ハモ・スズキ・ヒラメなど）。
+//     飼育実験：えさが足りないほど夏眠開始が遅れ、長く泳ぎ続けた（水温上昇の影響より大きかった）。題「環境変動で捕食される危険性が高まったことが原因」。
+//   水産庁「サワラ瀬戸内海系群資源回復計画」：餌として重要なカタクチイワシやイカナゴ。
+// 使わないこと：夏眠の水深・備讃瀬戸以外の地名・死亡率の数値・「温暖化で死ぬ」「原因は捕食者だけ」・透水係数。漁獲量の棒の高さは模式図（年ごとの値は出さない）。
+// 土台は rcBase の水の中（hyWater）＋砂の海底の断面（ikBase：手前を切った砂。中の粒・魚は模式図）。
+// Fish Kit にイカナゴがないので、形の近い細長い小魚カタクチイワシ（katakuchi）のモデルで表示し、画面に断り書き。食べる魚はサワラ・ブリ・スズキ（seabass）。魚の色は 3D モデルのまま
+// 使い回せる部品：ikBase()（切り口つきの砂の海底。z=0 が切り口）、ikSleep(T, o)（砂の中で眠る小魚）、ikSwim(T, o)（砂の上の小魚の群れ）、ikPred(T, o)（食べる魚）、
+//   ikRing(cx, cy, R, o)（夏眠の1年の輪）、ikThermo（温度計の模式図）、ikGrains（砂の粒の模式図）
+// =====================================================================
+const IK_FL = -HY_D; // 砂の面（RC 基準の y）
+const ikGrp = new THREE.Group();
+ikGrp.position.copy(RC);
+world.add(ikGrp);
+extras.push(ikGrp);
+const ikU = { time: U.time, fogc: hyU.fogc };
+// 砂の面（切り口 z=0 より奥だけ）
+const ikFloor = new THREE.Mesh(new THREE.PlaneGeometry(400, 200, 1, 1).rotateX(-Math.PI / 2).translate(0, IK_FL, -100), hyFloor.material);
+// 切り口（手前の縦の面）：粒の模様（模式図。粒は大きく表示）と、深いほど少し暗い
+const ikFace = new THREE.Mesh(new THREE.PlaneGeometry(400, 6, 1, 1).translate(0, IK_FL - 3, 0), new THREE.ShaderMaterial({
+  uniforms: ikU,
+  vertexShader: `varying vec3 vW; varying vec3 vL; void main(){ vL = position; vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform vec3 fogc; varying vec3 vW; varying vec3 vL;
+    vec2 h2(vec2 p){ p = vec2(dot(p, vec2(127.1,311.7)), dot(p, vec2(269.5,183.3))); return fract(sin(p)*43758.5453); }
+    void main(){ vec2 q = vL.xy * 90.0; vec2 i = floor(q), f = fract(q); float d1 = 9.0, d2 = 9.0; vec2 id = vec2(0.0);
+      for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec2 g = vec2(float(x), float(y)); vec2 o = h2(i + g); float d = length(g + o - f);
+        if (d < d1) { d2 = d1; d1 = d; id = i + g; } else if (d < d2) d2 = d; }
+      float r = h2(id + 7.0).x, rad = 0.50 + 0.10 * h2(id + 5.0).x, gr = 1.0 - smoothstep(rad - 0.08, rad, d1);
+      vec3 c = mix(vec3(0.72,0.64,0.48), vec3(0.90,0.83,0.66), r);
+      c = mix(c, vec3(0.58,0.56,0.52), step(0.86, h2(id + 3.0).y) * 0.6);
+      c *= 0.82 + 0.18 * (1.0 - d1 / rad);
+      c = mix(vec3(0.42,0.35,0.25), c, gr);
+      float dep = ${(-IK_FL).toFixed(1)} + vL.y + 0.0; // 0 が砂の面
+      c *= mix(1.0, 0.72, smoothstep(0.0, 1.6, -dep));
+      c = mix(c, vec3(0.95,0.90,0.76), smoothstep(-0.012, 0.0, dep) * 0.5);
+      float dd = length(vW - cameraPosition);
+      c = mix(c, fogc, smoothstep(6.0, 40.0, dd));
+      gl_FragColor = vec4(c, 1.0); }`,
+}));
+ikGrp.add(ikFloor, ikFace);
+function ikBase() {
+  hyWater(0);
+  hyGrp.visible = false;
+  ikGrp.visible = true;
+}
+const IKp = (x, y, z = 0) => RCp(x, y, z);
+const IK_CM = 12;
+const ikC = () => IKp(0, IK_FL, 0);
+// 砂の中で眠る小魚（切り口に半分出して見せる）。x0・w：横の範囲、dep0〜dep1：砂の面からの深さ、n：数、sc：拡大、out：0〜1（12月に出てくる）
+const IK_SL = (() => { const r = rng(1628); return Array.from({ length: 24 }, () => ({ x: r() * 2 - 1, d: r(), a: (r() - 0.5) * 0.9, dir: r() < 0.5 ? 0 : Math.PI, p: r() * 6.28, k: r() })); })();
+function ikSleep(T, o = {}) {
+  const { n = 10, x0 = 0, w = 0.6, dep0 = 0.06, dep1 = 0.3, sc = 1.5, out = 0, i0 = 3000 } = o;
+  for (let i = 0; i < IK_SL.length; i++) {
+    const f = fkGet("katakuchi", i0 + i, IK_CM);
+    if (!f) continue;
+    if (i >= n) { f.object.visible = false; continue; }
+    const q = IK_SL[i], u = clamp01(out * 1.6 - q.k * 0.6); // 出てくる順をずらす
+    const x = x0 + q.x * w, yS = IK_FL - lerp(dep0, dep1, q.d) * sc;
+    if (u <= 0) {
+      f.object.scale.setScalar(sc);
+      fkPlace(f, IKp(x, yS, 0.0), q.dir, q.a * 0.5, T, { freq: 0.3, amp: 0.004, seed: i });
+    } else {
+      // 砂から上へ泳ぎ出る（奥へ少し下がりながら）
+      const y = lerp(yS, IK_FL + (0.25 + 0.4 * q.d) * sc, ease(u)), z = lerp(0, -0.25 - 0.5 * q.k, ease(u)) * sc;
+      f.object.scale.setScalar(sc);
+      fkPlace(f, IKp(x + 0.15 * sc * Math.sin(q.p) * u, y, z), q.dir, lerp(q.a * 0.5, 0.9, Math.sin(u * Math.PI)), T, { freq: 2.4, amp: 0.08 * u, seed: i });
+    }
+  }
+}
+// 砂の上を泳ぐ小魚の群れ（切り口より奥）。h0〜h1：砂の面からの高さ（体の中心）、dive：0〜1 で砂へもぐる（もぐる魚はすきまを記録しない）
+const IK_SW = (() => { const r = rng(2871); return Array.from({ length: 32 }, () => ({ x: r() * 2 - 1, h: r(), z: r(), p: r() * 6.28, w: 0.7 + r() * 0.6, k: r() })); })();
+function ikSwim(T, o = {}) {
+  const { n = 20, cx = 0, sx = 0.8, h0 = 0.2, h1 = 0.7, z0 = -0.15, sz = 0.8, sc = 1, dive = 0, face = 0, sp = 0.12, i0 = 3100 } = o;
+  for (let i = 0; i < IK_SW.length; i++) {
+    const f = fkGet("katakuchi", i0 + i, IK_CM);
+    if (!f) continue;
+    if (i >= n) { f.object.visible = false; continue; }
+    const q = IK_SW[i], dir = face || (Math.sin(T * 0.15 * q.w + q.p) > 0 ? 1 : -1);
+    const x = cx + q.x * sx + Math.sin(T * sp * q.w + q.p) * sx * 0.3;
+    const u = clamp01(dive * 1.8 - q.k * 0.8); // もぐる順をずらす
+    const hh = lerp(lerp(h0, h1, q.h) * sc, -0.12 * sc, ease(u)), y = IK_FL + hh + 0.01 * Math.sin(T * 1.1 + q.p);
+    const z = z0 - q.z * sz;
+    f.object.scale.setScalar(sc);
+    fkPlace(f, IKp(x, y, z), dir > 0 ? 0 : Math.PI, u > 0 ? -1.0 * Math.sin(Math.min(1, u * 1.4) * Math.PI * 0.5) : 0.04 * Math.sin(T * 0.6 + q.p), T, { freq: 2.6, amp: 0.08, seed: i });
+    if (u <= 0) rfClear(hh - 0.1 * f.length * sc);
+  }
+}
+// 食べる魚（サワラ・ブリ・スズキ）。砂の上をゆったり横切る。k：0〜1 で数がふえる
+const IK_PR = [["sawara", 70, 0.9, -1.6, 1.0], ["sawara", 66, -1.2, -2.4, 1.5], ["buri", 72, 2.4, -3.2, 1.9], ["seabass", 58, -2.6, -1.5, 0.7], ["sawara", 72, 0.2, -3.6, 2.3], ["buri", 68, -3.4, -3.8, 1.6]];
+function ikPred(T, o = {}) {
+  const { n = 3, cx = 0, sp = 0.35, dir = -1, i0 = 3200 } = o;
+  IK_PR.forEach(([id, cm, x0, z, h], i) => {
+    const f = fkGet(id, i0 + i, cm);
+    if (!f) return;
+    if (i >= n) { f.object.visible = false; return; }
+    const W2 = 12, x = cx + ((((x0 + dir * sp * T + W2 / 2) % W2) + W2) % W2) - W2 / 2;
+    const y = IK_FL + h + 0.05 * Math.sin(T * 0.5 + i);
+    fkPlace(f, IKp(x, y, z), dir > 0 ? 0 : Math.PI, 0.03 * Math.sin(T * 0.4 + i), T, { freq: 1.4, amp: 0.06, seed: i * 2 });
+    rfClear(h - 0.12 * f.length);
+  });
+}
+const ikSrcK = "香川県水産試験場（香川県水試研報 2019）";
+const ikSrcS = "水産研究・教育機構（水産工学 2025）";
+const ikSrcH = "広島大学・水産研究・教育機構・兵庫県立農林水産技術総合センターほか（2026）";
+const ikSrcF = "水産庁「サワラ瀬戸内海系群資源回復計画」";
+const ikNote = (txt = "魚の動きはイメージ。砂の中は模式図（魚・粒は大きく表示）。イカナゴの3Dモデルがないので、形の近いカタクチイワシのモデルで表示") => ftNote(txt);
+// 切り口を少し上から見るカメラ（c：見る中心、dist：距離、up：高さ）
+const ikCam = (t, o = {}) => { const c = IKp(o.cx ?? 0, IK_FL + (o.cy ?? 0) - 0.1 * (o.dist ?? 1.6), 0); iwCam(c, o.dist ?? 1.6, (o.ang ?? 0) + Math.sin(t * 0.08) * 0.05, o.up ?? 0.25, o.fov ?? 45, c.clone().add(V(o.lx ?? 0, o.ly ?? 0, o.lz ?? 0))); };
+// 夏眠の1年の輪（aoArc・aoAng を使う）。o.seg：描く段階（0〜2）、o.now：いまの月
+function ikRing(cx, cy, R, o = {}) {
+  const a = o.a ?? 1;
+  if (a <= 0.01) return;
+  const sw = 34, pad = 150;
+  let s = `<svg style="position:absolute;left:${cx - R - pad}px;top:${cy - R - pad}px;opacity:${a};overflow:visible" width="${2 * (R + pad)}" height="${2 * (R + pad)}" viewBox="${-R - pad} ${-R - pad} ${2 * (R + pad)} ${2 * (R + pad)}">`;
+  s += `<circle r="${R + 44}" fill="rgba(6,22,42,.86)" stroke="rgba(255,255,255,.25)" stroke-width="2"/><circle r="${R}" fill="none" stroke="#2c4a66" stroke-width="${sw}"/>`;
+  const segs = [[7, 11, "#4c9dff", "7月〜", "砂の中で夏眠"], [12, 12, "#ff6fae", "12月", "出てきて産卵"]];
+  segs.forEach(([m0, m1, col, nm, sub], i) => {
+    const pr = clamp01((o.seg ?? 0) - i);
+    if (pr <= 0) return;
+    s += `<path d="${aoArc(m0, m1, R, pr)}" fill="none" stroke="${col}" stroke-width="${sw}"/>`;
+    if (pr > 0.6) {
+      const span = ((m1 - m0 + 12) % 12) + 1, am = aoAng(m0) + (span / 24) * Math.PI * 2, [x, y] = aoXY(am, R + 105);
+      s += `<g opacity="${clamp01((pr - 0.6) / 0.4)}"><text x="${x}" y="${y - 6}" text-anchor="middle" font-size="40" font-weight="900" fill="${col}" stroke="#06213a" stroke-width="6" paint-order="stroke">${nm}</text><text x="${x}" y="${y + 32}" text-anchor="middle" font-size="27" font-weight="800" fill="#fff" stroke="#06213a" stroke-width="5" paint-order="stroke">${sub}</text></g>`;
+    }
+  });
+  for (let m = 1; m <= 12; m++) { const [x, y] = aoXY(aoAng(m + 0.5), R); s += `<text x="${x}" y="${y + 10}" text-anchor="middle" font-size="27" font-weight="900" fill="#06213a">${m}</text>`; }
+  if (o.now != null) {
+    const am = aoAng(o.now + 0.5), [x, y] = aoXY(am, R + 40), [x2, y2] = aoXY(am, R - 26), [x3, y3] = aoXY(am, R - 80);
+    s += `<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="12" fill="#fff"/><text x="${x3}" y="${y3 + 10}" text-anchor="middle" font-size="28" font-weight="900" fill="#ffd166" stroke="#06213a" stroke-width="5" paint-order="stroke">いま</text>`;
+  }
+  if (o.center) s += `<text y="-6" text-anchor="middle" font-size="60" font-weight="900" fill="#ffd166">${o.center}</text>`;
+  if (o.center2) s += `<text y="42" text-anchor="middle" font-size="30" font-weight="800" fill="#fff">${o.center2}</text>`;
+  html += s + `</svg>`;
+}
+// 温度計の模式図（20〜30℃）。lv：水銀の高さ（℃）、marks：[[℃, 色, 文字]]
+function ikThermo(lv, marks, a = 1, Ht = 420) {
+  const y = (c) => Ht - ((c - 20) / 10) * Ht;
+  let s = `<svg width="600" height="${Ht + 70}" style="overflow:visible;opacity:${a}"><rect x="40" y="-10" width="44" height="${Ht + 30}" rx="22" fill="#eef4f9" stroke="#10345a" stroke-width="4"/><circle cx="62" cy="${Ht + 40}" r="36" fill="#e3412b" stroke="#10345a" stroke-width="4"/>`;
+  s += `<rect x="52" y="${y(lv)}" width="20" height="${Ht + 30 - y(lv)}" fill="#e3412b"/>`;
+  [20, 22, 24, 26, 28, 30].forEach((c) => (s += `<line x1="84" y1="${y(c)}" x2="100" y2="${y(c)}" stroke="#10345a" stroke-width="3"/><text x="24" y="${y(c) + 9}" font-size="24" font-weight="900" fill="#3a5a78" text-anchor="end">${c}</text>`));
+  marks.forEach(([c, col, txt, al]) => { if ((al ?? 1) <= 0.01) return; s += `<g opacity="${al ?? 1}"><line x1="84" y1="${y(c)}" x2="150" y2="${y(c)}" stroke="${col}" stroke-width="6"/><text x="160" y="${y(c) + 12}" font-size="34" font-weight="900" fill="${col}">${c}℃ <tspan font-size="28" fill="#10345a">${txt}</tspan></text></g>`; });
+  return s + `</svg>`;
+}
+// 砂の粒の模式図：fine＝細かい粒が多い（水が通りにくい）／粗い粒（すき間を水が通る）。flow：0〜1 で水の矢印
+function ikGrains(fine, flow, w = 380, h = 260, t = 0) {
+  const r = rng(fine ? 77 : 91);
+  let s = `<svg width="${w}" height="${h}" style="border-radius:18px;background:#5b4a35;display:block">`;
+  if (fine) {
+    for (let i = 0; i < 520; i++) { const x = r() * w, y = r() * h, rr = 4 + r() * 6; s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rr.toFixed(1)}" fill="hsl(${36 + r() * 8},${30 + r() * 15}%,${55 + r() * 22}%)"/>`; }
+  } else {
+    const g = 58;
+    for (let yy = 0; yy < h + g; yy += g * 0.86) for (let xx = (Math.round(yy / (g * 0.86)) % 2) * g * 0.5; xx < w + g; xx += g) { const rr = g * (0.36 + r() * 0.08); s += `<circle cx="${(xx + (r() - 0.5) * 10).toFixed(1)}" cy="${(yy + (r() - 0.5) * 10).toFixed(1)}" r="${rr.toFixed(1)}" fill="hsl(${34 + r() * 10},${28 + r() * 14}%,${58 + r() * 20}%)"/>`; }
+  }
+  if (flow > 0.01) {
+    for (let j = 0; j < 3; j++) {
+      const yy = h * (0.25 + j * 0.25), ph = ((t * 0.35 + j * 0.33) % 1) * w;
+      if (fine) s += `<g opacity="${flow}"><line x1="20" y1="${yy}" x2="${w * 0.3}" y2="${yy}" stroke="#4fc3ff" stroke-width="8" stroke-linecap="round"/><text x="${w * 0.3 + 14}" y="${yy + 12}" font-size="34" font-weight="900" fill="#ff6b5a" stroke="#2a1d10" stroke-width="5" paint-order="stroke">×</text></g>`;
+      else s += `<g opacity="${flow}"><path d="M10 ${yy} Q ${w * 0.25} ${yy - 20} ${w * 0.5} ${yy} T ${w - 30} ${yy}" fill="none" stroke="#4fc3ff" stroke-width="8" stroke-linecap="round" stroke-dasharray="26 14" stroke-dashoffset="${-ph.toFixed(1)}"/><polygon points="${w - 30},${yy - 14} ${w - 6},${yy} ${w - 30},${yy + 14}" fill="#4fc3ff"/></g>`;
+    }
+  }
+  return s + `</svg>`;
+}
+// 漁獲量の模式図（棒の高さは模式図。年ごとの値は出さない）。a1：2017 を出す、a2：その後
+function ikCatch(P, a0, a1, a2) {
+  const Wg = P ? 860 : 900, Hg = 330, y = (v) => Hg - (Hg * v) / 1.35;
+  let s = `<svg width="${Wg}" height="${Hg + 70}" style="overflow:visible">`;
+  s += `<line x1="0" y1="${Hg}" x2="${Wg}" y2="${Hg}" stroke="#10345a" stroke-width="4"/>`;
+  s += `<line x1="0" y1="${y(1)}" x2="${Wg}" y2="${y(1)}" stroke="#1f6fd1" stroke-width="4" stroke-dasharray="12 8"/><text x="${Wg}" y="${y(1) - 10}" font-size="26" font-weight="900" fill="#1f6fd1" text-anchor="end">1万トン</text>`;
+  s += `<line x1="0" y1="${y(0.3)}" x2="${Wg}" y2="${y(0.3)}" stroke="#c2410c" stroke-width="4" stroke-dasharray="12 8" opacity="${a2}"/><text x="${Wg}" y="${y(0.3) - 10}" font-size="26" font-weight="900" fill="#c2410c" text-anchor="end" opacity="${a2}">3千トン</text>`;
+  const b = (x, w, v, col, txt, al, sub) => (al > 0.01 ? `<g opacity="${al}"><rect x="${x}" y="${y(v * al)}" width="${w}" height="${Hg - y(v * al)}" rx="10" fill="${col}"/><text x="${x + w / 2}" y="${Hg + 40}" font-size="28" font-weight="900" fill="#10345a" text-anchor="middle">${txt}</text>${sub ? `<text x="${x + w / 2}" y="${y(v) - 14}" font-size="28" font-weight="900" fill="${col}" text-anchor="middle">${sub}</text>` : ""}</g>` : "");
+  const u = Wg / 10;
+  s += b(0.2 * u, 3.4 * u, 1.18, "#1f6fd1", "〜2016年", a0, "年1万トン以上");
+  s += b(4.2 * u, 1.4 * u, 0.118, "#e3412b", "2017年", a1, "約1割");
+  s += b(6.2 * u, 3.4 * u, 0.2, "#e08a00", "その後", a2, "3千トン未満");
+  return s + `</svg>`;
+}
+
+Object.assign(SHOTS, {
+  ik_thumb(t, d, s) {
+    ikBase();
+    const T = 5;
+    ikSleep(T, { n: 9, x0: 0.05, w: 0.42, dep0: 0.05, dep1: 0.24 });
+    ikSwim(T, { n: 16, cx: 0.1, sx: 0.55, h0: 0.34, h1: 0.6, z0: -0.12, sz: 0.5, face: -1 });
+    ikCam(t, { cx: -0.05, cy: -0.03, dist: 1.05, up: 0.14, lx: -0.33, ly: 0.02 });
+    if (s.clean) return;
+    html += ftThumbText(s, 1050);
+  },
+  // つかみ：砂の上の群れが、次々と砂へもぐる（本番は Blender の冒頭）
+  ik_hook(t, d, s) {
+    const P = PORTRAIT, T = t + 2;
+    ikBase();
+    const dv = clamp01((t - 2.5) / 5.5);
+    ikSwim(T, { n: 18, cx: 0, sx: P ? 0.3 : 0.55, h0: 0.22, h1: 0.5, z0: -0.08, sz: 0.45, dive: dv, sc: 1.5 });
+    ikSleep(T, { n: Math.round(lerp(3, 12, ease(dv))), x0: 0, w: P ? 0.3 : 0.55, dep0: 0.04, dep1: 0.18 });
+    ikCam(t, { cy: P ? 0.02 : 0.04, dist: lerp(P ? 1.6 : 1.25, P ? 1.45 : 1.1, ease(t / d)), up: 0.12, ly: P ? 0.12 : 0.1 });
+    const a = P ? 1 : clamp01(t / 0.25);
+    html += `<div style="position:absolute;left:0;right:0;top:0;height:${P ? 900 : 420}px;background:linear-gradient(rgba(2,14,28,.55),rgba(2,14,28,0))"></div>`;
+    bigText(P ? 0 : 100, "イカナゴは夏、<br>砂の中で眠る？", "瀬戸内海の研究から", a);
+    academyBadge();
+    ikNote();
+  },
+  // 夏眠とは：k0 7月・24℃で砂へ → k1 12月に夏眠が終わり産卵 → k2 いまは終わりが近いころ
+  ik_year(t, d, s, k) {
+    const P = PORTRAIT, T = t + 14;
+    ikBase();
+    const out = k >= 1 ? clamp01((t - (s._k1 ?? 99)) / 3) * (k >= 2 ? 0 : 1) : 0;
+    ikSleep(T, { n: 12, x0: P ? 0 : 0.42, w: P ? 0.38 : 0.5, dep0: 0.05, dep1: 0.3, out: k === 1 ? out : 0 });
+    ikCam(t, { cx: P ? 0 : 0.42, cy: P ? 0.02 : -0.05, dist: P ? 1.5 : 1.25, up: 0.18, lx: P ? 0 : -0.42, ly: P ? 0.28 : 0 });
+    const seg = k >= 1 ? 1 + clamp01((t - (s._k1 ?? 99)) / 1.2) : clamp01(t / 1.6);
+    ikRing(P ? 540 : 470, P ? 700 : 560, P ? 200 : 230, { seg, now: k >= 2 ? 10.9 : null, center: "夏眠", center2: k >= 2 ? "11月の終わり" : "かみん", a: fadeIn(t, 0.1) });
+    if (!P) {
+      label(IKp(0.42 + 0.1, IK_FL - 0.17, 0.02), "砂の中で夏眠", "切り口の模式図", fadeIn(t, 1.0), "ans", 160, -40);
+      html += `<div class="card" style="left:${1160}px;top:150px;width:640px;padding:16px 26px;opacity:${fadeIn(t, 0.4)}"><b style="font-size:34px">水温が <span style="color:#c2410c">24℃以上</span> になる<br><span style="color:#1f6fd1">7月ごろ</span>から、砂の中へ</b></div>`;
+    } else html += `<div class="card" style="left:60px;right:60px;top:1060px;padding:16px 26px;opacity:${fadeIn(t, 0.4)}"><b style="font-size:34px">水温が <span style="color:#c2410c">24℃以上</span> になる<span style="color:#1f6fd1">7月ごろ</span>から、砂の中へ</b></div>`;
+    iwSrc(ikSrcK);
+    academyBadge();
+    ikNote();
+  },
+  // クイズ：夏眠中に何を食べる？ k0 問い → k1 選択肢 → k2 正解 C・肥満度が下がる
+  ik_quiz(t, d, s, k) {
+    const P = PORTRAIT, T = t + 30, t2 = s._k2 ?? 99, ans = t > t2 + 0.4;
+    ikBase();
+    ikSleep(T, { n: 10, x0: P ? 0 : 0.5, w: P ? 0.36 : 0.45, dep0: 0.05, dep1: 0.28 });
+    ikCam(t, { cx: P ? 0 : 0.5, cy: -0.06, dist: P ? 1.45 : 1.2, up: 0.16, lx: P ? 0 : -0.45, ly: P ? 0.3 : 0 });
+    const opts = [["A", "砂の中の小さな生き物"], ["B", "夜だけ出てプランクトン"], ["C", "何も食べない"]];
+    const pSwap = P && t > t2 + 1.8;
+    if (!pSwap) html += `<div class="card" style="${P ? "left:60px;right:60px;top:430px" : "left:70px;top:190px;width:800px"};padding:22px 30px"><b style="background:#e3412b;color:#fff;padding:4px 22px;border-radius:999px;font-size:30px">クイズ</b><div style="font-size:${P ? 44 : 42}px;font-weight:900;margin:14px 0 4px">夏眠のあいだ、<br>イカナゴは<span style="color:#c2410c">何を食べる</span>？</div>${k < 1 ? "" : opts.map(([n, o], i) => `<div class="opt" style="opacity:${fadeIn(t - (s._k1 ?? 99), 0.2 + i * 0.35)};${ans && i === 2 ? "background:#2ecc71;color:#fff" : ans ? "opacity:.45" : ""}"><i>${n}</i>${o}</div>`).join("")}</div>`;
+    if (ans && (!P || pSwap)) {
+      const a = fadeIn(t - t2 - (P ? 1.8 : 0.4), 0.2), fall = ease(clamp01((t - t2 - 1.2) / 3));
+      const bar = (lb, v, col) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:240px;width:130px"><div style="width:84px;height:${200 * v}px;background:${col};border-radius:12px 12px 0 0"></div><div style="font-size:28px;font-weight:900;margin-top:6px">${lb}</div></div>`;
+      html += ftCard(P, `<b style="font-size:36px">正解 <span style="color:#1d8a3a">C</span>：えさを食べない</b><div style="font-size:30px;font-weight:900;margin-top:8px">体の太りぐあい（<span style="color:#c2410c">肥満度</span>）は<br>時間とともに下がる</div><div style="display:flex;gap:16px;margin-top:10px;border-bottom:4px solid #10345a;justify-content:center">${bar("7月", 1, "#1f6fd1")}${bar("→", lerp(1, 0.78, fall), "#5b8fd6")}${bar("12月", lerp(1, 0.55, fall), "#9fb7d8")}</div><div style="font-size:22px;color:#3a5a78;margin-top:4px">棒は模式図（下がる向きだけ。実際の値ではない）</div>`, a, [1180, 200, 660], [60, 430, 960]);
+    }
+    iwSrc(k >= 2 ? ikSrcK : "");
+    academyBadge();
+    ikNote();
+  },
+  // 眠りながら卵の準備：k0 夏眠前の栄養 → k1 11月から生殖腺 → k2 12月に出てきて産卵
+  ik_body(t, d, s, k) {
+    const P = PORTRAIT, T = t + 50;
+    ikBase();
+    const out = k >= 2 ? clamp01((t - (s._k2 ?? 99) - 0.3) / 3.5) : 0;
+    ikSleep(T, { n: 12, x0: P ? 0 : 0.45, w: P ? 0.36 : 0.5, dep0: 0.05, dep1: 0.3, out });
+    ikCam(t, { cx: P ? 0 : 0.42, cy: P ? 0.05 : 0.02, dist: P ? 1.4 : 1.1, up: 0.14, lx: P ? 0 : -0.4, ly: P ? 0.3 : 0.05 });
+    const row = (i, hd, txt, col) => { if (k < i) return ""; const a = fadeIn(t - (s[`_k${i}`] ?? 0), 0.3); return `<div style="display:flex;align-items:center;gap:18px;margin-top:14px;opacity:${a}"><b style="background:${col};color:#fff;font-size:${P ? 26 : 28}px;padding:8px 0;width:${P ? 170 : 170}px;text-align:center;border-radius:14px;flex:none">${hd}</b><div style="font-size:${P ? 30 : 31}px;font-weight:900">${txt}</div></div>`; };
+    html += ftCard(P, `<b style="font-size:${P ? 38 : 38}px">食べずに、どうやって卵を産む？</b>` +
+      row(0, "夏眠の前", "<span style=\"color:#c2410c\">栄養状態がよかった</span>イカナゴは", "#1f6fd1") +
+      row(1, "11月ごろ", "<span style=\"color:#c2410c\">生殖腺</span>が育つ<br><span style=\"font-size:.82em\">（卵や精子をつくる所）</span>", "#e08a00") +
+      row(2, "12月", "夏眠が終わると同時に<span style=\"color:#d6336c\">産卵</span>", "#d6336c"), fadeIn(t, 0.3), [70, 190, 800], [60, 330, 960]);
+    if (k >= 2 && !P) label(IKp(0.45, IK_FL + 0.35, -0.3), "12月、砂から出る", "イメージ", fadeIn(t - (s._k2 ?? 99), 1.5), "ans", 120, -60);
+    iwSrc(ikSrcK);
+    academyBadge();
+    ikNote();
+  },
+  // 眠る砂の条件：k0 細かい砂では少ない → k1 夏眠場は粒が大きめ → k2 すき間で呼吸（と考えられる）
+  ik_sand(t, d, s, k) {
+    const P = PORTRAIT, T = t + 70;
+    ikBase();
+    ikSleep(T, { n: 8, x0: 0, w: 0.4, dep0: 0.05, dep1: 0.26 });
+    ikCam(t, { cy: 0.3, dist: P ? 1.6 : 1.4, up: 0.3, ly: P ? 0.1 : 0.32 });
+    html += acDim(0.25);
+    const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.3) : 0, f2 = k >= 2 ? fadeIn(t - (s._k2 ?? 99), 0.3, 0.8) : 0;
+    const gw = P ? 400 : 380;
+    const pane = (fine, al, hd, col, txt, mark) => `<div style="opacity:${al};text-align:center"><div style="font-size:30px;font-weight:900;color:${col};margin-bottom:8px">${hd}</div>${ikGrains(fine, f2, gw, 250, t)}<div style="font-size:${P ? 27 : 28}px;font-weight:900;margin-top:8px">${txt}</div><div style="font-size:54px;font-weight:900;color:${col};line-height:1">${mark}</div></div>`;
+    let inner = `<b style="font-size:${P ? 36 : 38}px">どんな砂で眠る？（<span style="color:#c2410c">模式図</span>）</b><div style="display:flex;gap:${P ? 30 : 50}px;justify-content:center;margin-top:12px">`;
+    inner += pane(true, fadeIn(t, 0.3), "細かい粒が多い砂", "#c2410c", "D20 が <span style=\"color:#c2410c\">0.2mm以下</span><br>イカナゴは<span style=\"color:#c2410c\">少なかった</span>", "×");
+    inner += pane(false, a1, "粒が大きめの砂", "#1d8a3a", "中央粒径 おおむね<br><span style=\"color:#1d8a3a\">0.3〜4mm以上</span>＝夏眠場", "○");
+    inner += `</div>`;
+    if (k >= 2) inner += `<div style="font-size:${P ? 29 : 31}px;font-weight:900;margin-top:10px;opacity:${f2};text-align:center">砂の<span style="color:#1f6fd1">すき間</span>を水が通る → 夏眠中の<span style="color:#1f6fd1">呼吸</span>に必要と考えられている</div>`;
+    inner += `<div style="font-size:21px;color:#3a5a78;margin-top:6px">D20：粒を小さい順に並べて、重さで2割の所の粒の大きさ。粒・水の矢印は模式図</div>`;
+    html += ftCard(P, inner, fadeIn(t, 0.3), [300, 175, 1320], [40, 330, 1000]);
+    iwSrc(ikSrcS);
+    academyBadge();
+    ikNote("砂の粒・水の流れは模式図（粒は大きく表示）。イカナゴの3Dモデルがないので、カタクチイワシのモデルで表示");
+  },
+  // 暑すぎる夏：k0 備讃瀬戸・上昇傾向 → k1 8〜9月の平均 27℃超の年 → k2 弱った・死んだ個体が底びき網に
+  ik_heat(t, d, s, k) {
+    const P = PORTRAIT, T = t + 90;
+    ikBase();
+    const hot = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.2, 2) : 0;
+    ikSleep(T, { n: 10, x0: P ? 0 : 0.45, w: P ? 0.36 : 0.45, dep0: 0.05, dep1: 0.28 });
+    ikCam(t, { cx: P ? 0 : 0.45, cy: -0.05, dist: P ? 1.45 : 1.2, up: 0.16, lx: P ? 0 : -0.45, ly: P ? 0.3 : 0 });
+    if (hot > 0) html += `<div style="position:absolute;inset:0;background:rgba(255,120,60,${0.12 * hot})"></div>`;
+    const lv = lerp(24, 27.6, hot);
+    const th = ikThermo(lv, [[24, "#1d8a3a", "夏眠に入る目安", 1], [27, "#e3412b", "8〜9月平均が超えた年", hot]], 1, P ? 360 : 400);
+    let side = `<div style="font-size:${P ? 30 : 31}px;font-weight:900;line-height:1.5">主な夏眠場は<span style="color:#1f6fd1">備讃瀬戸</span><br>この海の水温は<br>近年<span style="color:#c2410c">上がる傾向</span></div>`;
+    if (k >= 2) side += `<div style="font-size:${P ? 29 : 30}px;font-weight:900;line-height:1.5;margin-top:12px;opacity:${fadeIn(t - (s._k2 ?? 99), 0.3)};border-top:3px dashed #9fb3c6;padding-top:10px">その年は、<br><span style="color:#e3412b">弱ったり死んだりした</span><br>イカナゴが、香川県の海の<br><span style="color:#c2410c">底びき網</span>に入った</div>`;
+    html += ftCard(P, `<b style="font-size:${P ? 36 : 38}px">夏眠場の水温</b><div style="display:flex;gap:20px;align-items:center;margin-top:14px;${P ? "" : ""}"><div>${th}</div><div style="${P ? "width:360px" : "width:470px"}">${side}</div></div><div style="font-size:21px;color:#3a5a78;margin-top:4px">温度計は模式図</div>`, fadeIn(t, 0.3), [70, 160, 1160], [40, 330, 1000]);
+    iwSrc(ikSrcK);
+    academyBadge();
+    ikNote();
+  },
+  // 急に減った謎：k0 2016年まで1万トン以上 → k1 2017年に約1割・その後3千トン未満 → k2 3つが重なった → k3 2016年に食べる魚が急増
+  ik_catch(t, d, s, k) {
+    const P = PORTRAIT, T = t + 110;
+    ikBase();
+    const pr = k >= 3 ? 1 + Math.round(5 * ease(clamp01((t - (s._k3 ?? 99)) / 3))) : k >= 2 ? 1 : 0;
+    ikSwim(T, { n: 18, cx: 0, sx: 2.2, h0: 0.3, h1: 0.9, z0: -0.6, sz: 1.5, sc: 2.2, sp: 0.08 });
+    ikPred(T, { n: pr, sp: 0.4 });
+    iwCam(IKp(0, IK_FL + 1.3, -1.5), P ? 7.5 : 5.6, 0.05 * Math.sin(t * 0.1), 0.5, 50, IKp(P ? 0 : -1.4, IK_FL + (P ? 0.4 : 1.2), -1.5));
+    html += acDim(k >= 2 ? 0.08 : 0.22);
+    if (k <= 1) {
+      const a1 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 0.2, 0.6) : 0, a2 = k >= 1 ? fadeIn(t - (s._k1 ?? 99), 1.6, 0.6) : 0;
+      html += ftCard(P, `<b style="font-size:${P ? 36 : 38}px">瀬戸内海東部のイカナゴの漁獲量</b><div style="font-size:24px;color:#3a5a78">大阪府・兵庫県・香川県のまわり</div><div style="margin-top:20px">${ikCatch(P, fadeIn(t, 0.4, 0.8), a1, a2)}</div><div style="font-size:21px;color:#3a5a78;margin-top:6px">棒の高さは模式図（年ごとの値ではない）</div>`, fadeIn(t, 0.3), [70, 170, 960], [40, 330, 1000]);
+    } else {
+      const it = (i, ic, txt, col, al) => `<div style="opacity:${al};display:flex;align-items:center;gap:14px;margin-top:12px"><b style="background:${col};color:#fff;border-radius:14px;padding:6px 0;width:64px;text-align:center;font-size:30px;flex:none">${ic}</b><div style="font-size:${P ? 31 : 32}px;font-weight:900">${txt}</div></div>`;
+      let inner = `<b style="font-size:${P ? 36 : 38}px">研究の結論：<span style="color:#c2410c">3つが重なった</span></b>` + it(0, "1", "水温の上昇", "#e3412b", fadeIn(t - (s._k2 ?? 0), 0.2)) + it(1, "2", "えさ不足", "#e08a00", fadeIn(t - (s._k2 ?? 0), 0.8)) + it(2, "3", "イカナゴを<span style=\"color:#1f6fd1\">食べる魚</span>の増加", "#1f6fd1", fadeIn(t - (s._k2 ?? 0), 1.4));
+      if (k >= 3) inner += `<div style="font-size:${P ? 29 : 30}px;font-weight:900;margin-top:14px;border-top:3px dashed #9fb3c6;padding-top:10px;opacity:${fadeIn(t - (s._k3 ?? 99), 0.3)}">とくに<span style="color:#c2410c">2016年</span>に食べる魚が<span style="color:#c2410c">急に増えた</span>ことが主な原因<br><span style="font-size:.8em">（調べたのは魚を食べる魚14種）</span></div>`;
+      html += ftCard(P, inner, fadeIn(t - (s._k2 ?? 0), 0.1), [70, 170, 760], [40, 330, 1000]);
+      if (k >= 3 && !P) label(IKp(0.6, IK_FL + 1.6, -1.6), "サワラ・ブリ・スズキなど", "イメージ", fadeIn(t - (s._k3 ?? 99), 1.0), "", 150, -60);
+    }
+    iwSrc(ikSrcH);
+    academyBadge();
+    ikNote(k >= 2 ? "魚の数・動きはイメージ。小魚は大きく表示。イカナゴはカタクチイワシのモデルで表示" : "魚の動きはイメージ。小魚は大きく表示。イカナゴの3Dモデルがないので、カタクチイワシのモデルで表示");
+  },
+  // えさが少ないと：k0 飼育実験 えさ不足ほど → k1 夏眠の開始が遅れ長く泳ぐ → k2 食べられる危険が高まった、と発表
+  ik_food(t, d, s, k) {
+    const P = PORTRAIT, T = t + 130;
+    ikBase();
+    // 左：えさが多い（もう砂の中）／右：えさが少ない（まだ泳ぐ）
+    const xl = P ? -0.42 : -0.62, xr = P ? 0.42 : 0.62;
+    ikSleep(T, { n: 8, x0: xl, w: P ? 0.24 : 0.3, dep0: 0.04, dep1: 0.16 });
+    ikSwim(T, { n: 10, cx: xr, sx: P ? 0.22 : 0.3, h0: 0.24, h1: 0.5, z0: -0.06, sz: 0.3, sp: 0.1, sc: 1.5 });
+    const pa = k >= 2 ? ease(clamp01((t - (s._k2 ?? 99)) / 2.5)) : 0;
+    if (pa > 0) {
+      const f = fkGet("sawara", 3260, 70);
+      if (f) { const x = lerp(xr + 1.6, xr + 0.55, pa); fkPlace(f, IKp(x, IK_FL + 0.75, -0.9), Math.PI, 0.02 * Math.sin(T), T, { freq: 1.6, amp: 0.06, seed: 3 }); rfClear(0.75 - 0.12 * f.length); }
+    } else { const f = fkGet("sawara", 3260, 70); if (f) f.object.visible = false; }
+    ikCam(t, { cy: P ? 0.0 : 0.12, dist: P ? 2.2 : 1.75, up: 0.12, ly: P ? 0.4 : 0.22 });
+    const tag = (x, txt, col) => { const p = project(IKp(x, IK_FL + (P ? 0.62 : 0.3), 0)); if (!p.behind) html += `<div style="position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);background:${col};color:#fff;font-weight:900;font-size:${P ? 30 : 32}px;padding:8px 22px;border-radius:999px;white-space:nowrap">${txt}</div>`; };
+    if (k >= 1) { tag(xl, "えさが多い → 砂へ", "#1d8a3a"); tag(xr, "えさが少ない → 泳ぎ続ける", "#e3412b"); }
+    const msg = [
+      `<b style="font-size:36px">飼育実験：えさが足りないイカナゴほど…</b>`,
+      `<b style="font-size:36px">夏眠を始めるのが<span style="color:#c2410c">遅れ</span>、<span style="color:#c2410c">長く泳ぎ続けた</span></b><div style="font-size:28px;font-weight:900;margin-top:6px">（水温が上がる影響より大きかった）</div>`,
+      `<b style="font-size:34px">環境の変化で<span style="color:#e3412b">食べられる危険</span>が<br>高まったことが原因、と発表</b>`,
+    ];
+    html += ftCard(P, msg[Math.min(k, 2)], fadeIn(t - (s[`_k${Math.min(k, 2)}`] ?? 0), 0.3), [70, 170, 1100], [40, 330, 1000]);
+    iwSrc(ikSrcH);
+    academyBadge();
+    ikNote(k >= 2 ? "魚の動きはイメージ（飼育実験の様子ではない）。イカナゴはカタクチイワシのモデルで表示" : "魚の動きはイメージ（飼育実験の様子ではない）。イカナゴの3Dモデルがないので、カタクチイワシのモデルで表示");
+  },
+  // だから釣りでは：k0 食べる魚14種 → k1 水産庁：サワラの餌として重要 → k2 つながりの大事な1つ
+  ik_tsuri(t, d, s, k) {
+    const P = PORTRAIT, T = t + 150;
+    ikBase();
+    ikSwim(T, { n: 16, cx: 0, sx: 2.0, h0: 0.3, h1: 0.8, z0: -0.6, sz: 1.4, sc: 2.2, sp: 0.08 });
+    ikPred(T, { n: 6, sp: 0.35 });
+    iwCam(IKp(0, IK_FL + 1.4, -1.8), P ? 7.5 : 5.8, 0.05 * Math.sin(t * 0.1), 0.6, 50, IKp(P ? 0 : 1.2, IK_FL + (P ? 0.5 : 1.3), -1.8));
+    const msg = [
+      `<b style="font-size:34px">イカナゴを食べる魚として調べられた<span style="color:#c2410c">14種</span></b><div style="font-size:32px;font-weight:900;margin-top:8px"><span style="color:#1f6fd1">サワラ・ブリ・ハモ・スズキ・ヒラメ</span>など<br>瀬戸内海の釣りでおなじみの魚</div>`,
+      `<b style="font-size:34px">水産庁の資料：イカナゴは<br><span style="color:#c2410c">サワラの餌として重要</span>な魚</b>`,
+      `<b style="font-size:34px">釣りの魚の増え減りにもつながる<br>海の中のつながりの<span style="color:#1d8a3a">大事な1つ</span>と言われる</b>`,
+    ];
+    html += ftCard(P, msg[Math.min(k, 2)], fadeIn(t - (s[`_k${Math.min(k, 2)}`] ?? 0), 0.3), [70, 170, 820], [40, 330, 1000]);
+    iwSrc(k === 1 ? ikSrcF : ikSrcH);
+    academyBadge();
+    ikNote("魚の数・動きはイメージ。小魚は大きく表示。イカナゴはカタクチイワシのモデルで表示");
+  },
+  ik_sum(t, d, s, k) {
+    const P = PORTRAIT, T = t + 170;
+    ikBase();
+    ikSleep(T, { n: 12, x0: 0, w: 0.6, dep0: 0.05, dep1: 0.3 });
+    ikSwim(T, { n: 8, cx: 0, sx: 0.6, h0: 0.34, h1: 0.7, z0: -0.15, sz: 0.5 });
+    ikCam(t, { cy: 0.05, dist: P ? 1.7 : 1.35, up: 0.2, ly: 0.05 });
+    html += acDim(0.45);
+    const rows = [["7月ごろ", "水温24℃以上で、砂にもぐって夏眠", "香川県水産試験場", "#1f6fd1"], ["食べない", "夏眠中はえさを食べず、12月に出て産卵", "11月ごろから生殖腺が育つ（栄養がよい個体）", "#d6336c"], ["砂のすき間", "粒が大きめの砂のすき間で眠る", "水産研究・教育機構", "#2a9d5c"]];
+    html += `<div class="big" style="top:${P ? 560 : 110}px;font-size:${P ? 58 : 60}px;opacity:${fadeIn(t, 0.1)}">イカナゴの夏眠 まとめ</div>`;
+    rows.forEach(([a1, b1, c1, col], i) => {
+      const a = fadeIn(t, 0.4 + i * 0.45);
+      html += `<div class="card" style="left:${P ? 70 : 300}px;top:${(P ? 780 : 240) + i * (P ? 240 : 200)}px;width:${P ? 880 : 1300}px;padding:20px 30px;opacity:${a};transform:translateY(${(1 - a) * 30}px);display:flex;align-items:center;gap:26px"><b style="background:${col};color:#fff;font-size:${P ? 26 : 30}px;padding:10px 0;width:${P ? 200 : 240}px;text-align:center;border-radius:18px;flex:none">${a1}</b><div><div style="font-size:${P ? 30 : 38}px;font-weight:900">${b1}</div><div style="font-size:${P ? 24 : 28}px;color:#3a5a78">${c1}</div></div></div>`;
+    });
+    academyBadge();
+  },
+});
+
 let lastShot = null;
 window.ready = Promise.all(pending);
 // =====================================================================
