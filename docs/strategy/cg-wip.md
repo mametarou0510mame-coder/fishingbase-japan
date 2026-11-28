@@ -15,11 +15,12 @@
 - [x] content/cg/cg-ikanago.json・short-cg-ikanago.json（見積もり 191秒・47秒）
 - [x] Blender scenes/ikanago.py（check_scene 最小 0.225m）
 - [x] 静止画の確認 → push
-- [ ] cg-video（8分割）→ cg-compress
+- [x] cg-video 46109222828（成功。本番の冒頭の章 約11.7秒 < SEC 14）→ cg-compress 46112150760
 - [ ] Blender test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md
 - cg-video 46109222828 を起動（2026-11-28）。Blender test も起動。固定コメント data/sns/yt-comments/cg-ikanago.txt 済み
-- 次にやること：cg-video の完了を待つ → cg-compress（run_id=46109222828）→ Blender test を確かめて full
+- Blender test：1回目 46109230870 はカタクチイワシの新しいモデルの _JAW（VEC2）で glTF 読み込みが失敗 → opening.py で外して 2回目 46110732718 成功（すきま 0.282m）。カメラを近づけた
+- 次にやること：cg-compress の完了を確かめる → Blender full（video_run=46109222828, samples=64）
 
 （作りかけはなし。2026-11-27 見える化「サーフの釣れる場所は離岸流で決まる」cg-rigan を作った。書き出し 46019425270（9分29秒）・圧縮 46023411452・Blender（使い回しの cg-surf-open.mp4）46023428678。1回目の書き出し 46012231842 は冒頭の章が長すぎて Blender で止まったので、つかみを2行にして「はじめに」の章を足した。**ORDER にはまだ入れていない：投稿日はオーナーの指示待ち**。ショート short-cg-rigan はまだない）
 
