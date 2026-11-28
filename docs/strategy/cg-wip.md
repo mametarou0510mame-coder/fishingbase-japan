@@ -7,6 +7,19 @@
 
 **魚の色は 3D モデルのまま（2026-11-22 オーナー）**：魚の色を水中の見え方に加工しない。色の見え方が主題の回だけ加工あり。くわしくは cg-video-plan.md の共通ルール。
 
+## 作りかけ（アカデミー）2026-11-28 R16「イカナゴは夏、砂の中で眠る？」cg-ikanago（ik_*）
+- 企画：A-2 の1番。事実は fish-knowledge.md「イカナゴの夏眠」の節だけ（この回の WebFetch は権限の応答がなく原典を開き直せなかったので、節に書かれた数値だけを使う。死亡率の数値は使わない）
+- 構成：ik_hook（Blender ikanago）→ ik_year（7月・24℃で砂へ／12月に出て産卵）→ ik_quiz（夏眠中に食べるもの？→何も食べない・肥満度が下がる）→ ik_body（栄養がよいと11月から生殖腺・12月に産卵）→ ik_sand（D20 0.2mm・すき間で呼吸と考えられる）→ ik_heat（備讃瀬戸・8〜9月27℃超の年）→ ik_catch（2016→2017 約1割→3千トン未満・捕食者）→ ik_food（えさ不足で夏眠が遅れ長く泳ぐ）→ ik_tsuri → ik_sum → ask → end
+- イカナゴの3Dモデルがないので、カタクチイワシ（katakuchi）のモデルで代用し断り書き。砂の中は断面の模式図（ikBase）
+- [ ] main.js ik_* ・ik_thumb
+- [ ] content/cg/cg-ikanago.json・short-cg-ikanago.json
+- [ ] Blender scenes/ikanago.py（check_scene）
+- [ ] 静止画の確認 → push
+- [ ] cg-video（8分割）→ cg-compress
+- [ ] Blender test → full
+- [ ] ORDER・固定コメント・cg-video-plan.md
+- 次にやること：main.js の ik_* を書く
+
 （作りかけはなし。2026-11-27 見える化「サーフの釣れる場所は離岸流で決まる」cg-rigan を作った。書き出し 46019425270（9分29秒）・圧縮 46023411452・Blender（使い回しの cg-surf-open.mp4）46023428678。1回目の書き出し 46012231842 は冒頭の章が長すぎて Blender で止まったので、つかみを2行にして「はじめに」の章を足した。**ORDER にはまだ入れていない：投稿日はオーナーの指示待ち**。ショート short-cg-rigan はまだない）
 
 （作りかけはなし。2026-11-27 CG実験「船の仕掛けはどう沈む？」cg-nimaishio を ORDER に入れて完了。書き出し 45936514602・圧縮 45937792161・Blender full 45968639328・最小すきま 0.548m）
