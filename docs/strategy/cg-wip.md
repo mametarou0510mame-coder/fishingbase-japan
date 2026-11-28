@@ -18,7 +18,8 @@
 - [ ] cg-video（8分割）→ cg-compress
 - [ ] Blender test → full
 - [ ] ORDER・固定コメント・cg-video-plan.md
-- 次にやること：cg-video.yml（slug=cg-ikanago, chunks=8）を起動
+- cg-video 46109222828 を起動（2026-11-28）。Blender test も起動。固定コメント data/sns/yt-comments/cg-ikanago.txt 済み
+- 次にやること：cg-video の完了を待つ → cg-compress（run_id=46109222828）→ Blender test を確かめて full
 
 （作りかけはなし。2026-11-27 見える化「サーフの釣れる場所は離岸流で決まる」cg-rigan を作った。書き出し 46019425270（9分29秒）・圧縮 46023411452・Blender（使い回しの cg-surf-open.mp4）46023428678。1回目の書き出し 46012231842 は冒頭の章が長すぎて Blender で止まったので、つかみを2行にして「はじめに」の章を足した。**ORDER にはまだ入れていない：投稿日はオーナーの指示待ち**。ショート short-cg-rigan はまだない）
 
