@@ -3,7 +3,7 @@
 #   blender -b -P scripts/cg/blender/opening.py -- --scene jig --thumb --out out/thumb --samples 160
 # 場面は scenes/<scene>.py（動きは時刻 t だけで決まる）。コマを分けて並べて書き出せる。
 # 単位はメートル。海底は z=0。魚は Fish Kit（CC0）。魚が海底より下に行かないことを毎コマ記録する。
-import bpy, math, sys, os, time, importlib.util
+import bpy, json, math, sys, os, time, importlib.util
 import numpy as np
 from mathutils import Vector
 
@@ -313,7 +313,31 @@ def b_flake(nt, n, l):
 flake.data.materials.append(mat("flake", b_flake))
 
 # 魚（Fish Kit、CC0）。ヒーロー1匹と、場面によってはうしろの群れ
-bpy.ops.import_scene.gltf(filepath=FISH)
+# 2026-11-28：Blender 4.2 の glTF 読み込みは、2成分（VEC2）の独自の頂点属性（katakuchi の _JAW）で止まる。
+# 読み込む前に、その属性だけを外した一時ファイルを作る（形・色は変わらない。three.js 側は元のファイルのまま）
+def _strip_vec2(src):
+    import struct, tempfile
+    b = open(src, "rb").read()
+    L = struct.unpack("<I", b[12:16])[0]
+    j = json.loads(b[20:20 + L])
+    hit = False
+    for m in j.get("meshes", []):
+        for pr in m["primitives"]:
+            for k in [k for k, v in pr["attributes"].items() if k.startswith("_") and j["accessors"][v]["type"] == "VEC2"]:
+                del pr["attributes"][k]
+                hit = True
+    if not hit:
+        return src
+    js = json.dumps(j, separators=(",", ":")).encode()
+    js += b" " * ((4 - len(js) % 4) % 4)
+    rest = b[20 + L:]
+    out = struct.pack("<III", 0x46546C67, 2, 12 + 8 + len(js) + len(rest)) + struct.pack("<II", len(js), 0x4E4F534A) + js + rest
+    dst = os.path.join(tempfile.gettempdir(), "fk_" + os.path.basename(src))
+    open(dst, "wb").write(out)
+    return dst
+
+
+bpy.ops.import_scene.gltf(filepath=_strip_vec2(FISH))
 fish = [o for o in bpy.context.selected_objects if o.type == "MESH"][0]
 fish.parent = None
 fish.rotation_mode = "QUATERNION"
