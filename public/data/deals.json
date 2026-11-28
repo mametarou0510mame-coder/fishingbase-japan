@@ -1,5 +1,5 @@
 {
- "updatedOn": "2026-11-27",
+ "updatedOn": "2026-11-28",
  "categories": [
   {
    "key": "sabiki",
@@ -23,63 +23,19 @@
   {
    "key": "lifejacket",
    "label": "ライフジャケット（桜マーク）",
-   "kind": "popular",
+   "kind": "point",
    "unverified": false,
    "items": [
     {
-     "name": "SEAWOLF(シーウルフ) SW-J-F06 腰巻 ライフジャケット 桜マーク 自動・手動膨脹式 TYPE-A ベルトタイプ 国土交通省型",
-     "price": 13100,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00th3uo.kz1wac2c.g00th3uo.kz1wb500%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseawolf%252F20000000%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseawolf%252Fi%252F10000001%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00th3uo.kz1wac2c.g00th3uo.kz1wb500%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseawolf%252F20000000%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseawolf%252Fi%252F10000001%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/seawolf/cabinet/imgrc0123527760.jpg?_ex=200x200",
-     "shop": "SEAWOLF公式ショップ 楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.69,
-     "reviewCount": 371
-    },
-    {
-     "name": "ビーウェーブ 桜マーク 手動膨張式 ライフジャケット タイプA ウエストベルト型 オーシャンWR-3型 国土交通省認定品 レッド ブルー ブ",
-     "price": 14590,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00po81o.kz1wad97.g00po81o.kz1wb57e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fneonet%252Fgrp-ol-wr3%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fneonet%252Fi%252F10023557%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00po81o.kz1wad97.g00po81o.kz1wb57e%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fneonet%252Fgrp-ol-wr3%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fneonet%252Fi%252F10023557%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/neonet/cabinet/img024/grp-ol-wr3_1.jpg?_ex=200x200",
-     "shop": "ネオネットマリン楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.68,
-     "reviewCount": 102
-    },
-    {
-     "name": "BASARO (バサロ) ライフジャケット 桜マーク タイプA 釣り 国土交通省型式承認品 救命胴衣 自動膨張式 大人用 腰巻き ベルトタイ",
-     "price": 14980,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s0p7o.kz1wad1f.g00s0p7o.kz1wb3ab%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-club-jseed%252Fb-lifejack-xh01%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-club-jseed%252Fi%252F10000620%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s0p7o.kz1wad1f.g00s0p7o.kz1wb3ab%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-club-jseed%252Fb-lifejack-xh01%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-club-jseed%252Fi%252F10000620%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/auc-club-jseed/cabinet/lifejac-xh/imgrc0109629690.jpg?_ex=200x200",
-     "shop": "SL inc.楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.77,
-     "reviewCount": 71
-    },
-    {
-     "name": "ライフジャケット 桜マーク 小児用 高階救命器具 BLUESTORM ブルーストーム ヒューペ 子供用 子供 BSJ-212 イエロー / ",
-     "price": 6600,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pki7o.kz1wacc5.g00pki7o.kz1wbb01%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseibumarine%252F43497%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseibumarine%252Fi%252F10022998%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pki7o.kz1wacc5.g00pki7o.kz1wbb01%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fseibumarine%252F43497%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fseibumarine%252Fi%252F10022998%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/seibumarine/cabinet/life-saving/life-jacket/43497.jpg?_ex=200x200",
-     "shop": "ユニマットマリン",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.69,
-     "reviewCount": 68
-    },
-    {
-     "name": "BASARO (バサロ) ライフジャケット 桜マーク 国土交通省型式承認品 タイプA 手動膨張式 救命胴衣 大人用 釣り 腰 腰巻き ベルト",
-     "price": 12980,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s0p7o.kz1wad1f.g00s0p7o.kz1wb3ab%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-club-jseed%252Fb-lifejack-if01%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-club-jseed%252Fi%252F10000619%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00s0p7o.kz1wad1f.g00s0p7o.kz1wb3ab%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fauc-club-jseed%252Fb-lifejack-if01%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fauc-club-jseed%252Fi%252F10000619%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/auc-club-jseed/cabinet/lifejac-if01/image3.jpg?_ex=200x200",
-     "shop": "SL inc.楽天市場店",
-     "pointRate": 1,
-     "pointEnd": "",
-     "review": 4.68,
-     "reviewCount": 59
+     "name": "マズメ (Mazume) ライフジャケット 釣り 大人用 ベルト 腰巻 桜マーク 国土交通省認定品 自動・手動膨脹式 インフレータブルウエス",
+     "price": 23760,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ujn7o.kz1wa637.g00ujn7o.kz1wb8ba%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fworld-plus-shop%252F4571190550874%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fworld-plus-shop%252Fi%252F10013012%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00ujn7o.kz1wa637.g00ujn7o.kz1wb8ba%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fworld-plus-shop%252F4571190550874%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fworld-plus-shop%252Fi%252F10013012%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/world-plus-shop/cabinet/syohin025/4571190550874.jpg?_ex=200x200",
+     "shop": "ワールドプラス1号店",
+     "pointRate": 20,
+     "pointEnd": "2026-12-03 21:59",
+     "review": 0,
+     "reviewCount": 0
     }
    ]
   },
@@ -175,6 +131,17 @@
      "reviewCount": 2
     },
     {
+     "name": "ダイワ 船タチウオテンヤSS TG 40号 (タチウオテンヤ 太刀魚仕掛け)",
+     "price": 6132,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00py79o.kz1wa3ea.g00py79o.kz1wb6c2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffishing-you%252F4550133498329-a%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffishing-you%252Fi%252F10194870%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00py79o.kz1wa3ea.g00py79o.kz1wb6c2%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Ffishing-you%252F4550133498329-a%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Ffishing-you%252Fi%252F10194870%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/fishing-you/cabinet/item612/4550133498329-a_1.jpg?_ex=200x200",
+     "shop": "フィッシング遊",
+     "pointRate": 10,
+     "pointEnd": "2026-11-30 23:59",
+     "review": 3,
+     "reviewCount": 1
+    },
+    {
      "name": "タチウオウキ釣り直行仕掛けセットSASAME ( ササメ ) うきうき堤防太刀魚セット ( Mサイズ ) ルミカ LUMICA ウミホタル3",
      "price": 970,
      "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qraio.kz1wac8d.g00qraio.kz1wb3bd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fe-westcoast%252F3111-sasame-a-002%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fe-westcoast%252Fi%252F10019408%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00qraio.kz1wac8d.g00qraio.kz1wb3bd%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fe-westcoast%252F3111-sasame-a-002%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fe-westcoast%252Fi%252F10019408%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
@@ -186,11 +153,11 @@
      "reviewCount": 1
     },
     {
-     "name": "ダイワ 船タチウオ天秤仕掛けSS SPK(スペシャルケン付) 1本3/0",
-     "price": 559,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00sl3so.kz1wa175.g00sl3so.kz1wbbb6%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint-eastjapan%252F4550133356131%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint-eastjapan%252Fi%252F17440945%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00sl3so.kz1wa175.g00sl3so.kz1wbbb6%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint-eastjapan%252F4550133356131%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint-eastjapan%252Fi%252F17440945%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point-eastjapan/cabinet/131/4550133356131.jpg?_ex=200x200",
-     "shop": "釣具のポイント東日本 楽天市場店",
+     "name": "ハリミツ 太刀魚 ケイムラ夜光ワイヤー仕掛 垂直2段 P−47 4号",
+     "price": 543,
+     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4945826005593%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F12433296%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00pj4xo.kz1wa605.g00pj4xo.kz1wb886%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint%252F4945826005593%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint%252Fi%252F12433296%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
+     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point/cabinet/593/4945826005593.jpg?_ex=200x200",
+     "shop": "釣具のポイント 楽天市場店",
      "pointRate": 1,
      "pointEnd": "2026-12-01 23:59",
      "review": 0,
@@ -204,17 +171,6 @@
      "shop": "釣具のポイント東日本 楽天市場店",
      "pointRate": 1,
      "pointEnd": "2026-12-01 23:59",
-     "review": 0,
-     "reviewCount": 0
-    },
-    {
-     "name": "ささめ針 実船太刀魚 1本鈎(ケイムラ) ダブルガード FSM74 針1/0号-ハリス6号",
-     "price": 406,
-     "url": "https://hb.afl.rakuten.co.jp/hgc/5898e85a.312d89ad.5898e85b.c7f5d2cd/?pc=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00sl3so.kz1wa175.g00sl3so.kz1wbbb6%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint-eastjapan%252F4941430067958%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint-eastjapan%252Fi%252F17698278%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151&m=https%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2Fg00sl3so.kz1wa175.g00sl3so.kz1wbbb6%2F%3Fpc%3Dhttps%253A%252F%252Fitem.rakuten.co.jp%252Fpoint-eastjapan%252F4941430067958%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252Fpoint-eastjapan%252Fi%252F17698278%252F%26rafcid%3Dwsc_i_is_f8c1b5d9-5c98-4cfa-9b5c-f52f5f4b2151",
-     "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/point-eastjapan/cabinet/958/4941430067958.jpg?_ex=200x200",
-     "shop": "釣具のポイント東日本 楽天市場店",
-     "pointRate": 10,
-     "pointEnd": "2026-12-03 01:59",
      "review": 0,
      "reviewCount": 0
     },
